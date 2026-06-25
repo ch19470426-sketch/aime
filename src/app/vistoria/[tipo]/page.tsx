@@ -142,24 +142,10 @@ export default function VistoriaPage() {
   const handleFoto = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
-    const img = new window.Image()
+    // Usar URL temporária sem canvas para evitar problema de memória
     const url = URL.createObjectURL(file)
-    img.onload = () => {
-      const MAX = 320
-      let w = img.width, h = img.height
-      if (w > h) { h = Math.round(h * MAX / w); w = MAX }
-      else { w = Math.round(w * MAX / h); h = MAX }
-      const canvas = document.createElement("canvas")
-      canvas.width = w; canvas.height = h
-      canvas.getContext("2d")?.drawImage(img, 0, 0, w, h)
-      URL.revokeObjectURL(url)
-      img.src = ""
-      const compressed = canvas.toDataURL("image/jpeg", 0.4)
-      canvas.width = 1; canvas.height = 1
-      setFoto(compressed)
-      gerarIA()
-    }
-    img.src = url
+    setFoto(url)
+    gerarIA()
   }
 
   const gerarIA = async () => {
