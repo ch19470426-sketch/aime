@@ -4,7 +4,7 @@ import Image from "next/image"
 import { useParams } from "next/navigation"
 import { createClient } from "@/utils/supabase/client"
 
-const TIPOS = {
+const TIPOS: Record<string, { titulo: string; tipoServico: string; cnpjOnly: boolean; tagDefault: string }> = {
   "31": { titulo: "Autovistoria", tipoServico: "31 Autovistoria", cnpjOnly: true, tagDefault: "1" },
   "32": { titulo: "Vistoria Inspeção", tipoServico: "32 Vistoria inspeção", cnpjOnly: true, tagDefault: "1" },
   "33": { titulo: "Vistoria Imóvel Novo", tipoServico: "33 Vistoria imóvel novo", cnpjOnly: false, tagDefault: "1" },
@@ -12,7 +12,7 @@ const TIPOS = {
   "35": { titulo: "Vistoria Elevador", tipoServico: "35 Vistoria elevador", cnpjOnly: true, tagDefault: "" },
 }
 
-const ATIVOS = {
+const ATIVOS: Record<string, string[]> = {
   "31": ["Prédio","Apartamento","Casa","Escritório/sala","Loja","Galpão","Hotel/motel","Hospital","Escola","Cinema/teatro","Clube recreativo","Prédio industrial","Outro"],
   "32": ["Prédio","Apartamento","Casa","Escritório/sala","Loja","Galpão","Hotel/motel","Hospital","Escola","Cinema/teatro","Clube recreativo","Prédio industrial","Outro"],
   "33": ["Prédio","Apartamento","Casa","Escritório/sala","Loja","Galpão","Hotel/motel","Hospital","Escola","Cinema/teatro","Clube recreativo","Prédio industrial","Outro"],
@@ -39,15 +39,15 @@ export default function VistoriaPage() {
   const config = TIPOS[tipo] || TIPOS["31"]
   const supabase = createClient()
 
-  const [sistemas, setSistemas] = useState<any[]>([])
+  const [sistemas, setSistemas] = useState<string[]>([])
   const [subsistemas, setSubsistemas] = useState<string[]>([])
   const [anomalias, setAnomalias] = useState<string[]>([])
   const [locais, setLocais] = useState<string[]>([])
   const [fotoNr, setFotoNr] = useState(1)
+  const [fotoNrDisplay, setFotoNrDisplay] = useState("001")
   const [foto, setFoto] = useState<string | null>(null)
   const [statusIA, setStatusIA] = useState("")
   const [sucesso, setSucesso] = useState(false)
-  // input file acessado por ID para compatibilidade mobile
 
   const hoje = new Date().toLocaleDateString("pt-BR")
 
@@ -61,7 +61,6 @@ export default function VistoriaPage() {
     nc: "", cp: "",
   })
 
-  // Carregar sistemas e locais do Supabase
   useEffect(() => {
     const tipoServico = config.tipoServico
     const buscar = async () => {
@@ -86,7 +85,6 @@ export default function VistoriaPage() {
     setFotoNrDisplay(String(nr).padStart(3, "0"))
   }, [tipo])
 
-  // Carregar subsistemas ao selecionar sistema
   useEffect(() => {
     if (!form.sistema) { setSubsistemas([]); setAnomalias([]); return }
     const tipoServico = config.tipoServico
@@ -104,7 +102,6 @@ export default function VistoriaPage() {
     setAnomalias([])
   }, [form.sistema])
 
-  // Carregar anomalias ao selecionar subsistema
   useEffect(() => {
     if (!form.subsistema || !form.sistema) { setAnomalias([]); return }
     const tipoServico = config.tipoServico
@@ -145,10 +142,6 @@ export default function VistoriaPage() {
   const handleFoto = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
-    comprimirFoto(file)
-  }
-
-  const comprimirFoto = (file: File) => {
     const img = new window.Image()
     const url = URL.createObjectURL(file)
     img.onload = () => {
@@ -158,8 +151,7 @@ export default function VistoriaPage() {
       else { w = Math.round(w * MAX / h); h = MAX }
       const canvas = document.createElement("canvas")
       canvas.width = w; canvas.height = h
-      const ctx = canvas.getContext("2d")
-      ctx?.drawImage(img, 0, 0, w, h)
+      canvas.getContext("2d")?.drawImage(img, 0, 0, w, h)
       URL.revokeObjectURL(url)
       img.src = ""
       const compressed = canvas.toDataURL("image/jpeg", 0.4)
@@ -170,21 +162,14 @@ export default function VistoriaPage() {
     img.src = url
   }
 
-  const abrirCamera = () => {
-    document.getElementById("file-input")?.click()
-  }
-
   const gerarIA = async () => {
     if (!form.sistema || !form.subsistema || !form.anomalia) return
     const sistemaLimpo = form.sistema.replace(/^\d+[_\s—\-]+/, "")
-    const urgEl = document.getElementById("urgencia") as HTMLSelectElement
     const abrEl = document.getElementById("abrangencia") as HTMLSelectElement
     const abrangencia = abrEl?.options[abrEl.selectedIndex]?.text || ""
-
     setStatusIA("Avaliando características do ambiente...")
     const pNC = `Como engenheiro diagnóstico especialista em patologia de edificações, descreva a Não conformidade: Sistema: ${sistemaLimpo}, Subsistema: ${form.subsistema}, Anomalia: ${form.anomalia}, Local: ${form.local} ${form.complemento}. Máximo 200 caracteres, sem causa ou solução. Responda apenas a descrição.`
     const pCP = `Como engenheiro diagnóstico especialista em patologia de edificações, descreva a Causa provável: Sistema: ${sistemaLimpo}, Subsistema: ${form.subsistema}, Anomalia: ${form.anomalia}, Origem: ${form.origem}, Abrangência: ${abrangencia}. Máximo 200 caracteres. Responda apenas a descrição.`
-
     try {
       setStatusIA("Cruzando parâmetros...")
       const [r1, r2] = await Promise.all([
@@ -204,7 +189,6 @@ export default function VistoriaPage() {
     const proximo = fotoNr + 1
     setFotoNr(proximo)
     setFotoNrDisplay(String(proximo).padStart(3, "0"))
-    // Salvar como imagem via print
     setTimeout(() => window.print(), 300)
     setTimeout(() => setSucesso(true), 800)
   }
@@ -264,7 +248,6 @@ export default function VistoriaPage() {
           </div>
         ) : (
           <div style={s.body}>
-
             <div style={s.block}>
               <div style={s.blockTitle}>Identificação</div>
               <div style={s.blockBody}>
@@ -306,14 +289,14 @@ export default function VistoriaPage() {
                     <label style={s.label}>Sistema</label>
                     <select name="sistema" value={form.sistema} onChange={handleChange} style={s.input}>
                       <option value="">Selecione...</option>
-                      {sistemas.map(s => <option key={s}>{s}</option>)}
+                      {sistemas.map(v => <option key={v}>{v}</option>)}
                     </select>
                   </div>
                   <div style={s.field}>
                     <label style={s.label}>Subsistema</label>
                     <select name="subsistema" value={form.subsistema} onChange={handleChange} style={s.input}>
                       <option value="">Selecione...</option>
-                      {subsistemas.map(s => <option key={s}>{s}</option>)}
+                      {subsistemas.map(v => <option key={v}>{v}</option>)}
                     </select>
                   </div>
                   <div style={s.field}>
@@ -395,13 +378,12 @@ export default function VistoriaPage() {
                     <label style={{ ...s.label, textAlign: "center" }}>Data da vistoria</label>
                     <div style={{ fontSize: "7.5pt", color: "#1E3A8A", fontWeight: 600, textAlign: "center", padding: "2px 5px", border: "1px solid #c3d4f0", borderRadius: "4px", backgroundColor: "#f5f7fc", width: "100%" }}>{hoje}</div>
                   </div>
-                  <button onClick={abrirCamera}
-                    style={{ display: "flex", alignItems: "center", gap: "5px", padding: "3px 12px", height: "24px", backgroundColor: "#E8EEF7", border: "1px solid #c3d4f0", borderRadius: "4px", cursor: "pointer", fontSize: "7pt", color: "#1E3A8A", whiteSpace: "nowrap", fontFamily: "inherit" }}>
+                  <label htmlFor="file-input" style={{ display: "flex", alignItems: "center", gap: "5px", padding: "3px 12px", height: "24px", backgroundColor: "#E8EEF7", border: "1px solid #c3d4f0", borderRadius: "4px", cursor: "pointer", fontSize: "7pt", color: "#1E3A8A", whiteSpace: "nowrap" as const, fontFamily: "inherit" }}>
                     📷 Adicionar foto
-                  </button>
+                  </label>
                   <input id="file-input" type="file" accept="image/*" capture="environment" style={{ display: "none" }} onChange={handleFoto} />
                 </div>
-                <label htmlFor="file-input" style={{...s.photoArea, display: "flex"}}>
+                <label htmlFor="file-input" style={{...s.photoArea}}>
                   {foto
                     ? <img src={foto} alt="Foto" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} />
                     : <span style={{ fontSize: "7pt", color: "#4a6480" }}>Clique para adicionar foto</span>
@@ -429,7 +411,6 @@ export default function VistoriaPage() {
               <button onClick={() => window.location.href = "/dashboard"} style={s.btnSec}>Encerrar vistoria</button>
               <button onClick={handleSalvar} style={s.btnPri}>Salvar dados</button>
             </div>
-
           </div>
         )}
       </div>
