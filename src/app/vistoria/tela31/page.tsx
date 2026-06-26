@@ -116,7 +116,14 @@ function Tela31Inner() {
   useEffect(() => {
     async function carregar() {
       setCarregando(true)
-
+console.log('Buscando estabelecimento:', cnpjoucpf)
+if (cnpjoucpf) {
+  const { data, error } = await supabase
+    .from('estabelecimento')
+    .select('cnpjoucpf, razao_social_nome')
+    .eq('cnpjoucpf', cnpjoucpf)
+    .single()
+  console.log('Resultado:', data, 'Erro:', error)
       if (cnpjoucpf) {
         const { data } = await supabase
           .from('estabelecimento')
