@@ -1,12 +1,19 @@
+// src/app/dashboard/page.tsx
+// AIMÊ — Dashboard com fluxo de entrada de CNPJ para vistorias
+
 "use client"
+
 import { useState } from "react"
+import { useRouter } from "next/navigation"
 import Image from "next/image"
+import { createClient } from "@/utils/supabase/client"
 
-// TODO: buscar titulo_profissional do perfil do inspetor logado via Supabase
-// const { data } = await supabase.from('inspetor').select('titulo_profissional').eq('cpf_inspetor', user.id).single()
-const titulo = "Eng Civil"
+// TODO: buscar cpf_inspetor e titulo_profissional do perfil logado via Supabase auth
+const cpfInspetor   = "12345678900"   // provisório até integrar auth
+const chaveInspetor = "INS-001"       // provisório
+const titulo        = "Eng Civil"
 
-const permissoes = {
+const permissoes: Record<string, number[]> = {
   "Arquiteto":          [11,12,13,19,21,22,23,29,31,32,33,40,41,42,43,49,61,62,99],
   "Eng Civil":          [11,12,13,14,19,21,22,23,24,29,31,32,33,34,40,41,42,43,44,49,61,62,99],
   "Eng Eletrico":       [16,26,36,40,46,61,62,99],
@@ -61,64 +68,138 @@ const menuGrupos = [
   ]},
   { grupo: "Outros", itens: [
     { codigo: 61, label: "Baixar Documentos" },
-    { codigo: 62, label: "Situacao do Contrato" },
+    { codigo: 62, label: "Situação do Contrato" },
     { codigo: 99, label: "Sair do Aplicativo" },
   ]},
 ]
 
+// Tipos de serviço que são vistorias (abre tela de CNPJ)
+const CODIGOS_VISTORIA = [31, 32, 33, 34, 35, 36, 37, 38]
+
+// Mapa de código para tipo_servico no banco
+const TIPO_SERVICO_BANCO: Record<number, string> = {
+  31: "31 Autovistoria",
+  32: "32 Vistoria inspeção",
+  33: "33 Vistoria imóvel novo",
+  34: "34 Vistoria fachada",
+  35: "35 Vistoria elevador",
+  36: "36 Vistoria nr-10",
+  37: "37 Vistoria nr-12",
+  38: "38 Vistoria nr-13",
+}
+
+type EstadoCnpj = "aguardando" | "verificando" | "nao_cadastrado" | "erro"
+
 export default function Dashboard() {
-  const [tipoServico, setTipoServico] = useState(null)
-  const [grupoAberto, setGrupoAberto] = useState("Vistorias")
+  const router = useRouter()
+  const supabase = createClient()
+
+  const [tipoServico,  setTipoServico]  = useState<number | null>(null)
+  const [grupoAberto,  setGrupoAberto]  = useState<string | null>("Vistorias")
+  const [cnpj,         setCnpj]         = useState("")
+  const [estadoCnpj,   setEstadoCnpj]   = useState<EstadoCnpj>("aguardando")
 
   const permitidos = permissoes[titulo] || []
+  const itemSelecionado = menuGrupos.flatMap((g) => g.itens).find((i) => i.codigo === tipoServico)
+  const ehVistoria = tipoServico !== null && CODIGOS_VISTORIA.includes(tipoServico)
 
-  const handleSelecionar = (codigo) => {
+  // Formata CNPJ enquanto digita: 00.000.000/0000-00
+  function formatarCnpj(valor: string): string {
+    const nums = valor.replace(/\D/g, "").slice(0, 14)
+    return nums
+      .replace(/^(\d{2})(\d)/, "$1.$2")
+      .replace(/^(\d{2})\.(\d{3})(\d)/, "$1.$2.$3")
+      .replace(/\.(\d{3})(\d)/, ".$1/$2")
+      .replace(/(\d{4})(\d)/, "$1-$2")
+  }
+
+  // Remove formatação para salvar/buscar
+  function cnpjSemMascara(cnpj: string): string {
+    return cnpj.replace(/\D/g, "")
+  }
+
+  function handleSelecionar(codigo: number) {
     if (!permitidos.includes(codigo)) return
     if (codigo === 99) { window.location.href = "/"; return }
     setTipoServico(codigo)
+    setCnpj("")
+    setEstadoCnpj("aguardando")
   }
 
-  const itemSelecionado = menuGrupos.flatMap(g => g.itens).find(i => i.codigo === tipoServico)
+  async function handleIniciarVistoria() {
+    const cnpjLimpo = cnpjSemMascara(cnpj)
+    if (cnpjLimpo.length < 11) {
+      alert("Informe um CNPJ ou CPF válido.")
+      return
+    }
+
+    setEstadoCnpj("verificando")
+
+    // a) Verifica se o estabelecimento está cadastrado
+    const { data: estabelecimento, error } = await supabase
+      .from("estabelecimento")
+      .select("cnpjoucpf, razao_social_nome")
+      .eq("cnpjoucpf", cnpjLimpo)
+      .single()
+
+    // b) Estabelecimento não cadastrado
+    if (error || !estabelecimento) {
+      setEstadoCnpj("nao_cadastrado")
+      return
+    }
+
+    // Cadastrado → navega para a tela de vistoria
+    const tipoServicoBanco = TIPO_SERVICO_BANCO[tipoServico!]
+    router.push(
+      `/vistoria/tela${tipoServico}?cpf_inspetor=${cpfInspetor}&chave_inspetor=${chaveInspetor}&cnpjoucpf=${cnpjLimpo}&tipo_servico=${tipoServico}`
+    )
+  }
 
   return (
-    <div style={{backgroundColor:"#E8EEF7",minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",padding:"16px"}}>
-      <div style={{backgroundColor:"white",borderRadius:"16px",boxShadow:"0 4px 24px rgba(0,0,0,0.12)",width:"100%",maxWidth:"1100px",overflow:"hidden"}}>
+    <div className="min-h-screen bg-[#E8EEF7] flex items-center justify-center p-4">
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-5xl overflow-hidden">
 
-        <div style={{backgroundColor:"#1E3A8A",padding:"8px 16px",display:"flex",alignItems:"center",gap:"12px"}}>
-          <Image src="/logo.png" alt="AIME" width={80} height={32} priority style={{filter:"brightness(0) invert(1)"}} />
-          <span style={{color:"white",fontWeight:"bold",fontSize:"12px",flex:1,textAlign:"center"}}>
-            Mapeamento Inteligente de Edificacoes e Equipamentos
+        {/* Header */}
+        <div className="bg-[#1E3A8A] px-4 py-2 flex items-center gap-3">
+          <Image src="/logo.png" alt="AIMÊ" width={80} height={32} priority
+            style={{ filter: "brightness(0) invert(1)" }} />
+          <span className="text-white font-bold text-xs flex-1 text-center">
+            Mapeamento Inteligente de Edificações e Equipamentos
           </span>
         </div>
-        <div style={{height:"2px",backgroundColor:"#1E3A8A"}} />
+        <div className="h-0.5 bg-[#1E3A8A]" />
 
-        <div style={{display:"flex",minHeight:"500px"}}>
-          <div style={{width:"220px",borderRight:"2px solid #1E3A8A",backgroundColor:"white",flexShrink:0}}>
-            <div style={{backgroundColor:"#1E3A8A",padding:"8px 16px"}}>
-              <span style={{color:"white",fontWeight:"bold",fontSize:"11px"}}>Selecionar Servico</span>
+        <div className="flex min-h-[500px]">
+
+          {/* Menu lateral */}
+          <div className="w-56 border-r-2 border-[#1E3A8A] bg-white flex-shrink-0">
+            <div className="bg-[#1E3A8A] px-4 py-2">
+              <span className="text-white font-bold text-xs">Selecionar Serviço</span>
             </div>
-            <div style={{height:"2px",backgroundColor:"#1E3A8A"}} />
-            {menuGrupos.map(grupo => (
+            <div className="h-0.5 bg-[#1E3A8A]" />
+
+            {menuGrupos.map((grupo) => (
               <div key={grupo.grupo}>
-                <button onClick={() => setGrupoAberto(grupoAberto === grupo.grupo ? null : grupo.grupo)}
-                  style={{width:"100%",textAlign:"left",padding:"8px 12px",backgroundColor:"#F1F5F9",color:"#1E3A8A",fontWeight:"bold",fontSize:"11px",border:"none",borderBottom:"1px solid #E2E8F0",cursor:"pointer"}}>
-                  {grupoAberto === grupo.grupo ? "v" : ">"} {grupo.grupo}
+                <button
+                  onClick={() => setGrupoAberto(grupoAberto === grupo.grupo ? null : grupo.grupo)}
+                  className="w-full text-left px-3 py-2 bg-slate-100 text-[#1E3A8A] font-bold text-xs border-b border-slate-200 hover:bg-slate-200"
+                >
+                  {grupoAberto === grupo.grupo ? "▼" : "▶"} {grupo.grupo}
                 </button>
-                {grupoAberto === grupo.grupo && grupo.itens.map(item => {
-                  const habilitado = permitidos.includes(item.codigo)
+
+                {grupoAberto === grupo.grupo && grupo.itens.map((item) => {
+                  const habilitado  = permitidos.includes(item.codigo)
                   const selecionado = tipoServico === item.codigo
                   return (
-                    <button key={item.codigo} onClick={() => handleSelecionar(item.codigo)}
-                      title={!habilitado ? "Nao permitido para seu titulo profissional" : ""}
-                      style={{
-                        width:"100%", textAlign:"left", padding:"6px 12px 6px 20px",
-                        backgroundColor: selecionado ? "#EBF1FF" : "white",
-                        color: !habilitado ? "#C4C4C4" : selecionado ? "#1E3A8A" : "#374151",
-                        fontWeight: selecionado ? "bold" : "normal",
-                        fontSize:"11px", border:"none", borderBottom:"1px solid #F1F5F9",
-                        cursor: habilitado ? "pointer" : "not-allowed",
-                        opacity: habilitado ? 1 : 0.45,
-                      }}>
+                    <button
+                      key={item.codigo}
+                      onClick={() => handleSelecionar(item.codigo)}
+                      title={!habilitado ? "Não permitido para seu título profissional" : ""}
+                      className={`w-full text-left px-3 py-1.5 pl-5 text-xs border-b border-slate-100
+                        ${selecionado ? "bg-blue-50 text-[#1E3A8A] font-bold" : ""}
+                        ${!habilitado ? "text-slate-300 cursor-not-allowed opacity-50" : "text-slate-700 hover:bg-slate-50 cursor-pointer"}
+                      `}
+                    >
                       {item.codigo} - {item.label}
                     </button>
                   )
@@ -127,22 +208,99 @@ export default function Dashboard() {
             ))}
           </div>
 
-          <div style={{flex:1,padding:"20px",backgroundColor:"#F8FAFC"}}>
-            {!tipoServico ? (
-              <div style={{display:"flex",alignItems:"center",justifyContent:"center",height:"100%",color:"#94A3B8",fontSize:"14px"}}>
-                Selecione um servico no menu ao lado
+          {/* Área de conteúdo */}
+          <div className="flex-1 p-5 bg-slate-50">
+
+            {/* Nenhum serviço selecionado */}
+            {!tipoServico && (
+              <div className="flex items-center justify-center h-full text-slate-400 text-sm">
+                Selecione um serviço no menu ao lado
               </div>
-            ) : (
-              <div style={{backgroundColor:"white",borderRadius:"10px",overflow:"hidden",border:"1px solid #E2E8F0"}}>
-                <div style={{backgroundColor:"#1E3A8A",padding:"10px 20px"}}>
-                  <span style={{color:"white",fontWeight:"bold",fontSize:"13px"}}>{itemSelecionado?.codigo} - {itemSelecionado?.label}</span>
+            )}
+
+            {/* Serviço selecionado mas não é vistoria */}
+            {tipoServico && !ehVistoria && (
+              <div className="bg-white rounded-xl overflow-hidden border border-slate-200">
+                <div className="bg-[#1E3A8A] px-5 py-2.5">
+                  <span className="text-white font-bold text-sm">
+                    {itemSelecionado?.codigo} - {itemSelecionado?.label}
+                  </span>
                 </div>
-                <div style={{height:"2px",backgroundColor:"#1E3A8A"}} />
-                <div style={{padding:"32px",color:"#94A3B8",fontSize:"14px",textAlign:"center"}}>
+                <div className="h-0.5 bg-[#1E3A8A]" />
+                <div className="p-8 text-slate-400 text-sm text-center">
                   Funcionalidade em desenvolvimento
                 </div>
               </div>
             )}
+
+            {/* Vistoria selecionada → tela de entrada de CNPJ */}
+            {tipoServico && ehVistoria && (
+              <div className="bg-white rounded-xl overflow-hidden border border-slate-200">
+
+                {/* Título */}
+                <div className="bg-[#1E3A8A] px-5 py-2.5">
+                  <span className="text-white font-bold text-sm">
+                    {itemSelecionado?.codigo} - {itemSelecionado?.label}
+                  </span>
+                </div>
+                <div className="h-0.5 bg-[#1E3A8A]" />
+
+                <div className="p-6">
+                  <h3 className="text-[#1E3A8A] font-bold text-sm mb-1">
+                    Identificar Estabelecimento
+                  </h3>
+                  <p className="text-slate-500 text-xs mb-5">
+                    Informe o CNPJ ou CPF do estabelecimento a ser vistoriado.
+                  </p>
+
+                  {/* Campo CNPJ */}
+                  <div className="mb-4 max-w-xs">
+                    <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">
+                      CNPJ ou CPF *
+                    </label>
+                    <input
+                      type="text"
+                      value={cnpj}
+                      onChange={(e) => {
+                        setCnpj(formatarCnpj(e.target.value))
+                        setEstadoCnpj("aguardando")
+                      }}
+                      placeholder="00.000.000/0000-00"
+                      className="w-full px-3 py-2 rounded-lg border border-slate-300 bg-slate-50 text-sm outline-none focus:border-[#1E3A8A] focus:ring-2 focus:ring-blue-100"
+                      onKeyDown={(e) => e.key === "Enter" && handleIniciarVistoria()}
+                    />
+                  </div>
+
+                  {/* Mensagem: não cadastrado */}
+                  {estadoCnpj === "nao_cadastrado" && (
+                    <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-4 max-w-md">
+                      <p className="text-amber-800 font-semibold text-sm mb-1">
+                        ⚠️ Para o CNPJ/CPF informado não há Estabelecimento cadastrado.
+                      </p>
+                      <p className="text-amber-700 text-xs">
+                        O cadastro do Estabelecimento é efetuado na geração da proposta comercial.
+                      </p>
+                      <button
+                        onClick={() => { setTipoServico(null); setCnpj(""); setEstadoCnpj("aguardando") }}
+                        className="mt-3 text-xs text-[#1E3A8A] font-semibold underline"
+                      >
+                        ← Voltar para Selecionar Serviço
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Botão iniciar */}
+                  <button
+                    onClick={handleIniciarVistoria}
+                    disabled={estadoCnpj === "verificando" || cnpjSemMascara(cnpj).length < 11}
+                    className="bg-[#1E3A8A] text-white font-bold px-6 py-2.5 rounded-full text-sm disabled:opacity-50 hover:opacity-90"
+                  >
+                    {estadoCnpj === "verificando" ? "⏳ Verificando..." : "Iniciar Vistoria →"}
+                  </button>
+                </div>
+              </div>
+            )}
+
           </div>
         </div>
 
