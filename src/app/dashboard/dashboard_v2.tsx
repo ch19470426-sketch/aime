@@ -101,7 +101,7 @@ export default function Dashboard() {
 
   const permitidos = permissoes[titulo] || []
   const itemSelecionado = menuGrupos.flatMap((g) => g.itens).find((i) => i.codigo === tipoServico)
- const ehVistoria = tipoServico !== null && CODIGOS_VISTORIA.includes(Number(tipoServico))
+  const ehVistoria = tipoServico !== null && CODIGOS_VISTORIA.includes(Number(tipoServico))
 
   // Formata CNPJ enquanto digita: 00.000.000/0000-00
   function formatarCnpj(valor: string): string {
@@ -119,6 +119,7 @@ export default function Dashboard() {
   }
 
   function handleSelecionar(codigo: number) {
+    console.log("Selecionado codigo:", codigo, "ehVistoria:", CODIGOS_VISTORIA.includes(Number(codigo)))
     if (!permitidos.includes(codigo)) return
     if (codigo === 99) { window.location.href = "/"; return }
     setTipoServico(codigo)
