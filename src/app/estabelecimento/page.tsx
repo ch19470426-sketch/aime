@@ -57,7 +57,7 @@ export default function CadastroEstabelecimento() {
     }
   }
 
-  const buscarCep = async (cep) => {
+  const buscarCep = async (cep: string) => {
     setBuscandoCep(true)
     try {
       const res = await fetch(`https://viacep.com.br/ws/${cep}/json/`)
