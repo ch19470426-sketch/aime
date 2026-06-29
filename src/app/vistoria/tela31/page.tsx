@@ -1,6 +1,5 @@
 "use client"
 export const dynamic = 'force-dynamic'
-export const dynamic = 'force-dynamic'
 // AIMÊ — Tela 31: Autovistoria Predial v9
 // Usando Tailwind CSS para garantir formatação correta na Vercel
 
