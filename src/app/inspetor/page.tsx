@@ -1,4 +1,4 @@
-﻿"use client"
+"use client"
 export const dynamic = 'force-dynamic'
 import { useState } from "react"
 import Image from "next/image"
@@ -26,7 +26,7 @@ export default function CadastroInspetor() {
   const [sucesso, setSucesso] = useState(false)
   const [buscandoCep, setBuscandoCep] = useState(false)
 
-  const formatarCPF = (valor) => {
+  const formatarCPF = (valor: string) => {
     return valor
       .replace(/\D/g, "")
       .slice(0, 11)
@@ -43,14 +43,14 @@ export default function CadastroInspetor() {
       .replace(/(\d{5})(\d{1,4})$/, "$1-$2")
   }
 
-  const formatarCEP = (valor) => {
+  const formatarCEP = (valor: string) => {
     return valor
       .replace(/\D/g, "")
       .slice(0, 8)
       .replace(/(\d{5})(\d{1,3})$/, "$1-$2")
   }
 
-  const handleChange = (e) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target
     if (name === "cpf") {
       setForm({ ...form, cpf: formatarCPF(value) })
@@ -67,7 +67,7 @@ export default function CadastroInspetor() {
     }
   }
 
-  const buscarCep = async (cep) => {
+  const buscarCep = async (cep: string) => {
     setBuscandoCep(true)
     try {
       const res = await fetch(`https://viacep.com.br/ws/${cep}/json/`)
@@ -85,7 +85,7 @@ export default function CadastroInspetor() {
     setBuscandoCep(false)
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     setErro("")
     setSucesso(true)
