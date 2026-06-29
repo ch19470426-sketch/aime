@@ -188,7 +188,7 @@ export default function ContratosInspetor() {
                       <label style={labelStyle}>Quantidade Contratada</label>
                       <select name="qde_contratada" value={form.qde_contratada} onChange={handleChange} disabled={!form.tipo_assinatura} style={{...inputStyle, backgroundColor: !form.tipo_assinatura ? "#F9FAFB" : "white"}}>
                         <option value="">Selecione...</option>
-                        {(plano?.quantidades || []).map(q => (
+                        {(plano?.quantidades || []).map((q: number) => (
                           <option key={q} value={q}>{q} {plano?.base === "contrato" ? "contrato" : "meses/laudos"}</option>
                         ))}
                       </select>
