@@ -14,7 +14,7 @@ const tiposAtivo: Record<string, string[]> = {
   "38": ["Caldeira flamotubular","Caldeira aquatubular","Caldeira mista","Vaso de processo","Vaso de armazenamento","Compressor","Autoclave","Tubulacao de processo","Tanque metalico","Outro"],
 }
 
-const subtipos = {
+const subtipos: Record<string, string[]> = {
   "35": ["Baixa tensao","Media tensao","Alta tensao"],
   "36": ["Baixa tensao","Media tensao","Alta tensao"],
   "37": ["Prensa mecanica excentrica","Freio-embreagem","Hidraulica","Pneumatica"],
