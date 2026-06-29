@@ -54,7 +54,7 @@ export default function ContratosInspetor() {
     return `${String(data.getDate()).padStart(2,"0")}/${String(data.getMonth()+1).padStart(2,"0")}/${data.getFullYear()}`
   }
 
-  const calcularValor = (tipo, qtd) => {
+  const calcularValor = (tipo: string, qtd: number) => {
     if (!tipo || !qtd) return ""
     const p = planos[tipo]
     if (!p) return ""
