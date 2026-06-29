@@ -1,4 +1,4 @@
-"use client"
+ï»¿"use client"
 export const dynamic = 'force-dynamic'
 import { useState, useEffect } from "react"
 import Image from "next/image"
@@ -6,8 +6,8 @@ import { createClient } from "@/utils/supabase/client"
 
 const tiposServico = [
   { label: "31 Autovistoria", value: "31 Autovistoria" },
-  { label: "32 Vistoria inspeção", value: "32 Vistoria inspeção" },
-  { label: "33 Vistoria imóvel novo", value: "33 Vistoria imóvel novo" },
+  { label: "32 Vistoria inspeÃ§Ã£o", value: "32 Vistoria inspeÃ§Ã£o" },
+  { label: "33 Vistoria imÃ³vel novo", value: "33 Vistoria imÃ³vel novo" },
   { label: "34 Vistoria fachada", value: "34 Vistoria fachada" },
   { label: "35 Vistoria elevador", value: "35 Vistoria elevador" },
   { label: "36 Vistoria nr-10", value: "36 Vistoria nr-10" },
@@ -41,7 +41,7 @@ export default function TabelaParametros() {
         .from("tabela_parametros")
         .select("descricao_parametros")
         .eq("tipo_servico", form.tipo_servico)
-        .eq("tipo_parametro", "Local ocorrência")
+        .eq("tipo_parametro", "Local ocorrÃªncia")
         .order("descricao_parametros")
       if (data && data.length > 0) {
         const valores = data.map(r => r.descricao_parametros).join("; ")
@@ -56,7 +56,7 @@ export default function TabelaParametros() {
     buscar()
   }, [form.tipo_servico])
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleChange = (e) => {
     const { name, value } = e.target
     if (name === "tipo_servico") {
       setForm({ ...formInicial, tipo_servico: value })
@@ -66,7 +66,7 @@ export default function TabelaParametros() {
     }
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     setErro("")
     const valores = form.descricao_parametros
@@ -81,11 +81,11 @@ export default function TabelaParametros() {
         .from("tabela_parametros")
         .delete()
         .eq("tipo_servico", form.tipo_servico)
-        .eq("tipo_parametro", "Local ocorrência")
+        .eq("tipo_parametro", "Local ocorrÃªncia")
     }
     const registros = valores.map(v => ({
       tipo_servico: form.tipo_servico,
-      tipo_parametro: "Local ocorrência",
+      tipo_parametro: "Local ocorrÃªncia",
       descricao_parametros: v,
     }))
     const { error } = await supabase.from("tabela_parametros").insert(registros)
