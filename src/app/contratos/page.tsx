@@ -89,8 +89,8 @@ export default function ContratosInspetor() {
     } else if (name === "qde_contratada") {
       const tipo = form.tipo_assinatura
       const p = planos[tipo]
-      const fim = calcularFim(form.data_inicio_contrato, value, p?.base)
-      const valor = calcularValor(tipo, value)
+      const fim = calcularFim(form.data_inicio_contrato, Number(value), p?.base)
+      const valor = calcularValor(tipo, Number(value))
       const saldo = p?.nr_laudos === 99 ? "Ilimitado" : String(p?.nr_laudos * Number(value))
       novoForm = { ...form, qde_contratada: value, data_fim_contrato: fim, valor_pago: valor, saldo_quantidade: saldo }
     } else {
