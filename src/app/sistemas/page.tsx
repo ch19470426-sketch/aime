@@ -35,9 +35,9 @@ export default function SistemasConstrutivos() {
   const [novoSistema, setNovoSistema] = useState(false)
   const [novoSubsistema, setNovoSubsistema] = useState(false)
 
-  const supabase = createClient()
 
-  useEffect(() => {
+
+  useEffect(() => { const supabase = createClient()
     if (!form.tipo_servico) { setSistemas([]); setSubsistemas([]); return }
     const buscar = async () => {
       setCarregando(true)
@@ -53,7 +53,7 @@ export default function SistemasConstrutivos() {
     buscar()
   }, [form.tipo_servico])
 
-  useEffect(() => {
+  useEffect(() => { const supabase = createClient()
     if (!form.sistema || !form.tipo_servico || novoSistema) { setSubsistemas([]); return }
     const buscar = async () => {
       setCarregando(true)
@@ -72,7 +72,7 @@ export default function SistemasConstrutivos() {
     buscar()
   }, [form.sistema, novoSistema])
 
-  useEffect(() => {
+  useEffect(() => { const supabase = createClient()
     if (!form.subsistema || !form.sistema || !form.tipo_servico || novoSubsistema) {
       setModoEdicao(false); setRegistroId(null); return
     }
