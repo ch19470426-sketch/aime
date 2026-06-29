@@ -3,7 +3,7 @@
 
 "use client"
 
-export const dynamic = 'force-dynamic'
+
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
@@ -94,7 +94,7 @@ type EstadoCnpj = "aguardando" | "verificando" | "nao_cadastrado" | "erro"
 
 export default function Dashboard() {
   const router = useRouter()
-
+  
   const [tipoServico,  setTipoServico]  = useState<number | null>(null)
   const [grupoAberto,  setGrupoAberto]  = useState<string | null>("Vistorias")
   const [cnpj,         setCnpj]         = useState("")
@@ -127,9 +127,6 @@ export default function Dashboard() {
     setCnpj("")
     setEstadoCnpj("aguardando")
   }
-async function handleIniciarVistoria() {
-  const supabase = createClient()
-  const cnpjLimpo = cnpjSemMascara(cnpj)
 
   async function handleIniciarVistoria() {
     const cnpjLimpo = cnpjSemMascara(cnpj)
@@ -137,6 +134,7 @@ async function handleIniciarVistoria() {
       alert("Informe um CNPJ ou CPF válido.")
       return
     }
+ const supabase = createClient()
 
     setEstadoCnpj("verificando")
 
