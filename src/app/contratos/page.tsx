@@ -94,7 +94,7 @@ export default function ContratosInspetor() {
       const saldo = p?.nr_laudos === 99 ? "Ilimitado" : String(p?.nr_laudos * Number(value))
       novoForm = { ...form, qde_contratada: value, data_fim_contrato: fim, valor_pago: valor, saldo_quantidade: saldo }
     } else {
-      novoForm[name] = value
+      novoForm[name as keyof typeof novoForm] = value
     }
 
     setForm(novoForm)
