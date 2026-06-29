@@ -1,4 +1,4 @@
-﻿"use client"
+"use client"
 export const dynamic = 'force-dynamic'
 import { useState, useEffect } from "react"
 import Image from "next/image"
@@ -41,9 +41,9 @@ export default function ContratosInspetor() {
 
   const hoje = new Date().toLocaleDateString("pt-BR")
 
-  const maskCPF = (v) => v.replace(/\D/g,"").slice(0,11).replace(/(\d{3})(\d)/,"$1.$2").replace(/(\d{3})(\d)/,"$1.$2").replace(/(\d{3})(\d{1,2})$/,"$1-$2")
+  const maskCPF = (v: string) => v.replace(/\D/g,"").slice(0,11).replace(/(\d{3})(\d)/,"$1.$2").replace(/(\d{3})(\d)/,"$1.$2").replace(/(\d{3})(\d{1,2})$/,"$1-$2")
 
-  const calcularFim = (inicio, qtd, base) => {
+  const calcularFim = (inicio: string, qtd: number, base: string) => {
     if (!inicio || inicio.length !== 10) return ""
     const [d, m, a] = inicio.split("/").map(Number)
     if (!d || !m || !a) return ""
