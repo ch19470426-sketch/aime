@@ -1,9 +1,6 @@
 "use client"
 export const dynamic = 'force-dynamic'
-// AIMÊ — Tela 31: Autovistoria Predial v9
-// Usando Tailwind CSS para garantir formatação correta na Vercel
 
-'use client'
 
 import { Suspense, useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
@@ -59,7 +56,6 @@ export default function Tela31Page() {
     <Suspense fallback={
       <div className="min-h-screen bg-[#E8EEF7]">
         <div className="bg-[#1E3A8A] px-5 py-3 flex items-center gap-3 sticky top-0 z-50 shadow-md">
-          <span className="text-white font-black text-lg tracking-widest">AIMÊ</span>
           <span className="text-white font-semibold text-sm flex-1 text-center">Carregando...</span>
         </div>
         <p className="text-center p-16 text-slate-500">Carregando dados da vistoria...</p>
@@ -431,7 +427,6 @@ function Tela31Inner() {
 function Header({ tipoServico }: { tipoServico: string }) {
   return (
     <div className="bg-[#1E3A8A] px-5 py-3 flex items-center gap-3 sticky top-0 z-50 shadow-md">
-      <span className="text-white font-black text-lg tracking-widest flex-shrink-0">AIMÊ</span>
       <span className="text-white font-semibold text-sm flex-1 text-center leading-snug">
         {TITULO_TELA[tipoServico] ?? `Vistoria Tipo ${tipoServico}`}
       </span>
