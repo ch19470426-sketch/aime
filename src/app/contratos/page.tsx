@@ -3,7 +3,7 @@ export const dynamic = 'force-dynamic'
 import { useState, useEffect } from "react"
 import Image from "next/image"
 
-const planos = {
+const planos: Record<string, any> = {
   "PLANO MENSAL": {
     base: "mes", quantidades: [3, 6, 12], nr_laudos: 4, pct: 0.06,
     descontos: { 3: 0, 6: 0.05, 12: 0.10 },
