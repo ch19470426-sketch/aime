@@ -1,4 +1,4 @@
-ï»¿"use client"
+"use client"
 import { useState } from "react"
 import Image from "next/image"
 import { createClient } from "@supabase/supabase-js"
@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation"
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 )
 
 export default function LoginPage() {
@@ -33,9 +33,9 @@ export default function LoginPage() {
     <div style={{ backgroundColor: "#E8EEF7", minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", padding: "16px" }}>
       <div style={{ backgroundColor: "white", borderRadius: "16px", boxShadow: "0 25px 50px rgba(0,0,0,0.15)", width: "100%", maxWidth: "448px", overflow: "hidden" }}>
         <div style={{ backgroundColor: "#1E3A8A", padding: "8px 16px", display: "flex", alignItems: "center", gap: "12px" }}>
-          <Image src="/logo.png" alt="AIMÃŠ" width={80} height={32} priority style={{ filter: "brightness(0) invert(1)" }} />
+          <Image src="/logo.png" alt="AIMÊ" width={80} height={32} priority style={{ filter: "brightness(0) invert(1)" }} />
           <span style={{ color: "white", fontWeight: "bold", fontSize: "12px", textAlign: "center", flex: 1, lineHeight: "1.3" }}>
-            Mapeamento Inteligente de EdificaÃ§Ãµes e Equipamentos
+            Mapeamento Inteligente de Edificações e Equipamentos
           </span>
         </div>
         <div style={{ height: "2px", backgroundColor: "#1E3A8A" }} />
@@ -48,7 +48,7 @@ export default function LoginPage() {
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
               <label style={{ fontSize: "14px", fontWeight: "500", color: "#374151" }}>Senha</label>
-              <input type="password" required value={password} onChange={(e) => setPassword(e.target.value)} placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
+              <input type="password" required value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••"
                 style={{ border: "1px solid #D1D5DB", borderRadius: "8px", padding: "10px 12px", fontSize: "14px", outline: "none" }} />
             </div>
             {erro && <p style={{ color: "#DC2626", fontSize: "13px", textAlign: "center" }}>{erro}</p>}
