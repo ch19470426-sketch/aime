@@ -1,4 +1,4 @@
-﻿"use client"
+"use client"
 export const dynamic = 'force-dynamic'
 import { useState } from "react"
 import Image from "next/image"
@@ -20,7 +20,7 @@ export default function CadastroEstabelecimento() {
   const [sucesso, setSucesso] = useState(false)
   const [buscandoCep, setBuscandoCep] = useState(false)
 
-  const formatarCNPJ = (valor) => {
+  const formatarCNPJ = (valor: string) => {
     return valor.replace(/\D/g, "").slice(0, 14)
       .replace(/(\d{2})(\d)/, "$1.$2")
       .replace(/(\d{3})(\d)/, "$1.$2")
