@@ -35,12 +35,12 @@ export default function CadastroEstabelecimento() {
       .replace(/(\d{3})(\d{1,2})$/, "$1-$2")
   }
 
-  const formatarCEP = (valor) => {
+  const formatarCEP = (valor: string) => {
     return valor.replace(/\D/g, "").slice(0, 8)
       .replace(/(\d{5})(\d{1,3})$/, "$1-$2")
   }
 
-  const handleChange = (e) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target
     if (name === "cnpjoucpf") {
       if (form.tipo_id === "1") setForm({ ...form, cnpjoucpf: formatarCNPJ(value) })
@@ -69,7 +69,7 @@ export default function CadastroEstabelecimento() {
     setBuscandoCep(false)
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     setErro("")
     setSucesso(true)
