@@ -3,7 +3,7 @@ export const dynamic = 'force-dynamic'
 import { useState, useEffect } from "react"
 import Image from "next/image"
 
-const tiposAtivo = {
+const tiposAtivo: Record<string, string[]> = {
   "31": ["Predio","Apartamento","Casa","Escritorio / sala","Loja","Galpao","Hotel / motel","Hospital","Escola","Cinema / teatro","Clube recreativo","Predio industrial","Outro"],
   "32": ["Predio","Apartamento","Casa","Escritorio / sala","Loja","Galpao","Hotel / motel","Hospital","Escola","Cinema / teatro","Clube recreativo","Predio industrial","Outro"],
   "33": ["Predio","Apartamento","Casa","Escritorio / sala","Loja","Galpao","Hotel / motel","Hospital","Escola","Cinema / teatro","Clube recreativo","Predio industrial","Outro"],
