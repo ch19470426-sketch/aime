@@ -63,7 +63,7 @@ export default function ContratosInspetor() {
     return valor.toFixed(2)
   }
 
-  const handleChange = (e) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target
     let novoForm = { ...form }
 
