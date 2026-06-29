@@ -123,7 +123,7 @@ export default function SistemasConstrutivos() {
     }
   }
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e) => { const supabase = createClient()
     e.preventDefault()
     setErro("")
     if (form.descricao_sistema.length > 300) {
