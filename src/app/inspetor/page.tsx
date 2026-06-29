@@ -35,7 +35,7 @@ export default function CadastroInspetor() {
       .replace(/(\d{3})(\d{1,2})$/, "$1-$2")
   }
 
-  const formatarWhatsApp = (valor) => {
+  const formatarWhatsApp = (valor: string) => {
     return valor
       .replace(/\D/g, "")
       .slice(0, 11)
