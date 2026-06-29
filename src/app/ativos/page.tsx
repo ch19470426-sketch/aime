@@ -101,7 +101,7 @@ export default function AtivosVistoriar() {
   const showTensao = ["36","38"].includes(ts)
   const tagReadonly = ["31","32","33","34","36"].includes(ts)
 
-  const handleSubmit = (e) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     setSucesso(true)
   }
