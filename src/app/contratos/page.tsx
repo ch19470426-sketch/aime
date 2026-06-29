@@ -100,7 +100,7 @@ export default function ContratosInspetor() {
     setForm(novoForm)
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     setErro("")
     setSucesso(true)
