@@ -1,4 +1,4 @@
-// src/app/dashboard/page.tsx
+﻿// src/app/dashboard/page.tsx
 // AIMÊ — Dashboard com fluxo de entrada de CNPJ para vistorias
 
 "use client"
@@ -253,11 +253,11 @@ export default function Dashboard() {
                     Identificar Estabelecimento
                   </h3>
                   <p className="text-slate-500 text-xs mb-5">
-                    Informe o CNPJ ou CPF do estabelecimento a ser vistoriado.
+                    Informe CNPJ ou CPF
                   </p>
 
                   {/* Campo CNPJ */}
-                  <div className="mb-4 max-w-xs">
+                  <div className="mb-4 max-w-[200px]">
                     <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">
                       CNPJ ou CPF *
                     </label>
