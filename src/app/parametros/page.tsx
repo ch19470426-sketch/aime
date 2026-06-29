@@ -1,4 +1,5 @@
-"use client"
+﻿"use client"
+export const dynamic = 'force-dynamic'
 import { useState, useEffect } from "react"
 import Image from "next/image"
 import { createClient } from "@/utils/supabase/client"
