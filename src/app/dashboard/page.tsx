@@ -1,6 +1,5 @@
 // src/app/dashboard/page.tsx
 // AIMÊ — Dashboard com sub-tela reorganizada conforme spec
-export const dynamic = 'force-dynamic'
 //   - Bloco CNPJ/CPF compacto (altura -60%) no canto superior esquerdo
 //   - Avatar mie_orienta no canto superior direito
 //   - Título "Procedimento para Execução do Serviço" centralizado entre os dois
@@ -98,7 +97,6 @@ const TIPO_SERVICO_BANCO: Record<number, string> = {
 
 export default function Dashboard() {
   const router = useRouter()
-  const supabase = createClient()
 
   const [tipoServico, setTipoServico] = useState<number | null>(null)
   const [grupoAberto, setGrupoAberto] = useState<string | null>("Vistorias")
@@ -139,6 +137,7 @@ export default function Dashboard() {
   }
 
   async function handleIniciarVistoria() {
+    const supabase = createClient()
     const docLimpo = documentoSemMascara(documento)
     const tamanhoEsperado = coletaCpf ? 11 : 14
     if (docLimpo.length < tamanhoEsperado) {
