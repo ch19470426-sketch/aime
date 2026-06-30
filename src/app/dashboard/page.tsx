@@ -259,9 +259,15 @@ export default function Dashboard() {
                       </label>
                       <input
                         type="text"
+                        inputMode="numeric"
                         value={documento}
                         onChange={(e) => {
                           setDocumento(formatarDocumento(e.target.value))
+                          setEstadoDoc("aguardando")
+                        }}
+                        onInput={(e) => {
+                          const val = (e.target as HTMLInputElement).value
+                          setDocumento(formatarDocumento(val))
                           setEstadoDoc("aguardando")
                         }}
                         placeholder={coletaCpf ? "000.000.000-00" : "00.000.000/0000-00"}
@@ -277,12 +283,11 @@ export default function Dashboard() {
 
                       <button
                         onClick={handleIniciarVistoria}
-                        disabled={estadoDoc === "verificando" || documentoSemMascara(documento).length < (coletaCpf ? 11 : 14)}
                         style={{
                           backgroundColor: "#1E3A8A", color: "white", fontWeight: "bold",
-                          padding: "6px 16px", borderRadius: "9999px", fontSize: "11px",
+                          padding: "10px 16px", borderRadius: "9999px", fontSize: "13px",
                           border: "none", cursor: "pointer", width: "100%",
-                          opacity: (estadoDoc === "verificando" || documentoSemMascara(documento).length < (coletaCpf ? 11 : 14)) ? 0.5 : 1,
+                          minHeight: "44px",
                         }}
                       >
                         {estadoDoc === "verificando" ? "Verificando..." : "Iniciar →"}
