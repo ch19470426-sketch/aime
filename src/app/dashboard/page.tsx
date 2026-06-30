@@ -134,11 +134,13 @@ export default function Dashboard() {
       alert("Informe um CNPJ ou CPF válido.")
       return
     }
+    console.log('Função chamada - teste 1')
     console.log('CNPJ limpo:', cnpjLimpo)
     console.log('Iniciando vistoria, CNPJ:', cnpj)
  const supabase = createClient()
 
-    setEstadoCnpj("verificando")
+ console.log('Supabase client criado:', !!supabase)   
+ setEstadoCnpj("verificando")
 
     // a) Verifica se o estabelecimento está cadastrado
     const { data: estabelecimento, error } = await supabase
@@ -146,6 +148,7 @@ export default function Dashboard() {
       .select("cnpjoucpf, razao_social_nome")
       .eq("cnpjoucpf", cnpjLimpo)
       .single()
+      console.log('Query terminou, resultado:', estabelecimento, error)
       console.log('Resultado busca:', estabelecimento, 'Erro:', error)
 
     // b) Estabelecimento não cadastrado
