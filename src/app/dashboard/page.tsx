@@ -1,5 +1,6 @@
 // src/app/dashboard/page.tsx
-// AIMÊ — Dashboard com sub-tela reorganizada conforme spec:
+// AIMÊ — Dashboard com sub-tela reorganizada conforme spec
+export const dynamic = 'force-dynamic'
 //   - Bloco CNPJ/CPF compacto (altura -60%) no canto superior esquerdo
 //   - Avatar mie_orienta no canto superior direito
 //   - Título "Procedimento para Execução do Serviço" centralizado entre os dois
