@@ -97,6 +97,7 @@ const TIPO_SERVICO_BANCO: Record<number, string> = {
 
 export default function Dashboard() {
   const router = useRouter()
+  const supabase = createClient()
 
   const [tipoServico, setTipoServico] = useState<number | null>(null)
   const [grupoAberto, setGrupoAberto] = useState<string | null>("Vistorias")
@@ -137,15 +138,15 @@ export default function Dashboard() {
   }
 
   async function handleIniciarVistoria() {
-    const supabase = createClient()
     const docLimpo = documentoSemMascara(documento)
     const tamanhoEsperado = coletaCpf ? 11 : 14
     if (docLimpo.length < tamanhoEsperado) {
-      alert(`Informe um ${coletaCpf ? "CPF" : "CNPJ"} válido.`)
+      alert(`Informe um ${coletaCpf ? "CPF" : "CNPJ"} válido. Atual: ${docLimpo.length} dígitos.`)
       return
     }
 
     setEstadoDoc("verificando")
+    alert('Consultando banco... CNPJ: ' + docLimpo)
 
     const { data: estabelecimento, error } = await supabase
       .from("estabelecimento")
@@ -154,10 +155,12 @@ export default function Dashboard() {
       .single()
 
     if (error || !estabelecimento) {
+      alert('Não encontrado. Erro: ' + JSON.stringify(error))
       setEstadoDoc("nao_cadastrado")
       return
     }
 
+    alert('Encontrado! Navegando...')
     router.push(
       `/vistoria/tela${tipoServico}?cpf_inspetor=${cpfInspetor}&chave_inspetor=${chaveInspetor}&cnpjoucpf=${docLimpo}&tipo_servico=${tipoServico}`
     )
