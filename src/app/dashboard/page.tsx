@@ -101,7 +101,8 @@ export default function Dashboard() {
   const [tipoServico, setTipoServico] = useState<number | null>(null)
   const [grupoAberto, setGrupoAberto] = useState<string | null>("Vistorias")
   const [documento, setDocumento] = useState("")
-  const [estadoDoc, setEstadoDoc] = useState<"aguardando" | "verificando" | "nao_cadastrado">("aguardando")
+  const [estadoDoc, setEstadoDoc] = useState<"aguardando" | "verificando" | "nao_cadastrado" | "erro">("aguardando")
+  const [msgErro, setMsgErro] = useState("")
 
   const permitidos = permissoes[titulo] || []
   const itemSelecionado = menuGrupos.flatMap((g) => g.itens).find((i) => i.codigo === tipoServico)
@@ -141,26 +142,40 @@ export default function Dashboard() {
     const docLimpo = documentoSemMascara(documento)
     const tamanhoEsperado = coletaCpf ? 11 : 14
     if (docLimpo.length < tamanhoEsperado) {
-      alert(`Informe um ${coletaCpf ? "CPF" : "CNPJ"} válido.`)
+      setMsgErro(`${coletaCpf ? "CPF" : "CNPJ"} incompleto (${docLimpo.length}/${tamanhoEsperado} dígitos)`)
       return
     }
 
     setEstadoDoc("verificando")
+    setMsgErro("Consultando... CNPJ: " + docLimpo)
 
-    const { data: estabelecimento, error } = await supabase
-      .from("estabelecimento")
-      .select("cnpjoucpf, razao_social_nome")
-      .eq("cnpjoucpf", docLimpo)
-      .single()
+    try {
+      const { data: estabelecimento, error } = await supabase
+        .from("estabelecimento")
+        .select("cnpjoucpf, razao_social_nome")
+        .eq("cnpjoucpf", docLimpo)
+        .single()
 
-    if (error || !estabelecimento) {
-      setEstadoDoc("nao_cadastrado")
-      return
+      if (error) {
+        setMsgErro("Erro Supabase: " + error.message + " | código: " + error.code)
+        setEstadoDoc("erro")
+        return
+      }
+
+      if (!estabelecimento) {
+        setMsgErro("Não cadastrado")
+        setEstadoDoc("nao_cadastrado")
+        return
+      }
+
+      setMsgErro("Encontrado! Navegando...")
+      router.push(
+        `/vistoria/tela${tipoServico}?cpf_inspetor=${cpfInspetor}&chave_inspetor=${chaveInspetor}&cnpjoucpf=${docLimpo}&tipo_servico=${tipoServico}`
+      )
+    } catch (e) {
+      setMsgErro("Exceção: " + String(e))
+      setEstadoDoc("erro")
     }
-
-    router.push(
-      `/vistoria/tela${tipoServico}?cpf_inspetor=${cpfInspetor}&chave_inspetor=${chaveInspetor}&cnpjoucpf=${docLimpo}&tipo_servico=${tipoServico}`
-    )
   }
 
   return (
@@ -268,6 +283,12 @@ export default function Dashboard() {
                         style={{ width: "100%", padding: "8px 10px", borderRadius: "6px", border: "1px solid #CBD5E1", fontSize: "14px", outline: "none", boxSizing: "border-box", marginBottom: "8px" }}
                         onKeyDown={(e) => e.key === "Enter" && handleIniciarVistoria()}
                       />
+
+                      {msgErro && (
+                        <div style={{ fontSize: "10px", color: "#DC2626", marginTop: "4px", wordBreak: "break-all", background: "#FEF2F2", padding: "4px 6px", borderRadius: "4px" }}>
+                          {msgErro}
+                        </div>
+                      )}
 
                       {estadoDoc === "nao_cadastrado" && (
                         <div style={{ fontSize: "10px", color: "#B45309", marginBottom: "6px", lineHeight: 1.3 }}>
