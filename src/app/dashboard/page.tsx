@@ -94,6 +94,7 @@ type EstadoCnpj = "aguardando" | "verificando" | "nao_cadastrado" | "erro"
 
 export default function Dashboard() {
   const router = useRouter()
+  const supabase = createClient()
   
   const [tipoServico,  setTipoServico]  = useState<number | null>(null)
   const [grupoAberto,  setGrupoAberto]  = useState<string | null>("Vistorias")
@@ -113,6 +114,7 @@ export default function Dashboard() {
       .replace(/\.(\d{3})(\d)/, ".$1/$2")
       .replace(/(\d{4})(\d)/, "$1-$2")
   }
+  const supabase = createClient()
 
   // Remove formatação para salvar/buscar
   function cnpjSemMascara(cnpj: string): string {
@@ -137,7 +139,7 @@ export default function Dashboard() {
     console.log('Função chamada - teste 1')
     console.log('CNPJ limpo:', cnpjLimpo)
     console.log('Iniciando vistoria, CNPJ:', cnpj)
- const supabase = createClient()
+ 
 
  console.log('Supabase client criado:', !!supabase)   
  setEstadoCnpj("verificando")
