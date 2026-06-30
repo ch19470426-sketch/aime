@@ -1,6 +1,8 @@
-"use client"
-export const dynamic = 'force-dynamic'
+// src/app/vistoria/tela31/page.tsx
+// AIMÊ — Tela 31: Autovistoria Predial v8
+// Correções: estilos inline (funciona no Next.js 16), anomalias separadas por ";"
 
+'use client'
 
 import { Suspense, useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
@@ -49,24 +51,23 @@ const TIPO_SERVICO_BANCO: Record<string, string> = {
   '37': '37 Vistoria nr-12', '38': '38 Vistoria nr-13',
 }
 
-// ─── Wrapper com Suspense ─────────────────────────────────────────────────────
-
 export default function Tela31Page() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-[#E8EEF7]">
-        <div className="bg-[#1E3A8A] px-5 py-3 flex items-center gap-3 sticky top-0 z-50 shadow-md">
-          <span className="text-white font-semibold text-sm flex-1 text-center">Carregando...</span>
+      <div style={S.page}>
+        <div style={S.header}>
+          <span style={S.logo}>AIMÊ</span>
+          <span style={S.headerTitulo}>Carregando...</span>
         </div>
-        <p className="text-center p-16 text-slate-500">Carregando dados da vistoria...</p>
+        <p style={{ textAlign: 'center', padding: '60px', color: '#64748B' }}>
+          Carregando dados da vistoria...
+        </p>
       </div>
     }>
       <Tela31Inner />
     </Suspense>
   )
 }
-
-// ─── Componente interno ───────────────────────────────────────────────────────
 
 function Tela31Inner() {
   const router   = useRouter()
@@ -102,9 +103,12 @@ function Tela31Inner() {
   const subsistemasFiltrados = [...new Set(
     subsistemas.filter((s) => s.sistema === form.sistema).map((s) => s.subsistema)
   )]
+
+  // Anomalias: separa string por ";" e filtra por sistema+subsistema
   const anomaliasFiltradas = anomalias
     .filter((a) => a.sistema === form.sistema && a.subsistema === form.subsistema)
     .flatMap((a) => a.anomalias.split(';').map((x) => x.trim()).filter(Boolean))
+
   const tiposAtivo    = [...new Set(ativos.map((a) => a.tipo_ativo))]
   const tagsFiltradas = ativos
     .filter((a) => a.tipo_ativo === form.tipoAtivo)
@@ -185,35 +189,34 @@ function Tela31Inner() {
     atualizar(campo, (VALOR_GUT[desc] ?? 1) as FormVistoria[typeof campo])
   }
 
-  const corGR = form.grauRisco >= 64 ? 'text-red-600 border-red-600' :
-                form.grauRisco >= 35 ? 'text-amber-600 border-amber-600' : 'text-green-600 border-green-600'
-  const corGRtxt = form.grauRisco >= 64 ? '#DC2626' : form.grauRisco >= 35 ? '#D97706' : '#16A34A'
+  const corGR = form.grauRisco >= 64 ? '#DC2626' : form.grauRisco >= 35 ? '#D97706' : '#16A34A'
 
   if (carregando) return (
-    <div className="min-h-screen bg-[#E8EEF7]">
+    <div style={S.page}>
       <Header tipoServico={tipoServico} />
-      <p className="text-center p-16 text-slate-500">Carregando dados da vistoria...</p>
+      <p style={{ textAlign: 'center', padding: '60px', color: '#64748B' }}>
+        Carregando dados da vistoria...
+      </p>
     </div>
   )
 
   if (estado.sucesso) return (
-    <div className="min-h-screen bg-[#E8EEF7]">
+    <div style={S.page}>
       <Header tipoServico={tipoServico} />
-      <div className="max-w-3xl mx-auto mt-4 mx-4 bg-white rounded-2xl shadow-lg p-6">
-        <div className="text-center py-10">
-          <div className="text-6xl mb-3">✅</div>
-          <h2 className="text-[#1E3A8A] text-xl font-bold mb-2">Registro salvo com sucesso!</h2>
-          <p className="text-slate-500 text-sm mb-6">
-            Arquivo: <code className="bg-slate-100 px-2 py-0.5 rounded text-xs font-mono">{estado.ultimoArquivoSalvo}</code>
+      <div style={S.card}>
+        <div style={{ textAlign: 'center', padding: '40px 16px' }}>
+          <div style={{ fontSize: '52px', marginBottom: '12px' }}>✅</div>
+          <h2 style={{ color: '#1E3A8A', marginBottom: '8px', fontSize: '20px' }}>
+            Registro salvo com sucesso!
+          </h2>
+          <p style={{ color: '#64748B', fontSize: '14px', marginBottom: '24px' }}>
+            Arquivo: <code style={S.code}>{estado.ultimoArquivoSalvo}</code>
           </p>
-          <div className="flex gap-3 justify-center flex-wrap">
-            <button onClick={resetarSucesso} className="bg-[#1E3A8A] text-white font-bold px-6 py-3 rounded-full hover:opacity-90">
-              ➕ Nova Manifestação
-            </button>
-            <button onClick={() => encerrarVistoria(() => router.push('/dashboard'))}
-              className="bg-white text-red-600 border-2 border-red-600 font-bold px-6 py-3 rounded-full hover:opacity-90">
+          <div style={S.botoes}>
+            <Btn cor="primario" onClick={resetarSucesso}>➕ Nova Manifestação</Btn>
+            <Btn cor="encerrar" onClick={() => encerrarVistoria(() => router.push('/dashboard'))}>
               ✖ Encerrar Vistoria
-            </button>
+            </Btn>
           </div>
         </div>
       </div>
@@ -221,202 +224,194 @@ function Tela31Inner() {
   )
 
   return (
-    <div className="min-h-screen bg-[#E8EEF7] pb-8">
+    <div style={S.page}>
       <Header tipoServico={tipoServico} />
+      <div style={S.card}>
+        <div style={S.divisor} />
 
-      <div className="max-w-3xl mx-auto mt-4 px-3">
-        <div className="bg-white rounded-2xl shadow-lg p-5">
-          {/* Divisor */}
-          <div className="h-0.5 bg-[#1E3A8A] rounded mb-5" />
-
-          {/* IDENTIFICAÇÃO */}
-          <Secao titulo="Identificação">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <Campo label="CNPJ ou CPF">
-                <input value={form.cnpjoucpf} readOnly className={inputRO} />
-              </Campo>
-              <Campo label="Razão Social ou Nome">
-                <input value={form.razaoSocialNome} readOnly className={inputRO} />
-              </Campo>
-              <Campo label="Tipo Ativo *">
-                <select className={sel} value={form.tipoAtivo}
-                  onChange={(e) => { atualizar('tipoAtivo', e.target.value); atualizar('tagAtivoNrSerie', '') }}>
-                  <option value="">Selecione...</option>
-                  {tiposAtivo.map((t) => <option key={t} value={t}>{t}</option>)}
-                </select>
-              </Campo>
-              <Campo label={tagObrigatorio ? 'TAG / Nº Série *' : 'TAG / Nº Série'}>
-                <select className={sel} value={form.tagAtivoNrSerie}
-                  onChange={(e) => atualizar('tagAtivoNrSerie', e.target.value)}
-                  disabled={!form.tipoAtivo}>
-                  <option value="">Selecione...</option>
-                  {tagsFiltradas.map((t) => <option key={t} value={t}>{t}</option>)}
-                </select>
-              </Campo>
-            </div>
-          </Secao>
-
-          {/* MANIFESTAÇÃO PATOLÓGICA */}
-          <Secao titulo="Manifestação Patológica">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <Campo label="Sistema *">
-                <select className={sel} value={form.sistema} onChange={(e) => onSistemaChange(e.target.value)}>
-                  <option value="">Selecione...</option>
-                  {sistemas.map((s) => <option key={s.sistema} value={s.sistema}>{s.sistema}</option>)}
-                </select>
-              </Campo>
-              <Campo label="Subsistema *">
-                <select className={sel} value={form.subsistema}
-                  onChange={(e) => onSubsistemaChange(e.target.value)} disabled={!form.sistema}>
-                  <option value="">Selecione...</option>
-                  {subsistemasFiltrados.map((s) => <option key={s} value={s}>{s}</option>)}
-                </select>
-              </Campo>
-              <Campo label="Anomalia ou Falha *">
-                <select className={sel} value={form.anomalia}
-                  onChange={(e) => atualizar('anomalia', e.target.value)} disabled={!form.subsistema}>
-                  <option value="">Selecione...</option>
-                  {anomaliasFiltradas.map((a) => <option key={a} value={a}>{a}</option>)}
-                </select>
-              </Campo>
-              <Campo label="Origem *">
-                <select className={sel} value={form.origem} onChange={(e) => atualizar('origem', e.target.value)}>
-                  <option value="">Selecione...</option>
-                  {origens.map((o) => <option key={o} value={o}>{o}</option>)}
-                </select>
-              </Campo>
-              <Campo label="Local *">
-                <select className={sel} value={form.local} onChange={(e) => atualizar('local', e.target.value)}>
-                  <option value="">Selecione...</option>
-                  {locais.map((l) => <option key={l} value={l}>{l}</option>)}
-                </select>
-              </Campo>
-              <Campo label="Complemento do Local">
-                <input type="text" className={inp} value={form.complemento}
-                  onChange={(e) => atualizar('complemento', e.target.value)}
-                  placeholder="Detalhe opcional..." />
-              </Campo>
-            </div>
-          </Secao>
-
-          {/* CLASSIFICAÇÃO DE RISCO */}
-          <Secao titulo="Classificação de Risco">
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-              {[
-                { label: 'Gravidade *',   lista: gravidades,   campo: 'gravidade'   as const },
-                { label: 'Urgência *',    lista: urgencias,    campo: 'urgencia'    as const },
-                { label: 'Abrangência *', lista: abrangencias, campo: 'abrangencia' as const },
-                { label: 'Exposição *',   lista: exposicoes,   campo: 'exposicao'   as const },
-              ].map(({ label, lista, campo }) => (
-                <Campo key={campo} label={label}>
-                  <select className={sel} onChange={(e) => onGutChange(campo, e.target.value)}>
-                    <option value="">Sel...</option>
-                    {lista.map((v) => <option key={v} value={v}>{v}</option>)}
-                  </select>
-                </Campo>
-              ))}
-            </div>
-            <div className="flex gap-3 mt-3 flex-wrap">
-              <div className={`flex-1 min-w-32 bg-slate-50 rounded-xl p-3 border-2 ${corGR}`}>
-                <div className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Grau de Risco</div>
-                <div className="text-4xl font-black leading-none" style={{ color: corGRtxt }}>{form.grauRisco}</div>
-                <div className="text-xs text-slate-400 mt-1 leading-snug">GR = ROUND((0,4×Gra+0,3×Urg+0,2×Abr+0,1×Exp)×20)</div>
-              </div>
-              <div className={`flex-[2] min-w-48 bg-slate-50 rounded-xl p-3 border-2 ${corGR}`}>
-                <div className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Prioridade</div>
-                <div className="text-xl font-bold" style={{ color: corGRtxt }}>{form.prioridade}</div>
-                <div className="text-xs text-slate-600 mt-1 leading-snug">{form.definicaoPrioridade}</div>
-              </div>
-            </div>
-          </Secao>
-
-          {/* EVIDÊNCIA FOTOGRÁFICA */}
-          <Secao titulo="Evidência Fotográfica">
-            <div className="flex gap-4 flex-wrap items-start mb-3">
-              <div>
-                <div className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Foto Nº</div>
-                <div className="text-4xl font-black text-[#1E3A8A] leading-none">{form.fotoNr || '—'}</div>
-              </div>
-              <div>
-                <div className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Data Vistoria</div>
-                <div className="text-base font-semibold text-slate-700 mt-1">{form.dataVistoria}</div>
-              </div>
-              {form.fotoBase64 && (
-                <div className="flex-1 min-w-40">
-                  <img src={form.fotoBase64} alt="Foto da anomalia"
-                    className="w-full max-h-56 object-cover rounded-xl border-2 border-[#1E3A8A]" />
-                </div>
-              )}
-            </div>
-            {!form.fotoBase64 && (
-              <div className="border-2 border-dashed border-slate-300 rounded-xl p-6 text-center text-slate-400 text-sm">
-                📷 A foto aparecerá aqui após acionar "Tirar Foto"
-              </div>
-            )}
-            {estado.feedbackIa && estado.feedbackIa !== 'concluido' && estado.feedbackIa !== 'erro' && (
-              <div className="flex items-center gap-2 bg-blue-50 border border-blue-200 rounded-lg px-4 py-2.5 mt-3 text-blue-700 text-sm font-medium">
-                <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse flex-shrink-0" />
-                {TEXTO_FEEDBACK[estado.feedbackIa]}
-              </div>
-            )}
-            {estado.feedbackIa === 'concluido' && (
-              <div className="bg-green-50 border border-green-200 rounded-lg px-4 py-2.5 mt-3 text-green-700 text-sm font-medium">
-                {TEXTO_FEEDBACK.concluido}
-              </div>
-            )}
-            {estado.feedbackIa === 'erro' && (
-              <div className="bg-red-50 border border-red-200 rounded-lg px-4 py-2.5 mt-3 text-red-700 text-sm">
-                {TEXTO_FEEDBACK.erro} {estado.erroIa}
-              </div>
-            )}
-          </Secao>
-
-          {/* RESULTADO DA ANÁLISE */}
-          <Secao titulo="Resultado da Análise e Avaliação">
-            <Campo label={`Não Conformidade (NC)${form.ncGeradaPorIa ? ' — ✨ gerada por IA' : ''}`}>
-              <textarea className={txt} value={form.nc} maxLength={200} rows={3}
-                onChange={(e) => atualizar('nc', e.target.value)}
-                placeholder="Será preenchida automaticamente após tirar a foto..." />
-              <div className="text-xs text-slate-400 text-right mt-0.5">{form.nc.length}/200 caracteres</div>
+        {/* IDENTIFICAÇÃO */}
+        <Secao titulo="Identificação">
+          <div style={S.grid2}>
+            <Campo label="CNPJ ou CPF">
+              <input value={form.cnpjoucpf} readOnly style={S.inputRO} />
             </Campo>
-            <Campo label={`Causa Provável (CP)${form.cpGeradaPorIa ? ' — ✨ gerada por IA' : ''}`}>
-              <textarea className={txt} value={form.cp} maxLength={200} rows={3}
-                onChange={(e) => atualizar('cp', e.target.value)}
-                placeholder="Será preenchida automaticamente após tirar a foto..." />
-              <div className="text-xs text-slate-400 text-right mt-0.5">{form.cp.length}/200 caracteres</div>
+            <Campo label="Razão Social ou Nome">
+              <input value={form.razaoSocialNome} readOnly style={S.inputRO} />
             </Campo>
-          </Secao>
-
-          {estado.erroSave && (
-            <div className="bg-red-50 border border-red-200 rounded-lg px-4 py-2.5 text-red-700 text-sm mb-3">
-              ⚠️ {estado.erroSave}
-            </div>
-          )}
-
-          {/* BOTÕES */}
-          <div className="flex gap-2.5 justify-center flex-wrap border-t border-slate-200 pt-5 mt-5">
-            <button onClick={tirarFotoEGerarNcCp}
-              disabled={!!estado.feedbackIa && estado.feedbackIa !== 'concluido' && estado.feedbackIa !== 'erro'}
-              className="bg-teal-700 text-white font-bold px-6 py-3 rounded-full disabled:opacity-50 hover:opacity-90 text-sm sm:text-base">
-              📷 Tirar Foto
-            </button>
-            <button onClick={salvarDados} disabled={estado.salvando || !form.fotoNr}
-              className="bg-[#1E3A8A] text-white font-bold px-6 py-3 rounded-full disabled:opacity-50 hover:opacity-90 text-sm sm:text-base">
-              {estado.salvando ? '💾 Salvando...' : '💾 Salvar Dados'}
-            </button>
-            <button onClick={() => encerrarVistoria(() => router.push('/dashboard'))}
-              disabled={!podeEncerrar}
-              className="bg-white text-red-600 border-2 border-red-600 font-bold px-6 py-3 rounded-full disabled:opacity-40 hover:opacity-90 text-sm sm:text-base">
-              ✖ Encerrar Vistoria
-            </button>
+            <Campo label="Tipo Ativo *">
+              <select style={S.select} value={form.tipoAtivo}
+                onChange={(e) => { atualizar('tipoAtivo', e.target.value); atualizar('tagAtivoNrSerie', '') }}>
+                <option value="">Selecione...</option>
+                {tiposAtivo.map((t) => <option key={t} value={t}>{t}</option>)}
+              </select>
+            </Campo>
+            <Campo label={tagObrigatorio ? 'TAG / Nº Série *' : 'TAG / Nº Série'}>
+              <select style={S.select} value={form.tagAtivoNrSerie}
+                onChange={(e) => atualizar('tagAtivoNrSerie', e.target.value)}
+                disabled={!form.tipoAtivo}>
+                <option value="">Selecione...</option>
+                {tagsFiltradas.map((t) => <option key={t} value={t}>{t}</option>)}
+              </select>
+            </Campo>
           </div>
+        </Secao>
 
-          {!podeEncerrar && (
-            <p className="text-center text-xs text-amber-600 mt-2">
-              ⚠️ Salve o último registro antes de encerrar a vistoria.
-            </p>
+        {/* MANIFESTAÇÃO PATOLÓGICA */}
+        <Secao titulo="Manifestação Patológica">
+          <div style={S.grid2}>
+            <Campo label="Sistema *">
+              <select style={S.select} value={form.sistema} onChange={(e) => onSistemaChange(e.target.value)}>
+                <option value="">Selecione...</option>
+                {sistemas.map((s) => <option key={s.sistema} value={s.sistema}>{s.sistema}</option>)}
+              </select>
+            </Campo>
+            <Campo label="Subsistema *">
+              <select style={S.select} value={form.subsistema}
+                onChange={(e) => onSubsistemaChange(e.target.value)} disabled={!form.sistema}>
+                <option value="">Selecione...</option>
+                {subsistemasFiltrados.map((s) => <option key={s} value={s}>{s}</option>)}
+              </select>
+            </Campo>
+            <Campo label="Anomalia ou Falha *">
+              <select style={S.select} value={form.anomalia}
+                onChange={(e) => atualizar('anomalia', e.target.value)} disabled={!form.subsistema}>
+                <option value="">Selecione...</option>
+                {anomaliasFiltradas.map((a) => <option key={a} value={a}>{a}</option>)}
+              </select>
+            </Campo>
+            <Campo label="Origem *">
+              <select style={S.select} value={form.origem} onChange={(e) => atualizar('origem', e.target.value)}>
+                <option value="">Selecione...</option>
+                {origens.map((o) => <option key={o} value={o}>{o}</option>)}
+              </select>
+            </Campo>
+            <Campo label="Local *">
+              <select style={S.select} value={form.local} onChange={(e) => atualizar('local', e.target.value)}>
+                <option value="">Selecione...</option>
+                {locais.map((l) => <option key={l} value={l}>{l}</option>)}
+              </select>
+            </Campo>
+            <Campo label="Complemento do Local">
+              <input type="text" style={S.input} value={form.complemento}
+                onChange={(e) => atualizar('complemento', e.target.value)}
+                placeholder="Detalhe opcional..." />
+            </Campo>
+          </div>
+        </Secao>
+
+        {/* CLASSIFICAÇÃO DE RISCO */}
+        <Secao titulo="Classificação de Risco">
+          <div style={S.grid4}>
+            {[
+              { label: 'Gravidade *',   lista: gravidades,   campo: 'gravidade'   as const },
+              { label: 'Urgência *',    lista: urgencias,    campo: 'urgencia'    as const },
+              { label: 'Abrangência *', lista: abrangencias, campo: 'abrangencia' as const },
+              { label: 'Exposição *',   lista: exposicoes,   campo: 'exposicao'   as const },
+            ].map(({ label, lista, campo }) => (
+              <Campo key={campo} label={label}>
+                <select style={S.select} onChange={(e) => onGutChange(campo, e.target.value)}>
+                  <option value="">Sel...</option>
+                  {lista.map((v) => <option key={v} value={v}>{v}</option>)}
+                </select>
+              </Campo>
+            ))}
+          </div>
+          <div style={{ display: 'flex', gap: '12px', marginTop: '12px', flexWrap: 'wrap' }}>
+            <div style={{ ...S.painel, borderColor: corGR, flex: 1, minWidth: '130px' }}>
+              <div style={S.painelLabel}>GRAU DE RISCO</div>
+              <div style={{ fontSize: '38px', fontWeight: 800, color: corGR, lineHeight: 1 }}>
+                {form.grauRisco}
+              </div>
+              <div style={{ fontSize: '10px', color: '#94A3B8', marginTop: '4px', lineHeight: 1.4 }}>
+                GR = ROUND((0,4×Gra + 0,3×Urg + 0,2×Abr + 0,1×Exp)×20)
+              </div>
+            </div>
+            <div style={{ ...S.painel, borderColor: corGR, flex: 2, minWidth: '200px' }}>
+              <div style={S.painelLabel}>PRIORIDADE</div>
+              <div style={{ fontSize: '22px', fontWeight: 700, color: corGR }}>{form.prioridade}</div>
+              <div style={{ fontSize: '12px', color: '#374151', marginTop: '4px', lineHeight: 1.4 }}>
+                {form.definicaoPrioridade}
+              </div>
+            </div>
+          </div>
+        </Secao>
+
+        {/* EVIDÊNCIA FOTOGRÁFICA */}
+        <Secao titulo="Evidência Fotográfica">
+          <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', alignItems: 'flex-start', marginBottom: '10px' }}>
+            <div>
+              <div style={S.painelLabel}>FOTO Nº</div>
+              <div style={{ fontSize: '36px', fontWeight: 800, color: '#1E3A8A', lineHeight: 1 }}>
+                {form.fotoNr || '—'}
+              </div>
+            </div>
+            <div>
+              <div style={S.painelLabel}>DATA VISTORIA</div>
+              <div style={{ fontSize: '15px', fontWeight: 600, color: '#374151', marginTop: '4px' }}>
+                {form.dataVistoria}
+              </div>
+            </div>
+            {form.fotoBase64 && (
+              <div style={{ flex: 1, minWidth: '160px' }}>
+                <img src={form.fotoBase64} alt="Foto"
+                  style={{ width: '100%', maxHeight: '240px', objectFit: 'cover', borderRadius: '10px', border: '2px solid #1E3A8A' }} />
+              </div>
+            )}
+          </div>
+          {estado.feedbackIa && estado.feedbackIa !== 'concluido' && estado.feedbackIa !== 'erro' && (
+            <div style={S.feedbackInfo}>
+              <span style={S.pulso} />
+              {TEXTO_FEEDBACK[estado.feedbackIa]}
+            </div>
           )}
+          {estado.feedbackIa === 'concluido' && (
+            <div style={S.feedbackOk}>{TEXTO_FEEDBACK.concluido}</div>
+          )}
+          {estado.feedbackIa === 'erro' && (
+            <div style={S.feedbackErro}>{TEXTO_FEEDBACK.erro} {estado.erroIa}</div>
+          )}
+        </Secao>
+
+        {/* RESULTADO DA ANÁLISE */}
+        <Secao titulo="Resultado da Análise e Avaliação">
+          <Campo label={`Não Conformidade (NC)${form.ncGeradaPorIa ? ' — ✨ gerada por IA' : ''}`}>
+            <textarea style={S.textarea} value={form.nc} maxLength={200}
+              onChange={(e) => atualizar('nc', e.target.value)}
+              placeholder="Será preenchida automaticamente após tirar a foto..." />
+            <div style={S.contador}>{form.nc.length}/200 caracteres</div>
+          </Campo>
+          <Campo label={`Causa Provável (CP)${form.cpGeradaPorIa ? ' — ✨ gerada por IA' : ''}`}>
+            <textarea style={S.textarea} value={form.cp} maxLength={200}
+              onChange={(e) => atualizar('cp', e.target.value)}
+              placeholder="Será preenchida automaticamente após tirar a foto..." />
+            <div style={S.contador}>{form.cp.length}/200 caracteres</div>
+          </Campo>
+        </Secao>
+
+        {estado.erroSave && (
+          <div style={S.erroSave}>⚠️ {estado.erroSave}</div>
+        )}
+
+        {/* BOTÕES */}
+        <div style={S.botoes}>
+          <Btn cor="camera" onClick={tirarFotoEGerarNcCp}
+            disabled={!!estado.feedbackIa && estado.feedbackIa !== 'concluido' && estado.feedbackIa !== 'erro'}>
+            📷 Tirar Foto
+          </Btn>
+          <Btn cor="primario" onClick={salvarDados} disabled={estado.salvando || !form.fotoNr}>
+            {estado.salvando ? '💾 Salvando...' : '💾 Salvar Dados'}
+          </Btn>
+          <Btn cor="encerrar" onClick={() => encerrarVistoria(() => router.push('/dashboard'))}
+            disabled={!podeEncerrar}>
+            ✖ Encerrar Vistoria
+          </Btn>
         </div>
+
+        {!podeEncerrar && (
+          <p style={{ textAlign: 'center', fontSize: '12px', color: '#D97706', marginTop: '8px' }}>
+            ⚠️ Salve o último registro antes de encerrar a vistoria.
+          </p>
+        )}
       </div>
     </div>
   )
@@ -426,20 +421,17 @@ function Tela31Inner() {
 
 function Header({ tipoServico }: { tipoServico: string }) {
   return (
-    <div className="bg-[#1E3A8A] px-5 py-3 flex items-center gap-3 sticky top-0 z-50 shadow-md">
-      <span className="text-white font-semibold text-sm flex-1 text-center leading-snug">
-        {TITULO_TELA[tipoServico] ?? `Vistoria Tipo ${tipoServico}`}
-      </span>
+    <div style={S.header}>
+      <span style={S.logo}>AIMÊ</span>
+      <span style={S.headerTitulo}>{TITULO_TELA[tipoServico] ?? `Vistoria Tipo ${tipoServico}`}</span>
     </div>
   )
 }
 
 function Secao({ titulo, children }: { titulo: string; children: React.ReactNode }) {
   return (
-    <div className="mb-5">
-      <div className="text-xs font-bold text-[#1E3A8A] uppercase tracking-widest border-b border-slate-200 pb-1.5 mb-3">
-        {titulo}
-      </div>
+    <div style={{ marginBottom: '20px' }}>
+      <div style={S.secaoTitulo}>{titulo}</div>
       {children}
     </div>
   )
@@ -447,16 +439,241 @@ function Secao({ titulo, children }: { titulo: string; children: React.ReactNode
 
 function Campo({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div className="mb-2.5">
-      <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">{label}</label>
+    <div style={{ marginBottom: '10px' }}>
+      <label style={S.label}>{label}</label>
       {children}
     </div>
   )
 }
 
-// ─── Classes Tailwind reutilizáveis ───────────────────────────────────────────
+function Btn({ children, onClick, disabled, cor }: {
+  children: React.ReactNode
+  onClick?: () => void
+  disabled?: boolean
+  cor: 'primario' | 'camera' | 'encerrar'
+}) {
+  const cores = {
+    primario: { background: '#1E3A8A', color: '#fff', border: 'none' },
+    camera:   { background: '#0F766E', color: '#fff', border: 'none' },
+    encerrar: { background: '#fff', color: '#DC2626', border: '2px solid #DC2626' },
+  }
+  return (
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      style={{
+        ...cores[cor],
+        borderRadius: '9999px',
+        padding: '12px 24px',
+        fontWeight: 700,
+        fontSize: '15px',
+        cursor: disabled ? 'not-allowed' : 'pointer',
+        opacity: disabled ? 0.5 : 1,
+        fontFamily: 'inherit',
+        whiteSpace: 'nowrap',
+      }}
+    >
+      {children}
+    </button>
+  )
+}
 
-const inp = "w-full px-3 py-2 rounded-lg border border-slate-300 bg-slate-50 text-sm text-slate-800 outline-none focus:border-[#1E3A8A] focus:ring-2 focus:ring-blue-100"
-const inputRO = "w-full px-3 py-2 rounded-lg border border-slate-200 bg-slate-100 text-sm text-slate-500"
-const sel = "w-full px-3 py-2 rounded-lg border border-slate-300 bg-slate-50 text-sm text-slate-800 outline-none focus:border-[#1E3A8A] cursor-pointer"
-const txt = "w-full px-3 py-2 rounded-lg border border-slate-300 bg-slate-50 text-sm text-slate-800 outline-none focus:border-[#1E3A8A] resize-y min-h-16 leading-relaxed font-sans"
+// ─── Estilos ──────────────────────────────────────────────────────────────────
+
+const inputBase: React.CSSProperties = {
+  width: '100%',
+  padding: '9px 12px',
+  borderRadius: '8px',
+  fontSize: '14px',
+  color: '#1E293B',
+  fontFamily: 'inherit',
+  boxSizing: 'border-box',
+}
+
+const feedbackBase: React.CSSProperties = {
+  display: 'flex',
+  alignItems: 'center',
+  gap: '10px',
+  borderRadius: '8px',
+  padding: '10px 14px',
+  fontSize: '13px',
+  fontWeight: 500,
+  marginTop: '10px',
+  lineHeight: 1.4,
+}
+
+const S: Record<string, React.CSSProperties> = {
+  page: {
+    minHeight: '100vh',
+    background: '#E8EEF7',
+    fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+    paddingBottom: '32px',
+  },
+  header: {
+    background: '#1E3A8A',
+    padding: '12px 20px',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '12px',
+    position: 'sticky',
+    top: 0,
+    zIndex: 100,
+    boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
+  },
+  logo: {
+    color: '#fff',
+    fontWeight: 800,
+    fontSize: '18px',
+    letterSpacing: '0.08em',
+    flexShrink: 0,
+  },
+  headerTitulo: {
+    color: '#fff',
+    fontWeight: 600,
+    fontSize: '14px',
+    flex: 1,
+    textAlign: 'center',
+    lineHeight: 1.3,
+  },
+  card: {
+    maxWidth: '860px',
+    margin: '16px auto',
+    background: '#fff',
+    borderRadius: '16px',
+    boxShadow: '0 4px 24px rgba(30,58,138,0.10)',
+    padding: '20px',
+  },
+  divisor: {
+    height: '2px',
+    background: '#1E3A8A',
+    borderRadius: '2px',
+    marginBottom: '20px',
+  },
+  secaoTitulo: {
+    fontSize: '11px',
+    fontWeight: 700,
+    color: '#1E3A8A',
+    textTransform: 'uppercase',
+    letterSpacing: '0.10em',
+    borderBottom: '1px solid #E2E8F0',
+    paddingBottom: '6px',
+    marginBottom: '12px',
+  },
+  label: {
+    display: 'block',
+    fontSize: '11px',
+    fontWeight: 600,
+    color: '#475569',
+    marginBottom: '3px',
+    textTransform: 'uppercase',
+    letterSpacing: '0.04em',
+  },
+  input: {
+    ...inputBase,
+    border: '1px solid #CBD5E1',
+    background: '#F8FAFF',
+    outline: 'none',
+  },
+  inputRO: {
+    ...inputBase,
+    border: '1px solid #E2E8F0',
+    background: '#F1F5F9',
+    color: '#64748B',
+  },
+  select: {
+    ...inputBase,
+    border: '1px solid #CBD5E1',
+    background: '#F8FAFF',
+    outline: 'none',
+    cursor: 'pointer',
+  },
+  textarea: {
+    ...inputBase,
+    border: '1px solid #CBD5E1',
+    background: '#F8FAFF',
+    outline: 'none',
+    resize: 'vertical',
+    lineHeight: 1.6,
+    minHeight: '72px',
+  },
+  grid2: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
+    gap: '12px',
+  },
+  grid4: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
+    gap: '10px',
+  },
+  painel: {
+    background: '#F8FAFF',
+    borderRadius: '10px',
+    padding: '14px 16px',
+    border: '2px solid #E2E8F0',
+  },
+  painelLabel: {
+    fontSize: '10px',
+    fontWeight: 700,
+    color: '#94A3B8',
+    letterSpacing: '0.08em',
+    marginBottom: '4px',
+    textTransform: 'uppercase',
+  },
+  feedbackInfo: {
+    ...feedbackBase,
+    background: '#EFF6FF',
+    border: '1px solid #BFDBFE',
+    color: '#1E40AF',
+  },
+  feedbackOk: {
+    ...feedbackBase,
+    background: '#F0FDF4',
+    border: '1px solid #BBF7D0',
+    color: '#16A34A',
+  },
+  feedbackErro: {
+    ...feedbackBase,
+    background: '#FEF2F2',
+    border: '1px solid #FECACA',
+    color: '#DC2626',
+  },
+  pulso: {
+    width: '8px',
+    height: '8px',
+    borderRadius: '50%',
+    background: '#3B82F6',
+    flexShrink: 0,
+  },
+  erroSave: {
+    background: '#FEF2F2',
+    border: '1px solid #FECACA',
+    borderRadius: '8px',
+    padding: '10px 14px',
+    color: '#DC2626',
+    fontSize: '13px',
+    marginBottom: '12px',
+  },
+  contador: {
+    fontSize: '11px',
+    color: '#94A3B8',
+    textAlign: 'right',
+    marginTop: '2px',
+  },
+  botoes: {
+    display: 'flex',
+    gap: '10px',
+    justifyContent: 'center',
+    marginTop: '20px',
+    flexWrap: 'wrap',
+    borderTop: '1px solid #E2E8F0',
+    paddingTop: '20px',
+  },
+  code: {
+    background: '#F1F5F9',
+    padding: '2px 6px',
+    borderRadius: '4px',
+    fontSize: '12px',
+    fontFamily: 'monospace',
+  },
+}
