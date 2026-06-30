@@ -134,6 +134,7 @@ export default function Dashboard() {
       alert("Informe um CNPJ ou CPF válido.")
       return
     }
+    console.log('CNPJ limpo:', cnpjLimpo)
     console.log('Iniciando vistoria, CNPJ:', cnpj)
  const supabase = createClient()
 
