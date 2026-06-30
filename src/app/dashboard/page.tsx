@@ -259,19 +259,13 @@ export default function Dashboard() {
                       </label>
                       <input
                         type="text"
-                        inputMode="numeric"
                         value={documento}
                         onChange={(e) => {
                           setDocumento(formatarDocumento(e.target.value))
                           setEstadoDoc("aguardando")
                         }}
-                        onInput={(e) => {
-                          const val = (e.target as HTMLInputElement).value
-                          setDocumento(formatarDocumento(val))
-                          setEstadoDoc("aguardando")
-                        }}
                         placeholder={coletaCpf ? "000.000.000-00" : "00.000.000/0000-00"}
-                        style={{ width: "100%", padding: "5px 8px", borderRadius: "6px", border: "1px solid #CBD5E1", fontSize: "12px", outline: "none", boxSizing: "border-box", marginBottom: "6px" }}
+                        style={{ width: "100%", padding: "8px 10px", borderRadius: "6px", border: "1px solid #CBD5E1", fontSize: "14px", outline: "none", boxSizing: "border-box", marginBottom: "8px" }}
                         onKeyDown={(e) => e.key === "Enter" && handleIniciarVistoria()}
                       />
 
@@ -282,12 +276,14 @@ export default function Dashboard() {
                       )}
 
                       <button
+                        onTouchEnd={(e) => { e.preventDefault(); handleIniciarVistoria() }}
                         onClick={handleIniciarVistoria}
                         style={{
                           backgroundColor: "#1E3A8A", color: "white", fontWeight: "bold",
-                          padding: "10px 16px", borderRadius: "9999px", fontSize: "13px",
+                          padding: "12px 16px", borderRadius: "9999px", fontSize: "14px",
                           border: "none", cursor: "pointer", width: "100%",
-                          minHeight: "44px",
+                          minHeight: "48px", WebkitTapHighlightColor: "rgba(0,0,0,0.2)",
+                          touchAction: "manipulation",
                         }}
                       >
                         {estadoDoc === "verificando" ? "Verificando..." : "Iniciar →"}
