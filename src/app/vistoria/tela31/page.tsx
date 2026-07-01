@@ -148,7 +148,14 @@ function Tela31Inner() {
         // Estabelecimento
         if (cnpjoucpf) {
           const est = await query('estabelecimento', `cnpjoucpf=eq.${cnpjoucpf}&select=cnpjoucpf,razao_social_nome`)
-          if (Array.isArray(est) && est[0]) { setCnpjDisplay(est[0].cnpjoucpf); setRazaoSocial(est[0].razao_social_nome) }
+          if (Array.isArray(est) && est[0]) {
+            const c = est[0].cnpjoucpf
+            const fmt = c.length === 14
+              ? c.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, '$1.$2.$3/$4-$5')
+              : c.replace(/^(\d{3})(\d{3})(\d{3})(\d{2})$/, '$1.$2.$3-$4')
+            setCnpjDisplay(fmt)
+            setRazaoSocial(est[0].razao_social_nome)
+          }
         }
 
         // Ativos
@@ -224,8 +231,11 @@ function Tela31Inner() {
       body: JSON.stringify({ sistema, subsistema, anomalia, local, complemento, origem, abrangencia: descAbrangencia })
     })
     const data = await res.json()
-    if (data.nc) setNc(data.nc)
-    if (data.cp) setCp(data.cp)
+    console.log('Resposta IA:', JSON.stringify(data))
+    const ncVal = data.nc || data.nao_conformidade || ''
+    const cpVal = data.cp || data.causa_provavel || ''
+    if (ncVal) setNc(ncVal)
+    if (cpVal) setCp(cpVal)
     setFeedbackIA('✅ NC e CP geradas com sucesso!')
   }
 
