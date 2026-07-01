@@ -225,18 +225,22 @@ function Tela31Inner() {
     await delay(400)
     setFeedbackIA('⏳ Gerando não conformidade e causa provável...')
 
-    const res = await fetch('/api/gerar-nc-cp', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ sistema, subsistema, anomalia, local, complemento, origem, abrangencia: descAbrangencia })
-    })
-    const data = await res.json()
-    console.log('Resposta IA:', JSON.stringify(data))
-    const ncVal = data.nc || data.nao_conformidade || ''
-    const cpVal = data.cp || data.causa_provavel || ''
-    if (ncVal) setNc(ncVal)
-    if (cpVal) setCp(cpVal)
-    setFeedbackIA('✅ NC e CP geradas com sucesso!')
+    try {
+      const res = await fetch('/api/gerar-nc-cp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sistema, subsistema, anomalia, local, complemento, origem, abrangencia: descAbrangencia })
+      })
+      if (!res.ok) throw new Error('Status: ' + res.status)
+      const data = await res.json()
+      const ncVal = data.nc || data.nao_conformidade || ''
+      const cpVal = data.cp || data.causa_provavel || ''
+      if (ncVal) setNc(ncVal)
+      if (cpVal) setCp(cpVal)
+      setFeedbackIA('✅ NC e CP geradas com sucesso!')
+    } catch(e) {
+      setFeedbackIA('⚠️ Erro ao gerar NC/CP: ' + String(e))
+    }
   }
 
   async function salvarDados() {
@@ -262,17 +266,15 @@ function Tela31Inner() {
       grauRisco, prioridade, fotoNr: nrFinal, dataVistoria, fotoBase64, nc, cp,
     }
 
-    const url = process.env.NEXT_PUBLIC_SUPABASE_URL!
-    const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
-
-    const res = await fetch(`${url}/storage/v1/object/aime/vistorias/${nomeArquivo}`, {
+    const res = await fetch('/api/salvar-vistoria', {
       method: 'POST',
-      headers: { 'apikey': key, 'Authorization': `Bearer ${key}`, 'Content-Type': 'application/json', 'x-upsert': 'true' },
-      body: JSON.stringify(payload)
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ nomeArquivo, payload })
     })
+    const resultado = await res.json()
 
-    if (!res.ok) {
-      setErroSave('Erro ao salvar: ' + res.statusText)
+    if (!res.ok || resultado.erro) {
+      setErroSave('Erro ao salvar: ' + (resultado.erro ?? res.statusText))
       setSalvando(false)
       return
     }
