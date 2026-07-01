@@ -79,7 +79,6 @@ function Tela31Inner() {
   const [exposicoes,   setExposicoes]   = useState<string[]>([])
   const [ativos,       setAtivos]       = useState<ItemAtivo[]>([])
   const [carregando,   setCarregando]   = useState(true)
-  const [debugInfo,    setDebugInfo]     = useState('')
 
   // ── Campos do formulário ──
   const [tipoAtivo,      setTipoAtivo]      = useState('')
@@ -128,14 +127,15 @@ function Tela31Inner() {
   const tagsFiltradas = ativos.filter(a => a.tipo_ativo === tipoAtivo).map(a => a.tag_ativo_nr_serie)
 
   // ── Carga inicial via fetch (evita createClient no SSR) ──
+  const SUPA_URL = 'https://asgorarunzhiojqioxzq.supabase.co'
+  const SUPA_KEY = 'sb_publishable_dH85HYKGxv3X0te627VfOw_OGaPoNMF'
+
   useEffect(() => {
     if (typeof window === 'undefined') return
-    const url  = process.env.NEXT_PUBLIC_SUPABASE_URL!
-    const key  = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
 
     async function query(table: string, params: string) {
-      const res = await fetch(`${url}/rest/v1/${table}?${params}`, {
-        headers: { 'apikey': key, 'Authorization': `Bearer ${key}` }
+      const res = await fetch(`${SUPA_URL}/rest/v1/${table}?${params}`, {
+        headers: { 'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}` }
       })
       return res.json()
     }
@@ -143,7 +143,6 @@ function Tela31Inner() {
     async function carregar() {
       setCarregando(true)
       setDataVistoria(new Date().toLocaleDateString('pt-BR'))
-      setDebugInfo(`URL:${url?.slice(0,30)} KEY:${key?.slice(0,20)} CNPJ:${cnpjoucpf} CPF:${cpfInspetor}`)
 
       try {
         // Estabelecimento
@@ -284,10 +283,7 @@ function Tela31Inner() {
     <div style={S.body}><div style={S.page}>
       <CabecalhoHTML tipoServico={tipoServico} />
       <div style={S.divider} />
-      <div style={S.formBody}><div style={{ padding: '40px', color: '#4a6480', fontSize: '8pt', wordBreak: 'break-all' }}>
-          <p>Carregando dados...</p>
-          <p style={{ marginTop: '8px', color: '#1E3A8A' }}>{debugInfo}</p>
-        </div></div>
+      <div style={S.formBody}><p style={{ textAlign: 'center', padding: '40px', color: '#4a6480' }}>Carregando dados...</p></div>
     </div></div>
   )
 
