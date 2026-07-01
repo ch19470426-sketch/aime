@@ -143,42 +143,45 @@ function Tela31Inner() {
       setCarregando(true)
       setDataVistoria(new Date().toLocaleDateString('pt-BR'))
 
-      // Estabelecimento
-      if (cnpjoucpf) {
-        const est = await query('estabelecimento', `cnpjoucpf=eq.${cnpjoucpf}&select=cnpjoucpf,razao_social_nome`)
-        if (est?.[0]) { setCnpjDisplay(est[0].cnpjoucpf); setRazaoSocial(est[0].razao_social_nome) }
+      try {
+        // Estabelecimento
+        if (cnpjoucpf) {
+          const est = await query('estabelecimento', `cnpjoucpf=eq.${cnpjoucpf}&select=cnpjoucpf,razao_social_nome`)
+          if (Array.isArray(est) && est[0]) { setCnpjDisplay(est[0].cnpjoucpf); setRazaoSocial(est[0].razao_social_nome) }
+        }
+
+        // Ativos
+        if (cpfInspetor) {
+          const atv = await query('ativos_a_vistoriar', `cpf_inspetor=eq.${cpfInspetor}&select=tipo_ativo,tag_ativo_nr_serie,finalidade_vistoria,data_cadastro&order=data_cadastro.desc`)
+          if (Array.isArray(atv)) setAtivos(atv)
+        }
+
+        // Sistemas
+        const sis = await query('sistemas_construtivos', `tipo_servico=eq.${encodeURIComponent(tipoServicoBanco)}&select=sistema&order=sistema`)
+        if (Array.isArray(sis)) setSistemas([...new Map(sis.map((s: ItemSistema) => [s.sistema, s])).values()])
+
+        const sub = await query('sistemas_construtivos', `tipo_servico=eq.${encodeURIComponent(tipoServicoBanco)}&subsistema=not.is.null&select=sistema,subsistema`)
+        if (Array.isArray(sub)) setSubsistemas(sub)
+
+        const ano = await query('sistemas_construtivos', `tipo_servico=eq.${encodeURIComponent(tipoServicoBanco)}&anomalias=not.is.null&select=sistema,subsistema,anomalias`)
+        if (Array.isArray(ano)) setAnomalias(ano)
+
+        // Parâmetros
+        const par = await query('tabela_parametros', `tipo_servico=eq.${encodeURIComponent(tipoServicoBanco)}&select=tipo_parametro,descricao_parametros&order=tipo_parametro,descricao_parametros`)
+        if (Array.isArray(par)) {
+          const f = (tipo: string) => par.filter((p: {tipo_parametro: string, descricao_parametros: string}) => p.tipo_parametro === tipo).map((p: {descricao_parametros: string}) => p.descricao_parametros)
+          setOrigens(f('Origem'))
+          setLocais(f('Local ocorrência'))
+          setGravidades(f('Gravidade'))
+          setUrgencias(f('Urgência'))
+          setAbrangencias(f('Abrangência'))
+          setExposicoes(f('Exposição'))
+        }
+      } catch(e) {
+        console.error('Erro no carregamento:', e)
+      } finally {
+        setCarregando(false)
       }
-
-      // Ativos
-      if (cpfInspetor) {
-        const atv = await query('ativos_a_vistoriar', `cpf_inspetor=eq.${cpfInspetor}&select=tipo_ativo,tag_ativo_nr_serie,finalidade_vistoria,data_cadastro&order=data_cadastro.desc`)
-        if (atv) setAtivos(atv)
-      }
-
-      // Sistemas
-      const sis = await query('sistemas_construtivos', `tipo_servico=eq.${encodeURIComponent(tipoServicoBanco)}&select=sistema&order=sistema`)
-      if (sis) setSistemas([...new Map(sis.map((s: ItemSistema) => [s.sistema, s])).values()])
-
-      const sub = await query('sistemas_construtivos', `tipo_servico=eq.${encodeURIComponent(tipoServicoBanco)}&subsistema=not.is.null&select=sistema,subsistema`)
-      if (sub) setSubsistemas(sub)
-
-      const ano = await query('sistemas_construtivos', `tipo_servico=eq.${encodeURIComponent(tipoServicoBanco)}&anomalias=not.is.null&select=sistema,subsistema,anomalias`)
-      if (ano) setAnomalias(ano)
-
-      // Parâmetros
-      const par = await query('tabela_parametros', `tipo_servico=eq.${encodeURIComponent(tipoServicoBanco)}&select=tipo_parametro,descricao_parametros&order=tipo_parametro,descricao_parametros`)
-      if (par) {
-        const f = (tipo: string) => par.filter((p: {tipo_parametro: string, descricao_parametros: string}) => p.tipo_parametro === tipo).map((p: {descricao_parametros: string}) => p.descricao_parametros)
-        setOrigens(f('Origem'))
-        setLocais(f('Local ocorrência'))
-        setGravidades(f('Gravidade'))
-        setUrgencias(f('Urgência'))
-        setAbrangencias(f('Abrangência'))
-        setExposicoes(f('Exposição'))
-      }
-
-
-      setCarregando(false)
     }
     carregar()
   }, [cpfInspetor, cnpjoucpf, tipoServico])
