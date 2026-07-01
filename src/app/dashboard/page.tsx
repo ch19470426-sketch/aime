@@ -138,44 +138,16 @@ export default function Dashboard() {
   }
 
   async function handleIniciarVistoria() {
-    const supabase = createClient()
     const docLimpo = documentoSemMascara(documento)
     const tamanhoEsperado = coletaCpf ? 11 : 14
     if (docLimpo.length < tamanhoEsperado) {
       setMsgErro(`${coletaCpf ? "CPF" : "CNPJ"} incompleto (${docLimpo.length}/${tamanhoEsperado} dígitos)`)
       return
     }
-
-    setEstadoDoc("verificando")
-    setMsgErro("Consultando... CNPJ: " + docLimpo)
-
-    try {
-      const { data: estabelecimento, error } = await supabase
-        .from("estabelecimento")
-        .select("cnpjoucpf, razao_social_nome")
-        .eq("cnpjoucpf", docLimpo)
-        .single()
-
-      if (error) {
-        setMsgErro("Erro Supabase: " + error.message + " | código: " + error.code)
-        setEstadoDoc("erro")
-        return
-      }
-
-      if (!estabelecimento) {
-        setMsgErro("Não cadastrado")
-        setEstadoDoc("nao_cadastrado")
-        return
-      }
-
-      setMsgErro("Encontrado! Navegando...")
-      router.push(
-        `/vistoria/tela${tipoServico}?cpf_inspetor=${cpfInspetor}&chave_inspetor=${chaveInspetor}&cnpjoucpf=${docLimpo}&tipo_servico=${tipoServico}`
-      )
-    } catch (e) {
-      setMsgErro("Exceção: " + String(e))
-      setEstadoDoc("erro")
-    }
+    // TESTE: navega direto sem consultar Supabase
+    router.push(
+      `/vistoria/tela${tipoServico}?cpf_inspetor=${cpfInspetor}&chave_inspetor=${chaveInspetor}&cnpjoucpf=${docLimpo}&tipo_servico=${tipoServico}`
+    )
   }
 
   return (
