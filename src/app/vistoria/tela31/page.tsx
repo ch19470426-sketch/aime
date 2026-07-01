@@ -1,23 +1,19 @@
 // src/app/vistoria/tela31/page.tsx
-// AIMÊ — Tela 31: Autovistoria Predial
-// Portado fielmente do HTML aprovado (31_Autovistoria.html)
-// Layout A4 compacto, blocos com cabeçalho azul, GR com barra de progresso
+// AIMÊ — Tela 31 SEM hook externo — toda lógica inline para evitar SSR issues
 
 'use client'
 
 import { Suspense, useEffect, useRef, useState } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
-import { createClient } from '@/utils/supabase/client'
-import { useVistoria31 } from '@/hooks/useVistoria31'
-import type { FormVistoria, FeedbackIa } from '@/hooks/useVistoria31'
+import { useSearchParams } from 'next/navigation'
+import Image from 'next/image'
+
+// ─── Tipos ───────────────────────────────────────────────────────────────────
 
 interface ItemSistema    { sistema: string }
 interface ItemSubsistema { sistema: string; subsistema: string }
 interface ItemAnomalia   { sistema: string; subsistema: string; anomalias: string }
 interface ItemAtivo      { tipo_ativo: string; tag_ativo_nr_serie: string; finalidade_vistoria: string | null }
 
-// Chaves compostas (campo:descricao) para evitar conflito entre valores repetidos
-// como "Alta" que aparece tanto em Gravidade (=4) quanto em Exposição (=5)
 const VALOR_GUT: Record<string, number> = {
   'gravidade:Estética': 1, 'gravidade:Leve': 2, 'gravidade:Moderada': 3, 'gravidade:Alta': 4, 'gravidade:Crítica': 5,
   'urgencia:Pode aguardar': 1, 'urgencia:Planejar': 3, 'urgencia:Imediata': 5,
@@ -25,25 +21,8 @@ const VALOR_GUT: Record<string, number> = {
   'exposicao:Baixa': 1, 'exposicao:Média': 3, 'exposicao:Alta': 5,
 }
 
-const TEXTO_FEEDBACK: Record<NonNullable<FeedbackIa>, string> = {
-  avaliando_ambiente:  '⏳ Avaliando características do ambiente...',
-  analisando_anomalia: '⏳ Analisando anomalia/falha...',
-  cruzando_parametros: '⏳ Cruzando parâmetros...',
-  gerando_nc:          '⏳ Gerando não conformidade...',
-  gerando_cp:          '⏳ Gerando causa provável...',
-  concluido:           '',
-  erro:                '⚠️ Erro ao gerar com IA.',
-}
-
-const TITULO_TELA: Record<string, { titulo: string; subtitulo: string }> = {
-  '31': { titulo: 'Autovistoria', subtitulo: 'Formulário para registro de manifestações patológicas e classificação de riscos' },
-  '32': { titulo: 'Vistoria Inspeção', subtitulo: 'Formulário para registro de manifestações patológicas e classificação de riscos' },
-  '33': { titulo: 'Vistoria Imóvel Novo', subtitulo: 'Formulário para registro de manifestações patológicas e classificação de riscos' },
-  '34': { titulo: 'Vistoria Fachada', subtitulo: 'Formulário para registro de manifestações patológicas e classificação de riscos' },
-  '35': { titulo: 'Vistoria Elevador', subtitulo: 'Formulário para registro de manifestações patológicas e classificação de riscos' },
-  '36': { titulo: 'Vistoria NR-10', subtitulo: 'Formulário para registro de manifestações patológicas e classificação de riscos' },
-  '37': { titulo: 'Vistoria NR-12', subtitulo: 'Formulário para registro de manifestações patológicas e classificação de riscos' },
-  '38': { titulo: 'Vistoria NR-13', subtitulo: 'Formulário para registro de manifestações patológicas e classificação de riscos' },
+function calcularGR(gra: number, urg: number, abr: number, exp: number): number {
+  return Math.round((0.4 * gra + 0.3 * urg + 0.2 * abr + 0.1 * exp) * 20)
 }
 
 const TIPO_SERVICO_BANCO: Record<string, string> = {
@@ -53,35 +32,42 @@ const TIPO_SERVICO_BANCO: Record<string, string> = {
   '37': '37 Vistoria nr-12', '38': '38 Vistoria nr-13',
 }
 
+const TITULO_TELA: Record<string, string> = {
+  '31': 'Autovistoria', '32': 'Vistoria Inspeção', '33': 'Vistoria Imóvel Novo',
+  '34': 'Vistoria Fachada', '35': 'Vistoria Elevador', '36': 'Vistoria NR-10',
+  '37': 'Vistoria NR-12', '38': 'Vistoria NR-13',
+}
+
+// ─── Wrapper ─────────────────────────────────────────────────────────────────
+
 export default function Tela31Page() {
   return (
     <Suspense fallback={
-      <div style={S.body}>
-        <div style={S.page}>
-          <div style={S.header}>
-            <span style={S.headerTitle}>Carregando...</span>
-          </div>
-        </div>
-      </div>
+      <div style={S.body}><div style={S.page}>
+        <div style={S.header}><span style={{ color: '#fff', fontWeight: 700 }}>AIMÊ — Carregando...</span></div>
+      </div></div>
     }>
       <Tela31Inner />
     </Suspense>
   )
 }
 
+// ─── Componente principal ─────────────────────────────────────────────────────
+
 function Tela31Inner() {
-  const router   = useRouter()
-  const params   = useSearchParams()
-  const supabase = createClient()
-  const fileInputRef = useRef<HTMLInputElement>(null)
-
-  const cpfInspetor      = params.get('cpf_inspetor')   ?? ''
-  const chaveInspetor    = params.get('chave_inspetor') ?? cpfInspetor
-  const cnpjoucpf        = params.get('cnpjoucpf')      ?? ''
-  const tipoServico      = params.get('tipo_servico')   ?? '31'
+  const params        = useSearchParams()
+  const cpfInspetor   = params.get('cpf_inspetor')   ?? ''
+  const chaveInspetor = params.get('chave_inspetor') ?? cpfInspetor
+  const cnpjoucpf     = params.get('cnpjoucpf')      ?? ''
+  const tipoServico   = params.get('tipo_servico')   ?? '31'
   const tipoServicoBanco = TIPO_SERVICO_BANCO[tipoServico] ?? `${tipoServico} Autovistoria`
-  const infoTela         = TITULO_TELA[tipoServico] ?? { titulo: `Vistoria ${tipoServico}`, subtitulo: '' }
+  const tagObrigatorio   = ['35', '37', '38'].includes(tipoServico)
 
+  // ── Dados do estabelecimento ──
+  const [cnpjDisplay,  setCnpjDisplay]  = useState('')
+  const [razaoSocial,  setRazaoSocial]  = useState('')
+
+  // ── Listas ──
   const [sistemas,     setSistemas]     = useState<ItemSistema[]>([])
   const [subsistemas,  setSubsistemas]  = useState<ItemSubsistema[]>([])
   const [anomalias,    setAnomalias]    = useState<ItemAnomalia[]>([])
@@ -93,79 +79,96 @@ function Tela31Inner() {
   const [exposicoes,   setExposicoes]   = useState<string[]>([])
   const [ativos,       setAtivos]       = useState<ItemAtivo[]>([])
   const [carregando,   setCarregando]   = useState(true)
-  const [finalidade,   setFinalidade]   = useState('')
-  const [descGUT, setDescGUT] = useState({ gravidade: '', urgencia: '', abrangencia: '', exposicao: '' })
 
-  const {
-    form, estado,
-    atualizar, inicializarIdentificacao,
-    tirarFotoEGerarNcCp, salvarDados,
-    encerrarVistoria, resetarSucesso, podeEncerrar,
-  } = useVistoria31(cpfInspetor, chaveInspetor, cnpjoucpf, tipoServico)
+  // ── Campos do formulário ──
+  const [tipoAtivo,      setTipoAtivo]      = useState('')
+  const [tagNrSerie,     setTagNrSerie]      = useState('')
+  const [finalidade,     setFinalidade]      = useState('')
+  const [sistema,        setSistema]         = useState('')
+  const [subsistema,     setSubsistema]      = useState('')
+  const [anomalia,       setAnomalia]        = useState('')
+  const [origem,         setOrigem]          = useState('')
+  const [local,          setLocal]           = useState('')
+  const [complemento,    setComplemento]     = useState('')
+  const [descGravidade,  setDescGravidade]   = useState('')
+  const [descUrgencia,   setDescUrgencia]    = useState('')
+  const [descAbrangencia,setDescAbrangencia] = useState('')
+  const [descExposicao,  setDescExposicao]   = useState('')
+  const [fotoBase64,     setFotoBase64]      = useState('')
+  const [fotoNr,         setFotoNr]          = useState('')
+  const [dataVistoria,   setDataVistoria]    = useState('')
+  const [nc,             setNc]              = useState('')
+  const [cp,             setCp]              = useState('')
 
-  const subsistemasFiltrados = [...new Set(
-    subsistemas.filter((s) => s.sistema === form.sistema).map((s) => s.subsistema)
-  )]
-  const anomaliasFiltradas = anomalias
-    .filter((a) => a.sistema === form.sistema && a.subsistema === form.subsistema)
-    .flatMap((a) => a.anomalias.split(';').map((x) => x.trim()).filter(Boolean))
-  const tiposAtivo    = [...new Set(ativos.map((a) => a.tipo_ativo))]
-  const tagsFiltradas = ativos
-    .filter((a) => a.tipo_ativo === form.tipoAtivo)
-    .map((a) => a.tag_ativo_nr_serie)
+  // ── Estado ──
+  const [feedbackIA,  setFeedbackIA]  = useState('')
+  const [erroSave,    setErroSave]    = useState('')
+  const [salvando,    setSalvando]    = useState(false)
+  const [salvoOk,     setSalvoOk]     = useState(false)
+  const [arquivoSalvo,setArquivoSalvo] = useState('')
 
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  // GR calculado
+  const gravNum = VALOR_GUT[`gravidade:${descGravidade}`]   ?? 0
+  const urgNum  = VALOR_GUT[`urgencia:${descUrgencia}`]     ?? 0
+  const abrNum  = VALOR_GUT[`abrangencia:${descAbrangencia}`] ?? 0
+  const expNum  = VALOR_GUT[`exposicao:${descExposicao}`]   ?? 0
+  const grauRisco = (gravNum && urgNum && abrNum && expNum) ? calcularGR(gravNum, urgNum, abrNum, expNum) : 0
+  const prioridade = grauRisco >= 64 ? 'Alta' : grauRisco >= 35 ? 'Média' : grauRisco > 0 ? 'Baixa' : '—'
+  const corGR = grauRisco >= 64 ? '#E24B4A' : grauRisco >= 35 ? '#E8A000' : '#1A7A3C'
+
+  // Listas filtradas
+  const subsistemasFiltrados = [...new Set(subsistemas.filter(s => s.sistema === sistema).map(s => s.subsistema))]
+  const anomaliasFiltradas   = anomalias
+    .filter(a => a.sistema === sistema && a.subsistema === subsistema)
+    .flatMap(a => a.anomalias.split(';').map(x => x.trim()).filter(Boolean))
+  const tiposAtivo    = [...new Set(ativos.map(a => a.tipo_ativo))]
+  const tagsFiltradas = ativos.filter(a => a.tipo_ativo === tipoAtivo).map(a => a.tag_ativo_nr_serie)
+
+  // ── Carga inicial via fetch (evita createClient no SSR) ──
   useEffect(() => {
+    if (typeof window === 'undefined') return
+    const url  = process.env.NEXT_PUBLIC_SUPABASE_URL!
+    const key  = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
+
+    async function query(table: string, params: string) {
+      const res = await fetch(`${url}/rest/v1/${table}?${params}`, {
+        headers: { 'apikey': key, 'Authorization': `Bearer ${key}` }
+      })
+      return res.json()
+    }
+
     async function carregar() {
       setCarregando(true)
+      setDataVistoria(new Date().toLocaleDateString('pt-BR'))
 
+      // Estabelecimento
       if (cnpjoucpf) {
-        const { data } = await supabase
-          .from('estabelecimento')
-          .select('cnpjoucpf, razao_social_nome')
-          .eq('cnpjoucpf', cnpjoucpf)
-          .single()
-        if (data) inicializarIdentificacao(data.cnpjoucpf, data.razao_social_nome)
+        const est = await query('estabelecimento', `cnpjoucpf=eq.${cnpjoucpf}&select=cnpjoucpf,razao_social_nome`)
+        if (est?.[0]) { setCnpjDisplay(est[0].cnpjoucpf); setRazaoSocial(est[0].razao_social_nome) }
       }
 
+      // Ativos
       if (cpfInspetor) {
-        const { data } = await supabase
-          .from('ativos_a_vistoriar')
-          .select('tipo_ativo, tag_ativo_nr_serie, finalidade_vistoria, data_cadastro')
-          .eq('cpf_inspetor', cpfInspetor)
-          .order('data_cadastro', { ascending: false })
-        if (data) setAtivos(data)
+        const atv = await query('ativos_a_vistoriar', `cpf_inspetor=eq.${cpfInspetor}&select=tipo_ativo,tag_ativo_nr_serie,finalidade_vistoria,data_cadastro&order=data_cadastro.desc`)
+        if (atv) setAtivos(atv)
       }
 
-      const { data: sis } = await supabase
-        .from('sistemas_construtivos')
-        .select('sistema')
-        .eq('tipo_servico', tipoServicoBanco)
-        .order('sistema')
-      if (sis) setSistemas([...new Map(sis.map((s) => [s.sistema, s])).values()])
+      // Sistemas
+      const sis = await query('sistemas_construtivos', `tipo_servico=eq.${encodeURIComponent(tipoServicoBanco)}&select=sistema&order=sistema`)
+      if (sis) setSistemas([...new Map(sis.map((s: ItemSistema) => [s.sistema, s])).values()])
 
-      const { data: sub } = await supabase
-        .from('sistemas_construtivos')
-        .select('sistema, subsistema')
-        .eq('tipo_servico', tipoServicoBanco)
-        .not('subsistema', 'is', null)
+      const sub = await query('sistemas_construtivos', `tipo_servico=eq.${encodeURIComponent(tipoServicoBanco)}&subsistema=not.is.null&select=sistema,subsistema`)
       if (sub) setSubsistemas(sub)
 
-      const { data: ano } = await supabase
-        .from('sistemas_construtivos')
-        .select('sistema, subsistema, anomalias')
-        .eq('tipo_servico', tipoServicoBanco)
-        .not('anomalias', 'is', null)
+      const ano = await query('sistemas_construtivos', `tipo_servico=eq.${encodeURIComponent(tipoServicoBanco)}&anomalias=not.is.null&select=sistema,subsistema,anomalias`)
       if (ano) setAnomalias(ano)
 
-      const { data: par } = await supabase
-        .from('tabela_parametros')
-        .select('tipo_parametro, descricao_parametros')
-        .eq('tipo_servico', tipoServicoBanco)
-        .order('tipo_parametro')
-        .order('descricao_parametros')
+      // Parâmetros
+      const par = await query('tabela_parametros', `tipo_servico=eq.${encodeURIComponent(tipoServicoBanco)}&select=tipo_parametro,descricao_parametros&order=tipo_parametro,descricao_parametros`)
       if (par) {
-        const f = (tipo: string) =>
-          par.filter((p) => p.tipo_parametro === tipo).map((p) => p.descricao_parametros)
+        const f = (tipo: string) => par.filter((p: {tipo_parametro: string, descricao_parametros: string}) => p.tipo_parametro === tipo).map((p: {descricao_parametros: string}) => p.descricao_parametros)
         setOrigens(f('Origem'))
         setLocais(f('Local ocorrência'))
         setGravidades(f('Gravidade'))
@@ -174,35 +177,26 @@ function Tela31Inner() {
         setExposicoes(f('Exposição'))
       }
 
+      // Número de foto
+      const nrRes = await fetch('/api/foto-nr', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ cpf_inspetor: cpfInspetor, cnpjoucpf, tipo_servico: tipoServico })
+      })
+      // Não incrementa ainda — só pega o próximo
+      const nrGet = await fetch(`/api/foto-nr?cpf_inspetor=${cpfInspetor}&cnpjoucpf=${cnpjoucpf}&tipo_servico=${tipoServico}`)
+      const nrData = await nrGet.json()
+      if (nrData?.formatado) setFotoNr(nrData.formatado)
+
       setCarregando(false)
     }
     carregar()
   }, [cpfInspetor, cnpjoucpf, tipoServico])
 
-  function onSistemaChange(v: string) {
-    atualizar('sistema', v); atualizar('subsistema', ''); atualizar('anomalia', '')
-  }
-  function onSubsistemaChange(v: string) {
-    atualizar('subsistema', v); atualizar('anomalia', '')
-  }
-  function onGutChange(campo: 'gravidade'|'urgencia'|'abrangencia'|'exposicao', desc: string) {
-    setDescGUT((prev) => ({ ...prev, [campo]: desc }))
-    atualizar(campo, (VALOR_GUT[`${campo}:${desc}`] ?? 1) as FormVistoria[typeof campo])
-  }
-
-  // ── Cor e largura da barra de risco (igual ao HTML aprovado) ──
-  function corBarraGR(gr: number): { bar: string; badgeBg: string; badgeColor: string; label: string } {
-    if (gr >= 64) return { bar: '#E24B4A', badgeBg: '#FCEBEB', badgeColor: '#CC0000', label: '▲ Alta' }
-    if (gr >= 35) return { bar: '#E8A000', badgeBg: '#FFF0C2', badgeColor: '#8A5C00', label: '● Média' }
-    return { bar: '#1A7A3C', badgeBg: '#E6F5EE', badgeColor: '#1A7A3C', label: '▼ Baixa' }
-  }
-  const corGR = corBarraGR(form.grauRisco)
-
-  // ── Captura e compressão de foto (igual lógica do HTML: canvas 480x360, jpeg 0.5) ──
+  // ── Foto e IA ──
   function handleFotoChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file) return
-
     const img = new window.Image()
     const url = URL.createObjectURL(file)
     img.onload = () => {
@@ -212,298 +206,290 @@ function Tela31Inner() {
       if (h > MAX_H) { w = Math.round(w * MAX_H / h); h = MAX_H }
       const canvas = document.createElement('canvas')
       canvas.width = w; canvas.height = h
-      const ctx = canvas.getContext('2d')
-      ctx?.drawImage(img, 0, 0, w, h)
+      canvas.getContext('2d')?.drawImage(img, 0, 0, w, h)
       URL.revokeObjectURL(url)
       const compressed = canvas.toDataURL('image/jpeg', 0.5)
-      atualizar('fotoBase64', compressed)
-      tirarFotoEGerarNcCp()
+      setFotoBase64(compressed)
+      setDataVistoria(new Date().toLocaleDateString('pt-BR'))
+      gerarNcCp(compressed)
     }
     img.src = url
   }
 
+  async function gerarNcCp(foto: string) {
+    if (!sistema || !subsistema || !anomalia) return
+    setFeedbackIA('⏳ Avaliando características do ambiente...')
+    await delay(400)
+    setFeedbackIA('⏳ Analisando anomalia/falha...')
+    await delay(400)
+    setFeedbackIA('⏳ Gerando não conformidade e causa provável...')
+
+    const res = await fetch('/api/gerar-nc-cp', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ sistema, subsistema, anomalia, local, complemento, origem, abrangencia: descAbrangencia })
+    })
+    const data = await res.json()
+    if (data.nc) setNc(data.nc)
+    if (data.cp) setCp(data.cp)
+    setFeedbackIA('✅ NC e CP geradas com sucesso!')
+  }
+
+  async function salvarDados() {
+    if (!fotoBase64) { alert('Adicione a foto antes de salvar.'); return }
+    setSalvando(true); setErroSave('')
+
+    // Incrementa o contador de foto
+    const nrRes = await fetch('/api/foto-nr', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ cpf_inspetor: cpfInspetor, cnpjoucpf, tipo_servico: tipoServico })
+    })
+    const nrData = await nrRes.json()
+    const nrFinal = nrData?.formatado ?? fotoNr
+
+    const nomeArquivo = `${chaveInspetor}${nrFinal}.json`
+    const payload = {
+      chaveInspetor, cpfInspetor, cnpjoucpf, tipoServico,
+      savedAt: new Date().toISOString(),
+      cnpjDisplay, razaoSocial, tipoAtivo, tagNrSerie, finalidade,
+      sistema, subsistema, anomalia, origem, local, complemento,
+      gravidade: gravNum, urgencia: urgNum, abrangencia: abrNum, exposicao: expNum,
+      grauRisco, prioridade, fotoNr: nrFinal, dataVistoria, fotoBase64, nc, cp,
+    }
+
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL!
+    const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
+
+    const res = await fetch(`${url}/storage/v1/object/aime/vistorias/${nomeArquivo}`, {
+      method: 'POST',
+      headers: { 'apikey': key, 'Authorization': `Bearer ${key}`, 'Content-Type': 'application/json', 'x-upsert': 'true' },
+      body: JSON.stringify(payload)
+    })
+
+    if (!res.ok) {
+      setErroSave('Erro ao salvar: ' + res.statusText)
+      setSalvando(false)
+      return
+    }
+
+    // Limpa formulário preservando CNPJ/RS
+    setSistema(''); setSubsistema(''); setAnomalia(''); setOrigem(''); setLocal('')
+    setComplemento(''); setTipoAtivo(''); setTagNrSerie(''); setFinalidade('')
+    setDescGravidade(''); setDescUrgencia(''); setDescAbrangencia(''); setDescExposicao('')
+    setFotoBase64(''); setNc(''); setCp(''); setFeedbackIA('')
+    setSalvando(false); setSalvoOk(true); setArquivoSalvo(nomeArquivo)
+  }
+
+  function encerrar() {
+    window.location.href = '/dashboard'
+  }
+
   if (carregando) return (
-    <div style={S.body}>
-      <div style={S.page}>
-        <CabecalhoHTML titulo={infoTela.titulo} subtitulo={infoTela.subtitulo} />
-        <div style={S.divider} />
-        <p style={{ textAlign: 'center', padding: '40px', color: '#4a6480', fontSize: '9pt' }}>
-          Carregando dados da vistoria...
-        </p>
-      </div>
-    </div>
+    <div style={S.body}><div style={S.page}>
+      <CabecalhoHTML tipoServico={tipoServico} />
+      <div style={S.divider} />
+      <div style={S.formBody}><p style={{ textAlign: 'center', padding: '40px', color: '#4a6480' }}>Carregando dados...</p></div>
+    </div></div>
   )
 
-  if (estado.sucesso) return (
-    <div style={S.body}>
-      <div style={S.page}>
-        <CabecalhoHTML titulo={infoTela.titulo} subtitulo={infoTela.subtitulo} />
-        <div style={S.divider} />
-        <div style={{ padding: '40px 20px', textAlign: 'center' }}>
-          <div style={{ fontSize: '40px', marginBottom: '10px' }}>✅</div>
-          <h2 style={{ color: '#1E3A8A', fontSize: '13pt', fontWeight: 700, marginBottom: '6px' }}>
-            Registro salvo com sucesso!
-          </h2>
-          <p style={{ color: '#4a6480', fontSize: '8pt', marginBottom: '16px' }}>
-            Arquivo: <code>{estado.ultimoArquivoSalvo}</code>
-          </p>
-          <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
-            <button onClick={resetarSucesso} style={{ ...S.btn, ...S.btnPri }}>
-              ➕ Nova Manifestação
-            </button>
-            <button onClick={() => encerrarVistoria(() => router.push('/dashboard'))} style={{ ...S.btn, ...S.btnSec }}>
-              Encerrar vistoria
-            </button>
-          </div>
+  if (salvoOk) return (
+    <div style={S.body}><div style={S.page}>
+      <CabecalhoHTML tipoServico={tipoServico} />
+      <div style={S.divider} />
+      <div style={{ padding: '40px', textAlign: 'center' }}>
+        <div style={{ fontSize: '48px', marginBottom: '12px' }}>✅</div>
+        <h2 style={{ color: '#1E3A8A', fontSize: '14pt', marginBottom: '8px' }}>Registro salvo!</h2>
+        <p style={{ color: '#4a6480', fontSize: '9pt', marginBottom: '20px' }}>Arquivo: {arquivoSalvo}</p>
+        <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
+          <button onClick={() => setSalvoOk(false)} style={{ ...S.btn, ...S.btnPri }}>➕ Nova Manifestação</button>
+          <button onClick={encerrar} style={{ ...S.btn, ...S.btnSec }}>Encerrar</button>
         </div>
       </div>
-    </div>
+    </div></div>
   )
 
   return (
     <div style={S.body}>
       <div style={S.page}>
-
-        {/* ── Header (igual HTML aprovado) ── */}
-        <CabecalhoHTML titulo={infoTela.titulo} subtitulo={infoTela.subtitulo} />
+        <CabecalhoHTML tipoServico={tipoServico} />
         <div style={S.divider} />
-
         <div style={S.formBody}>
 
-          {/* ── BLOCO: Identificação ── */}
+          {/* IDENTIFICAÇÃO */}
           <div style={S.block}>
             <div style={S.blockTitle}>Identificação</div>
             <div style={S.blockBody}>
               <div style={{ ...S.row, ...S.c2 }}>
-                <Field label="CNPJ">
-                  <input style={S.input} value={form.cnpjoucpf} readOnly placeholder="00.000.000/0000-00" />
-                </Field>
-                <Field label="Razão social">
-                  <input style={S.input} value={form.razaoSocialNome} readOnly placeholder="Nome do estabelecimento" />
-                </Field>
+                <Field label="CNPJ"><input style={S.input} value={cnpjDisplay} readOnly /></Field>
+                <Field label="Razão social"><input style={S.input} value={razaoSocial} readOnly /></Field>
               </div>
               <div style={{ ...S.row, ...S.c3 }}>
                 <Field label="Ativo a vistoriar">
-                  <select style={S.input} value={form.tipoAtivo}
-                    onChange={(e) => { atualizar('tipoAtivo', e.target.value); atualizar('tagAtivoNrSerie', '') }}>
+                  <select style={S.input} value={tipoAtivo} onChange={e => { setTipoAtivo(e.target.value); setTagNrSerie(''); setFinalidade('') }}>
                     <option value="">Selecione...</option>
-                    {tiposAtivo.map((t) => <option key={t} value={t}>{t}</option>)}
+                    {tiposAtivo.map(t => <option key={t} value={t}>{t}</option>)}
                   </select>
                 </Field>
-                <Field label="Tag / Nr série">
-                  <select style={S.input} value={form.tagAtivoNrSerie}
-                    onChange={(e) => {
-                      atualizar('tagAtivoNrSerie', e.target.value)
-                      const ativo = ativos.find(
-                        (a) => a.tipo_ativo === form.tipoAtivo && a.tag_ativo_nr_serie === e.target.value
-                      )
-                      setFinalidade(ativo?.finalidade_vistoria ?? '')
-                    }} disabled={!form.tipoAtivo}>
+                <Field label={tagObrigatorio ? 'Tag / Nr série *' : 'Tag / Nr série'}>
+                  <select style={S.input} value={tagNrSerie} onChange={e => {
+                    setTagNrSerie(e.target.value)
+                    const ativo = ativos.find(a => a.tipo_ativo === tipoAtivo && a.tag_ativo_nr_serie === e.target.value)
+                    setFinalidade(ativo?.finalidade_vistoria ?? '')
+                  }} disabled={!tipoAtivo}>
                     <option value="">Selecione...</option>
-                    {tagsFiltradas.map((t) => <option key={t} value={t}>{t}</option>)}
+                    {tagsFiltradas.map(t => <option key={t} value={t}>{t}</option>)}
                   </select>
                 </Field>
                 <Field label="Finalidade da vistoria">
-                  <input style={{ ...S.input, background: '#f5f7fc', color: '#4a6480' }} value={finalidade} readOnly placeholder="Selecione a TAG/Nº Série" />
+                  <input style={{ ...S.input, background: '#f5f7fc', color: '#4a6480' }} value={finalidade} readOnly />
                 </Field>
               </div>
             </div>
           </div>
 
-          {/* ── BLOCO: Manifestação Patológica ── */}
+          {/* MANIFESTAÇÃO PATOLÓGICA */}
           <div style={S.block}>
             <div style={S.blockTitle}>Manifestação Patológica</div>
             <div style={S.blockBody}>
               <div style={{ ...S.row, ...S.c3 }}>
                 <Field label="Sistema">
-                  <select style={S.input} value={form.sistema} onChange={(e) => onSistemaChange(e.target.value)}>
+                  <select style={S.input} value={sistema} onChange={e => { setSistema(e.target.value); setSubsistema(''); setAnomalia('') }}>
                     <option value="">Selecione...</option>
-                    {sistemas.map((s) => <option key={s.sistema} value={s.sistema}>{s.sistema}</option>)}
+                    {sistemas.map(s => <option key={s.sistema} value={s.sistema}>{s.sistema}</option>)}
                   </select>
                 </Field>
                 <Field label="Subsistema">
-                  <select style={S.input} value={form.subsistema}
-                    onChange={(e) => onSubsistemaChange(e.target.value)} disabled={!form.sistema}>
+                  <select style={S.input} value={subsistema} onChange={e => { setSubsistema(e.target.value); setAnomalia('') }} disabled={!sistema}>
                     <option value="">Selecione...</option>
-                    {subsistemasFiltrados.map((s) => <option key={s} value={s}>{s}</option>)}
+                    {subsistemasFiltrados.map(s => <option key={s} value={s}>{s}</option>)}
                   </select>
                 </Field>
                 <Field label="Anomalia / Falha">
-                  <select style={S.input} value={form.anomalia}
-                    onChange={(e) => atualizar('anomalia', e.target.value)} disabled={!form.subsistema}>
+                  <select style={S.input} value={anomalia} onChange={e => setAnomalia(e.target.value)} disabled={!subsistema}>
                     <option value="">Selecione...</option>
-                    {anomaliasFiltradas.map((a) => <option key={a} value={a}>{a}</option>)}
+                    {anomaliasFiltradas.map(a => <option key={a} value={a}>{a}</option>)}
                   </select>
                 </Field>
               </div>
               <div style={{ ...S.row, ...S.c3 }}>
                 <Field label="Origem">
-                  <select style={S.input} value={form.origem} onChange={(e) => atualizar('origem', e.target.value)}>
+                  <select style={S.input} value={origem} onChange={e => setOrigem(e.target.value)}>
                     <option value="">Selecione...</option>
-                    {origens.map((o) => <option key={o} value={o}>{o}</option>)}
+                    {origens.map(o => <option key={o} value={o}>{o}</option>)}
                   </select>
                 </Field>
                 <Field label="Local de ocorrência">
-                  <select style={S.input} value={form.local} onChange={(e) => atualizar('local', e.target.value)}>
+                  <select style={S.input} value={local} onChange={e => setLocal(e.target.value)}>
                     <option value="">Selecione...</option>
-                    {locais.map((l) => <option key={l} value={l}>{l}</option>)}
+                    {locais.map(l => <option key={l} value={l}>{l}</option>)}
                   </select>
                 </Field>
                 <Field label="Complemento do local">
-                  <input style={S.input} value={form.complemento}
-                    onChange={(e) => atualizar('complemento', e.target.value)}
-                    placeholder="Ex: Pavimento 3, Apto 42" />
+                  <input style={S.input} value={complemento} onChange={e => setComplemento(e.target.value)} placeholder="Ex: Pavimento 3" />
                 </Field>
               </div>
             </div>
           </div>
 
-          {/* ── BLOCO: Classificação de Risco ── */}
+          {/* CLASSIFICAÇÃO DE RISCO */}
           <div style={S.block}>
             <div style={S.blockTitle}>Classificação de Risco</div>
             <div style={S.blockBody}>
               <div style={{ ...S.row, ...S.c4 }}>
-                {[
-                  { label: 'Gravidade',   lista: gravidades,   campo: 'gravidade'   as const },
-                  { label: 'Urgência',    lista: urgencias,    campo: 'urgencia'    as const },
-                  { label: 'Abrangência', lista: abrangencias, campo: 'abrangencia' as const },
-                  { label: 'Exposição',   lista: exposicoes,   campo: 'exposicao'   as const },
-                ].map(({ label, lista, campo }) => (
-                  <Field key={campo} label={label}>
-                    <select style={S.input} value={descGUT[campo]} onChange={(e) => onGutChange(campo, e.target.value)}>
-                      <option value="">Sel...</option>
-                      {lista.map((v) => <option key={v} value={v}>{v}</option>)}
-                    </select>
-                  </Field>
-                ))}
+                <Field label="Gravidade">
+                  <select style={S.input} value={descGravidade} onChange={e => setDescGravidade(e.target.value)}>
+                    <option value="">Sel...</option>
+                    {gravidades.map(v => <option key={v} value={v}>{v}</option>)}
+                  </select>
+                </Field>
+                <Field label="Urgência">
+                  <select style={S.input} value={descUrgencia} onChange={e => setDescUrgencia(e.target.value)}>
+                    <option value="">Sel...</option>
+                    {urgencias.map(v => <option key={v} value={v}>{v}</option>)}
+                  </select>
+                </Field>
+                <Field label="Abrangência">
+                  <select style={S.input} value={descAbrangencia} onChange={e => setDescAbrangencia(e.target.value)}>
+                    <option value="">Sel...</option>
+                    {abrangencias.map(v => <option key={v} value={v}>{v}</option>)}
+                  </select>
+                </Field>
+                <Field label="Exposição">
+                  <select style={S.input} value={descExposicao} onChange={e => setDescExposicao(e.target.value)}>
+                    <option value="">Sel...</option>
+                    {exposicoes.map(v => <option key={v} value={v}>{v}</option>)}
+                  </select>
+                </Field>
               </div>
               <div style={S.riskMetrics}>
                 <div style={S.metric}>
                   <span style={S.metricLbl}>Grau de Risco</span>
-                  <span style={S.metricVal}>{form.grauRisco}</span>
+                  <span style={{ ...S.metricVal, color: corGR }}>{grauRisco || '—'}</span>
                   <div style={S.barWrap}>
-                    <div style={{ ...S.bar, width: `${form.grauRisco}%`, background: corGR.bar }} />
+                    <div style={{ ...S.bar, width: `${grauRisco}%`, background: corGR }} />
                   </div>
                 </div>
-                <div style={{ ...S.metric, justifyContent: 'center', gap: '8px' }}>
+                <div style={{ ...S.metric, justifyContent: 'center' }}>
                   <span style={S.metricLbl}>Prioridade</span>
-                  <span style={{ ...S.badge, background: corGR.badgeBg, color: corGR.badgeColor }}>
-                    {corGR.label}
+                  <span style={{ ...S.badge, background: grauRisco >= 64 ? '#FCEBEB' : grauRisco >= 35 ? '#FFF0C2' : '#E6F5EE', color: corGR }}>
+                    {prioridade}
                   </span>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* ── BLOCO: Evidência Fotográfica ── */}
-          {/* Botão "Adicionar foto" na mesma linha de Foto Nº e Data (igual HTML aprovado) */}
+          {/* EVIDÊNCIA FOTOGRÁFICA */}
           <div style={S.block}>
             <div style={S.blockTitle}>Evidência Fotográfica</div>
             <div style={S.blockBody}>
               <div style={S.photoControls}>
                 <Field label="Foto nº">
-                  <input style={{ ...S.input, textAlign: 'center', background: '#f5f7fc', color: '#1E3A8A', fontWeight: 700 }}
-                    value={form.fotoNr} readOnly />
+                  <input style={{ ...S.input, textAlign: 'center', background: '#f5f7fc', color: '#1E3A8A', fontWeight: 700 }} value={fotoNr} readOnly />
                 </Field>
                 <Field label="Data da vistoria">
-                  <div style={S.dataDisplay}>{form.dataVistoria}</div>
+                  <div style={S.dataDisplay}>{dataVistoria}</div>
                 </Field>
                 <button
                   style={S.photoBtn}
                   onClick={() => fileInputRef.current?.click()}
-                  disabled={!form.sistema || !form.subsistema || !form.anomalia}
+                  disabled={!sistema || !subsistema || !anomalia}
                 >
                   📷 Adicionar foto
                 </button>
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*"
-                  capture="environment"
-                  style={{ display: 'none' }}
-                  onChange={handleFotoChange}
-                />
+                <input ref={fileInputRef} type="file" accept="image/*" capture="environment" style={{ display: 'none' }} onChange={handleFotoChange} />
               </div>
-
-              <div
-                style={S.photoArea}
-                onClick={() => fileInputRef.current?.click()}
-              >
-                {form.fotoBase64 && (
-                  <img src={form.fotoBase64} alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
-                )}
-                {!form.fotoBase64 && (
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#8aa3c4', fontSize: '8pt' }}>
-                    Clique para adicionar a foto da anomalia
-                  </div>
-                )}
+              <div style={S.photoArea} onClick={() => fileInputRef.current?.click()}>
+                {fotoBase64 && <img src={fotoBase64} alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />}
+                {!fotoBase64 && <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#8aa3c4', fontSize: '8pt' }}>Clique para adicionar a foto da anomalia</div>}
               </div>
-
-              {estado.feedbackIa && estado.feedbackIa !== 'concluido' && estado.feedbackIa !== 'erro' && (
-                <div style={S.aiStatus}>{TEXTO_FEEDBACK[estado.feedbackIa]}</div>
-              )}
-              {estado.feedbackIa === 'erro' && (
-                <div style={{ ...S.aiStatus, color: '#CC0000', background: '#FCEBEB' }}>
-                  {TEXTO_FEEDBACK.erro} {estado.erroIa}
-                </div>
-              )}
+              {feedbackIA && <div style={S.aiStatus}>{feedbackIA}</div>}
             </div>
           </div>
 
-          {/* ── BLOCO: Resultado da Análise e Avaliação ── */}
+          {/* RESULTADO DA ANÁLISE */}
           <div style={S.block}>
             <div style={S.blockTitle}>Resultado da Análise e Avaliação</div>
             <div style={S.blockBody}>
-              <Field label="Descrição da não conformidade (NC)">
-                <textarea
-                  style={{ ...S.input, ...S.textarea, minHeight: '32px' }}
-                  value={form.nc}
-                  maxLength={200}
-                  onChange={(e) => atualizar('nc', e.target.value)}
-                  placeholder="Gerado por IA após adicionar foto..."
-                />
+              <Field label="Não conformidade (NC)">
+                <textarea style={{ ...S.input, ...S.textarea }} value={nc} maxLength={200} onChange={e => setNc(e.target.value)} placeholder="Gerado por IA após adicionar foto..." />
               </Field>
-              <Field label="Descrição da causa provável (CP)">
-                <textarea
-                  style={{ ...S.input, ...S.textarea, minHeight: '32px' }}
-                  value={form.cp}
-                  maxLength={200}
-                  onChange={(e) => atualizar('cp', e.target.value)}
-                  placeholder="Gerado por IA após adicionar foto..."
-                />
+              <Field label="Causa provável (CP)">
+                <textarea style={{ ...S.input, ...S.textarea }} value={cp} maxLength={200} onChange={e => setCp(e.target.value)} placeholder="Gerado por IA após adicionar foto..." />
               </Field>
             </div>
           </div>
 
-          {estado.erroSave && (
-            <div style={{ color: '#CC0000', fontSize: '8pt', textAlign: 'center', marginBottom: '6px' }}>
-              ⚠️ {estado.erroSave}
-            </div>
-          )}
+          {erroSave && <div style={{ color: '#CC0000', fontSize: '8pt', textAlign: 'center', marginBottom: '6px' }}>⚠️ {erroSave}</div>}
 
-          {/* ── Footer: 2 botões (igual HTML aprovado) ── */}
+          {/* FOOTER */}
           <div style={S.footer}>
-            <button
-              style={{ ...S.btn, ...S.btnSec, opacity: podeEncerrar ? 1 : 0.5, cursor: podeEncerrar ? 'pointer' : 'not-allowed' }}
-              onClick={() => encerrarVistoria(() => router.push('/dashboard'))}
-              disabled={!podeEncerrar}
-            >
-              Encerrar vistoria
-            </button>
-            <button
-              style={{ ...S.btn, ...S.btnPri, opacity: (estado.salvando || !form.fotoNr) ? 0.6 : 1 }}
-              onClick={salvarDados}
-              disabled={estado.salvando || !form.fotoNr}
-            >
-              {estado.salvando ? 'Salvando...' : 'Salvar dados'}
+            <button style={{ ...S.btn, ...S.btnSec }} onClick={encerrar}>Encerrar vistoria</button>
+            <button style={{ ...S.btn, ...S.btnPri, opacity: salvando ? 0.6 : 1 }} onClick={salvarDados} disabled={salvando}>
+              {salvando ? 'Salvando...' : 'Salvar dados'}
             </button>
           </div>
-
-          {!podeEncerrar && (
-            <p style={{ textAlign: 'center', fontSize: '7pt', color: '#8A5C00', marginTop: '4px' }}>
-              ⚠️ Salve o último registro antes de encerrar a vistoria.
-            </p>
-          )}
         </div>
       </div>
     </div>
@@ -512,15 +498,15 @@ function Tela31Inner() {
 
 // ─── Sub-componentes ──────────────────────────────────────────────────────────
 
-function CabecalhoHTML({ titulo, subtitulo }: { titulo: string; subtitulo: string }) {
+function CabecalhoHTML({ tipoServico }: { tipoServico: string }) {
   return (
     <div style={S.header}>
-      <div style={S.logo}>
-        <img src="/logo.png" alt="AIMÊ" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+      <div style={{ width: '80px', height: '36px', flexShrink: 0 }}>
+        <Image src="/logo.png" alt="AIMÊ" width={80} height={36} style={{ filter: 'brightness(0) invert(1)', objectFit: 'contain' }} />
       </div>
-      <div style={S.headerText}>
-        <h1 style={S.headerH1}>{titulo}</h1>
-        <p style={S.headerP}>{subtitulo}</p>
+      <div style={{ flex: 1, textAlign: 'center' }}>
+        <h1 style={{ fontSize: '11pt', fontWeight: 700, color: '#fff', margin: 0 }}>{TITULO_TELA[tipoServico] ?? `Vistoria ${tipoServico}`}</h1>
+        <p style={{ fontSize: '7pt', color: '#B5D4F4', marginTop: '2px' }}>Formulário para registro de manifestações patológicas e classificação de riscos</p>
       </div>
     </div>
   )
@@ -535,242 +521,41 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   )
 }
 
-// ─── Estilos (fiéis ao CSS do HTML aprovado) ──────────────────────────────────
+function delay(ms: number) { return new Promise(r => setTimeout(r, ms)) }
+
+// ─── Estilos ──────────────────────────────────────────────────────────────────
 
 const S: Record<string, React.CSSProperties> = {
-  body: {
-    background: '#E8EEF7',
-    display: 'flex',
-    justifyContent: 'center',
-    padding: '24px',
-    fontFamily: 'Arial, Helvetica, sans-serif',
-    minHeight: '100vh',
-  },
-  page: {
-    width: '210mm',
-    maxWidth: '100%',
-    minHeight: 'fit-content',
-    background: '#ffffff',
-    borderRadius: '16px',
-    boxShadow: '0 4px 24px rgba(0,0,0,.15)',
-    overflow: 'hidden',
-  },
-  header: {
-    background: '#1E3A8A',
-    padding: '8px 16px',
-    display: 'flex',
-    alignItems: 'center',
-    gap: '12px',
-  },
-  logo: {
-    width: '80px',
-    height: '36px',
-    flexShrink: 0,
-    display: 'flex',
-    alignItems: 'center',
-  },
-  headerText: {
-    flex: 1,
-    textAlign: 'center',
-  },
-  headerH1: {
-    fontSize: '11pt',
-    fontWeight: 700,
-    color: '#ffffff',
-    margin: 0,
-  },
-  headerP: {
-    fontSize: '7pt',
-    color: '#B5D4F4',
-    marginTop: '2px',
-  },
-  headerTitle: {
-    color: '#ffffff',
-    fontSize: '11pt',
-    fontWeight: 700,
-  },
-  divider: {
-    height: '2px',
-    background: '#1E3A8A',
-  },
-  formBody: {
-    padding: '10px 14px',
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '5px',
-  },
-  block: {
-    border: '1px solid #c3d4f0',
-    borderRadius: '6px',
-    overflow: 'hidden',
-  },
-  blockTitle: {
-    background: '#1E3A8A',
-    color: '#ffffff',
-    fontSize: '7.5pt',
-    fontWeight: 700,
-    padding: '3px 10px',
-  },
-  blockBody: {
-    padding: '5px 10px',
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '4px',
-  },
-  row: {
-    display: 'grid',
-    gap: '4px',
-  },
-  c2: { gridTemplateColumns: '1fr 1fr' },
-  c3: { gridTemplateColumns: '1fr 1fr 1fr' },
-  c4: { gridTemplateColumns: '1fr 1fr 1fr 1fr' },
-  field: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '1px',
-  },
-  fieldLabel: {
-    fontSize: '6.5pt',
-    fontWeight: 600,
-    color: '#4a6480',
-  },
-  input: {
-    width: '100%',
-    border: '1px solid #c3d4f0',
-    borderRadius: '4px',
-    padding: '2px 5px',
-    fontSize: '7.5pt',
-    color: '#1a1a2e',
-    fontFamily: 'inherit',
-    background: '#ffffff',
-    boxSizing: 'border-box',
-  },
-  textarea: {
-    resize: 'vertical',
-    lineHeight: 1.35,
-  },
-  riskMetrics: {
-    display: 'grid',
-    gridTemplateColumns: '1fr 1fr',
-    gap: '4px',
-  },
-  metric: {
-    background: '#E8EEF7',
-    border: '1px solid #c3d4f0',
-    borderRadius: '5px',
-    padding: '3px 8px',
-    display: 'flex',
-    alignItems: 'center',
-    gap: '8px',
-  },
-  metricLbl: {
-    fontSize: '6.5pt',
-    color: '#4a6480',
-    fontWeight: 600,
-    whiteSpace: 'nowrap',
-  },
-  metricVal: {
-    fontSize: '13pt',
-    fontWeight: 700,
-    color: '#1E3A8A',
-    lineHeight: 1,
-  },
-  badge: {
-    display: 'inline-flex',
-    alignItems: 'center',
-    gap: '4px',
-    padding: '2px 10px',
-    borderRadius: '99px',
-    fontSize: '7.5pt',
-    fontWeight: 700,
-  },
-  barWrap: {
-    flex: 1,
-    height: '5px',
-    background: '#c3d4f0',
-    borderRadius: '99px',
-    overflow: 'hidden',
-  },
-  bar: {
-    height: '100%',
-    borderRadius: '99px',
-    transition: 'width 0.3s',
-  },
-  photoControls: {
-    display: 'grid',
-    gridTemplateColumns: '70px 1fr auto',
-    gap: '6px',
-    alignItems: 'end',
-    marginBottom: '4px',
-  },
-  photoBtn: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '5px',
-    padding: '3px 12px',
-    height: '24px',
-    background: '#E8EEF7',
-    border: '1px solid #c3d4f0',
-    borderRadius: '4px',
-    cursor: 'pointer',
-    fontSize: '7pt',
-    color: '#1E3A8A',
-    whiteSpace: 'nowrap',
-    fontFamily: 'inherit',
-  },
-  dataDisplay: {
-    fontSize: '7.5pt',
-    color: '#1E3A8A',
-    fontWeight: 600,
-    textAlign: 'center',
-    padding: '2px 5px',
-    border: '1px solid #c3d4f0',
-    borderRadius: '4px',
-    background: '#f5f7fc',
-  },
-  photoArea: {
-    border: '1.5px dashed #c3d4f0',
-    borderRadius: '5px',
-    background: '#E8EEF7',
-    height: '60mm',
-    position: 'relative',
-    overflow: 'hidden',
-    cursor: 'pointer',
-  },
-  aiStatus: {
-    fontSize: '6.5pt',
-    color: '#1E3A8A',
-    padding: '2px 6px',
-    background: '#E8EEF7',
-    borderRadius: '4px',
-    marginTop: '2px',
-  },
-  footer: {
-    display: 'grid',
-    gridTemplateColumns: '1fr 1fr',
-    gap: '8px',
-    marginTop: '4px',
-  },
-  btn: {
-    padding: '8px 0',
-    fontSize: '8pt',
-    fontWeight: 700,
-    borderRadius: '50px',
-    cursor: 'pointer',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: '6px',
-    fontFamily: 'inherit',
-  },
-  btnSec: {
-    background: '#ffffff',
-    border: '2px solid #1E3A8A',
-    color: '#1E3A8A',
-  },
-  btnPri: {
-    background: '#1E3A8A',
-    border: '2px solid #1E3A8A',
-    color: '#ffffff',
-  },
+  body:          { background: '#E8EEF7', display: 'flex', justifyContent: 'center', padding: '24px', fontFamily: 'Arial, Helvetica, sans-serif', minHeight: '100vh' },
+  page:          { width: '210mm', maxWidth: '100%', background: '#ffffff', borderRadius: '16px', boxShadow: '0 4px 24px rgba(0,0,0,.15)', overflow: 'hidden', height: 'fit-content' },
+  header:        { background: '#1E3A8A', padding: '8px 16px', display: 'flex', alignItems: 'center', gap: '12px' },
+  divider:       { height: '2px', background: '#1E3A8A' },
+  formBody:      { padding: '10px 14px', display: 'flex', flexDirection: 'column', gap: '5px' },
+  block:         { border: '1px solid #c3d4f0', borderRadius: '6px', overflow: 'hidden' },
+  blockTitle:    { background: '#1E3A8A', color: '#ffffff', fontSize: '7.5pt', fontWeight: 700, padding: '3px 10px' },
+  blockBody:     { padding: '5px 10px', display: 'flex', flexDirection: 'column', gap: '4px' },
+  row:           { display: 'grid', gap: '4px' },
+  c2:            { gridTemplateColumns: '1fr 1fr' },
+  c3:            { gridTemplateColumns: '1fr 1fr 1fr' },
+  c4:            { gridTemplateColumns: '1fr 1fr 1fr 1fr' },
+  field:         { display: 'flex', flexDirection: 'column', gap: '1px' },
+  fieldLabel:    { fontSize: '6.5pt', fontWeight: 600, color: '#4a6480' },
+  input:         { width: '100%', border: '1px solid #c3d4f0', borderRadius: '4px', padding: '2px 5px', fontSize: '7.5pt', color: '#1a1a2e', fontFamily: 'inherit', background: '#ffffff', boxSizing: 'border-box' },
+  textarea:      { resize: 'vertical', lineHeight: 1.35, minHeight: '32px' },
+  riskMetrics:   { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4px' },
+  metric:        { background: '#E8EEF7', border: '1px solid #c3d4f0', borderRadius: '5px', padding: '3px 8px', display: 'flex', alignItems: 'center', gap: '8px' },
+  metricLbl:     { fontSize: '6.5pt', color: '#4a6480', fontWeight: 600, whiteSpace: 'nowrap' },
+  metricVal:     { fontSize: '13pt', fontWeight: 700, lineHeight: 1 },
+  badge:         { display: 'inline-flex', alignItems: 'center', padding: '2px 10px', borderRadius: '99px', fontSize: '7.5pt', fontWeight: 700 },
+  barWrap:       { flex: 1, height: '5px', background: '#c3d4f0', borderRadius: '99px', overflow: 'hidden' },
+  bar:           { height: '100%', borderRadius: '99px', transition: 'width 0.3s' },
+  photoControls: { display: 'grid', gridTemplateColumns: '70px 1fr auto', gap: '6px', alignItems: 'end', marginBottom: '4px' },
+  photoBtn:      { display: 'flex', alignItems: 'center', gap: '5px', padding: '3px 12px', height: '24px', background: '#E8EEF7', border: '1px solid #c3d4f0', borderRadius: '4px', cursor: 'pointer', fontSize: '7pt', color: '#1E3A8A', whiteSpace: 'nowrap', fontFamily: 'inherit' },
+  dataDisplay:   { fontSize: '7.5pt', color: '#1E3A8A', fontWeight: 600, textAlign: 'center', padding: '2px 5px', border: '1px solid #c3d4f0', borderRadius: '4px', background: '#f5f7fc' },
+  photoArea:     { border: '1.5px dashed #c3d4f0', borderRadius: '5px', background: '#E8EEF7', height: '60mm', position: 'relative', overflow: 'hidden', cursor: 'pointer' },
+  aiStatus:      { fontSize: '6.5pt', color: '#1E3A8A', padding: '2px 6px', background: '#E8EEF7', borderRadius: '4px', marginTop: '2px' },
+  footer:        { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginTop: '4px' },
+  btn:           { padding: '8px 0', fontSize: '8pt', fontWeight: 700, borderRadius: '50px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', fontFamily: 'inherit' },
+  btnSec:        { background: '#ffffff', border: '2px solid #1E3A8A', color: '#1E3A8A' },
+  btnPri:        { background: '#1E3A8A', border: '2px solid #1E3A8A', color: '#ffffff' },
 }
