@@ -3,9 +3,9 @@
 // Nomes de colunas ajustados conforme estrutura real do banco:
 //   cpf_inspetor, cnpjoucpf, tag_ativo_nr_serie, razao_social_nome
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useRef } from 'react'
 import { createClient } from '@/utils/supabase/client'
-import type { GerarNcCpRequest, GerarNcCpResponse } from '@/types/vistoria-types'
+import type { GerarNcCpRequest, GerarNcCpResponse } from '@/app/api/gerar-nc-cp/route'
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
 
@@ -146,7 +146,11 @@ export function useVistoria31(
   cnpjoucpf:     string,   // coluna: cnpjoucpf (estabelecimento)
   tipoServico:   string    // coluna: tipo_servico (VARCHAR no banco)
 ) {
-  const supabase = createClient()
+  const supabaseRef = useRef<ReturnType<typeof createClient> | null>(null)
+  if (!supabaseRef.current && typeof window !== 'undefined') {
+    supabaseRef.current = createClient()
+  }
+  const supabase = supabaseRef.current!
 
   const [form, setForm] = useState<FormVistoria>({
     cnpjoucpf:         '',
