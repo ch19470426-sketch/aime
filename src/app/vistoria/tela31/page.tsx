@@ -177,16 +177,6 @@ function Tela31Inner() {
         setExposicoes(f('Exposição'))
       }
 
-      // Número de foto
-      const nrRes = await fetch('/api/foto-nr', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ cpf_inspetor: cpfInspetor, cnpjoucpf, tipo_servico: tipoServico })
-      })
-      // Não incrementa ainda — só pega o próximo
-      const nrGet = await fetch(`/api/foto-nr?cpf_inspetor=${cpfInspetor}&cnpjoucpf=${cnpjoucpf}&tipo_servico=${tipoServico}`)
-      const nrData = await nrGet.json()
-      if (nrData?.formatado) setFotoNr(nrData.formatado)
 
       setCarregando(false)
     }
