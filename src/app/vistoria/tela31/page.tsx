@@ -495,8 +495,8 @@ function Tela31Inner() {
 function CabecalhoHTML({ tipoServico }: { tipoServico: string }) {
   return (
     <div style={S.header}>
-      <div style={{ width: '80px', height: '36px', flexShrink: 0 }}>
-        <Image src="/logo.png" alt="AIMÊ" width={80} height={36} style={{ filter: 'brightness(0) invert(1)', objectFit: 'contain' }} />
+      <div style={{ width: '80px', height: '36px', flexShrink: 0, display: 'flex', alignItems: 'center' }}>
+        <Image src="/logo.png" alt="AIMÊ" width={80} height={36} style={{ filter: 'brightness(0) invert(1)', objectFit: 'contain', display: 'block' }} />
       </div>
       <div style={{ flex: 1, textAlign: 'center' }}>
         <h1 style={{ fontSize: '11pt', fontWeight: 700, color: '#fff', margin: 0 }}>{TITULO_TELA[tipoServico] ?? `Vistoria ${tipoServico}`}</h1>
