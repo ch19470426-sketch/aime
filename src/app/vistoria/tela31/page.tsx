@@ -1,36 +1,25 @@
-// src/app/vistoria/tela31/page.tsx — teste com imports mas sem useVistoria31
 'use client'
 import { Suspense, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
-import { createClient } from '@/utils/supabase/client'
 
 function Inner() {
   const params = useSearchParams()
   const cnpj = params.get('cnpjoucpf') ?? 'não informado'
   const [dados, setDados] = useState<string>('aguardando...')
 
-  async function testar() {
-    try {
-      const supabase = createClient()
-      const { data, error } = await supabase
-        .from('estabelecimento')
-        .select('razao_social_nome')
-        .eq('cnpjoucpf', cnpj)
-        .single()
-      if (error) setDados('Erro: ' + error.message)
-      else setDados('OK: ' + data?.razao_social_nome)
-    } catch (e) {
-      setDados('Exceção: ' + String(e))
-    }
+  function testar() {
+    setDados('Botão funcionou! CNPJ: ' + cnpj)
   }
 
   return (
     <div style={{ padding: '40px', fontFamily: 'Arial' }}>
-      <h1 style={{ color: '#1E3A8A' }}>Tela 31 — Teste Supabase</h1>
-      <p>CNPJ: {cnpj}</p>
+      <h1 style={{ color: '#1E3A8A' }}>Teste botão</h1>
       <p>Resultado: {dados}</p>
-      <button onClick={testar} style={{ padding: '10px 20px', background: '#1E3A8A', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '16px', marginTop: '10px' }}>
-        Testar Supabase
+      <button 
+        onClick={testar}
+        onTouchEnd={(e) => { e.preventDefault(); testar() }}
+        style={{ padding: '16px 24px', background: '#1E3A8A', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '18px', marginTop: '10px', minHeight: '52px', touchAction: 'manipulation' }}>
+        Testar botão
       </button>
     </div>
   )
