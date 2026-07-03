@@ -161,7 +161,7 @@ function Tela31Inner() {
 
         // Ativos
         if (cpfInspetor) {
-          const atv = await query('ativos_a_vistoriar', `cpf_inspetor=eq.${cpfInspetor}&select=tipo_ativo,tag_ativo_nr_serie,finalidade_vistoria,data_cadastro&order=data_cadastro.desc`)
+          const atv = await query('ativos_a_vistoriar', `cpf_inspetor=eq.${cpfInspetor}&tipo_servico=eq.${encodeURIComponent(tipoServicoBanco)}&select=tipo_ativo,tag_ativo_nr_serie,finalidade_vistoria,data_cadastro&order=data_cadastro.desc`)
           if (Array.isArray(atv)) setAtivos(atv)
         }
 
@@ -353,80 +353,58 @@ function Tela31Inner() {
             </div>
           </div>
 
-          {/* MANIFESTAÇÃO PATOLÓGICA */}
+          {/* APURAÇÃO DA CONFORMIDADE REGULATÓRIA */}
           <div style={S.block}>
-            <div style={S.blockTitle}>Manifestação Patológica</div>
+            <div style={S.blockTitle}>Apuração da Conformidade Regulatória</div>
             <div style={S.blockBody}>
-              <div style={{ ...S.row, ...S.c3 }}>
+              <div style={{ ...S.row, ...S.c2 }}>
                 <Field label="Sistema">
-                  <select style={S.input} value={sistema} onChange={e => { setSistema(e.target.value); setSubsistema(''); setAnomalia('') }}>
+                  <select style={S.input} value={sistema} onChange={e => { setSistema(e.target.value); setSubsistema(''); setAnomalia(''); setResultado(''); setNc('') }}>
                     <option value="">Selecione...</option>
                     {sistemas.map(s => <option key={s.sistema} value={s.sistema}>{s.sistema}</option>)}
                   </select>
                 </Field>
-                <Field label="Subsistema">
-                  <select style={S.input} value={subsistema} onChange={e => { setSubsistema(e.target.value); setAnomalia('') }} disabled={!sistema}>
+                <Field label="Subsistema / Componente">
+                  <select style={S.input} value={subsistema} onChange={e => { setSubsistema(e.target.value); setAnomalia(''); setResultado(''); setNc('') }} disabled={!sistema}>
                     <option value="">Selecione...</option>
                     {subsistemasFiltrados.map(s => <option key={s} value={s}>{s}</option>)}
                   </select>
                 </Field>
-                <Field label="Requisito Normativo">
-                  <select style={S.input} value={anomalia} onChange={e => {
-                    setAnomalia(e.target.value)
-                    setResultado('')
-                    setNc('')
-                  }} disabled={!subsistema}>
-                    <option value="">Selecione...</option>
-                    {anomaliasFiltradas.map(a => <option key={a} value={a}>{a}</option>)}
-                  </select>
-                </Field>
               </div>
-              <div style={{ ...S.row, ...S.c3 }}>
-                <Field label="Origem">
-                  <select style={S.input} value={origem} onChange={e => setOrigem(e.target.value)}>
-                    <option value="">Selecione...</option>
-                    {origens.map(o => <option key={o} value={o}>{o}</option>)}
-                  </select>
-                </Field>
-                <Field label="Local de ocorrência">
-                  <select style={S.input} value={local} onChange={e => setLocal(e.target.value)}>
-                    <option value="">Selecione...</option>
-                    {locais.map(l => <option key={l} value={l}>{l}</option>)}
-                  </select>
-                </Field>
-                <Field label="Complemento do local">
-                  <input style={S.input} value={complemento} onChange={e => setComplemento(e.target.value)} placeholder="Ex: Pavimento 3" />
-                </Field>
-              </div>
-            </div>
-          </div>
-
-          {/* RESULTADO */}
-          <div style={S.block}>
-            <div style={S.blockTitle}>Resultado da Verificação</div>
-            <div style={S.blockBody}>
-              <Field label="Resultado *">
-                <select style={S.input} value={resultado} onChange={e => {
-                  const val = e.target.value
-                  setResultado(val)
-                  if (val === 'Conforme') setNc('Requisito atendido plenamente.')
-                  else if (val === 'Não aplicável') setNc('Requisito não se aplica à instalação.')
-                  else if (val === 'Não verificado') setNc('')
-                  else if (val === 'Não conforme') setNc('')
-                }}>
-                  <option value="">Selecione...</option>
-                  {['Conforme', 'Não conforme', 'Não aplicável', 'Não verificado'].map(r => (
-                    <option key={r} value={r}>{r}</option>
-                  ))}
+              <Field label="Requisito Normativo">
+                <select style={{ ...S.input, minHeight: '28px' }} value={anomalia} onChange={e => {
+                  setAnomalia(e.target.value)
+                  setResultado('')
+                  setNc('')
+                }} disabled={!subsistema}>
+                  <option value="">Selecione o requisito normativo...</option>
+                  {anomaliasFiltradas.map(a => <option key={a} value={a}>{a}</option>)}
                 </select>
               </Field>
-              {resultado === 'Não verificado' && (
-                <Field label="Justificativa (obrigatória para Não verificado)">
-                  <textarea style={{ ...S.input, ...S.textarea }} value={nc}
-                    onChange={e => setNc(e.target.value)}
-                    placeholder="Descreva o motivo pelo qual o requisito não foi verificado..." />
-                </Field>
+              {anomalia && (
+                <div style={{ fontSize: '6.5pt', color: '#1E3A8A', background: '#EEF4FF', border: '1px solid #c3d4f0', borderRadius: '4px', padding: '4px 8px', marginTop: '2px', lineHeight: 1.4 }}>
+                  {anomalia}
+                </div>
               )}
+              <div style={{ ...S.row, ...S.c2, marginTop: '4px' }}>
+                <Field label="Resultado *">
+                  <select style={S.input} value={resultado} onChange={e => {
+                    const val = e.target.value
+                    setResultado(val)
+                    if (val === 'Conforme') setNc('Requisito atendido plenamente.')
+                    else if (val === 'Não aplicável') setNc('Requisito não se aplica à instalação.')
+                    else if (val !== 'Não conforme') setNc('')
+                  }} disabled={!anomalia}>
+                    <option value="">Selecione...</option>
+                    {['Conforme', 'Não conforme', 'Não aplicável', 'Não verificado'].map(r => (
+                      <option key={r} value={r}>{r}</option>
+                    ))}
+                  </select>
+                </Field>
+                <Field label="Local / Instalação">
+                  <input style={S.input} value={local} onChange={e => setLocal(e.target.value)} placeholder="Ex: Quadro 2º pavimento, Sala elétrica..." />
+                </Field>
+              </div>
             </div>
           </div>
 
