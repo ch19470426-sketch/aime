@@ -1,9 +1,9 @@
-// src/app/dashboard/page.tsx
-// AIMÊ — Dashboard com sub-tela reorganizada conforme spec
+﻿// src/app/dashboard/page.tsx
+// AIMÃŠ â€” Dashboard com sub-tela reorganizada conforme spec
 //   - Bloco CNPJ/CPF compacto (altura -60%) no canto superior esquerdo
 //   - Avatar mie_orienta no canto superior direito
-//   - Título "Procedimento para Execução do Serviço" centralizado entre os dois
-//   - Área reservada abaixo para descrição do procedimento (implementação futura)
+//   - TÃ­tulo "Procedimento para Execução do ServiÃ§o" centralizado entre os dois
+//   - Ãrea reservada abaixo para descrição do procedimento (implementação futura)
 //   - CPF coletado para tipos 13, 23, 33, 43 / CNPJ para os demais
 
 "use client"
@@ -78,16 +78,16 @@ const menuGrupos = [
   ]},
 ]
 
-// Tipos de serviço que são vistorias (abre tela de CNPJ/CPF)
+// Tipos de serviÃ§o que são vistorias (abre tela de CNPJ/CPF)
 const CODIGOS_VISTORIA = [31, 32, 33, 34, 35, 36, 37, 38]
 
-// Tipos de serviço que coletam CPF (pessoa física) em vez de CNPJ
+// Tipos de serviÃ§o que coletam CPF (pessoa fÃ­sica) em vez de CNPJ
 const CODIGOS_CPF = [13, 23, 33, 43]
 
 const TIPO_SERVICO_BANCO: Record<number, string> = {
   31: "31 Autovistoria",
-  32: "32 Vistoria inspeção",
-  33: "33 Vistoria imóvel novo",
+  32: "32 Vistoria Inspeção",
+  33: "33 Vistoria Imóvel novo",
   34: "34 Vistoria fachada",
   35: "35 Vistoria elevador",
   36: "36 Vistoria nr-10",
@@ -109,7 +109,7 @@ export default function Dashboard() {
   const ehVistoria = tipoServico !== null && CODIGOS_VISTORIA.includes(Number(tipoServico))
   const coletaCpf  = tipoServico !== null && CODIGOS_CPF.includes(Number(tipoServico))
 
-  // Formata CNPJ (00.000.000/0000-00) ou CPF (000.000.000-00) conforme o tipo de serviço
+  // Formata CNPJ (00.000.000/0000-00) ou CPF (000.000.000-00) conforme o tipo de serviÃ§o
   function formatarDocumento(valor: string): string {
     const nums = valor.replace(/\D/g, "")
     if (coletaCpf) {
@@ -141,7 +141,7 @@ export default function Dashboard() {
     const docLimpo = documentoSemMascara(documento)
     const tamanhoEsperado = coletaCpf ? 11 : 14
     if (docLimpo.length < tamanhoEsperado) {
-      setMsgErro(`${coletaCpf ? "CPF" : "CNPJ"} incompleto (${docLimpo.length}/${tamanhoEsperado} dígitos)`)
+      setMsgErro(`${coletaCpf ? "CPF" : "CNPJ"} incompleto (${docLimpo.length}/${tamanhoEsperado} dÃ­gitos)`)
       return
     }
     const url = `/vistoria/tela${tipoServico}?cpf_inspetor=${cpfInspetor}&chave_inspetor=${chaveInspetor}&cnpjoucpf=${docLimpo}&tipo_servico=${tipoServico}`
@@ -152,35 +152,35 @@ export default function Dashboard() {
     <div style={{ backgroundColor: "#E8EEF7", minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", padding: "16px" }}>
       <div style={{ backgroundColor: "white", borderRadius: "16px", boxShadow: "0 4px 24px rgba(0,0,0,0.12)", width: "100%", maxWidth: "1100px", overflow: "hidden" }}>
 
-        {/* ── Header ── */}
+        {/* â”€â”€ Header â”€â”€ */}
         <div style={{ backgroundColor: "#1E3A8A", padding: "8px 16px", display: "flex", alignItems: "center", gap: "12px" }}>
           <Image src="/logo.png" alt="AIME" width={80} height={32} priority style={{ filter: "brightness(0) invert(1)" }} />
           <span style={{ color: "white", fontWeight: "bold", fontSize: "12px", flex: 1, textAlign: "center" }}>
-            Mapeamento Inteligente de Edificações e Equipamentos
+            Mapeamento Inteligente de EdificaÃ§Ãµes e Equipamentos
           </span>
         </div>
         <div style={{ height: "2px", backgroundColor: "#1E3A8A" }} />
 
         <div style={{ display: "flex", minHeight: "500px" }}>
 
-          {/* ── Menu lateral ── */}
+          {/* â”€â”€ Menu lateral â”€â”€ */}
           <div style={{ width: "220px", borderRight: "2px solid #1E3A8A", backgroundColor: "white", flexShrink: 0 }}>
             <div style={{ backgroundColor: "#1E3A8A", padding: "8px 16px" }}>
-              <span style={{ color: "white", fontWeight: "bold", fontSize: "11px" }}>Selecionar Serviço</span>
+              <span style={{ color: "white", fontWeight: "bold", fontSize: "11px" }}>Selecionar ServiÃ§o</span>
             </div>
             <div style={{ height: "2px", backgroundColor: "#1E3A8A" }} />
             {menuGrupos.map((grupo) => (
               <div key={grupo.grupo}>
                 <button onClick={() => setGrupoAberto(grupoAberto === grupo.grupo ? null : grupo.grupo)}
                   style={{ width: "100%", textAlign: "left", padding: "8px 12px", backgroundColor: "#F1F5F9", color: "#1E3A8A", fontWeight: "bold", fontSize: "11px", border: "none", borderBottom: "1px solid #E2E8F0", cursor: "pointer" }}>
-                  {grupoAberto === grupo.grupo ? "▼" : "▶"} {grupo.grupo}
+                  {grupoAberto === grupo.grupo ? "â–¼" : "â–¶"} {grupo.grupo}
                 </button>
                 {grupoAberto === grupo.grupo && grupo.itens.map((item) => {
                   const habilitado = permitidos.includes(item.codigo)
                   const selecionado = tipoServico === item.codigo
                   return (
                     <button key={item.codigo} onClick={() => handleSelecionar(item.codigo)}
-                      title={!habilitado ? "Não permitido para seu título profissional" : ""}
+                      title={!habilitado ? "Não permitido para seu tÃ­tulo profissional" : ""}
                       style={{
                         width: "100%", textAlign: "left", padding: "6px 12px 6px 20px",
                         backgroundColor: selecionado ? "#EBF1FF" : "white",
@@ -198,17 +198,17 @@ export default function Dashboard() {
             ))}
           </div>
 
-          {/* ── Área de conteúdo ── */}
+          {/* â”€â”€ Ãrea de conteÃºdo â”€â”€ */}
           <div style={{ flex: 1, padding: "16px", backgroundColor: "#F8FAFC" }}>
 
-            {/* Nenhum serviço selecionado */}
+            {/* Nenhum serviÃ§o selecionado */}
             {!tipoServico && (
               <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%", color: "#94A3B8", fontSize: "14px" }}>
-                Selecione um serviço no menu ao lado
+                Selecione um serviÃ§o no menu ao lado
               </div>
             )}
 
-            {/* Serviço selecionado mas não é vistoria */}
+            {/* ServiÃ§o selecionado mas não é vistoria */}
             {tipoServico && !ehVistoria && (
               <div style={{ backgroundColor: "white", borderRadius: "10px", overflow: "hidden", border: "1px solid #E2E8F0" }}>
                 <div style={{ backgroundColor: "#1E3A8A", padding: "10px 20px" }}>
@@ -221,11 +221,11 @@ export default function Dashboard() {
               </div>
             )}
 
-            {/* ════════ Vistoria selecionada: layout 3 zonas ════════ */}
+            {/* â•â•â•â•â•â•â•â• Vistoria selecionada: layout 3 zonas â•â•â•â•â•â•â•â• */}
             {tipoServico && ehVistoria && (
               <div>
 
-                {/* Título do serviço */}
+                {/* TÃ­tulo do serviÃ§o */}
                 <div style={{ backgroundColor: "#1E3A8A", padding: "8px 16px", borderRadius: "8px 8px 0 0" }}>
                   <span style={{ color: "white", fontWeight: "bold", fontSize: "12px" }}>
                     {itemSelecionado?.codigo} - {itemSelecionado?.label}
@@ -234,10 +234,10 @@ export default function Dashboard() {
 
                 <div style={{ backgroundColor: "white", border: "1px solid #E2E8F0", borderTop: "none", borderRadius: "0 0 8px 8px", padding: "12px" }}>
 
-                  {/* ── Linha superior: CNPJ/CPF (esquerda) | Título (centro) | Avatar (direita) ── */}
+                  {/* â”€â”€ Linha superior: CNPJ/CPF (esquerda) | TÃ­tulo (centro) | Avatar (direita) â”€â”€ */}
                   <div style={{ display: "grid", gridTemplateColumns: "260px 1fr 90px", gap: "12px", alignItems: "start" }}>
 
-                    {/* Zona esquerda: bloco CNPJ/CPF — altura reduzida em 60% */}
+                    {/* Zona esquerda: bloco CNPJ/CPF â€” altura reduzida em 60% */}
                     <div style={{ border: "1px solid #E2E8F0", borderRadius: "8px", padding: "8px 10px", background: "#F8FAFF" }}>
                       <label style={{ display: "block", fontSize: "10px", fontWeight: 600, color: "#475569", textTransform: "uppercase", marginBottom: "3px" }}>
                         {coletaCpf ? "CPF" : "CNPJ"} *
@@ -262,7 +262,7 @@ export default function Dashboard() {
 
                       {estadoDoc === "nao_cadastrado" && (
                         <div style={{ fontSize: "10px", color: "#B45309", marginBottom: "6px", lineHeight: 1.3 }}>
-                          ⚠️ Não cadastrado. O cadastro é feito na proposta comercial.
+                          âš ï¸ Não cadastrado. O cadastro é feito na proposta comercial.
                         </div>
                       )}
 
@@ -277,14 +277,14 @@ export default function Dashboard() {
                           touchAction: "manipulation",
                         }}
                       >
-                        {estadoDoc === "verificando" ? "Verificando..." : "Iniciar →"}
+                        {estadoDoc === "verificando" ? "Verificando..." : "Iniciar â†’"}
                       </button>
                     </div>
 
-                    {/* Zona central: título do procedimento */}
+                    {/* Zona central: tÃ­tulo do procedimento */}
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%" }}>
                       <h3 style={{ color: "#1E3A8A", fontWeight: 700, fontSize: "15px", textAlign: "center", margin: 0 }}>
-                        Procedimento para Execução do Serviço
+                        Procedimento para Execução do ServiÃ§o
                       </h3>
                     </div>
 
@@ -295,9 +295,9 @@ export default function Dashboard() {
                     </div>
                   </div>
 
-                  {/* ── Área reservada: descrição do procedimento (implementação futura) ── */}
+                  {/* â”€â”€ Ãrea reservada: descrição do procedimento (implementação futura) â”€â”€ */}
                   <div style={{ marginTop: "16px", padding: "20px", border: "1px dashed #CBD5E1", borderRadius: "8px", minHeight: "180px", color: "#94A3B8", fontSize: "13px", textAlign: "center" }}>
-                    [Reservado para descrição do procedimento de execução do serviço]
+                    [Reservado para descrição do procedimento de execução do serviÃ§o]
                   </div>
 
                 </div>
@@ -311,3 +311,4 @@ export default function Dashboard() {
     </div>
   )
 }
+
