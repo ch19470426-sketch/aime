@@ -511,8 +511,17 @@ function Tela31Inner() {
 
           {/* FOOTER */}
           <div style={S.footer}>
-            <button style={{ ...S.btn, ...S.btnSec }} onClick={encerrar}>Encerrar vistoria</button>
-            <button style={{ ...S.btn, ...S.btnPri, opacity: salvando ? 0.6 : 1 }} onClick={salvarDados} disabled={salvando}>
+            <button
+              style={{ ...S.btn, ...S.btnSec, touchAction: 'manipulation' }}
+              onClick={encerrar}
+              onTouchEnd={(e) => { e.preventDefault(); encerrar() }}>
+              Encerrar vistoria
+            </button>
+            <button
+              style={{ ...S.btn, ...S.btnPri, opacity: salvando ? 0.6 : 1, touchAction: 'manipulation' }}
+              onClick={salvarDados}
+              onTouchEnd={(e) => { e.preventDefault(); if (!salvando) salvarDados() }}
+              disabled={salvando}>
               {salvando ? 'Salvando...' : 'Salvar dados'}
             </button>
           </div>
