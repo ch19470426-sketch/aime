@@ -188,6 +188,7 @@ function Tela31Inner() {
       } catch(e) {
         console.error('Erro no carregamento:', e)
       } finally {
+        console.log('tipoServicoBanco:', tipoServicoBanco, 'sistemas:', sis?.length)
         setCarregando(false)
       }
     }
