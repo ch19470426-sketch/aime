@@ -250,6 +250,7 @@ function Tela31Inner() {
     if (!resultado) { alert('Selecione o Resultado antes de salvar.'); return }
     setSalvando(true); setErroSave('')
 
+    try {
     // Incrementa o contador de foto
     const nrRes = await fetch('/api/foto-nr', {
       method: 'POST',
@@ -278,6 +279,12 @@ function Tela31Inner() {
 
     if (!res.ok || resultado.erro) {
       setErroSave('Erro ao salvar: ' + (resultado.erro ?? res.statusText))
+      setSalvando(false)
+      return
+    }
+
+    } catch(e) {
+      setErroSave('Erro ao salvar: ' + String(e))
       setSalvando(false)
       return
     }
