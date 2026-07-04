@@ -160,7 +160,7 @@ function Tela31Inner() {
 
         // Ativos
         if (cpfInspetor) {
-          const atv = await query('ativos_a_vistoriar', `cpf_inspetor=eq.${cpfInspetor}&select=tipo_ativo,tag_ativo_nr_serie,finalidade_vistoria,data_cadastro&order=data_cadastro.desc`)
+          const atv = await query('ativos_a_vistoriar', `cpf_inspetor=eq.${cpfInspetor}&tipo_servico=eq.${encodeURIComponent(tipoServicoBanco)}&select=tipo_ativo,tag_ativo_nr_serie,finalidade_vistoria,data_cadastro&order=data_cadastro.desc`)
           if (Array.isArray(atv)) setAtivos(atv)
         }
 
