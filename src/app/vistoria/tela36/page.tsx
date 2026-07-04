@@ -228,7 +228,7 @@ function Tela31Inner() {
       const res = await fetch('/api/gerar-nc-cp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ sistema, subsistema, anomalia, local, complemento, origem: '', abrangencia: descAbrangencia })
+        body: JSON.stringify({ sistema, subsistema, anomalia, local: local || 'Instalação', complemento, origem: 'Funcional', abrangencia: descAbrangencia || 'Ponto isolado' })
       })
       if (!res.ok) throw new Error('Status: ' + res.status)
       const data = await res.json()
@@ -376,7 +376,7 @@ function Tela31Inner() {
                 </select>
               </Field>
 
-              <div style={{ ...S.row, ...S.c2, marginTop: '4px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr 2fr', gap: '4px', marginTop: '4px' }}>
                 <Field label="Resultado *">
                   <select style={S.input} value={resultado} onChange={e => {
                     const val = e.target.value
@@ -388,7 +388,7 @@ function Tela31Inner() {
                       if (fotoBase64) gerarNcCp(fotoBase64)
                     } else setNc('')
                   }} disabled={!anomalia}>
-                    <option value="">Selecione...</option>
+                    <option value="">Sel...</option>
                     {['Conforme', 'Não conforme', 'Não aplicável', 'Não verificado'].map(r => (
                       <option key={r} value={r}>{r}</option>
                     ))}
@@ -396,6 +396,9 @@ function Tela31Inner() {
                 </Field>
                 <Field label="Local / Instalação">
                   <input style={S.input} value={local} onChange={e => setLocal(e.target.value)} placeholder="Ex: Quadro 2º pavimento..." />
+                </Field>
+                <Field label="Complemento">
+                  <input style={S.input} value={complemento} onChange={e => setComplemento(e.target.value)} placeholder="Detalhe adicional..." />
                 </Field>
               </div>
             </div>
