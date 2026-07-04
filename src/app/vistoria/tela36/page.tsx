@@ -31,7 +31,7 @@ const TIPO_SERVICO_BANCO: Record<string, string> = {
   '35': '35 Vistoria elevador', '36': '36 Vistoria nr-10',
   '37': '37 Vistoria nr-12', '38': '38 Vistoria nr-13',
 }
-
+36': '36': 'Vistoria Instalações Elétricas - NR-10'
 const TITULO_TELA: Record<string, string> = {
   '31': 'Autovistoria', '32': 'Vistoria Inspeção', '33': 'Vistoria Imóvel Novo',
   '34': 'Vistoria Fachada', '35': 'Vistoria Elevador', '36': 'Vistoria NR-10',
