@@ -511,17 +511,8 @@ function Tela31Inner() {
 
           {/* FOOTER */}
           <div style={S.footer}>
-            <button
-              style={{ ...S.btn, ...S.btnSec, touchAction: 'manipulation' }}
-              onClick={encerrar}
-              onTouchEnd={(e) => { e.preventDefault(); encerrar() }}>
-              Encerrar vistoria
-            </button>
-            <button
-              style={{ ...S.btn, ...S.btnPri, opacity: salvando ? 0.6 : 1, touchAction: 'manipulation' }}
-              onClick={salvarDados}
-              onTouchEnd={(e) => { e.preventDefault(); if (!salvando) salvarDados() }}
-              disabled={salvando}>
+            <button style={{ ...S.btn, ...S.btnSec }} onClick={encerrar}>Encerrar vistoria</button>
+            <button style={{ ...S.btn, ...S.btnPri, opacity: salvando ? 0.6 : 1 }} onClick={salvarDados} disabled={salvando}>
               {salvando ? 'Salvando...' : 'Salvar dados'}
             </button>
           </div>
@@ -541,7 +532,7 @@ function CabecalhoHTML({ tipoServico }: { tipoServico: string }) {
       </div>
       <div style={{ flex: 1, textAlign: 'center' }}>
         <h1 style={{ fontSize: '11pt', fontWeight: 700, color: '#fff', margin: 0 }}>{TITULO_TELA[tipoServico] ?? `Vistoria ${tipoServico}`}</h1>
-        <p style={{ fontSize: '7pt', color: '#B5D4F4', marginTop: '2px' }}>Formulário para registro de manifestações patológicas e classificação de riscos</p>
+        <p style={{ fontSize: '7pt', color: '#B5D4F4', marginTop: '2px' }}>Formulário para Registro de Conformidade Regulatória</p>
       </div>
     </div>
   )
