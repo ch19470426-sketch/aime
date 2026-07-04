@@ -37,7 +37,7 @@ const TITULO_TELA: Record<string, string> = {
   '37': 'Vistoria Máquinas e Equipamentos -12', '38': 'Vistoria Caldeiras, Vasos de Pressão, Tubulações e Tanques -NR-13',
 }
 
-// ─── Wrapper ─────────────────────────────────────────────────────────────────
+// ─── Wrapper ─────────────────────────────────────────────────────────────────git add .
 
 export default function Tela31Page() {
   return (
