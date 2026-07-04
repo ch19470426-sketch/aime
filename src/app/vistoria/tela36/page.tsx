@@ -144,6 +144,10 @@ function Tela31Inner() {
     async function carregar() {
       setCarregando(true)
       setDataVistoria(new Date().toLocaleDateString('pt-BR'))
+      fetch('/api/foto-nr?cpf_inspetor=' + cpfInspetor + '&cnpjoucpf=' + cnpjoucpf + '&tipo_servico=' + tipoServico)
+        .then(r => r.json())
+        .then(d => { if (d?.formatado) setFotoNr(d.formatado) })
+        .catch(() => {})
 
       try {
         // Estabelecimento
