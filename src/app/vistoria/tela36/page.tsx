@@ -1,5 +1,5 @@
-﻿// src/app/vistoria/tela36/page.tsx
-// AIMÃŠ â€” Tela 36: Vistoria NR-10 â€” InstalaÃ§Ãµes ElÃ©tricas
+// src/app/vistoria/tela36/page.tsx
+// AIMÊ — Tela 36: Vistoria Instalações Elétricas - NR-10
 
 'use client'
 
@@ -7,7 +7,7 @@ import { Suspense, useEffect, useRef, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Image from 'next/image'
 
-// â”€â”€â”€ Tipos â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Tipos ───────────────────────────────────────────────────────────────────
 
 interface ItemSistema    { sistema: string }
 interface ItemSubsistema { sistema: string; subsistema: string }
@@ -15,10 +15,10 @@ interface ItemAnomalia   { sistema: string; subsistema: string; anomalias: strin
 interface ItemAtivo      { tipo_ativo: string; tag_ativo_nr_serie: string; finalidade_vistoria: string | null }
 
 const VALOR_GUT: Record<string, number> = {
-  'gravidade:EstÃ©tica': 1, 'gravidade:Leve': 2, 'gravidade:Moderada': 3, 'gravidade:Alta': 4, 'gravidade:CrÃ­tica': 5,
+  'gravidade:Estética': 1, 'gravidade:Leve': 2, 'gravidade:Moderada': 3, 'gravidade:Alta': 4, 'gravidade:Crítica': 5,
   'urgencia:Pode aguardar': 1, 'urgencia:Planejar': 3, 'urgencia:Imediata': 5,
-  'abrangencia:Ponto isolado': 1, 'abrangencia:VÃ¡rios pontos': 3, 'abrangencia:Sistema completo': 5,
-  'exposicao:Baixa': 1, 'exposicao:MÃ©dia': 3, 'exposicao:Alta': 5,
+  'abrangencia:Ponto isolado': 1, 'abrangencia:Vários pontos': 3, 'abrangencia:Sistema completo': 5,
+  'exposicao:Baixa': 1, 'exposicao:Média': 3, 'exposicao:Alta': 5,
 }
 
 function calcularGR(gra: number, urg: number, abr: number, exp: number): number {
@@ -26,25 +26,25 @@ function calcularGR(gra: number, urg: number, abr: number, exp: number): number 
 }
 
 const TIPO_SERVICO_BANCO: Record<string, string> = {
-  '31': '31 Autovistoria', '32': '32 Vistoria inspeÃ§Ã£o',
-  '33': '33 Vistoria imÃ³vel novo', '34': '34 Vistoria fachada',
+  '31': '31 Autovistoria', '32': '32 Vistoria inspeção',
+  '33': '33 Vistoria imóvel novo', '34': '34 Vistoria fachada',
   '35': '35 Vistoria elevador', '36': '36 Vistoria nr-10',
   '37': '37 Vistoria nr-12', '38': '38 Vistoria nr-13',
 }
 
 const TITULO_TELA: Record<string, string> = {
-  '31': 'Autovistoria', '32': 'Vistoria InspeÃ§Ã£o', '33': 'Vistoria ImÃ³vel Novo',
-  '34': 'Vistoria Fachada', '35': 'Vistoria Elevador', '36': 'Vistoria Instalações Elétricas - NR-10',
+  '31': 'Autovistoria', '32': 'Vistoria Inspeção', '33': 'Vistoria Imóvel Novo',
+  '34': 'Vistoria Fachada', '35': 'Vistoria Elevador', '36': 'Vistoria NR-10',
   '37': 'Vistoria NR-12', '38': 'Vistoria NR-13',
 }
 
-// â”€â”€â”€ Wrapper â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Wrapper ─────────────────────────────────────────────────────────────────
 
 export default function Tela31Page() {
   return (
     <Suspense fallback={
       <div style={S.body}><div style={S.page}>
-        <div style={S.header}><span style={{ color: '#fff', fontWeight: 700 }}>AIMÃŠ â€” Carregando...</span></div>
+        <div style={S.header}><span style={{ color: '#fff', fontWeight: 700 }}>AIMÊ — Carregando...</span></div>
       </div></div>
     }>
       <Tela31Inner />
@@ -52,7 +52,7 @@ export default function Tela31Page() {
   )
 }
 
-// â”€â”€â”€ Componente principal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Componente principal ─────────────────────────────────────────────────────
 
 function Tela31Inner() {
   const params        = useSearchParams()
@@ -63,11 +63,11 @@ function Tela31Inner() {
   const tipoServicoBanco = TIPO_SERVICO_BANCO[tipoServico] ?? `${tipoServico} Autovistoria`
   const tagObrigatorio   = ['35', '37', '38'].includes(tipoServico)
 
-  // â”€â”€ Dados do estabelecimento â”€â”€
+  // ── Dados do estabelecimento ──
   const [cnpjDisplay,  setCnpjDisplay]  = useState('')
   const [razaoSocial,  setRazaoSocial]  = useState('')
 
-  // â”€â”€ Listas â”€â”€
+  // ── Listas ──
   const [sistemas,     setSistemas]     = useState<ItemSistema[]>([])
   const [subsistemas,  setSubsistemas]  = useState<ItemSubsistema[]>([])
   const [anomalias,    setAnomalias]    = useState<ItemAnomalia[]>([])
@@ -80,7 +80,7 @@ function Tela31Inner() {
   const [ativos,       setAtivos]       = useState<ItemAtivo[]>([])
   const [carregando,   setCarregando]   = useState(true)
 
-  // â”€â”€ Campos do formulÃ¡rio â”€â”€
+  // ── Campos do formulário ──
   const [tipoAtivo,      setTipoAtivo]      = useState('')
   const [tagNrSerie,     setTagNrSerie]      = useState('')
   const [finalidade,     setFinalidade]      = useState('')
@@ -101,7 +101,7 @@ function Tela31Inner() {
   const [nc,             setNc]              = useState('')
   const [cp,             setCp]              = useState('')
 
-  // â”€â”€ Estado â”€â”€
+  // ── Estado ──
   const [feedbackIA,  setFeedbackIA]  = useState('')
   const [erroSave,    setErroSave]    = useState('')
   const [salvando,    setSalvando]    = useState(false)
@@ -116,7 +116,7 @@ function Tela31Inner() {
   const abrNum  = VALOR_GUT[`abrangencia:${descAbrangencia}`] ?? 0
   const expNum  = VALOR_GUT[`exposicao:${descExposicao}`]   ?? 0
   const grauRisco = (gravNum && urgNum && abrNum && expNum) ? calcularGR(gravNum, urgNum, abrNum, expNum) : 0
-  const prioridade = grauRisco >= 75 ? 'CrÃ­tico' : grauRisco >= 50 ? 'Alto' : grauRisco >= 30 ? 'MÃ©dio' : grauRisco > 0 ? 'Baixo' : 'â€”'
+  const prioridade = grauRisco >= 75 ? 'Crítico' : grauRisco >= 50 ? 'Alto' : grauRisco >= 30 ? 'Médio' : grauRisco > 0 ? 'Baixo' : '—'
   const corGR = grauRisco >= 64 ? '#E24B4A' : grauRisco >= 35 ? '#E8A000' : '#1A7A3C'
 
   // Listas filtradas
@@ -127,7 +127,7 @@ function Tela31Inner() {
   const tiposAtivo    = [...new Set(ativos.map(a => a.tipo_ativo))]
   const tagsFiltradas = ativos.filter(a => a.tipo_ativo === tipoAtivo).map(a => a.tag_ativo_nr_serie)
 
-  // â”€â”€ Carga inicial via fetch (evita createClient no SSR) â”€â”€
+  // ── Carga inicial via fetch (evita createClient no SSR) ──
   const SUPA_URL = 'https://asgorarunzhiojqioxzq.supabase.co'
   const SUPA_KEY = 'sb_publishable_dH85HYKGxv3X0te627VfOw_OGaPoNMF'
 
@@ -144,10 +144,6 @@ function Tela31Inner() {
     async function carregar() {
       setCarregando(true)
       setDataVistoria(new Date().toLocaleDateString('pt-BR'))
-      fetch('/api/foto-nr?cpf_inspetor=' + cpfInspetor + '&cnpjoucpf=' + cnpjoucpf + '&tipo_servico=' + tipoServico)
-        .then(r => r.json())
-        .then(d => { if (d?.formatado) setFotoNr(d.formatado) })
-        .catch(() => {})
 
       try {
         // Estabelecimento
@@ -179,16 +175,16 @@ function Tela31Inner() {
         const ano = await query('sistemas_construtivos', `tipo_servico=eq.${encodeURIComponent(tipoServicoBanco)}&anomalias=not.is.null&select=sistema,subsistema,anomalias`)
         if (Array.isArray(ano)) setAnomalias(ano)
 
-        // ParÃ¢metros
+        // Parâmetros
         const par = await query('tabela_parametros', `tipo_servico=eq.${encodeURIComponent(tipoServicoBanco)}&select=tipo_parametro,descricao_parametros&order=tipo_parametro,descricao_parametros`)
         if (Array.isArray(par)) {
           const f = (tipo: string) => par.filter((p: {tipo_parametro: string, descricao_parametros: string}) => p.tipo_parametro === tipo).map((p: {descricao_parametros: string}) => p.descricao_parametros)
           setOrigens(f('Origem'))
-          setLocais(f('Local ocorrÃªncia'))
+          setLocais(f('Local ocorrência'))
           setGravidades(f('Gravidade'))
-          setUrgencias(f('UrgÃªncia'))
-          setAbrangencias(f('AbrangÃªncia'))
-          setExposicoes(f('ExposiÃ§Ã£o'))
+          setUrgencias(f('Urgência'))
+          setAbrangencias(f('Abrangência'))
+          setExposicoes(f('Exposição'))
         }
       } catch(e) {
         console.error('Erro no carregamento:', e)
@@ -199,7 +195,7 @@ function Tela31Inner() {
     carregar()
   }, [cpfInspetor, cnpjoucpf, tipoServico])
 
-  // â”€â”€ Foto e IA â”€â”€
+  // ── Foto e IA ──
   function handleFotoChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file) return
@@ -217,35 +213,34 @@ function Tela31Inner() {
       const compressed = canvas.toDataURL('image/jpeg', 0.5)
       setFotoBase64(compressed)
       setDataVistoria(new Date().toLocaleDateString('pt-BR'))
-      // Buscar prÃ³ximo nÃºmero de foto
       fetch('/api/foto-nr?cpf_inspetor=' + cpfInspetor + '&cnpjoucpf=' + cnpjoucpf + '&tipo_servico=' + tipoServico)
         .then(r => r.json())
         .then(d => { if (d?.formatado) setFotoNr(d.formatado) })
         .catch(() => {})
-      if (resultado === 'NÃ£o conforme') gerarNcCp(compressed)
+      if (resultado === 'Não conforme') gerarNcCp(compressed)
     }
     img.src = url
   }
 
   async function gerarNcCp(foto: string) {
-    if (resultado !== 'NÃ£o conforme') return
+    if (resultado !== 'Não conforme') return
     if (!sistema || !subsistema || !anomalia) return
-    setFeedbackIA('â³ Analisando requisito normativo...')
+    setFeedbackIA('⏳ Analisando requisito normativo...')
     await delay(400)
-    setFeedbackIA('â³ Gerando descriÃ§Ã£o da nÃ£o conformidade...')
+    setFeedbackIA('⏳ Gerando descrição da não conformidade...')
     try {
       const res = await fetch('/api/gerar-nc-cp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ sistema, subsistema, anomalia, local: local || 'InstalaÃ§Ã£o', complemento, origem: 'Funcional', abrangencia: descAbrangencia || 'Ponto isolado' })
+        body: JSON.stringify({ sistema, subsistema, anomalia, local: local || 'Instalação', complemento, origem: 'Funcional', abrangencia: descAbrangencia || 'Ponto isolado' })
       })
       if (!res.ok) throw new Error('Status: ' + res.status)
       const data = await res.json()
       const ncVal = data.nc || data.nao_conformidade || ''
       if (ncVal) setNc(ncVal)
-      setFeedbackIA('âœ… NÃ£o conformidade gerada com sucesso!')
+      setFeedbackIA('✅ Não conformidade gerada com sucesso!')
     } catch(e) {
-      setFeedbackIA('âš ï¸ Erro ao gerar NC: ' + String(e))
+      setFeedbackIA('⚠️ Erro ao gerar NC: ' + String(e))
     }
   }
 
@@ -285,7 +280,7 @@ function Tela31Inner() {
       return
     }
 
-    // Limpa formulÃ¡rio preservando CNPJ/RS
+    // Limpa formulário preservando CNPJ/RS
     setSistema(''); setSubsistema(''); setAnomalia(''); setOrigem(''); setLocal('')
     setComplemento(''); setTipoAtivo(''); setTagNrSerie(''); setFinalidade('')
     setDescGravidade(''); setDescUrgencia(''); setDescAbrangencia(''); setDescExposicao('')
@@ -310,11 +305,11 @@ function Tela31Inner() {
       <CabecalhoHTML tipoServico={tipoServico} />
       <div style={S.divider} />
       <div style={{ padding: '40px', textAlign: 'center' }}>
-        <div style={{ fontSize: '48px', marginBottom: '12px' }}>âœ…</div>
+        <div style={{ fontSize: '48px', marginBottom: '12px' }}>✅</div>
         <h2 style={{ color: '#1E3A8A', fontSize: '14pt', marginBottom: '8px' }}>Registro salvo!</h2>
         <p style={{ color: '#4a6480', fontSize: '9pt', marginBottom: '20px' }}>Arquivo: {arquivoSalvo}</p>
         <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
-          <button onClick={() => setSalvoOk(false)} style={{ ...S.btn, ...S.btnPri }}>âž• Nova ManifestaÃ§Ã£o</button>
+          <button onClick={() => setSalvoOk(false)} style={{ ...S.btn, ...S.btnPri }}>➕ Nova Manifestação</button>
           <button onClick={encerrar} style={{ ...S.btn, ...S.btnSec }}>Encerrar</button>
         </div>
       </div>
@@ -328,13 +323,13 @@ function Tela31Inner() {
         <div style={S.divider} />
         <div style={S.formBody}>
 
-          {/* IDENTIFICAÃ‡ÃƒO */}
+          {/* IDENTIFICAÇÃO */}
           <div style={S.block}>
-            <div style={S.blockTitle}>IdentificaÃ§Ã£o</div>
+            <div style={S.blockTitle}>Identificação</div>
             <div style={S.blockBody}>
               <div style={{ ...S.row, ...S.c2 }}>
                 <Field label="CNPJ"><input style={S.input} value={cnpjDisplay} readOnly /></Field>
-                <Field label="RazÃ£o social"><input style={S.input} value={razaoSocial} readOnly /></Field>
+                <Field label="Razão social"><input style={S.input} value={razaoSocial} readOnly /></Field>
               </div>
               <div style={{ ...S.row, ...S.c3 }}>
                 <Field label="Ativo a vistoriar">
@@ -343,7 +338,7 @@ function Tela31Inner() {
                     {tiposAtivo.map(t => <option key={t} value={t}>{t}</option>)}
                   </select>
                 </Field>
-                <Field label={tagObrigatorio ? 'Tag / Nr sÃ©rie *' : 'Tag / Nr sÃ©rie'}>
+                <Field label={tagObrigatorio ? 'Tag / Nr série *' : 'Tag / Nr série'}>
                   <select style={S.input} value={tagNrSerie} onChange={e => {
                     setTagNrSerie(e.target.value)
                     const ativo = ativos.find(a => a.tipo_ativo === tipoAtivo && a.tag_ativo_nr_serie === e.target.value)
@@ -360,9 +355,9 @@ function Tela31Inner() {
             </div>
           </div>
 
-          {/* APURAÃ‡ÃƒO DA CONFORMIDADE REGULATÃ“RIA */}
+          {/* APURAÇÃO DA CONFORMIDADE REGULATÓRIA */}
           <div style={S.block}>
-            <div style={S.blockTitle}>ApuraÃ§Ã£o da Conformidade RegulatÃ³ria</div>
+            <div style={S.blockTitle}>Apuração da Conformidade Regulatória</div>
             <div style={S.blockBody}>
               <div style={{ ...S.row, ...S.c2 }}>
                 <Field label="Sistema">
@@ -384,27 +379,26 @@ function Tela31Inner() {
                   {anomaliasFiltradas.map(a => <option key={a} value={a}>{a}</option>)}
                 </select>
               </Field>
-
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr 2fr', gap: '4px', marginTop: '4px' }}>
                 <Field label="Resultado *">
                   <select style={S.input} value={resultado} onChange={e => {
                     const val = e.target.value
                     setResultado(val)
                     if (val === 'Conforme') setNc('Requisito atendido plenamente.')
-                    else if (val === 'NÃ£o aplicÃ¡vel') setNc('Requisito nÃ£o se aplica Ã  instalaÃ§Ã£o.')
-                    else if (val === 'NÃ£o conforme') {
+                    else if (val === 'Não aplicável') setNc('Requisito não se aplica à instalação.')
+                    else if (val === 'Não conforme') {
                       setNc('')
                       if (fotoBase64) gerarNcCp(fotoBase64)
                     } else setNc('')
                   }} disabled={!anomalia}>
                     <option value="">Sel...</option>
-                    {['Conforme', 'NÃ£o conforme', 'NÃ£o aplicÃ¡vel', 'NÃ£o verificado'].map(r => (
+                    {['Conforme', 'Não conforme', 'Não aplicável', 'Não verificado'].map(r => (
                       <option key={r} value={r}>{r}</option>
                     ))}
                   </select>
                 </Field>
-                <Field label="Local / InstalaÃ§Ã£o">
-                  <input style={S.input} value={local} onChange={e => setLocal(e.target.value)} placeholder="Ex: Quadro 2Âº pavimento..." />
+                <Field label="Local / Instalação">
+                  <input style={S.input} value={local} onChange={e => setLocal(e.target.value)} placeholder="Ex: Quadro 2º pavimento..." />
                 </Field>
                 <Field label="Complemento">
                   <input style={S.input} value={complemento} onChange={e => setComplemento(e.target.value)} placeholder="Detalhe adicional..." />
@@ -413,9 +407,9 @@ function Tela31Inner() {
             </div>
           </div>
 
-          {/* CLASSIFICAÃ‡ÃƒO DE RISCO */}
+          {/* CLASSIFICAÇÃO DE RISCO */}
           <div style={S.block}>
-            <div style={S.blockTitle}>ClassificaÃ§Ã£o de Risco</div>
+            <div style={S.blockTitle}>Classificação de Risco</div>
             <div style={S.blockBody}>
               <div style={{ ...S.row, ...S.c4 }}>
                 <Field label="Gravidade">
@@ -424,19 +418,19 @@ function Tela31Inner() {
                     {gravidades.map(v => <option key={v} value={v}>{v}</option>)}
                   </select>
                 </Field>
-                <Field label="UrgÃªncia">
+                <Field label="Urgência">
                   <select style={S.input} value={descUrgencia} onChange={e => setDescUrgencia(e.target.value)}>
                     <option value="">Sel...</option>
                     {urgencias.map(v => <option key={v} value={v}>{v}</option>)}
                   </select>
                 </Field>
-                <Field label="AbrangÃªncia">
+                <Field label="Abrangência">
                   <select style={S.input} value={descAbrangencia} onChange={e => setDescAbrangencia(e.target.value)}>
                     <option value="">Sel...</option>
                     {abrangencias.map(v => <option key={v} value={v}>{v}</option>)}
                   </select>
                 </Field>
-                <Field label="ExposiÃ§Ã£o">
+                <Field label="Exposição">
                   <select style={S.input} value={descExposicao} onChange={e => setDescExposicao(e.target.value)}>
                     <option value="">Sel...</option>
                     {exposicoes.map(v => <option key={v} value={v}>{v}</option>)}
@@ -446,7 +440,7 @@ function Tela31Inner() {
               <div style={S.riskMetrics}>
                 <div style={S.metric}>
                   <span style={S.metricLbl}>Grau de Risco</span>
-                  <span style={{ ...S.metricVal, color: corGR }}>{grauRisco || 'â€”'}</span>
+                  <span style={{ ...S.metricVal, color: corGR }}>{grauRisco || '—'}</span>
                   <div style={S.barWrap}>
                     <div style={{ ...S.bar, width: `${grauRisco}%`, background: corGR }} />
                   </div>
@@ -461,12 +455,12 @@ function Tela31Inner() {
             </div>
           </div>
 
-          {/* EVIDÃŠNCIA FOTOGRÃFICA */}
+          {/* EVIDÊNCIA FOTOGRÁFICA */}
           <div style={S.block}>
-            <div style={S.blockTitle}>EvidÃªncia FotogrÃ¡fica</div>
+            <div style={S.blockTitle}>Evidência Fotográfica</div>
             <div style={S.blockBody}>
               <div style={S.photoControls}>
-                <Field label="Foto nÂº">
+                <Field label="Foto nº">
                   <input style={{ ...S.input, textAlign: 'center', background: '#f5f7fc', color: '#1E3A8A', fontWeight: 700 }} value={fotoNr} readOnly />
                 </Field>
                 <Field label="Data da vistoria">
@@ -477,7 +471,7 @@ function Tela31Inner() {
                   onClick={() => fileInputRef.current?.click()}
                   disabled={!sistema || !subsistema || !anomalia}
                 >
-                  ðŸ“· Adicionar foto
+                  📷 Adicionar foto
                 </button>
                 <input ref={fileInputRef} type="file" accept="image/*" capture="environment" style={{ display: 'none' }} onChange={handleFotoChange} />
               </div>
@@ -489,21 +483,21 @@ function Tela31Inner() {
             </div>
           </div>
 
-          {/* NÃƒO CONFORMIDADE / OBSERVAÃ‡Ã•ES */}
+          {/* NÃO CONFORMIDADE / OBSERVAÇÕES */}
           <div style={S.block}>
-            <div style={S.blockTitle}>NÃ£o Conformidade / ObservaÃ§Ãµes</div>
+            <div style={S.blockTitle}>Não Conformidade / Observações</div>
             <div style={S.blockBody}>
-              <Field label={resultado === 'NÃ£o conforme' ? 'DescriÃ§Ã£o da NÃ£o Conformidade (IA)' : 'ObservaÃ§Ãµes'}>
+              <Field label={resultado === 'Não conforme' ? 'Descrição da Não Conformidade (IA)' : 'Observações'}>
                 <textarea
                   style={{ ...S.input, ...S.textarea, minHeight: '48px' }}
                   value={nc}
                   maxLength={500}
-                  readOnly={resultado === 'Conforme' || resultado === 'NÃ£o aplicÃ¡vel'}
+                  readOnly={resultado === 'Conforme' || resultado === 'Não aplicável'}
                   onChange={e => setNc(e.target.value)}
                   placeholder={
                     !resultado ? 'Selecione o resultado primeiro...' :
-                    resultado === 'NÃ£o conforme' ? 'Gerado por IA apÃ³s adicionar foto...' :
-                    resultado === 'NÃ£o verificado' ? 'Descreva o motivo pelo qual o requisito nÃ£o foi verificado...' :
+                    resultado === 'Não conforme' ? 'Gerado por IA após adicionar foto...' :
+                    resultado === 'Não verificado' ? 'Descreva o motivo pelo qual o requisito não foi verificado...' :
                     ''
                   }
                 />
@@ -511,7 +505,7 @@ function Tela31Inner() {
             </div>
           </div>
 
-          {erroSave && <div style={{ color: '#CC0000', fontSize: '8pt', textAlign: 'center', marginBottom: '6px' }}>âš ï¸ {erroSave}</div>}
+          {erroSave && <div style={{ color: '#CC0000', fontSize: '8pt', textAlign: 'center', marginBottom: '6px' }}>⚠️ {erroSave}</div>}
 
           {/* FOOTER */}
           <div style={S.footer}>
@@ -526,17 +520,17 @@ function Tela31Inner() {
   )
 }
 
-// â”€â”€â”€ Sub-componentes â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Sub-componentes ──────────────────────────────────────────────────────────
 
 function CabecalhoHTML({ tipoServico }: { tipoServico: string }) {
   return (
     <div style={S.header}>
       <div style={{ width: '80px', height: '36px', flexShrink: 0, display: 'flex', alignItems: 'center' }}>
-        <Image src="/logo.png" alt="AIMÃŠ" width={80} height={36} style={{ filter: 'brightness(0) invert(1)', objectFit: 'contain', display: 'block' }} />
+        <Image src="/logo.png" alt="AIMÊ" width={80} height={36} style={{ filter: 'brightness(0) invert(1)', objectFit: 'contain', display: 'block' }} />
       </div>
       <div style={{ flex: 1, textAlign: 'center' }}>
         <h1 style={{ fontSize: '11pt', fontWeight: 700, color: '#fff', margin: 0 }}>{TITULO_TELA[tipoServico] ?? `Vistoria ${tipoServico}`}</h1>
-        <p style={{ fontSize: '7pt', color: '#B5D4F4', marginTop: '2px' }}>FormulÃ¡rio para registro de manifestaÃ§Ãµes patolÃ³gicas e classificaÃ§Ã£o de riscos</p>
+        <p style={{ fontSize: '7pt', color: '#B5D4F4', marginTop: '2px' }}>Formulário para registro de manifestações patológicas e classificação de riscos</p>
       </div>
     </div>
   )
@@ -553,7 +547,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 
 function delay(ms: number) { return new Promise(r => setTimeout(r, ms)) }
 
-// â”€â”€â”€ Estilos â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Estilos ──────────────────────────────────────────────────────────────────
 
 const S: Record<string, React.CSSProperties> = {
   body:          { background: '#E8EEF7', display: 'flex', justifyContent: 'center', padding: '24px', fontFamily: 'Arial, Helvetica, sans-serif', minHeight: '100vh' },
@@ -589,4 +583,3 @@ const S: Record<string, React.CSSProperties> = {
   btnSec:        { background: '#ffffff', border: '2px solid #1E3A8A', color: '#1E3A8A' },
   btnPri:        { background: '#1E3A8A', border: '2px solid #1E3A8A', color: '#ffffff' },
 }
-
