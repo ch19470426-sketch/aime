@@ -59,8 +59,8 @@ function Tela31Inner() {
   const cpfInspetor   = params.get('cpf_inspetor')   ?? ''
   const chaveInspetor = params.get('chave_inspetor') ?? cpfInspetor
   const cnpjoucpf     = params.get('cnpjoucpf')      ?? ''
-  const tipoServico   = params.get('tipo_servico')   ?? '31'
-  const tipoServicoBanco = TIPO_SERVICO_BANCO[tipoServico] ?? `${tipoServico} Autovistoria`
+  const tipoServico   = String(params.get('tipo_servico') ?? '31')
+  const tipoServicoBanco = TIPO_SERVICO_BANCO[tipoServico] ?? `${tipoServico} Vistoria nr-${tipoServico}`
   const tagObrigatorio   = ['35', '37', '38'].includes(tipoServico)
 
   // ── Dados do estabelecimento ──
