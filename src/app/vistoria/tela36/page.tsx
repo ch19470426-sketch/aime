@@ -246,6 +246,8 @@ function Tela31Inner() {
 
   async function salvarDados() {
     if (!fotoBase64) { alert('Adicione a foto antes de salvar.'); return }
+    if (!local) { alert('Informe o Local/Instalação/Setor/Área antes de salvar.'); return }
+    if (!resultado) { alert('Selecione o Resultado antes de salvar.'); return }
     setSalvando(true); setErroSave('')
 
     // Incrementa o contador de foto
@@ -398,7 +400,7 @@ function Tela31Inner() {
                   </select>
                 </Field>
                 <Field label="Local/Instalação/Setor/Área *">
-                  <input style={S.input} value={local} onChange={e => setLocal(e.target.value)} placeholder="Ex: Quadro 2º pavimento..." />
+                  <input style={{ ...S.input, borderColor: !local ? '#E24B4A' : undefined }} value={local} onChange={e => setLocal(e.target.value)} placeholder="Ex: Quadro 2º pavimento..." />
                 </Field>
                 <Field label="Complemento">
                   <input style={S.input} value={complemento} onChange={e => setComplemento(e.target.value)} placeholder="Detalhe adicional..." />
