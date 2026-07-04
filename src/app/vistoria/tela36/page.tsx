@@ -375,11 +375,7 @@ function Tela31Inner() {
                   {anomaliasFiltradas.map(a => <option key={a} value={a}>{a}</option>)}
                 </select>
               </Field>
-              {anomalia && (
-                <div style={{ fontSize: '6.5pt', color: '#1E3A8A', background: '#EEF4FF', border: '1px solid #c3d4f0', borderRadius: '4px', padding: '4px 8px', marginTop: '2px', lineHeight: 1.4 }}>
-                  {anomalia}
-                </div>
-              )}
+
               <div style={{ ...S.row, ...S.c2, marginTop: '4px' }}>
                 <Field label="Resultado *">
                   <select style={S.input} value={resultado} onChange={e => {
@@ -387,7 +383,10 @@ function Tela31Inner() {
                     setResultado(val)
                     if (val === 'Conforme') setNc('Requisito atendido plenamente.')
                     else if (val === 'Não aplicável') setNc('Requisito não se aplica à instalação.')
-                    else setNc('')
+                    else if (val === 'Não conforme') {
+                      setNc('')
+                      if (fotoBase64) gerarNcCp(fotoBase64)
+                    } else setNc('')
                   }} disabled={!anomalia}>
                     <option value="">Selecione...</option>
                     {['Conforme', 'Não conforme', 'Não aplicável', 'Não verificado'].map(r => (
