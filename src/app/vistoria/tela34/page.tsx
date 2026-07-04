@@ -212,6 +212,10 @@ function Tela31Inner() {
       const compressed = canvas.toDataURL('image/jpeg', 0.5)
       setFotoBase64(compressed)
       setDataVistoria(new Date().toLocaleDateString('pt-BR'))
+      fetch('/api/foto-nr?cpf_inspetor=' + cpfInspetor + '&cnpjoucpf=' + cnpjoucpf + '&tipo_servico=' + tipoServico)
+        .then(r => r.json())
+        .then(d => { if (d?.formatado) setFotoNr(d.formatado) })
+        .catch(() => {})
       gerarNcCp(compressed)
     }
     img.src = url
