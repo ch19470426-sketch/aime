@@ -15,10 +15,10 @@ interface ItemAnomalia   { sistema: string; subsistema: string; anomalias: strin
 interface ItemAtivo      { tipo_ativo: string; tag_ativo_nr_serie: string; finalidade_vistoria: string | null }
 
 const VALOR_GUT: Record<string, number> = {
-  'gravidade:Estética': 1, 'gravidade:Leve': 2, 'gravidade:Moderada': 3, 'gravidade:Alta': 4, 'gravidade:Crítica': 5,
+  'gravidade:Sem risco': 1, 'gravidade:Lesão/dano baixo': 2, 'gravidade:Lesão/dano moderado': 3, 'gravidade:Lesão/dano grave': 4, 'gravidade:Lesão/dano fatal': 5,
   'urgencia:Pode aguardar': 1, 'urgencia:Planejar': 3, 'urgencia:Imediata': 5,
-  'abrangencia:Ponto isolado': 1, 'abrangencia:Vários pontos': 3, 'abrangencia:Sistema completo': 5,
-  'exposicao:Baixa': 1, 'exposicao:Média': 3, 'exposicao:Alta': 5,
+  'probabilidade:Improvável': 1, 'probabilidade:Possível': 3, 'probabilidade:Provável/eminente': 5,
+  'exposicaorisco:Máximo 2 pessoas': 1, 'exposicaorisco:Até 6 pessoas': 3, 'exposicaorisco:Muitas pessoas': 5,
 }
 
 function calcularGR(gra: number, urg: number, abr: number, exp: number): number {
@@ -91,10 +91,10 @@ function Tela31Inner() {
   const [local,          setLocal]           = useState('')
   const [complemento,    setComplemento]     = useState('')
   const [resultado,      setResultado]        = useState('')
-  const [descGravidade,  setDescGravidade]   = useState('')
-  const [descUrgencia,   setDescUrgencia]    = useState('')
-  const [descAbrangencia,setDescAbrangencia] = useState('')
-  const [descExposicao,  setDescExposicao]   = useState('')
+  const [descGravidade,     setDescGravidade]    = useState('')
+  const [descUrgencia,      setDescUrgencia]     = useState('')
+  const [descProbabilidade, setDescProbabilidade] = useState('')
+  const [descExposicaoRisco,setDescExposicaoRisco]= useState('')
   const [fotoBase64,     setFotoBase64]      = useState('')
   const [fotoNr,         setFotoNr]          = useState('')
   const [dataVistoria,   setDataVistoria]    = useState('')
@@ -111,12 +111,12 @@ function Tela31Inner() {
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   // GR calculado
-  const gravNum = VALOR_GUT[`gravidade:${descGravidade}`]   ?? 0
-  const urgNum  = VALOR_GUT[`urgencia:${descUrgencia}`]     ?? 0
-  const abrNum  = VALOR_GUT[`abrangencia:${descAbrangencia}`] ?? 0
-  const expNum  = VALOR_GUT[`exposicao:${descExposicao}`]   ?? 0
+  const gravNum = VALOR_GUT[`gravidade:${descGravidade}`]           ?? 0
+  const urgNum  = VALOR_GUT[`urgencia:${descUrgencia}`]             ?? 0
+  const abrNum  = VALOR_GUT[`probabilidade:${descProbabilidade}`]   ?? 0
+  const expNum  = VALOR_GUT[`exposicaorisco:${descExposicaoRisco}`] ?? 0
   const grauRisco = (gravNum && urgNum && abrNum && expNum) ? calcularGR(gravNum, urgNum, abrNum, expNum) : 0
-  const prioridade = grauRisco >= 75 ? 'Crítico' : grauRisco >= 50 ? 'Alto' : grauRisco >= 30 ? 'Médio' : grauRisco > 0 ? 'Baixo' : '—'
+  const prioridade = grauRisco >= 75 ? 'Muito alta' : grauRisco >= 50 ? 'Alta' : grauRisco >= 30 ? 'Média' : grauRisco > 0 ? 'Baixa' : '—'
   const corGR = grauRisco >= 64 ? '#E24B4A' : grauRisco >= 35 ? '#E8A000' : '#1A7A3C'
 
   // Listas filtradas
@@ -433,14 +433,14 @@ function Tela31Inner() {
                     {urgencias.map(v => <option key={v} value={v}>{v}</option>)}
                   </select>
                 </Field>
-                <Field label="Abrangência">
-                  <select style={S.input} value={descAbrangencia} onChange={e => setDescAbrangencia(e.target.value)}>
+                <Field label="Probabilidade">
+                  <select style={S.input} value={descProbabilidade} onChange={e => setDescProbabilidade(e.target.value)}>
                     <option value="">Sel...</option>
                     {abrangencias.map(v => <option key={v} value={v}>{v}</option>)}
                   </select>
                 </Field>
-                <Field label="Exposição">
-                  <select style={S.input} value={descExposicao} onChange={e => setDescExposicao(e.target.value)}>
+                <Field label="Exposição risco">
+                  <select style={S.input} value={descExposicaoRisco} onChange={e => setDescExposicaoRisco(e.target.value)}>
                     <option value="">Sel...</option>
                     {exposicoes.map(v => <option key={v} value={v}>{v}</option>)}
                   </select>
