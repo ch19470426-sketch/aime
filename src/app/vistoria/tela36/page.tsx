@@ -183,8 +183,8 @@ function Tela31Inner() {
           setLocais(f('Local ocorrência'))
           setGravidades(f('Gravidade'))
           setUrgencias(f('Urgência'))
-          setAbrangencias(f('Abrangência'))
-          setExposicoes(f('Exposição'))
+          setAbrangencias(f('Probabilidade'))
+          setExposicoes(f('Exposição risco'))
         }
       } catch(e) {
         console.error('Erro no carregamento:', e)
@@ -232,7 +232,7 @@ function Tela31Inner() {
       const res = await fetch('/api/gerar-nc-cp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ sistema, subsistema, anomalia, local: local || 'Instalação', complemento, origem: 'Funcional', abrangencia: descAbrangencia || 'Ponto isolado' })
+        body: JSON.stringify({ sistema, subsistema, anomalia, local: local || 'Instalação', complemento, origem: 'Funcional', abrangencia: descProbabilidade || 'Possível' })
       })
       if (!res.ok) throw new Error('Status: ' + res.status)
       const data = await res.json()
