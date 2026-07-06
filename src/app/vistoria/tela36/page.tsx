@@ -292,7 +292,7 @@ function Tela31Inner() {
     // Limpa formulário preservando CNPJ/RS
     setSistema(''); setSubsistema(''); setAnomalia(''); setOrigem(''); setLocal('')
     setComplemento(''); setTipoAtivo(''); setTagNrSerie(''); setFinalidade('')
-    setDescGravidade(''); setDescUrgencia(''); setDescAbrangencia(''); setDescExposicao('')
+    setDescGravidade(''); setDescUrgencia(''); setDescProbabilidade(''); setDescExposicaoRisco('')
     setFotoBase64(''); setNc(''); setCp(''); setFeedbackIA('')
     setSalvando(false); setSalvoOk(true); setArquivoSalvo(nomeArquivo)
   }
