@@ -16,7 +16,7 @@ import { createClient } from "@/utils/supabase/client"
 // TODO: buscar cpf_inspetor e titulo_profissional do perfil logado via Supabase auth
 const cpfInspetor   = "12345678900"
 const chaveInspetor = "INS-001"
-const titulo        = "Eng Elétrico"
+const titulo        = "Corretor Imóvel"
 
 const permissoes: Record<string, number[]> = {
   "Arquiteto":          [11,12,13,19,21,22,23,29,31,32,33,40,41,42,43,49,61,62,99],
