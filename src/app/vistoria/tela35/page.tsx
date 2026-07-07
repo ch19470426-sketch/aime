@@ -1,5 +1,5 @@
-// src/app/vistoria/tela35/page.tsx
-// AIMÊ — Tela 35: Vistoria Elevador
+// src/app/vistoria/tela31/page.tsx
+// AIMÊ — Tela 31 SEM hook externo — toda lógica inline para evitar SSR issues
 
 'use client'
 
@@ -15,10 +15,10 @@ interface ItemAnomalia   { sistema: string; subsistema: string; anomalias: strin
 interface ItemAtivo      { tipo_ativo: string; tag_ativo_nr_serie: string; finalidade_vistoria: string | null }
 
 const VALOR_GUT: Record<string, number> = {
-  'gravidade:Sem risco': 1, 'gravidade:Lesão/dano baixo': 2, 'gravidade:Lesão/dano moderado': 3, 'gravidade:Lesão/dano grave': 4, 'gravidade:Lesão/dano fatal': 5,
+  'gravidade:Estética': 1, 'gravidade:Leve': 2, 'gravidade:Moderada': 3, 'gravidade:Alta': 4, 'gravidade:Crítica': 5,
   'urgencia:Pode aguardar': 1, 'urgencia:Planejar': 3, 'urgencia:Imediata': 5,
-  'probabilidade:Improvável': 1, 'probabilidade:Possível': 3, 'probabilidade:Provável/eminente': 5,
-  'exposicaorisco:Máximo 2 pessoas': 1, 'exposicaorisco:Até 6 pessoas': 3, 'exposicaorisco:Muitas pessoas': 5,
+  'abrangencia:Ponto isolado': 1, 'abrangencia:Vários pontos': 3, 'abrangencia:Sistema completo': 5,
+  'exposicao:Baixa': 1, 'exposicao:Média': 3, 'exposicao:Alta': 5,
 }
 
 function calcularGR(gra: number, urg: number, abr: number, exp: number): number {
@@ -34,8 +34,8 @@ const TIPO_SERVICO_BANCO: Record<string, string> = {
 
 const TITULO_TELA: Record<string, string> = {
   '31': 'Autovistoria', '32': 'Vistoria Inspeção', '33': 'Vistoria Imóvel Novo',
-  '34': 'Vistoria Fachada', '35': 'Vistoria Elevador', '36': 'Vistoria Instalações Elétricas - NR-10',
-  '37': 'Vistoria Máquinas e Equipamentos - NR-12', '38': 'Vistoria Caldeiras, Vasos de Pressão, Tubulações e Tanques - NR-13',
+  '34': 'Vistoria Fachada', '35': 'Vistoria Elevador', '36': 'Vistoria NR-10',
+  '37': 'Vistoria NR-12', '38': 'Vistoria NR-13',
 }
 
 // ─── Wrapper ─────────────────────────────────────────────────────────────────
@@ -59,7 +59,7 @@ function Tela31Inner() {
   const cpfInspetor   = params.get('cpf_inspetor')   ?? ''
   const chaveInspetor = params.get('chave_inspetor') ?? cpfInspetor
   const cnpjoucpf     = params.get('cnpjoucpf')      ?? ''
-  const tipoServico   = String(params.get('tipo_servico') ?? '31')
+  const tipoServico   = params.get('tipo_servico')   ?? '31'
   const tipoServicoBanco = TIPO_SERVICO_BANCO[tipoServico] ?? `${tipoServico} Autovistoria`
   const tagObrigatorio   = ['35', '37', '38'].includes(tipoServico)
 
@@ -90,11 +90,10 @@ function Tela31Inner() {
   const [origem,         setOrigem]          = useState('')
   const [local,          setLocal]           = useState('')
   const [complemento,    setComplemento]     = useState('')
-  const [resultado,      setResultado]        = useState('')
-  const [descGravidade,     setDescGravidade]    = useState('')
-  const [descUrgencia,      setDescUrgencia]     = useState('')
-  const [descProbabilidade, setDescProbabilidade] = useState('')
-  const [descExposicaoRisco,setDescExposicaoRisco]= useState('')
+  const [descGravidade,  setDescGravidade]   = useState('')
+  const [descUrgencia,   setDescUrgencia]    = useState('')
+  const [descAbrangencia,setDescAbrangencia] = useState('')
+  const [descExposicao,  setDescExposicao]   = useState('')
   const [fotoBase64,     setFotoBase64]      = useState('')
   const [fotoNr,         setFotoNr]          = useState('')
   const [dataVistoria,   setDataVistoria]    = useState('')
@@ -111,12 +110,12 @@ function Tela31Inner() {
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   // GR calculado
-  const gravNum = VALOR_GUT[`gravidade:${descGravidade}`]           ?? 0
-  const urgNum  = VALOR_GUT[`urgencia:${descUrgencia}`]             ?? 0
-  const abrNum  = VALOR_GUT[`probabilidade:${descProbabilidade}`]   ?? 0
-  const expNum  = VALOR_GUT[`exposicaorisco:${descExposicaoRisco}`] ?? 0
+  const gravNum = VALOR_GUT[`gravidade:${descGravidade}`]   ?? 0
+  const urgNum  = VALOR_GUT[`urgencia:${descUrgencia}`]     ?? 0
+  const abrNum  = VALOR_GUT[`abrangencia:${descAbrangencia}`] ?? 0
+  const expNum  = VALOR_GUT[`exposicao:${descExposicao}`]   ?? 0
   const grauRisco = (gravNum && urgNum && abrNum && expNum) ? calcularGR(gravNum, urgNum, abrNum, expNum) : 0
-  const prioridade = grauRisco >= 75 ? 'Muito alta' : grauRisco >= 50 ? 'Alta' : grauRisco >= 30 ? 'Média' : grauRisco > 0 ? 'Baixa' : '—'
+  const prioridade = grauRisco >= 64 ? 'Alta' : grauRisco >= 35 ? 'Média' : grauRisco > 0 ? 'Baixa' : '—'
   const corGR = grauRisco >= 64 ? '#E24B4A' : grauRisco >= 35 ? '#E8A000' : '#1A7A3C'
 
   // Listas filtradas
@@ -183,8 +182,8 @@ function Tela31Inner() {
           setLocais(f('Local ocorrência'))
           setGravidades(f('Gravidade'))
           setUrgencias(f('Urgência'))
-          setAbrangencias(f('Probabilidade'))
-          setExposicoes(f('Exposição risco'))
+          setAbrangencias(f('Abrangência'))
+          setExposicoes(f('Exposição'))
         }
       } catch(e) {
         console.error('Erro no carregamento:', e)
@@ -217,40 +216,41 @@ function Tela31Inner() {
         .then(r => r.json())
         .then(d => { if (d?.formatado) setFotoNr(d.formatado) })
         .catch(() => {})
-      if (resultado === 'Não conforme') gerarNcCp(compressed)
+      gerarNcCp(compressed)
     }
     img.src = url
   }
 
   async function gerarNcCp(foto: string) {
-    if (resultado !== 'Não conforme') return
     if (!sistema || !subsistema || !anomalia) return
-    setFeedbackIA('⏳ Analisando requisito normativo...')
+    setFeedbackIA('⏳ Avaliando características do ambiente...')
     await delay(400)
-    setFeedbackIA('⏳ Gerando descrição da não conformidade...')
+    setFeedbackIA('⏳ Analisando anomalia/falha...')
+    await delay(400)
+    setFeedbackIA('⏳ Gerando não conformidade e causa provável...')
+
     try {
       const res = await fetch('/api/gerar-nc-cp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ sistema, subsistema, anomalia, local: local || 'Instalação', complemento, origem: 'Funcional', abrangencia: descProbabilidade || 'Possível' })
+        body: JSON.stringify({ sistema, subsistema, anomalia, local, complemento, origem, abrangencia: descAbrangencia })
       })
       if (!res.ok) throw new Error('Status: ' + res.status)
       const data = await res.json()
       const ncVal = data.nc || data.nao_conformidade || ''
+      const cpVal = data.cp || data.causa_provavel || ''
       if (ncVal) setNc(ncVal)
-      setFeedbackIA('✅ Não conformidade gerada com sucesso!')
+      if (cpVal) setCp(cpVal)
+      setFeedbackIA('✅ NC e CP geradas com sucesso!')
     } catch(e) {
-      setFeedbackIA('⚠️ Erro ao gerar NC: ' + String(e))
+      setFeedbackIA('⚠️ Erro ao gerar NC/CP: ' + String(e))
     }
   }
 
   async function salvarDados() {
     if (!fotoBase64) { alert('Adicione a foto antes de salvar.'); return }
-    if (!local) { alert('Informe o Local/Instalação/Setor/Área antes de salvar.'); return }
-    if (!resultado) { alert('Selecione o Resultado antes de salvar.'); return }
     setSalvando(true); setErroSave('')
 
-    try {
     // Incrementa o contador de foto
     const nrRes = await fetch('/api/foto-nr', {
       method: 'POST',
@@ -283,16 +283,10 @@ function Tela31Inner() {
       return
     }
 
-    } catch(e) {
-      setErroSave('Erro ao salvar: ' + String(e))
-      setSalvando(false)
-      return
-    }
-
     // Limpa formulário preservando CNPJ/RS
     setSistema(''); setSubsistema(''); setAnomalia(''); setOrigem(''); setLocal('')
     setComplemento(''); setTipoAtivo(''); setTagNrSerie(''); setFinalidade('')
-    setDescGravidade(''); setDescUrgencia(''); setDescProbabilidade(''); setDescExposicaoRisco('')
+    setDescGravidade(''); setDescUrgencia(''); setDescAbrangencia(''); setDescExposicao('')
     setFotoBase64(''); setNc(''); setCp(''); setFeedbackIA('')
     setSalvando(false); setSalvoOk(true); setArquivoSalvo(nomeArquivo)
   }
@@ -337,8 +331,8 @@ function Tela31Inner() {
             <div style={S.blockTitle}>Identificação</div>
             <div style={S.blockBody}>
               <div style={{ ...S.row, ...S.c2 }}>
-                <Field label="CNPJ"><input style={S.input} value={cnpjDisplay} readOnly /></Field>
-                <Field label="Razão social"><input style={S.input} value={razaoSocial} readOnly /></Field>
+                <Field label={cnpjoucpf.length === 11 ? "CPF" : "CNPJ"}><input style={S.input} value={cnpjDisplay} readOnly /></Field>
+                <Field label={cnpjoucpf.length === 11 ? "Nome" : "Razão social"}><input style={S.input} value={razaoSocial} readOnly /></Field>
               </div>
               <div style={{ ...S.row, ...S.c3 }}>
                 <Field label="Ativo a vistoriar">
@@ -364,53 +358,45 @@ function Tela31Inner() {
             </div>
           </div>
 
-          {/* APURAÇÃO DA CONFORMIDADE REGULATÓRIA */}
+          {/* MANIFESTAÇÃO PATOLÓGICA */}
           <div style={S.block}>
-            <div style={S.blockTitle}>Apuração da Conformidade Regulatória</div>
+            <div style={S.blockTitle}>Manifestação Patológica</div>
             <div style={S.blockBody}>
-              <div style={{ ...S.row, ...S.c2 }}>
+              <div style={{ ...S.row, ...S.c3 }}>
                 <Field label="Sistema">
-                  <select style={S.input} value={sistema} onChange={e => { setSistema(e.target.value); setSubsistema(''); setAnomalia(''); setResultado(''); setNc('') }}>
+                  <select style={S.input} value={sistema} onChange={e => { setSistema(e.target.value); setSubsistema(''); setAnomalia('') }}>
                     <option value="">Selecione...</option>
                     {sistemas.map(s => <option key={s.sistema} value={s.sistema}>{s.sistema}</option>)}
                   </select>
                 </Field>
-                <Field label="Subsistema / Componente">
-                  <select style={S.input} value={subsistema} onChange={e => { setSubsistema(e.target.value); setAnomalia(''); setResultado(''); setNc('') }} disabled={!sistema}>
+                <Field label="Subsistema">
+                  <select style={S.input} value={subsistema} onChange={e => { setSubsistema(e.target.value); setAnomalia('') }} disabled={!sistema}>
                     <option value="">Selecione...</option>
                     {subsistemasFiltrados.map(s => <option key={s} value={s}>{s}</option>)}
                   </select>
                 </Field>
-              </div>
-              <Field label="Requisito Normativo">
-                <select style={S.input} value={anomalia} onChange={e => { setAnomalia(e.target.value); setResultado(''); setNc('') }} disabled={!subsistema}>
-                  <option value="">Selecione o requisito normativo...</option>
-                  {anomaliasFiltradas.map(a => <option key={a} value={a}>{a}</option>)}
-                </select>
-              </Field>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr 2fr', gap: '4px', marginTop: '4px' }}>
-                <Field label="Resultado *">
-                  <select style={S.input} value={resultado} onChange={e => {
-                    const val = e.target.value
-                    setResultado(val)
-                    if (val === 'Conforme') setNc('Requisito atendido plenamente.')
-                    else if (val === 'Não aplicável') setNc('Requisito não se aplica à instalação.')
-                    else if (val === 'Não conforme') {
-                      setNc('')
-                      if (fotoBase64) gerarNcCp(fotoBase64)
-                    } else setNc('')
-                  }} disabled={!anomalia}>
-                    <option value="">Sel...</option>
-                    {['Conforme', 'Não conforme', 'Não aplicável', 'Não verificado'].map(r => (
-                      <option key={r} value={r}>{r}</option>
-                    ))}
+                <Field label="Anomalia / Falha">
+                  <select style={S.input} value={anomalia} onChange={e => setAnomalia(e.target.value)} disabled={!subsistema}>
+                    <option value="">Selecione...</option>
+                    {anomaliasFiltradas.map(a => <option key={a} value={a}>{a}</option>)}
                   </select>
                 </Field>
-                <Field label="Local/Instalação/Setor/Área *">
-                  <input style={{ ...S.input, borderColor: !local ? '#E24B4A' : undefined }} value={local} onChange={e => setLocal(e.target.value)} placeholder="Ex: Quadro 2º pavimento..." />
+              </div>
+              <div style={{ ...S.row, ...S.c3 }}>
+                <Field label="Origem">
+                  <select style={S.input} value={origem} onChange={e => setOrigem(e.target.value)}>
+                    <option value="">Selecione...</option>
+                    {origens.map(o => <option key={o} value={o}>{o}</option>)}
+                  </select>
                 </Field>
-                <Field label="Complemento">
-                  <input style={S.input} value={complemento} onChange={e => setComplemento(e.target.value)} placeholder="Detalhe adicional..." />
+                <Field label="Local de ocorrência">
+                  <select style={S.input} value={local} onChange={e => setLocal(e.target.value)}>
+                    <option value="">Selecione...</option>
+                    {locais.map(l => <option key={l} value={l}>{l}</option>)}
+                  </select>
+                </Field>
+                <Field label="Complemento do local">
+                  <input style={S.input} value={complemento} onChange={e => setComplemento(e.target.value)} placeholder="Ex: Pavimento 3" />
                 </Field>
               </div>
             </div>
@@ -433,14 +419,14 @@ function Tela31Inner() {
                     {urgencias.map(v => <option key={v} value={v}>{v}</option>)}
                   </select>
                 </Field>
-                <Field label="Probabilidade">
-                  <select style={S.input} value={descProbabilidade} onChange={e => setDescProbabilidade(e.target.value)}>
+                <Field label="Abrangência">
+                  <select style={S.input} value={descAbrangencia} onChange={e => setDescAbrangencia(e.target.value)}>
                     <option value="">Sel...</option>
                     {abrangencias.map(v => <option key={v} value={v}>{v}</option>)}
                   </select>
                 </Field>
-                <Field label="Exposição risco">
-                  <select style={S.input} value={descExposicaoRisco} onChange={e => setDescExposicaoRisco(e.target.value)}>
+                <Field label="Exposição">
+                  <select style={S.input} value={descExposicao} onChange={e => setDescExposicao(e.target.value)}>
                     <option value="">Sel...</option>
                     {exposicoes.map(v => <option key={v} value={v}>{v}</option>)}
                   </select>
@@ -492,24 +478,15 @@ function Tela31Inner() {
             </div>
           </div>
 
-          {/* NÃO CONFORMIDADE / OBSERVAÇÕES */}
+          {/* RESULTADO DA ANÁLISE */}
           <div style={S.block}>
-            <div style={S.blockTitle}>Não Conformidade / Observações</div>
+            <div style={S.blockTitle}>Resultado da Análise e Avaliação</div>
             <div style={S.blockBody}>
-              <Field label={resultado === 'Não conforme' ? 'Descrição da Não Conformidade (IA)' : 'Observações'}>
-                <textarea
-                  style={{ ...S.input, ...S.textarea, minHeight: '48px' }}
-                  value={nc}
-                  maxLength={500}
-                  readOnly={resultado === 'Conforme' || resultado === 'Não aplicável'}
-                  onChange={e => setNc(e.target.value)}
-                  placeholder={
-                    !resultado ? 'Selecione o resultado primeiro...' :
-                    resultado === 'Não conforme' ? 'Gerado por IA após adicionar foto...' :
-                    resultado === 'Não verificado' ? 'Descreva o motivo pelo qual o requisito não foi verificado...' :
-                    ''
-                  }
-                />
+              <Field label="Não conformidade (NC)">
+                <textarea style={{ ...S.input, ...S.textarea }} value={nc} maxLength={200} onChange={e => setNc(e.target.value)} placeholder="Gerado por IA após adicionar foto..." />
+              </Field>
+              <Field label="Causa provável (CP)">
+                <textarea style={{ ...S.input, ...S.textarea }} value={cp} maxLength={200} onChange={e => setCp(e.target.value)} placeholder="Gerado por IA após adicionar foto..." />
               </Field>
             </div>
           </div>
@@ -539,7 +516,7 @@ function CabecalhoHTML({ tipoServico }: { tipoServico: string }) {
       </div>
       <div style={{ flex: 1, textAlign: 'center' }}>
         <h1 style={{ fontSize: '11pt', fontWeight: 700, color: '#fff', margin: 0 }}>{TITULO_TELA[tipoServico] ?? `Vistoria ${tipoServico}`}</h1>
-        <p style={{ fontSize: '7pt', color: '#B5D4F4', marginTop: '2px' }}>Formulário para Registro de Conformidade Regulatória</p>
+        <p style={{ fontSize: '7pt', color: '#B5D4F4', marginTop: '2px' }}>Formulário para registro de manifestações patológicas e classificação de riscos</p>
       </div>
     </div>
   )

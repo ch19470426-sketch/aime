@@ -331,8 +331,8 @@ function Tela31Inner() {
             <div style={S.blockTitle}>Identificação</div>
             <div style={S.blockBody}>
               <div style={{ ...S.row, ...S.c2 }}>
-                <Field label="CNPJ"><input style={S.input} value={cnpjDisplay} readOnly /></Field>
-                <Field label="Razão social"><input style={S.input} value={razaoSocial} readOnly /></Field>
+                <Field label={cnpjoucpf.length === 11 ? "CPF" : "CNPJ"}><input style={S.input} value={cnpjDisplay} readOnly /></Field>
+                <Field label={cnpjoucpf.length === 11 ? "Nome" : "Razão social"}><input style={S.input} value={razaoSocial} readOnly /></Field>
               </div>
               <div style={{ ...S.row, ...S.c3 }}>
                 <Field label="Ativo a vistoriar">
