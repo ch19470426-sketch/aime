@@ -16,11 +16,11 @@ import { createClient } from "@/utils/supabase/client"
 // TODO: buscar cpf_inspetor e titulo_profissional do perfil logado via Supabase auth
 const cpfInspetor   = "12345678900"
 const chaveInspetor = "INS-001"
-const titulo        = "Eng Civil"
+const titulo        = "Eng Elétrico"
 
 const permissoes: Record<string, number[]> = {
   "Arquiteto":          [11,12,13,19,21,22,23,29,31,32,33,40,41,42,43,49,61,62,99],
-  "Eng Civil":          [11,12,13,14,19,21,22,23,24,29,31,32,33,34,40,41,42,43,44,49,61,62,99],
+  "Eng Civil":          [11,12,13,14,16,19,21,22,23,24,26,29,31,32,33,34,36,40,41,42,43,44,46,49,61,62,99],
   "Eng Elétrico":       [16,26,36,40,46,61,62,99],
   "Eng Mecânico":       [15,17,18,25,27,28,35,37,38,40,45,47,48,61,62,99],
   "Técnico Edificação": [13,23,33,40,43,61,62,99],
@@ -93,6 +93,94 @@ const TIPO_SERVICO_BANCO: Record<number, string> = {
   36: "36 Vistoria nr-10",
   37: "37 Vistoria nr-12",
   38: "38 Vistoria nr-13",
+}
+
+
+
+function ProcedimentoGrupo({ codigo, grupo }: { codigo: number; grupo: string }) {
+  const itemStyle: React.CSSProperties = { marginBottom: "4px" }
+  const listStyle: React.CSSProperties = { paddingLeft: "16px", margin: "6px 0 0", fontSize: "11px", color: "#374151", lineHeight: 1.7 }
+  const titleStyle: React.CSSProperties = { fontWeight: 700, color: "#1E3A8A", fontSize: "11px", marginBottom: "6px" }
+
+  if (codigo === 40) return (
+    <div>
+      <p style={titleStyle}>Objetivo: Revisar, ajustar e homologar os dados coletados durante a vistoria.</p>
+      <ul style={listStyle}>
+        <li style={itemStyle}>▶ Informe o CNPJ e clique em <strong>Iniciar</strong>.</li>
+        <li style={itemStyle}>▶ Revise NC e CP de cada registro. Use <strong>Revisar Anterior / Próximo</strong> para navegar.</li>
+        <li style={itemStyle}>▶ Clique em <strong>Descartar Coleta</strong> para excluir registros indesejados.</li>
+        <li style={itemStyle}>▶ Alterações nos campos geram nova NC/CP automaticamente.</li>
+        <li style={itemStyle}>▶ Clique em <strong>Salvar dados</strong>. Repita até homologar todos os registros.</li>
+      </ul>
+    </div>
+  )
+
+  if (codigo === 61) return (
+    <div>
+      <p style={titleStyle}>Objetivo: Baixar documentos homologados (disponíveis por 12 meses).</p>
+      <ul style={listStyle}>
+        <li style={itemStyle}>▶ Informe o CNPJ do estabelecimento ou CPF do solicitante e clique em <strong>Iniciar</strong>.</li>
+        <li style={itemStyle}>▶ Será apresentado o conjunto de documentos disponíveis para a chave informada.</li>
+        <li style={itemStyle}>▶ Selecione o produto desejado e informe o diretório para download.</li>
+        <li style={itemStyle}>▶ Após o download o AIMÊ retornará ao menu principal.</li>
+      </ul>
+    </div>
+  )
+
+  if (grupo === "Propostas Comerciais") return (
+    <div>
+      <p style={titleStyle}>Objetivo: Manter o cadastro do estabelecimento e preparar a proposta comercial.</p>
+      <ul style={listStyle}>
+        <li style={itemStyle}>▶ Informe o <strong>CNPJ do estabelecimento</strong> na tela ao lado e clique em <strong>Iniciar</strong>.</li>
+        <li style={itemStyle}>▶ Efetue o cadastro ou atualize os dados do estabelecimento.</li>
+        <li style={itemStyle}>▶ Será apresentada uma minuta da proposta com cabeçalho e rodapé do inspetor.</li>
+        <li style={itemStyle}>▶ Informe o valor do serviço e o prazo para entrega do laudo.</li>
+        <li style={itemStyle}>▶ Revise integralmente e efetue ajustes técnicos antes da homologação.</li>
+        <li style={itemStyle}>▶ Homologue em PDF com assinatura digital. O documento será armazenado em <strong>"Documentos inspetor"</strong>.</li>
+        <li style={itemStyle}>▶ Concluído, o AIMÊ retornará ao menu principal.</li>
+      </ul>
+    </div>
+  )
+
+  if (grupo === "Planos de Trabalho") return (
+    <div>
+      <p style={titleStyle}>Objetivo: Preparar o Plano de Trabalho e cadastrar os ativos a vistoriar.</p>
+      <ul style={listStyle}>
+        <li style={itemStyle}>▶ Informe o <strong>CNPJ do estabelecimento</strong> na tela ao lado e clique em <strong>Iniciar</strong>.</li>
+        <li style={itemStyle}>▶ Se não cadastrado, efetue o cadastro na proposta comercial primeiro.</li>
+        <li style={itemStyle}>▶ Cadastre todos os <strong>ativos a vistoriar</strong> nesta inspeção.</li>
+        <li style={itemStyle}>▶ Complete as datas no item <strong>1.1 – Plano de Trabalho</strong>.</li>
+        <li style={itemStyle}>▶ Revise e ajuste documentos no item <strong>1.2 – Relação de Documentos</strong>.</li>
+        <li style={itemStyle}>▶ Homologue em PDF com assinatura digital. O documento será armazenado em <strong>"Documentos inspetor"</strong>.</li>
+      </ul>
+    </div>
+  )
+
+  if (grupo === "Laudos") return (
+    <div>
+      <p style={titleStyle}>Objetivo: Elaborar laudos complementando com fotos e dados do inspetor.</p>
+      <ul style={listStyle}>
+        <li style={itemStyle}>▶ Informe o CNPJ e clique em <strong>Iniciar</strong>. O AIMÊ prepara a minuta do laudo.</li>
+        <li style={itemStyle}>▶ Informe fotos e dados: fachada, descrição, ART/RRT/CRECI, recomendações e conclusões.</li>
+        <li style={itemStyle}>▶ O documento será gerado com tabelas por sistema e gráficos estatísticos.</li>
+        <li style={itemStyle}>▶ Revise integralmente e homologue em PDF com assinatura digital.</li>
+        <li style={itemStyle}>▶ O documento será armazenado em <strong>"Documentos inspetor"</strong>.</li>
+        <li style={itemStyle}>▶ Concluído, o AIMÊ retornará ao menu principal.</li>
+      </ul>
+    </div>
+  )
+
+  // Outros (62, 99 e demais)
+  return (
+    <div>
+      <p style={titleStyle}>Objetivo: Consultar dados e acessar recursos disponíveis no sistema.</p>
+      <ul style={listStyle}>
+        <li style={itemStyle}>▶ Informe o CNPJ ou CPF quando solicitado e acione <strong>Iniciar</strong>.</li>
+        <li style={itemStyle}>▶ Acesse a opção desejada e proceda conforme o procedimento apresentado.</li>
+        <li style={itemStyle}>▶ Para encerrar selecione <strong>Sair do Aplicativo</strong>.</li>
+      </ul>
+    </div>
+  )
 }
 
 export default function Dashboard() {
@@ -201,27 +289,47 @@ export default function Dashboard() {
           {/* ── Área de conteúdo ── */}
           <div style={{ flex: 1, padding: "16px", backgroundColor: "#F8FAFC" }}>
 
-            {/* Nenhum serviço selecionado */}
+            {/* Nenhum serviço selecionado - mostrar Macro Fluxo */}
             {!tipoServico && (
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%", color: "#94A3B8", fontSize: "14px" }}>
-                Selecione um serviço no menu ao lado
+              <div style={{ display: "flex", justifyContent: "center", paddingTop: "8px" }}>
+              <div style={{ padding: "16px", maxWidth: "600px" }}>
+                <div style={{ backgroundColor: "#1E3A8A", color: "white", fontWeight: "bold", fontSize: "12px", padding: "8px 12px", borderRadius: "6px 6px 0 0" }}>
+                  Macro Fluxo do Processo
+                </div>
+                <div style={{ border: "1px solid #1E3A8A", borderTop: "none", borderRadius: "0 0 6px 6px", padding: "12px 16px", backgroundColor: "white", fontSize: "11px", color: "#374151", lineHeight: 1.8 }}>
+                  <strong>Login → Pagamento → Selecionar Tipo Serviço →</strong>
+                  <div style={{ paddingLeft: "12px", marginTop: "4px", fontFamily: "monospace", fontSize: "11px" }}>
+                    <div>├── Proposta Comercial (Templates)</div>
+                    <div>├── Plano de Trabalho (Templates)</div>
+                    <div>├── Vistoria (Formulário + fotos + IA)</div>
+                    <div>├── Homologação Vistoria (Formulário + NC + CP + IA)</div>
+                    <div>├── Laudo (Templates + Complemento + Automação + IA)</div>
+                    <div>├── Plano Manutenção (Templates + Automação + IA)</div>
+                    <div>↓</div>
+                  </div>
+                  <strong>Homologar → Assinar → Armazenar → Download Documentos</strong>
+                </div>
+                <div style={{ marginTop: "12px", color: "#94A3B8", fontSize: "12px", textAlign: "center" }}>
+                  Selecione um serviço no menu ao lado para iniciar
+                </div>
+              </div>
               </div>
             )}
 
-            {/* Serviço selecionado mas não é vistoria */}
+                        {/* Serviço selecionado não-vistoria: procedimento por grupo ou específico */}
             {tipoServico && !ehVistoria && (
               <div style={{ backgroundColor: "white", borderRadius: "10px", overflow: "hidden", border: "1px solid #E2E8F0" }}>
                 <div style={{ backgroundColor: "#1E3A8A", padding: "10px 20px" }}>
                   <span style={{ color: "white", fontWeight: "bold", fontSize: "13px" }}>{itemSelecionado?.codigo} - {itemSelecionado?.label}</span>
                 </div>
                 <div style={{ height: "2px", backgroundColor: "#1E3A8A" }} />
-                <div style={{ padding: "32px", color: "#94A3B8", fontSize: "14px", textAlign: "center" }}>
-                  Funcionalidade em desenvolvimento
+                <div style={{ padding: "16px" }}>
+                  <ProcedimentoGrupo codigo={tipoServico} grupo={menuGrupos.find(g => g.itens.some(i => i.codigo === tipoServico))?.grupo ?? ""} />
                 </div>
               </div>
             )}
 
-            {/* ════════ Vistoria selecionada: layout 3 zonas ════════ */}
+{/* ════════ Vistoria selecionada: layout 3 zonas ════════ */}
             {tipoServico && ehVistoria && (
               <div>
 
