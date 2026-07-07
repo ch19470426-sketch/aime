@@ -24,6 +24,7 @@ const permissoes: Record<string, number[]> = {
   "Eng Elétrico":       [16,26,36,40,46,61,62,99],
   "Eng Mecânico":       [15,17,18,25,27,28,35,37,38,40,45,47,48,61,62,99],
   "Técnico Edificação": [13,23,33,40,43,61,62,99],
+  "Corretor Imóvel":    [13,23,33,40,43,61,62,99],
 }
 
 const menuGrupos = [
