@@ -95,69 +95,6 @@ const TIPO_SERVICO_BANCO: Record<number, string> = {
   38: "38 Vistoria nr-13",
 }
 
-
-const PROC_PROPOSTAS = (
-  <div>
-    <div style={{ fontSize: '11px', color: '#1E3A8A', fontWeight: 700, marginBottom: '8px' }}>Procedimento</div>
-    <ul style={{ fontSize: '11px', color: '#374151', lineHeight: 1.6, paddingLeft: '16px', margin: 0 }}>
-      <li>Informe o <strong>CNPJ do estabelecimento</strong> na tela ao lado e clique em <strong>Iniciar</strong>.</li>
-      <li>Efetue o cadastro ou atualize os dados do estabelecimento.</li>
-      <li>Será apresentada uma minuta da proposta comercial com cabeçalho e rodapé do inspetor.</li>
-      <li>Informe o valor do serviço e o prazo para entrega do laudo.</li>
-      <li>Revise integralmente e efetue ajustes técnicos antes da homologação.</li>
-      <li>Homologue o documento em PDF com sua assinatura digital.</li>
-      <li>O documento será armazenado em <strong>"Documentos inspetor"</strong>.</li>
-    </ul>
-  </div>
-)
-
-const PROC_PLANOS = (
-  <div>
-    <div style={{ fontSize: '11px', color: '#1E3A8A', fontWeight: 700, marginBottom: '8px' }}>Procedimento</div>
-    <ul style={{ fontSize: '11px', color: '#374151', lineHeight: 1.6, paddingLeft: '16px', margin: 0 }}>
-      <li>Informe o <strong>CNPJ do estabelecimento</strong> na tela ao lado e clique em <strong>Iniciar</strong>.</li>
-      <li>Se não cadastrado, efetue o cadastro na proposta comercial primeiro.</li>
-      <li>Cadastre todos os <strong>ativos a vistoriar</strong> nesta inspeção.</li>
-      <li>Complete as datas previstas no item <strong>1.1 – Plano de Trabalho</strong>.</li>
-      <li>Revise e ajuste a relação de documentos no item <strong>1.2 – Relação de Documentos</strong>.</li>
-      <li>Homologue o documento em PDF com sua assinatura digital.</li>
-      <li>O documento será armazenado em <strong>"Documentos inspetor"</strong>.</li>
-    </ul>
-  </div>
-)
-
-const PROC_LAUDOS = (
-  <div>
-    <div style={{ fontSize: '11px', color: '#1E3A8A', fontWeight: 700, marginBottom: '8px' }}>Homologar Vistoria (40)</div>
-    <ul style={{ fontSize: '11px', color: '#374151', lineHeight: 1.6, paddingLeft: '16px', margin: 0 }}>
-      <li>Informe o CNPJ e clique em <strong>Iniciar</strong>. Revise NC e CP de cada registro.</li>
-      <li>Use <strong>Revisar Anterior / Próximo</strong> para navegar entre registros.</li>
-      <li>Clique em <strong>Descartar Coleta</strong> para excluir registros indesejados.</li>
-      <li>Alterações nos campos geram nova NC/CP automaticamente.</li>
-    </ul>
-    <div style={{ fontSize: '11px', color: '#1E3A8A', fontWeight: 700, margin: '8px 0 4px' }}>Laudos (41–49)</div>
-    <ul style={{ fontSize: '11px', color: '#374151', lineHeight: 1.6, paddingLeft: '16px', margin: 0 }}>
-      <li>Informe o CNPJ e clique em <strong>Iniciar</strong>. O AIMÊ prepara a minuta do laudo.</li>
-      <li>Informe fotos e dados solicitados: fachada, descrição, ART/RRT e recomendações.</li>
-      <li>Revise integralmente e homologue em PDF com assinatura digital.</li>
-      <li>O documento será armazenado em <strong>"Documentos inspetor"</strong>.</li>
-    </ul>
-  </div>
-)
-
-const PROC_OUTROS = (
-  <div>
-    <div style={{ fontSize: '11px', color: '#374151', lineHeight: 1.6, marginBottom: '8px' }}>
-      <strong style={{ color: '#1E3A8A' }}>Objetivo:</strong> Baixar documentos gerados anteriormente (disponíveis por 12 meses) e consultar dados armazenados.
-    </div>
-    <ul style={{ fontSize: '11px', color: '#374151', lineHeight: 1.6, paddingLeft: '16px', margin: 0 }}>
-      <li>Informe o CNPJ ou CPF quando solicitado e acione <strong>Iniciar</strong>.</li>
-      <li>Acesse a opção desejada e proceda conforme o procedimento apresentado.</li>
-      <li>Para encerrar selecione <strong>Sair do Aplicativo</strong>.</li>
-    </ul>
-  </div>
-)
-
 export default function Dashboard() {
   const router = useRouter()
 
@@ -278,11 +215,8 @@ export default function Dashboard() {
                   <span style={{ color: "white", fontWeight: "bold", fontSize: "13px" }}>{itemSelecionado?.codigo} - {itemSelecionado?.label}</span>
                 </div>
                 <div style={{ height: "2px", backgroundColor: "#1E3A8A" }} />
-                <div style={{ padding: "16px" }}>
-                  {menuGrupos.find(g => g.itens.some(i => i.codigo === tipoServico))?.grupo === "Propostas Comerciais" && (<>{PROC_PROPOSTAS}</>)}
-                  {menuGrupos.find(g => g.itens.some(i => i.codigo === tipoServico))?.grupo === "Planos de Trabalho" && (<>{PROC_PLANOS}</>)}
-                  {menuGrupos.find(g => g.itens.some(i => i.codigo === tipoServico))?.grupo === "Laudos" && (<>{PROC_LAUDOS}</>)}
-                  {menuGrupos.find(g => g.itens.some(i => i.codigo === tipoServico))?.grupo === "Outros" && (<>{PROC_OUTROS}</>)}
+                <div style={{ padding: "32px", color: "#94A3B8", fontSize: "14px", textAlign: "center" }}>
+                  Funcionalidade em desenvolvimento
                 </div>
               </div>
             )}
