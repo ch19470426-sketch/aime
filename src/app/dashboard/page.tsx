@@ -328,8 +328,20 @@ export default function Dashboard() {
                   <span style={{ color: "white", fontWeight: "bold", fontSize: "13px" }}>{itemSelecionado?.codigo} - {itemSelecionado?.label}</span>
                 </div>
                 <div style={{ height: "2px", backgroundColor: "#1E3A8A" }} />
-                <div style={{ padding: "16px" }}>
-                  <ProcedimentoGrupo codigo={tipoServico} grupo={menuGrupos.find(g => g.itens.some(i => i.codigo === tipoServico))?.grupo ?? ""} />
+                <div style={{ padding: "32px", display: "flex", flexDirection: "column", alignItems: "center", gap: "16px" }}>
+                  <p style={{ color: "#94A3B8", fontSize: "13px", textAlign: "center", margin: 0 }}>
+                    Esta funcionalidade estará disponível em breve.
+                  </p>
+                  <button
+                    onClick={() => orienta(
+                      "Funcionalidade em desenvolvimento",
+                      `O serviço "${itemSelecionado?.label}" estará disponível em breve. Por enquanto, utilize os serviços de Vistoria disponíveis no menu.`,
+                      () => setTipoServico(null)
+                    )}
+                    style={{ backgroundColor: "#1E3A8A", color: "white", border: "none", borderRadius: "9999px", padding: "10px 24px", fontSize: "13px", fontWeight: 700, cursor: "pointer" }}
+                  >
+                    Saiba mais
+                  </button>
                 </div>
               </div>
             )}
