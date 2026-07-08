@@ -1,6 +1,6 @@
 // src/app/homologar/page.tsx
 // AIMÊ — Tela 40: Homologar Vistoria
-// Permite revisar, ajustar NC/CP via IA e homologar formulários de vistoria
+// Reutiliza lógica completa das telas 31-38 com listas editáveis
 
 'use client'
 
@@ -9,6 +9,11 @@ import { useSearchParams } from 'next/navigation'
 import Image from 'next/image'
 import Banner from '@/components/Banner'
 import { useBanner } from '@/hooks/useBanner'
+
+// ─── Tipos ───────────────────────────────────────────────────────────────────
+interface ItemSistema    { sistema: string }
+interface ItemSubsistema { sistema: string; subsistema: string }
+interface ItemAnomalia   { sistema: string; subsistema: string; anomalias: string }
 
 interface Formulario {
   nome: string
@@ -25,6 +30,7 @@ interface Formulario {
   subsistema: string
   anomalia: string
   origem: string
+  resultado?: string
   local: string
   complemento: string
   gravidade: number
@@ -41,14 +47,54 @@ interface Formulario {
   savedAt: string
 }
 
+// ─── Constantes ──────────────────────────────────────────────────────────────
 const SUPA_URL = 'https://asgorarunzhiojqioxzq.supabase.co'
 const SUPA_KEY = 'sb_publishable_dH85HYKGxv3X0te627VfOw_OGaPoNMF'
 
+const TIPO_SERVICO_BANCO: Record<string, string> = {
+  '31': '31 Autovistoria', '32': '32 Vistoria inspeção',
+  '33': '33 Vistoria imóvel novo', '34': '34 Vistoria fachada',
+  '35': '35 Vistoria elevador', '36': '36 Vistoria nr-10',
+  '37': '37 Vistoria nr-12', '38': '38 Vistoria nr-13',
+}
+
+const TITULO_TIPO: Record<string, string> = {
+  '31': 'Autovistoria - NBR 16747', '32': 'Vistoria Inspeção - NBR 16747',
+  '33': 'Vistoria Imóvel Novo - NBR 15575', '34': 'Vistoria Fachada - NBR 16083',
+  '35': 'Vistoria Elevador', '36': 'Vistoria NR-10',
+  '37': 'Vistoria NR-12', '38': 'Vistoria NR-13',
+}
+
+const VALOR_GUT_PREDIAL: Record<string, number> = {
+  'gravidade:Estética': 1, 'gravidade:Leve': 2, 'gravidade:Moderada': 3, 'gravidade:Alta': 4, 'gravidade:Crítica': 5,
+  'urgencia:Pode aguardar': 1, 'urgencia:Planejar': 3, 'urgencia:Imediata': 5,
+  'abrangencia:Ponto isolado': 1, 'abrangencia:Vários pontos': 3, 'abrangencia:Sistema completo': 5,
+  'exposicao:Baixa': 1, 'exposicao:Média': 3, 'exposicao:Alta': 5,
+}
+
+const VALOR_GUT_NR: Record<string, number> = {
+  'gravidade:Sem risco': 1, 'gravidade:Lesão/dano baixo': 2, 'gravidade:Lesão/dano moderado': 3, 'gravidade:Lesão/dano grave': 4, 'gravidade:Lesão/dano fatal': 5,
+  'urgencia:Pode aguardar': 1, 'urgencia:Planejar': 3, 'urgencia:Imediata': 5,
+  'probabilidade:Improvável': 1, 'probabilidade:Possível': 3, 'probabilidade:Provável/eminente': 5,
+  'exposicaorisco:Máximo 2 pessoas': 1, 'exposicaorisco:Até 6 pessoas': 3, 'exposicaorisco:Muitas pessoas': 5,
+}
+
+function calcularGR(gra: number, urg: number, abr: number, exp: number): number {
+  return Math.round((0.4 * gra + 0.3 * urg + 0.2 * abr + 0.1 * exp) * 20)
+}
+
+function ehNR(ts: string): boolean {
+  return ['35', '36', '37', '38'].includes(ts)
+}
+
+// ─── Componente principal ─────────────────────────────────────────────────────
 export default function Tela40Page() {
   return (
     <Suspense fallback={
       <div style={S.body}><div style={S.page}>
-        <div style={S.header}><span style={{ color: '#fff', fontWeight: 700 }}>AIMÊ — Carregando...</span></div>
+        <HeaderBar subtitulo="Carregando..." />
+        <div style={S.divider} />
+        <p style={{ padding: '40px', textAlign: 'center', color: '#4a6480', fontSize: '9pt' }}>Carregando...</p>
       </div></div>
     }>
       <Tela40Inner />
@@ -64,27 +110,102 @@ function Tela40Inner() {
 
   const { bannerProps, informa, agradece, solicita } = useBanner()
 
-  const [formularios,   setFormularios]   = useState<Formulario[]>([])
-  const [indice,        setIndice]        = useState(0)
-  const [carregando,    setCarregando]    = useState(true)
-  const [salvando,      setSalvando]      = useState(false)
-  const [gerandoIA,     setGerandoIA]     = useState(false)
-  const [feedbackIA,    setFeedbackIA]    = useState('')
+  // Lista de formulários
+  const [formularios,  setFormularios]  = useState<Formulario[]>([])
+  const [indice,       setIndice]       = useState(0)
+  const [carregando,   setCarregando]   = useState(true)
+  const [salvando,     setSalvando]     = useState(false)
+  const [gerandoIA,    setGerandoIA]    = useState(false)
+  const [feedbackIA,   setFeedbackIA]   = useState('')
+
+  // Listas de validação (carregadas do banco)
+  const [sistemas,     setSistemas]     = useState<ItemSistema[]>([])
+  const [subsistemas,  setSubsistemas]  = useState<ItemSubsistema[]>([])
+  const [anomalias,    setAnomalias]    = useState<ItemAnomalia[]>([])
+  const [origens,      setOrigens]      = useState<string[]>([])
+  const [locais,       setLocais]       = useState<string[]>([])
+  const [gravidades,   setGravidades]   = useState<string[]>([])
+  const [urgencias,    setUrgencias]    = useState<string[]>([])
+  const [abrangencias, setAbrangencias] = useState<string[]>([])
+  const [exposicoes,   setExposicoes]   = useState<string[]>([])
 
   // Campos editáveis
-  const [nc,            setNc]            = useState('')
-  const [cp,            setCp]            = useState('')
-  const [local,         setLocal]         = useState('')
-  const [complemento,   setComplemento]   = useState('')
-
-  // Dados originais para detectar alterações
-  const [origSistema,   setOrigSistema]   = useState('')
-  const [origSubsistema,setOrigSubsistema]= useState('')
-  const [origAnomalia,  setOrigAnomalia]  = useState('')
-  const [origOrigem,    setOrigOrigem]    = useState('')
+  const [sistema,          setSistema]          = useState('')
+  const [subsistema,       setSubsistema]       = useState('')
+  const [anomalia,         setAnomalia]         = useState('')
+  const [origem,           setOrigem]           = useState('')
+  const [resultado,        setResultado]        = useState('')
+  const [local,            setLocal]            = useState('')
+  const [complemento,      setComplemento]      = useState('')
+  const [descGravidade,    setDescGravidade]    = useState('')
+  const [descUrgencia,     setDescUrgencia]     = useState('')
+  const [descAbrangencia,  setDescAbrangencia]  = useState('')
+  const [descExposicao,    setDescExposicao]    = useState('')
+  const [nc,               setNc]               = useState('')
+  const [cp,               setCp]               = useState('')
 
   const form = formularios[indice]
+  const ts   = form?.tipoServico ?? ''
+  const isNR = ehNR(ts)
+  const tipoServicoBanco = TIPO_SERVICO_BANCO[ts] ?? ''
 
+  // GR calculado
+  const VALOR_GUT = isNR ? VALOR_GUT_NR : VALOR_GUT_PREDIAL
+  const gravNum = VALOR_GUT[`gravidade:${descGravidade}`] ?? 0
+  const urgNum  = VALOR_GUT[`urgencia:${descUrgencia}`]   ?? 0
+  const abrNum  = isNR
+    ? (VALOR_GUT[`probabilidade:${descAbrangencia}`] ?? 0)
+    : (VALOR_GUT[`abrangencia:${descAbrangencia}`]   ?? 0)
+  const expNum  = isNR
+    ? (VALOR_GUT[`exposicaorisco:${descExposicao}`]  ?? 0)
+    : (VALOR_GUT[`exposicao:${descExposicao}`]       ?? 0)
+  const grauRisco = (gravNum && urgNum && abrNum && expNum) ? calcularGR(gravNum, urgNum, abrNum, expNum) : (form?.grauRisco ?? 0)
+  const prioridade = isNR
+    ? (grauRisco >= 75 ? 'Muito alta' : grauRisco >= 50 ? 'Alta' : grauRisco >= 30 ? 'Média' : 'Baixa')
+    : (grauRisco >= 64 ? 'Alta' : grauRisco >= 35 ? 'Média' : 'Baixa')
+  const corGR = grauRisco >= (isNR ? 75 : 64) ? '#E24B4A' : grauRisco >= (isNR ? 50 : 35) ? '#E8A000' : '#1A7A3C'
+
+  // Listas filtradas
+  const subsistemasFiltrados = [...new Set(subsistemas.filter(s => s.sistema === sistema).map(s => s.subsistema))]
+  const anomaliasFiltradas   = anomalias
+    .filter(a => a.sistema === sistema && a.subsistema === subsistema)
+    .flatMap(a => a.anomalias.split(';').map(x => x.trim()).filter(Boolean))
+
+  async function query(table: string, params: string) {
+    const res = await fetch(`${SUPA_URL}/rest/v1/${table}?${params}`, {
+      headers: { 'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}` }
+    })
+    return res.json()
+  }
+
+  // Carregar listas quando tipo_servico mudar
+  useEffect(() => {
+    if (!tipoServicoBanco) return
+    async function carregarListas() {
+      const sis = await query('sistemas_construtivos', `tipo_servico=eq.${encodeURIComponent(tipoServicoBanco)}&select=sistema&order=sistema`)
+      if (Array.isArray(sis)) setSistemas([...new Map(sis.map((s: ItemSistema) => [s.sistema, s])).values()])
+
+      const sub = await query('sistemas_construtivos', `tipo_servico=eq.${encodeURIComponent(tipoServicoBanco)}&subsistema=not.is.null&select=sistema,subsistema`)
+      if (Array.isArray(sub)) setSubsistemas(sub)
+
+      const ano = await query('sistemas_construtivos', `tipo_servico=eq.${encodeURIComponent(tipoServicoBanco)}&anomalias=not.is.null&select=sistema,subsistema,anomalias`)
+      if (Array.isArray(ano)) setAnomalias(ano)
+
+      const par = await query('tabela_parametros', `tipo_servico=eq.${encodeURIComponent(tipoServicoBanco)}&select=tipo_parametro,descricao_parametros&order=tipo_parametro,descricao_parametros`)
+      if (Array.isArray(par)) {
+        const f = (tipo: string) => par.filter((p: {tipo_parametro: string, descricao_parametros: string}) => p.tipo_parametro === tipo).map((p: {descricao_parametros: string}) => p.descricao_parametros)
+        setOrigens(f('Origem'))
+        setLocais(f('Local ocorrência'))
+        setGravidades(f('Gravidade'))
+        setUrgencias(f('Urgência'))
+        setAbrangencias(isNR ? f('Probabilidade') : f('Abrangência'))
+        setExposicoes(isNR ? f('Exposição risco') : f('Exposição'))
+      }
+    }
+    carregarListas()
+  }, [tipoServicoBanco, isNR])
+
+  // Carregar formulários
   useEffect(() => {
     if (!cnpjoucpf || !chaveInspetor) return
     carregarFormularios()
@@ -95,21 +216,18 @@ function Tela40Inner() {
     try {
       const res = await fetch(`/api/vistorias?chave_inspetor=${chaveInspetor}&cnpjoucpf=${cnpjoucpf}`)
       const data = await res.json()
-
       if (!data.formularios || data.formularios.length === 0) {
-        informa(
-          'Nenhuma vistoria encontrada',
+        informa('Nenhuma vistoria encontrada',
           'Para que seja efetuada a homologação é necessário que exista uma vistoria concluída para a edificação/instituição. Nada encontrado, o processo será suspenso.',
           () => window.location.href = '/dashboard'
         )
         setCarregando(false)
         return
       }
-
       setFormularios(data.formularios)
-      carregarFormularioCompleto(data.formularios[0].nome, data.formularios, 0)
-    } catch (e) {
-      informa('Erro', 'Não foi possível carregar as vistorias. Tente novamente.')
+      await carregarFormularioCompleto(data.formularios[0].nome, data.formularios, 0)
+    } catch(e) {
+      informa('Erro', 'Não foi possível carregar as vistorias.')
       setCarregando(false)
     }
   }
@@ -117,36 +235,27 @@ function Tela40Inner() {
   async function carregarFormularioCompleto(nome: string, lista: Formulario[], idx: number) {
     setCarregando(true)
     try {
-      const res = await fetch(`/api/vistorias/${nome}`)
+      const res  = await fetch(`/api/vistorias/${nome}`)
       const data = await res.json()
-
       const atualizado = lista.map((f, i) => i === idx ? { ...f, ...data } : f)
       setFormularios(atualizado)
       setIndice(idx)
-      setNc(data.nc ?? '')
-      setCp(data.cp ?? '')
+      setSistema(data.sistema ?? '')
+      setSubsistema(data.subsistema ?? '')
+      setAnomalia(data.anomalia ?? '')
+      setOrigem(data.origem ?? '')
+      setResultado(data.resultado ?? '')
       setLocal(data.local ?? '')
       setComplemento(data.complemento ?? '')
-      setOrigSistema(data.sistema ?? '')
-      setOrigSubsistema(data.subsistema ?? '')
-      setOrigAnomalia(data.anomalia ?? '')
-      setOrigOrigem(data.origem ?? '')
-    } catch (e) {
+      setNc(data.nc ?? '')
+      setCp(data.cp ?? '')
+      setFeedbackIA('')
+      // Não definir descGravidade/etc pois os valores numéricos precisam ser mapeados de volta para texto
+    } catch(e) {
       informa('Erro', 'Não foi possível carregar o formulário.')
     } finally {
       setCarregando(false)
     }
-  }
-
-  function manifestacaoAlterada(): boolean {
-    if (!form) return false
-    return (
-      local !== form.local ||
-      origSistema !== form.sistema ||
-      origSubsistema !== form.subsistema ||
-      origAnomalia !== form.anomalia ||
-      origOrigem !== form.origem
-    )
   }
 
   async function gerarNcCpIA() {
@@ -158,19 +267,16 @@ function Tela40Inner() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          sistema: form.sistema,
-          subsistema: form.subsistema,
-          anomalia: form.anomalia,
-          local, complemento,
-          origem: form.origem,
-          abrangencia: ''
+          sistema, subsistema, anomalia, local, complemento,
+          origem: isNR ? 'Funcional' : origem,
+          abrangencia: descAbrangencia || 'Ponto isolado'
         })
       })
       const data = await res.json()
       if (data.nc) setNc(data.nc)
-      if (data.cp) setCp(data.cp)
-      setFeedbackIA('✅ NC e CP atualizadas!')
-    } catch (e) {
+      if (!isNR && data.cp) setCp(data.cp)
+      setFeedbackIA('✅ NC' + (isNR ? '' : ' e CP') + ' atualizadas!')
+    } catch(e) {
       setFeedbackIA('⚠️ Erro ao gerar NC/CP')
     } finally {
       setGerandoIA(false)
@@ -180,19 +286,13 @@ function Tela40Inner() {
   async function avancarProximo() {
     if (!form) return
     setSalvando(true)
-
-    // Regenerar NC/CP se manifestação foi alterada
-    if (manifestacaoAlterada()) await gerarNcCpIA()
-
-    // Salvar em dados_vistoria
     try {
+      // Salvar em dados_vistoria
       await fetch(`${SUPA_URL}/rest/v1/dados_vistoria`, {
         method: 'POST',
         headers: {
-          'apikey': SUPA_KEY,
-          'Authorization': `Bearer ${SUPA_KEY}`,
-          'Content-Type': 'application/json',
-          'Prefer': 'resolution=merge-duplicates'
+          'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}`,
+          'Content-Type': 'application/json', 'Prefer': 'resolution=merge-duplicates'
         },
         body: JSON.stringify({
           cpf_inspetor: form.cpfInspetor,
@@ -203,89 +303,78 @@ function Tela40Inner() {
           data_homologacao: new Date().toLocaleDateString('pt-BR'),
           tipo_ativo: form.tipoAtivo,
           tag_ativo_nr_serie: form.tagNrSerie,
-          sistema: form.sistema,
-          subsistema: form.subsistema,
-          anomalia_requisito_vistoria: form.anomalia,
-          origem_resultado: form.origem,
+          sistema, subsistema,
+          anomalia_requisito_vistoria: anomalia,
+          origem_resultado: isNR ? resultado : origem,
           local_ocorrencia: local,
           complemento_local: complemento,
-          gravidade: form.gravidade,
-          urgencia: form.urgencia,
-          abrangencia: form.abrangencia,
-          exposicao: form.exposicao,
-          grau_risco: form.grauRisco,
-          prioridade: form.prioridade,
+          gravidade: gravNum || form.gravidade,
+          urgencia: urgNum || form.urgencia,
+          abrangencia: abrNum || form.abrangencia,
+          exposicao: expNum || form.exposicao,
+          grau_risco: grauRisco || form.grauRisco,
+          prioridade: prioridade || form.prioridade,
           nc_descricao: nc,
           cp_descricao: cp,
         })
       })
-    } catch (e) {
-      console.error('Erro ao salvar dados_vistoria:', e)
-    }
 
-    // Avançar para próximo
-    const proximoIdx = indice + 1
-    if (proximoIdx >= formularios.length) {
-      agradece(
-        'Homologação concluída!',
-        'Todos os registros foram revisados e homologados com sucesso.',
-        () => window.location.href = '/dashboard'
-      )
-    } else {
-      carregarFormularioCompleto(formularios[proximoIdx].nome, formularios, proximoIdx)
+      // Avançar
+      const proximoIdx = indice + 1
+      if (proximoIdx >= formularios.length) {
+        agradece('Homologação concluída!',
+          'Todos os registros foram revisados e homologados com sucesso.',
+          () => window.location.href = '/dashboard'
+        )
+      } else {
+        await carregarFormularioCompleto(formularios[proximoIdx].nome, formularios, proximoIdx)
+      }
+    } catch(e) {
+      informa('Erro', 'Não foi possível salvar o registro. Tente novamente.')
+    } finally {
+      setSalvando(false)
     }
-    setSalvando(false)
   }
 
   async function voltarAnterior() {
     if (indice === 0) return
-    const anteriorIdx = indice - 1
-    carregarFormularioCompleto(formularios[anteriorIdx].nome, formularios, anteriorIdx)
+    await carregarFormularioCompleto(formularios[indice - 1].nome, formularios, indice - 1)
   }
 
   function descartarColeta() {
-    solicita(
-      'Descartar coleta',
+    solicita('Descartar coleta',
       `Tem certeza que deseja descartar o registro "${form?.nome}"? Esta ação não pode ser desfeita.`,
       [
-        {
-          label: 'Cancelar',
-          acao: () => {},
-          estilo: 'secundario'
-        },
-        {
-          label: 'Descartar',
-          acao: async () => {
-            await fetch(`/api/vistorias?nome=${form?.nome}`, { method: 'DELETE' })
-            const novaLista = formularios.filter((_, i) => i !== indice)
-            if (novaLista.length === 0) {
-              agradece('Pronto', 'Todos os registros foram processados.', () => window.location.href = '/dashboard')
-            } else {
-              const novoIdx = Math.min(indice, novaLista.length - 1)
-              setFormularios(novaLista)
-              carregarFormularioCompleto(novaLista[novoIdx].nome, novaLista, novoIdx)
-            }
-          },
-          estilo: 'primario'
-        }
+        { label: 'Cancelar', acao: () => {}, estilo: 'secundario' },
+        { label: 'Descartar', acao: async () => {
+          await fetch(`/api/vistorias?nome=${form?.nome}`, { method: 'DELETE' })
+          const novaLista = formularios.filter((_, i) => i !== indice)
+          if (novaLista.length === 0) {
+            agradece('Pronto', 'Todos os registros foram processados.', () => window.location.href = '/dashboard')
+          } else {
+            const novoIdx = Math.min(indice, novaLista.length - 1)
+            setFormularios(novaLista)
+            await carregarFormularioCompleto(novaLista[novoIdx].nome, novaLista, novoIdx)
+          }
+        }, estilo: 'primario' }
       ]
     )
   }
 
-  const corGR = form ? (form.grauRisco >= 64 ? '#E24B4A' : form.grauRisco >= 35 ? '#E8A000' : '#1A7A3C') : '#94A3B8'
+  // ─── Render ──────────────────────────────────────────────────────────────────
 
   if (carregando) return (
     <div style={S.body}><div style={S.page}>
-      <CabecalhoHTML />
+      <HeaderBar subtitulo={ts ? `Homologação do Resultado - ${TITULO_TIPO[ts] ?? ts}` : 'Carregando...'} />
       <div style={S.divider} />
-      <p style={{ textAlign: 'center', padding: '40px', color: '#4a6480', fontSize: '9pt' }}>Carregando formulários...</p>
+      <p style={{ padding: '40px', textAlign: 'center', color: '#4a6480', fontSize: '9pt' }}>Carregando formulários...</p>
       <Banner {...bannerProps} />
     </div></div>
   )
 
   if (!form) return (
     <div style={S.body}><div style={S.page}>
-      <CabecalhoHTML />
+      <HeaderBar subtitulo="Homologar Vistoria" />
       <div style={S.divider} />
       <Banner {...bannerProps} />
     </div></div>
@@ -294,18 +383,16 @@ function Tela40Inner() {
   return (
     <div style={S.body}>
       <div style={S.page}>
-        <CabecalhoHTML />
+        <HeaderBar subtitulo={`Homologação do Resultado - ${TITULO_TIPO[ts] ?? ts}`} />
         <div style={S.divider} />
         <div style={S.formBody}>
 
-          {/* Contador de registros */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-            <span style={{ fontSize: '8pt', color: '#4a6480' }}>
+          {/* Contador */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+            <span style={{ fontSize: '7.5pt', color: '#4a6480' }}>
               Registro <strong>{indice + 1}</strong> de <strong>{formularios.length}</strong> — {form.nome}
             </span>
-            <span style={{ fontSize: '8pt', color: corGR, fontWeight: 700 }}>
-              GR: {form.grauRisco} — {form.prioridade}
-            </span>
+            <span style={{ fontSize: '7.5pt', color: corGR, fontWeight: 700 }}>GR: {grauRisco} — {prioridade}</span>
           </div>
 
           {/* IDENTIFICAÇÃO */}
@@ -314,44 +401,83 @@ function Tela40Inner() {
             <div style={S.blockBody}>
               <div style={{ ...S.row, ...S.c2 }}>
                 <Field label={form.cnpjoucpf.length === 11 ? 'CPF' : 'CNPJ'}>
-                  <input style={S.input} value={form.cnpjDisplay || form.cnpjoucpf} readOnly />
+                  <input style={S.inputRO} value={form.cnpjDisplay || form.cnpjoucpf} readOnly />
                 </Field>
                 <Field label={form.cnpjoucpf.length === 11 ? 'Nome' : 'Razão social'}>
-                  <input style={S.input} value={form.razaoSocial} readOnly />
+                  <input style={S.inputRO} value={form.razaoSocial} readOnly />
                 </Field>
               </div>
               <div style={{ ...S.row, ...S.c3 }}>
-                <Field label="Tipo de serviço">
-                  <input style={S.input} value={form.tipoServico} readOnly />
-                </Field>
-                <Field label="Ativo">
-                  <input style={S.input} value={form.tipoAtivo} readOnly />
-                </Field>
-                <Field label="TAG / Nº Série">
-                  <input style={S.input} value={form.tagNrSerie} readOnly />
-                </Field>
+                <Field label="Tipo de serviço"><input style={S.inputRO} value={TITULO_TIPO[ts] ?? ts} readOnly /></Field>
+                <Field label="Ativo a vistoriar"><input style={S.inputRO} value={form.tipoAtivo} readOnly /></Field>
+                <Field label="TAG / Nº Série"><input style={S.inputRO} value={form.tagNrSerie} readOnly /></Field>
               </div>
             </div>
           </div>
 
-          {/* MANIFESTAÇÃO PATOLÓGICA */}
+          {/* MANIFESTAÇÃO PATOLÓGICA ou CONFORMIDADE NORMATIVA */}
           <div style={S.block}>
-            <div style={S.blockTitle}>Manifestação Patológica / Apuração da Conformidade</div>
+            <div style={S.blockTitle}>{isNR ? 'Apuração da Conformidade Regulatória' : 'Manifestação Patológica'}</div>
             <div style={S.blockBody}>
-              <div style={{ ...S.row, ...S.c3 }}>
-                <Field label="Sistema"><input style={S.input} value={form.sistema} readOnly /></Field>
-                <Field label="Subsistema"><input style={S.input} value={form.subsistema} readOnly /></Field>
-                <Field label="Anomalia / Requisito"><input style={S.input} value={form.anomalia} readOnly /></Field>
-              </div>
-              <div style={{ ...S.row, ...S.c3 }}>
-                <Field label="Origem / Resultado"><input style={S.input} value={form.origem} readOnly /></Field>
-                <Field label="Local de ocorrência">
-                  <input style={S.input} value={local} onChange={e => setLocal(e.target.value)} />
+              <div style={{ ...S.row, ...S.c2 }}>
+                <Field label="Sistema">
+                  <select style={S.input} value={sistema} onChange={e => { setSistema(e.target.value); setSubsistema(''); setAnomalia('') }}>
+                    <option value="">Selecione...</option>
+                    {sistemas.map(s => <option key={s.sistema} value={s.sistema}>{s.sistema}</option>)}
+                  </select>
                 </Field>
-                <Field label="Complemento">
-                  <input style={S.input} value={complemento} onChange={e => setComplemento(e.target.value)} />
+                <Field label={isNR ? 'Subsistema / Componente' : 'Subsistema'}>
+                  <select style={S.input} value={subsistema} onChange={e => { setSubsistema(e.target.value); setAnomalia('') }} disabled={!sistema}>
+                    <option value="">Selecione...</option>
+                    {subsistemasFiltrados.map(s => <option key={s} value={s}>{s}</option>)}
+                  </select>
                 </Field>
               </div>
+              <Field label={isNR ? 'Requisito Normativo' : 'Anomalia / Falha'}>
+                <select style={S.input} value={anomalia} onChange={e => setAnomalia(e.target.value)} disabled={!subsistema}>
+                  <option value="">Selecione...</option>
+                  {anomaliasFiltradas.map(a => <option key={a} value={a}>{a}</option>)}
+                </select>
+              </Field>
+              {isNR ? (
+                <div style={{ ...S.row, ...S.c3 }}>
+                  <Field label="Resultado">
+                    <select style={S.input} value={resultado} onChange={e => {
+                      setResultado(e.target.value)
+                      if (e.target.value === 'Conforme') setNc('Requisito atendido plenamente.')
+                      else if (e.target.value === 'Não aplicável') setNc('Requisito não se aplica à instalação.')
+                      else setNc('')
+                    }}>
+                      <option value="">Selecione...</option>
+                      {['Conforme', 'Não conforme', 'Não aplicável', 'Não verificado'].map(r => <option key={r} value={r}>{r}</option>)}
+                    </select>
+                  </Field>
+                  <Field label="Local/Instalação/Setor/Área *">
+                    <input style={S.input} value={local} onChange={e => setLocal(e.target.value)} placeholder="Ex: Quadro 2º pavimento..." />
+                  </Field>
+                  <Field label="Complemento">
+                    <input style={S.input} value={complemento} onChange={e => setComplemento(e.target.value)} />
+                  </Field>
+                </div>
+              ) : (
+                <div style={{ ...S.row, ...S.c3 }}>
+                  <Field label="Origem">
+                    <select style={S.input} value={origem} onChange={e => setOrigem(e.target.value)}>
+                      <option value="">Selecione...</option>
+                      {origens.map(o => <option key={o} value={o}>{o}</option>)}
+                    </select>
+                  </Field>
+                  <Field label="Local de ocorrência">
+                    <select style={S.input} value={local} onChange={e => setLocal(e.target.value)}>
+                      <option value="">Selecione...</option>
+                      {locais.map(l => <option key={l} value={l}>{l}</option>)}
+                    </select>
+                  </Field>
+                  <Field label="Complemento do local">
+                    <input style={S.input} value={complemento} onChange={e => setComplemento(e.target.value)} placeholder="Detalhe opcional..." />
+                  </Field>
+                </div>
+              )}
             </div>
           </div>
 
@@ -360,20 +486,42 @@ function Tela40Inner() {
             <div style={S.blockTitle}>Classificação de Risco</div>
             <div style={S.blockBody}>
               <div style={{ ...S.row, ...S.c4 }}>
-                <Field label="Gravidade"><input style={S.input} value={form.gravidade} readOnly /></Field>
-                <Field label="Urgência"><input style={S.input} value={form.urgencia} readOnly /></Field>
-                <Field label="Abrangência / Prob."><input style={S.input} value={form.abrangencia} readOnly /></Field>
-                <Field label="Exposição"><input style={S.input} value={form.exposicao} readOnly /></Field>
+                <Field label="Gravidade">
+                  <select style={S.input} value={descGravidade} onChange={e => setDescGravidade(e.target.value)}>
+                    <option value="">Sel...</option>
+                    {gravidades.map(v => <option key={v} value={v}>{v}</option>)}
+                  </select>
+                </Field>
+                <Field label="Urgência">
+                  <select style={S.input} value={descUrgencia} onChange={e => setDescUrgencia(e.target.value)}>
+                    <option value="">Sel...</option>
+                    {urgencias.map(v => <option key={v} value={v}>{v}</option>)}
+                  </select>
+                </Field>
+                <Field label={isNR ? 'Probabilidade' : 'Abrangência'}>
+                  <select style={S.input} value={descAbrangencia} onChange={e => setDescAbrangencia(e.target.value)}>
+                    <option value="">Sel...</option>
+                    {abrangencias.map(v => <option key={v} value={v}>{v}</option>)}
+                  </select>
+                </Field>
+                <Field label={isNR ? 'Exposição risco' : 'Exposição'}>
+                  <select style={S.input} value={descExposicao} onChange={e => setDescExposicao(e.target.value)}>
+                    <option value="">Sel...</option>
+                    {exposicoes.map(v => <option key={v} value={v}>{v}</option>)}
+                  </select>
+                </Field>
               </div>
               <div style={S.riskMetrics}>
                 <div style={{ ...S.metric, borderColor: corGR }}>
                   <span style={S.metricLbl}>Grau de Risco</span>
-                  <span style={{ ...S.metricVal, color: corGR }}>{form.grauRisco}</span>
-                  <div style={S.barWrap}><div style={{ ...S.bar, width: `${form.grauRisco}%`, background: corGR }} /></div>
+                  <span style={{ ...S.metricVal, color: corGR }}>{grauRisco || form.grauRisco || '—'}</span>
+                  <div style={S.barWrap}><div style={{ ...S.bar, width: `${grauRisco || form.grauRisco}%`, background: corGR }} /></div>
                 </div>
                 <div style={{ ...S.metric, borderColor: corGR, justifyContent: 'center' }}>
                   <span style={S.metricLbl}>Prioridade</span>
-                  <span style={{ ...S.badge, background: form.grauRisco >= 64 ? '#FCEBEB' : form.grauRisco >= 35 ? '#FFF0C2' : '#E6F5EE', color: corGR }}>{form.prioridade}</span>
+                  <span style={{ ...S.badge, background: corGR === '#E24B4A' ? '#FCEBEB' : corGR === '#E8A000' ? '#FFF0C2' : '#E6F5EE', color: corGR }}>
+                    {prioridade || form.prioridade}
+                  </span>
                 </div>
               </div>
             </div>
@@ -401,35 +549,40 @@ function Tela40Inner() {
             </div>
           </div>
 
-          {/* NC e CP */}
+          {/* RESULTADO DA ANÁLISE */}
           <div style={S.block}>
-            <div style={S.blockTitle}>Resultado da Análise e Avaliação</div>
+            <div style={S.blockTitle}>{isNR ? 'Não Conformidade / Observações' : 'Resultado da Análise e Avaliação'}</div>
             <div style={S.blockBody}>
               {feedbackIA && <div style={{ fontSize: '7pt', color: '#1E3A8A', background: '#EEF4FF', padding: '3px 8px', borderRadius: '4px', marginBottom: '6px' }}>{feedbackIA}</div>}
               <Field label="Não conformidade (NC)">
-                <textarea style={{ ...S.input, ...S.textarea }} value={nc} maxLength={500} onChange={e => setNc(e.target.value)} />
+                <textarea style={{ ...S.input, ...S.textarea }} value={nc} maxLength={500}
+                  readOnly={isNR && (resultado === 'Conforme' || resultado === 'Não aplicável')}
+                  onChange={e => setNc(e.target.value)} />
               </Field>
-              <Field label="Causa provável (CP)">
-                <textarea style={{ ...S.input, ...S.textarea }} value={cp} maxLength={500} onChange={e => setCp(e.target.value)} />
-              </Field>
+              {!isNR && (
+                <Field label="Causa provável (CP)">
+                  <textarea style={{ ...S.input, ...S.textarea }} value={cp} maxLength={500} onChange={e => setCp(e.target.value)} />
+                </Field>
+              )}
               <div style={{ textAlign: 'right', marginTop: '4px' }}>
-                <button onClick={gerarNcCpIA} disabled={gerandoIA} style={{ ...S.btnSec, fontSize: '7pt', padding: '3px 10px' }}>
-                  {gerandoIA ? '⏳ Gerando...' : '✨ Regerar NC/CP via IA'}
+                <button onClick={gerarNcCpIA} disabled={gerandoIA}
+                  style={{ background: '#E8EEF7', border: '1px solid #c3d4f0', borderRadius: '4px', padding: '3px 10px', fontSize: '7pt', color: '#1E3A8A', cursor: 'pointer', fontFamily: 'inherit' }}>
+                  {gerandoIA ? '⏳ Gerando...' : '✨ Regerar NC' + (isNR ? '' : '/CP') + ' via IA'}
                 </button>
               </div>
             </div>
           </div>
 
-          {/* BOTÕES DE NAVEGAÇÃO */}
+          {/* BOTÕES */}
           <div style={S.footer}>
-            <button style={{ ...S.btn, ...S.btnSec }} onClick={voltarAnterior} disabled={indice === 0}>
+            <button style={{ ...S.btn, ...S.btnSec, opacity: indice === 0 ? 0.4 : 1 }} onClick={voltarAnterior} disabled={indice === 0}>
               ← Revisar anterior
             </button>
             <button style={{ ...S.btn, background: '#DC2626', color: '#fff', border: 'none' }} onClick={descartarColeta}>
-              🗑 Descartar coleta
+              🗑 Descartar
             </button>
             <button style={{ ...S.btn, ...S.btnPri, opacity: salvando ? 0.6 : 1 }} onClick={avancarProximo} disabled={salvando}>
-              {salvando ? 'Salvando...' : indice === formularios.length - 1 ? 'Concluir homologação ✓' : 'Revisar próximo →'}
+              {salvando ? 'Salvando...' : indice === formularios.length - 1 ? 'Concluir ✓' : 'Revisar próximo →'}
             </button>
           </div>
 
@@ -440,7 +593,8 @@ function Tela40Inner() {
   )
 }
 
-function CabecalhoHTML() {
+// ─── Sub-componentes ──────────────────────────────────────────────────────────
+function HeaderBar({ subtitulo }: { subtitulo: string }) {
   return (
     <div style={S.header}>
       <div style={{ width: '80px', height: '36px', flexShrink: 0, display: 'flex', alignItems: 'center' }}>
@@ -448,7 +602,7 @@ function CabecalhoHTML() {
       </div>
       <div style={{ flex: 1, textAlign: 'center' }}>
         <h1 style={{ fontSize: '11pt', fontWeight: 700, color: '#fff', margin: 0 }}>Homologar Vistoria</h1>
-        <p style={{ fontSize: '7pt', color: '#B5D4F4', marginTop: '2px' }}>Revisão e homologação de formulários de vistoria</p>
+        <p style={{ fontSize: '7pt', color: '#B5D4F4', marginTop: '2px' }}>{subtitulo}</p>
       </div>
     </div>
   )
@@ -463,6 +617,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   )
 }
 
+// ─── Estilos ──────────────────────────────────────────────────────────────────
 const S: Record<string, React.CSSProperties> = {
   body:        { background: '#E8EEF7', display: 'flex', justifyContent: 'center', padding: '24px', fontFamily: 'Arial, Helvetica, sans-serif', minHeight: '100vh' },
   page:        { width: '210mm', maxWidth: '100%', background: '#ffffff', borderRadius: '16px', boxShadow: '0 4px 24px rgba(0,0,0,.15)', overflow: 'hidden', height: 'fit-content' },
@@ -479,6 +634,7 @@ const S: Record<string, React.CSSProperties> = {
   field:       { display: 'flex', flexDirection: 'column', gap: '1px' },
   fieldLabel:  { fontSize: '6.5pt', fontWeight: 600, color: '#4a6480' },
   input:       { width: '100%', border: '1px solid #c3d4f0', borderRadius: '4px', padding: '2px 5px', fontSize: '7.5pt', color: '#1a1a2e', fontFamily: 'inherit', background: '#ffffff', boxSizing: 'border-box' },
+  inputRO:     { width: '100%', border: '1px solid #e2e8f0', borderRadius: '4px', padding: '2px 5px', fontSize: '7.5pt', color: '#64748b', fontFamily: 'inherit', background: '#f1f5f9', boxSizing: 'border-box' },
   textarea:    { resize: 'vertical', lineHeight: 1.35, minHeight: '36px' },
   riskMetrics: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4px', marginTop: '4px' },
   metric:      { background: '#E8EEF7', border: '2px solid #c3d4f0', borderRadius: '5px', padding: '3px 8px', display: 'flex', alignItems: 'center', gap: '8px' },
