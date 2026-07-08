@@ -236,6 +236,11 @@ export default function Dashboard() {
       setMsgErro(`${coletaCpf ? "CPF" : "CNPJ"} incompleto (${docLimpo.length}/${tamanhoEsperado} dígitos)`)
       return
     }
+    // Código 40: Homologar Vistoria
+    if (Number(tipoServico) === 40) {
+      window.location.href = `/homologar?cpf_inspetor=${cpfInspetor}&chave_inspetor=${chaveInspetor}&cnpjoucpf=${docLimpo}`
+      return
+    }
     const url = `/vistoria/tela${tipoServico}?cpf_inspetor=${cpfInspetor}&chave_inspetor=${chaveInspetor}&cnpjoucpf=${docLimpo}&tipo_servico=${tipoServico}`
     window.location.href = url
   }
