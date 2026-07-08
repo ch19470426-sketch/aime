@@ -9,6 +9,8 @@
 "use client"
 
 import { useState } from "react"
+import Banner from "@/components/Banner"
+import { useBanner } from "@/hooks/useBanner"
 import { useRouter } from "next/navigation"
 import Image from "next/image"
 import { createClient } from "@/utils/supabase/client"
@@ -187,6 +189,7 @@ function ProcedimentoGrupo({ codigo, grupo }: { codigo: number; grupo: string })
 export default function Dashboard() {
   const router = useRouter()
 
+  const { bannerProps, orienta } = useBanner()
   const [tipoServico, setTipoServico] = useState<number | null>(null)
   const [grupoAberto, setGrupoAberto] = useState<string | null>("Vistorias")
   const [documento, setDocumento] = useState("")
@@ -238,6 +241,7 @@ export default function Dashboard() {
   }
 
   return (
+    <>
     <div style={{ backgroundColor: "#E8EEF7", minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", padding: "16px" }}>
       <div style={{ backgroundColor: "white", borderRadius: "16px", boxShadow: "0 4px 24px rgba(0,0,0,0.12)", width: "100%", maxWidth: "1100px", overflow: "hidden" }}>
 
@@ -418,5 +422,7 @@ export default function Dashboard() {
 
       </div>
     </div>
+    <Banner {...bannerProps} />
+    </>
   )
 }
