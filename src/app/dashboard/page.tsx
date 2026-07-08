@@ -82,7 +82,7 @@ const menuGrupos = [
 ]
 
 // Tipos de serviço que são vistorias (abre tela de CNPJ/CPF)
-const CODIGOS_VISTORIA = [31, 32, 33, 34, 35, 36, 37, 38]
+const CODIGOS_VISTORIA = [31, 32, 33, 34, 35, 36, 37, 38, 40]
 
 // Tipos de serviço que coletam CPF (pessoa física) em vez de CNPJ
 const CODIGOS_CPF = [13, 23, 33, 43]
