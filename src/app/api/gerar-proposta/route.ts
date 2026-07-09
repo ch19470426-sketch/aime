@@ -155,26 +155,46 @@ function valorExt(v: string) {
 }
 
 function md2html(txt: string): string {
-  // Remove #, converte ** e * e processa listas
+  const ST = 'style="text-align:justify;margin:6pt 0"'
+  // Normalizar: juntar linhas consecutivas não-vazias e não-lista em parágrafo único
   const linhas = txt.split('\n')
-  let html = ''; let inUl = false
+  let html = ''; let inUl = false; let paraAtual = ''
+
+  function flushPara() {
+    if (paraAtual.trim()) {
+      html += `<p ${ST}>${paraAtual.trim()}</p>`
+      paraAtual = ''
+    }
+  }
+
   for (let linha of linhas) {
     linha = linha
       .replace(/^#+\s*/,'')
       .replace(/\*\*([^*]+)\*\*/g,'<b>$1</b>')
       .replace(/\*([^*]+)\*/g,'<i>$1</i>')
     const t = linha.trim()
-    if (!t) { if(inUl){html+='</ul>';inUl=false}; continue }
-    if (/^[-–>]/.test(t) || /^>\s/.test(linha)) {
-      const item = t.replace(/^[-–>`]+\s*/,'')
+
+    if (!t) {
+      // Linha vazia = fim de parágrafo
+      flushPara()
+      if (inUl) { html+='</ul>'; inUl=false }
+      continue
+    }
+
+    if (/^[-–>]/.test(t)) {
+      // Item de lista
+      flushPara()
       if (!inUl) { html+='<ul>'; inUl=true }
-      html+=`<li>${item}</li>`
+      html+=`<li style="text-align:justify">${t.replace(/^[-–>`]+\s*/,'')}</li>`
     } else {
-      if(inUl){html+='</ul>';inUl=false}
-      html+=`<p style="text-align:justify;margin:6pt 0">${t}</p>`
+      // Texto normal — acumular no parágrafo atual
+      if (inUl) { html+='</ul>'; inUl=false }
+      paraAtual += (paraAtual ? ' ' : '') + t
     }
   }
-  if(inUl) html+='</ul>'
+
+  flushPara()
+  if (inUl) html+='</ul>'
   return html
 }
 
