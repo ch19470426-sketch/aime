@@ -251,7 +251,7 @@ function Tela40Inner() {
   async function carregarFormularioCompleto(nome: string, lista: Formulario[], idx: number) {
     setCarregando(true)
     try {
-      const res  = await fetch(`/api/vistorias/${nome}`)
+      const res  = await fetch(`/api/vistorias?nome=${nome}`)
       const data = await res.json()
       const atualizado = lista.map((f, i) => i === idx ? { ...f, ...data } : f)
       setFormularios(atualizado)
