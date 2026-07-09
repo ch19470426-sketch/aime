@@ -231,6 +231,29 @@ export async function POST(request: NextRequest) {
     if (!insp) return NextResponse.json({ erro: 'Inspetor não encontrado' }, { status: 404 })
 
     const c = C[tipoServico] ?? C['11']
+  // Pré-processar: juntar linhas com > de continuação ao item anterior
+  function preProcessar(txt: string): string {
+    const linhas = txt.split('\n')
+    const result: string[] = []
+    for (const linha of linhas) {
+      const t = linha.trim()
+      if (t.startsWith('>') && result.length > 0) {
+        // Continuação do item anterior — juntar
+        result[result.length - 1] += ' ' + t.replace(/^>\s*/, '')
+      } else {
+        result.push(linha)
+      }
+    }
+    return result.join('\n')
+  }
+  const cp = {
+    ...c,
+    objetivo: preProcessar(c.objetivo ?? ''),
+    metodologia: preProcessar(c.metodologia ?? ''),
+    documentacao: preProcessar(c.documentacao ?? ''),
+    equipe: preProcessar(c.equipe ?? ''),
+    rescisao: preProcessar(c.rescisao ?? ''),
+  }
     const isPF = cnpjoucpf.length === 11
     const labelDoc = isPF ? 'CPF' : 'CNPJ'
     const docFmt = isPF
@@ -347,16 +370,16 @@ e customização dos ambientes na busca de maior conforto e modernidade".</i>
 <p style="text-align:justify;margin:6pt 0">O serviço será executado para o(a) <b>${razaoSocial}</b>, localizado no <b>${endereco}</b>.</p>
 
 <h2>1.- Objetivo.</h2>
-${md2html(c.objetivo)}
+${md2html(cp.objetivo)}
 
 <h2>2.- Metodologia.</h2>
-${md2html(c.metodologia)}
+${md2html(cp.metodologia)}
 
 <h2>3.- Documentação.</h2>
-${md2html(c.documentacao)}
+${md2html(cp.documentacao)}
 
 <h2>4.- Equipe de Trabalho e produtos que serão entregues.</h2>
-${md2html(c.equipe)}
+${md2html(cp.equipe)}
 
 <h2>5.- Honorários e Forma de Pagamento.</h2>
 <p style="text-align:justify;margin:6pt 0">O preço dos serviços, com base na estimativa de horas trabalhadas, conforme tabela do IBAPE — Instituto Brasileiro de Avaliações e Perícias, e válido para 30 (trinta) dias, a partir desta data, é o seguinte:</p>
@@ -375,7 +398,7 @@ ${md2html(c.equipe)}
 <p style="text-align:justify;margin:6pt 0">Também deverá haver comprometimento mútuo para execução dos trabalhos segundo agenda de trabalho, a ser definida de comum acordo entre o Inspetor e o síndico na reunião inicial.</p>
 
 <h2>7.- Rescisão e outras avenças.</h2>
-${md2html(c.rescisao)}
+${md2html(cp.rescisao)}
 
 <p style="text-align:justify;margin:6pt 0">Certos de que prestaremos à V.S. um serviço de alto padrão de qualidade, permanecemos à inteira disposição, para quaisquer esclarecimentos que se fizerem necessários.</p>
 <p style="text-align:justify;margin:6pt 0">Atenciosamente,</p>
