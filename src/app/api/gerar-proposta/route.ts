@@ -269,12 +269,14 @@ p {
   text-align: justify !important;
 }
 ul {
-  margin: 6pt 0 6pt 1.5cm;
+  margin: 6pt 0 6pt 0.8cm;
+  padding-left: 0.5cm;
   list-style-type: disc;
 }
 li {
   margin-bottom: 4pt;
   text-align: justify !important;
+  padding-left: 0.2cm;
 }
 b { font-weight: bold; }
 i { font-style: italic; }
