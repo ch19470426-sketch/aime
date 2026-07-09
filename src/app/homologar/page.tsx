@@ -420,14 +420,18 @@ function Tela40Inner() {
       [
         { label: 'Cancelar', acao: () => {}, estilo: 'secundario' },
         { label: 'Descartar', acao: async () => {
-          await fetch(`/api/vistorias?nome=${form?.nome}`, { method: 'DELETE' })
-          const novaLista = formularios.filter((_, i) => i !== indice)
-          if (novaLista.length === 0) {
-            agradece('Pronto', 'Todos os registros foram processados.', () => window.location.href = '/dashboard')
-          } else {
-            const novoIdx = Math.min(indice, novaLista.length - 1)
-            setFormularios(novaLista)
-            await carregarFormularioCompleto(novaLista[novoIdx].nome, novaLista, novoIdx)
+          try {
+            await fetch(`/api/vistorias?nome=${form?.nome}`, { method: 'DELETE' })
+            const novaLista = formularios.filter((_, i) => i !== indice)
+            if (novaLista.length === 0) {
+              agradece('Pronto', 'Todos os registros foram processados.', () => window.location.href = '/dashboard')
+            } else {
+              const novoIdx = Math.min(indice, novaLista.length - 1)
+              setFormularios(novaLista)
+              await carregarFormularioCompleto(novaLista[novoIdx].nome, novaLista, novoIdx)
+            }
+          } catch(e) {
+            informa('Erro', 'Não foi possível descartar o registro: ' + String(e))
           }
         }, estilo: 'primario' }
       ]
@@ -645,15 +649,12 @@ function Tela40Inner() {
           </div>
 
           {/* BOTÕES */}
-          <div style={S.footer}>
-            <button style={{ ...S.btn, ...S.btnSec, opacity: indice === 0 ? 0.4 : 1 }} onClick={voltarAnterior} disabled={indice === 0}>
-              ← Revisar anterior
-            </button>
+          <div style={{ ...S.footer, gridTemplateColumns: '1fr 1fr' }}>
             <button style={{ ...S.btn, background: '#DC2626', color: '#fff', border: 'none' }} onClick={descartarColeta}>
-              🗑 Descartar
+              🗑 Descartar coleta
             </button>
             <button style={{ ...S.btn, ...S.btnPri, opacity: salvando ? 0.6 : 1 }} onClick={avancarProximo} disabled={salvando}>
-              {salvando ? 'Salvando...' : indice === formularios.length - 1 ? 'Concluir ✓' : 'Revisar próximo →'}
+              {salvando ? 'Salvando...' : formularios.length === 1 ? 'Concluir ✓' : 'Revisar próximo →'}
             </button>
           </div>
 
