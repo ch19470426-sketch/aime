@@ -162,14 +162,7 @@ function Tela40Inner() {
   const [cp,               setCp]               = useState('')
 
   const form = formularios[indice]
-  const iaTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  function acionarIAComDebounce() {
-    if (iaTimerRef.current) clearTimeout(iaTimerRef.current)
-    iaTimerRef.current = setTimeout(() => {
-      gerarNcCpIA()
-    }, 800)
-  }
 
   const ts   = form?.tipoServico ?? ''
   const isNR = ehNR(ts)
@@ -625,7 +618,16 @@ function Tela40Inner() {
           <div style={S.block}>
             <div style={S.blockTitle}>{isNR ? 'Não Conformidade / Observações' : 'Resultado da Análise e Avaliação'}</div>
             <div style={S.blockBody}>
-              {feedbackIA && <div style={{ fontSize: '7pt', color: '#1E3A8A', background: '#EEF4FF', padding: '3px 8px', borderRadius: '4px', marginBottom: '6px' }}>{feedbackIA}</div>}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                {feedbackIA
+                  ? <div style={{ fontSize: '7pt', color: '#1E3A8A', background: '#EEF4FF', padding: '2px 8px', borderRadius: '4px' }}>{feedbackIA}</div>
+                  : <span />
+                }
+                <button onClick={gerarNcCpIA} disabled={gerandoIA || !anomalia}
+                  style={{ background: '#E8EEF7', border: '1px solid #c3d4f0', borderRadius: '4px', padding: '2px 8px', fontSize: '6.5pt', color: '#1E3A8A', cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap' }}>
+                  {gerandoIA ? '⏳' : '✨ Regerar NC via IA'}
+                </button>
+              </div>
               <Field label="Não conformidade (NC)">
                 <textarea style={{ ...S.input, ...S.textarea }} value={nc} maxLength={500}
                   readOnly={isNR && (resultado === 'Conforme' || resultado === 'Não aplicável')}
