@@ -1,6 +1,4 @@
 // src/app/api/gerar-proposta/route.ts
-// AIMÊ — Gera HTML da proposta comercial
-
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 
@@ -9,7 +7,7 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
 
-const CONTEUDOS: Record<string, Record<string, string>> = {
+const C: Record<string, Record<string, string>> = {
   "11": {
     "ao": "AO",
     "ref": "Ref.: Proposta para Autovistoria.",
@@ -129,78 +127,55 @@ const CONTEUDOS: Record<string, Record<string, string>> = {
   }
 }
 
-function numeroParaExtenso(valor: number): string {
-  const unidades = ['', 'um', 'dois', 'três', 'quatro', 'cinco', 'seis', 'sete', 'oito', 'nove',
-    'dez', 'onze', 'doze', 'treze', 'quatorze', 'quinze', 'dezesseis', 'dezessete', 'dezoito', 'dezenove']
-  const dezenas = ['', '', 'vinte', 'trinta', 'quarenta', 'cinquenta', 'sessenta', 'setenta', 'oitenta', 'noventa']
-  const centenas = ['', 'cem', 'duzentos', 'trezentos', 'quatrocentos', 'quinhentos',
-    'seiscentos', 'setecentos', 'oitocentos', 'novecentos']
-  if (valor === 0) return 'zero'
-  if (valor < 20) return unidades[valor]
-  if (valor < 100) {
-    const d = Math.floor(valor / 10); const u = valor % 10
-    return u === 0 ? dezenas[d] : `${dezenas[d]} e ${unidades[u]}`
-  }
-  if (valor === 100) return 'cem'
-  if (valor < 1000) {
-    const c = Math.floor(valor / 100); const r = valor % 100
-    return r === 0 ? centenas[c] : `${centenas[c]} e ${numeroParaExtenso(r)}`
-  }
-  if (valor < 1000000) {
-    const m = Math.floor(valor / 1000); const r = valor % 1000
-    const ms = m === 1 ? 'mil' : `${numeroParaExtenso(m)} mil`
-    return r === 0 ? ms : `${ms} e ${numeroParaExtenso(r)}`
-  }
-  return valor.toString()
+const MESES = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro']
+
+function dataExtenso(d: Date) {
+  return `${d.getDate()} de ${MESES[d.getMonth()]} de ${d.getFullYear()}`
 }
 
-function dataPorExtenso(d: Date): string {
-  const meses = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro']
-  return `${d.getDate()} de ${meses[d.getMonth()]} de ${d.getFullYear()}`
+const UN = ['','um','dois','três','quatro','cinco','seis','sete','oito','nove','dez','onze','doze','treze','quatorze','quinze','dezesseis','dezessete','dezoito','dezenove']
+const DEZ = ['','','vinte','trinta','quarenta','cinquenta','sessenta','setenta','oitenta','noventa']
+const CEN = ['','cem','duzentos','trezentos','quatrocentos','quinhentos','seiscentos','setecentos','oitocentos','novecentos']
+
+function n2e(n: number): string {
+  if (n===0) return 'zero'
+  if (n<20) return UN[n]
+  if (n<100) return n%10===0 ? DEZ[Math.floor(n/10)] : `${DEZ[Math.floor(n/10)]} e ${UN[n%10]}`
+  if (n===100) return 'cem'
+  if (n<1000) return n%100===0 ? CEN[Math.floor(n/100)] : `${CEN[Math.floor(n/100)]} e ${n2e(n%100)}`
+  if (n<1000000) { const m=Math.floor(n/1000); const r=n%1000; const ms=m===1?'mil':`${n2e(m)} mil`; return r===0?ms:`${ms} e ${n2e(r)}` }
+  return n.toString()
 }
 
-function limparMd(txt: string): string {
-  return txt
-    .replace(/^#+\s*/gm, '')
-    .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
-    .replace(/\*([^*]+)\*/g, '<em>$1</em>')
-    .trim()
+function valorExt(v: string) {
+  const n = parseFloat(v.replace(',','.'))
+  if (isNaN(n)) return ''
+  const i = Math.floor(n); const c = Math.round((n-i)*100)
+  return c>0 ? `${n2e(i)} e ${n2e(c)} centavos` : n2e(i)
 }
 
-function processarBloco(txt: string): string {
+function md2html(txt: string): string {
+  // Remove #, converte ** e * e processa listas
   const linhas = txt.split('\n')
   let html = ''; let inUl = false
-  for (const linha of linhas) {
-    const t = limparMd(linha)
-    if (!t) { if (inUl) { html += '</ul>'; inUl = false }; continue }
-    if (t.startsWith('-') || linha.trim().startsWith('-') || linha.trim().startsWith('>')) {
-      const item = t.replace(/^[->`]+\s*/, '')
-      if (!inUl) { html += '<ul>'; inUl = true }
-      html += `<li>${item}</li>`
+  for (let linha of linhas) {
+    linha = linha
+      .replace(/^#+\s*/,'')
+      .replace(/\*\*([^*]+)\*\*/g,'<b>$1</b>')
+      .replace(/\*([^*]+)\*/g,'<i>$1</i>')
+    const t = linha.trim()
+    if (!t) { if(inUl){html+='</ul>';inUl=false}; continue }
+    if (/^[-–>]/.test(t) || /^>\s/.test(linha)) {
+      const item = t.replace(/^[-–>`]+\s*/,'')
+      if (!inUl) { html+='<ul>'; inUl=true }
+      html+=`<li>${item}</li>`
     } else {
-      if (inUl) { html += '</ul>'; inUl = false }
-      html += `<p>${t}</p>`
+      if(inUl){html+='</ul>';inUl=false}
+      html+=`<p>${t}</p>`
     }
   }
-  if (inUl) html += '</ul>'
+  if(inUl) html+='</ul>'
   return html
-}
-
-function valorExtenso(v: string): string {
-  const n = parseFloat(v.replace(',', '.'))
-  if (isNaN(n)) return ''
-  const i = Math.floor(n); const c = Math.round((n - i) * 100)
-  return c > 0 ? `${numeroParaExtenso(i)} e ${numeroParaExtenso(c)} centavos` : numeroParaExtenso(i)
-}
-
-function mdToHtml(md: string): string {
-  return md
-    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-    .replace(/\*(.+?)\*/g, '<em>$1</em>')
-    .replace(/^-\s+(.+)$/gm, '<li>$1</li>')
-    .replace(/(<li>.*<\/li>\n?)+/g, '<ul>$&</ul>')
-    .replace(/\n\n/g, '</p><p>')
-    .replace(/^(.+)$/gm, (m) => m.startsWith('<') ? m : m)
 }
 
 export async function POST(request: NextRequest) {
@@ -208,29 +183,25 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { tipoServico, cpfInspetor, cnpjoucpf, razaoSocial, municipioUF, endereco, valor, prazo, chaveInspetor } = body
 
-    // Buscar dados do inspetor
-    const { data: inspData } = await supabase
-      .from('inspetor')
-      .select('nome_inspetor, titulo_profissional, inscricao_crea_cau, especializacao, cabecalho_documentos, rodape_documentos')
-      .eq('cpf_inspetor', cpfInspetor)
-      .single()
+    const { data: insp } = await supabase.from('inspetor')
+      .select('nome_inspetor,titulo_profissional,inscricao_crea_cau,especializacao,cabecalho_documentos,rodape_documentos')
+      .eq('cpf_inspetor', cpfInspetor).single()
+    if (!insp) return NextResponse.json({ erro: 'Inspetor não encontrado' }, { status: 404 })
 
-    if (!inspData) return NextResponse.json({ erro: 'Inspetor não encontrado' }, { status: 404 })
-
-    const c = CONTEUDOS[tipoServico] ?? CONTEUDOS['11']
+    const c = C[tipoServico] ?? C['11']
     const isPF = cnpjoucpf.length === 11
     const labelDoc = isPF ? 'CPF' : 'CNPJ'
     const docFmt = isPF
-      ? cnpjoucpf.replace(/^(\d{3})(\d{3})(\d{3})(\d{2})$/, '$1.$2.$3-$4')
-      : cnpjoucpf.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, '$1.$2.$3/$4-$5')
+      ? cnpjoucpf.replace(/^(\d{3})(\d{3})(\d{3})(\d{2})$/,'$1.$2.$3-$4')
+      : cnpjoucpf.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/,'$1.$2.$3/$4-$5')
 
-    const hoje = new Date()
-    const dataHoje = dataPorExtenso(hoje)
-    const valorNum = parseFloat(valor.replace(',', '.'))
-    const valorFmt = valorNum.toLocaleString('pt-BR', { minimumFractionDigits: 2 })
-    const valorExt = valorExtenso(valor)
+    const dataHoje = dataExtenso(new Date())
+    const valorNum = parseFloat(valor.replace(',','.'))
+    const valorFmt = valorNum.toLocaleString('pt-BR',{minimumFractionDigits:2})
+    const valorEx = valorExt(valor)
     const prazoNum = parseInt(prazo)
-    const prazoExt = numeroParaExtenso(prazoNum)
+    const prazoEx = n2e(prazoNum)
+    const municipio = municipioUF.split('/')[0].trim()
     const ao = c.ao ?? 'AO'
 
     const html = `<!DOCTYPE html>
@@ -238,100 +209,140 @@ export async function POST(request: NextRequest) {
 <head>
 <meta charset="UTF-8">
 <style>
-  @page { size: A4; margin: 2cm 1.5cm 2cm 2.5cm; }
-  body { font-family: Arial, sans-serif; font-size: 11pt; line-height: 1.6; color: #000; margin: 0; padding: 25px 35px 25px 40px; }
-  .cabecalho { text-align: center; margin-bottom: 24px; border-bottom: 2px solid #1E3A8A; padding-bottom: 10px; }
-  .cabecalho-txt { font-size: 9pt; color: #374151; white-space: pre-line; }
-  .destino-wrap { display: flex; justify-content: flex-end; margin: 20px 0; }
-  .destino { text-align: left; width: 55%; }
-  .destino p { margin: 2px 0; font-weight: bold; }
-  .ref { margin: 20px 0 16px; }
-  .slogan { margin: 16px 0; font-style: italic; text-align: center; color: #374151; }
-  h2 { font-size: 11pt; font-weight: bold; margin: 20px 0 8px; }
-  p { margin: 8px 0; text-align: justify; }
-  ul { padding-left: 2cm; margin: 8px 0; list-style-type: disc; text-align: justify; }
-  li { margin-bottom: 6px; text-align: justify; }
-  .assinatura { margin-top: 40px; padding-top: 16px; }
-  .assinatura-nome { font-weight: bold; margin-top: 8px; }
-  .de-acordo { margin-top: 30px; font-size: 10pt; }
-  .rodape { margin-top: 30px; border-top: 1px solid #c3d4f0; padding-top: 8px; font-size: 9pt; color: #374151; text-align: center; white-space: pre-line; }
-  strong { font-weight: bold; }
-  em { font-style: italic; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: Arial, sans-serif;
+  font-size: 11pt;
+  line-height: 1.6;
+  color: #000;
+  padding: 2cm 2cm 2cm 2.5cm;
+}
+.cab {
+  text-align: center;
+  margin-bottom: 20pt;
+  padding-bottom: 8pt;
+  border-bottom: 2px solid #1E3A8A;
+  font-size: 9pt;
+  color: #374151;
+  white-space: pre-line;
+}
+.dest {
+  margin: 16pt 0;
+  text-align: right;
+  font-weight: bold;
+  line-height: 1.8;
+}
+.ref { margin: 14pt 0; }
+.lema {
+  margin: 14pt 0;
+  text-align: center;
+  font-style: italic;
+  color: #374151;
+}
+h2 {
+  font-size: 11pt;
+  font-weight: bold;
+  margin: 16pt 0 6pt;
+}
+p {
+  margin: 6pt 0;
+  text-align: justify;
+  text-indent: 0;
+}
+ul {
+  margin: 6pt 0 6pt 1.5cm;
+  list-style-type: disc;
+}
+li {
+  margin-bottom: 4pt;
+  text-align: justify;
+}
+b { font-weight: bold; }
+i { font-style: italic; }
+.ass {
+  margin-top: 30pt;
+  padding-top: 10pt;
+  line-height: 1.8;
+}
+.rod {
+  margin-top: 20pt;
+  padding-top: 8pt;
+  border-top: 1px solid #ccc;
+  font-size: 9pt;
+  text-align: center;
+  white-space: pre-line;
+}
 </style>
 </head>
 <body>
 
-${inspData.cabecalho_documentos ? `<div class="cabecalho"><div class="cabecalho-txt">${inspData.cabecalho_documentos}</div></div>` : ''}
+${insp.cabecalho_documentos ? `<div class="cab">${insp.cabecalho_documentos}</div>` : ''}
 
-<div class="destino-wrap"><div class="destino">
-  <p>${municipioUF.split('/')[0]}, ${dataHoje}</p>
-  <br>
-  <p>${ao}</p>
-  <p>${razaoSocial}</p>
-  <p>${labelDoc} ${docFmt}</p>
-  <p>${municipioUF}</p>
+<div class="dest">
+${municipio}, ${dataHoje}<br>
+<br>
+${ao}<br>
+${razaoSocial}<br>
+${labelDoc} ${docFmt}<br>
+${municipioUF}
 </div>
-<div class="ref"><strong>${c.ref}</strong></div>
 
-<div class="intro"><p>${c.apresentacao}</p></div>
+<div class="ref"><b>${c.ref}</b></div>
 
-<div class="slogan"><p style="text-align:center"><em>"Segurança e valorização do imóvel é resultado da adequada manutenção e<br>customização dos ambientes na busca de maior conforto e modernidade".</em></p></div>
+<p>${c.apresentacao.replace(/\*\*([^*]+)\*\*/g,'<b>$1</b>').replace(/\*([^*]+)\*/g,'<i>$1</i>').replace(/^#+\s*/gm,'').trim()}</p>
 
-<p>O serviço será executado para o(a) <strong>${razaoSocial}</strong>, localizado no <strong>${endereco}</strong>.</p>
+<div class="lema">
+<i>"Segurança e valorização do imóvel é resultado da adequada manutenção<br>
+e customização dos ambientes na busca de maior conforto e modernidade".</i>
+</div>
+
+<p>O serviço será executado para o(a) <b>${razaoSocial}</b>, localizado no <b>${endereco}</b>.</p>
 
 <h2>1.- Objetivo.</h2>
-<div>${c.objetivo.split('\n').map((p: string) => p.trim() ? `<p>${p}</p>` : '').join('')}</div>
+${md2html(c.objetivo)}
 
 <h2>2.- Metodologia.</h2>
-<div>${c.metodologia.split('\n').map((p: string) => {
-  if (p.trim().startsWith('-')) return `<li>${p.trim().substring(1).trim()}</li>`
-  return p.trim() ? `<p>${p}</p>` : ''
-}).join('')}</div>
+${md2html(c.metodologia)}
 
 <h2>3.- Documentação.</h2>
-<div>${c.documentacao.split('\n').map((p: string) => p.trim() ? `<p>${p}</p>` : '').join('')}</div>
+${md2html(c.documentacao)}
 
 <h2>4.- Equipe de Trabalho e produtos que serão entregues.</h2>
-<div>${c.equipe.split('\n').map((p: string) => {
-  if (p.trim().startsWith('-') || p.trim().startsWith('>')) return `<li>${p.trim().replace(/^[->`]+\s*/,'')}</li>`
-  return p.trim() ? `<p>${p}</p>` : ''
-}).join('')}</div>
+${md2html(c.equipe)}
 
 <h2>5.- Honorários e Forma de Pagamento.</h2>
 <p>O preço dos serviços, com base na estimativa de horas trabalhadas, conforme tabela do IBAPE — Instituto Brasileiro de Avaliações e Perícias, e válido para 30 (trinta) dias, a partir desta data, é o seguinte:</p>
 <ul>
-  <li>O valor pela prestação do serviço é de <strong>R$ ${valorFmt} (${valorExt} reais)</strong> sem encargos. Este valor será acrescido de 15,50% referente a emissão da nota fiscal.</li>
-  <li>Os demais impostos e taxas, inclusive encargos sociais pertinentes, correrão à conta do proponente.</li>
+<li>O valor pela prestação do serviço é de <b>R$ ${valorFmt} (${valorEx} reais)</b> sem encargos. Este valor será acrescido de 15,50% referente a emissão da nota fiscal.</li>
+<li>Os demais impostos e taxas, inclusive encargos sociais pertinentes, correrão à conta do proponente.</li>
 </ul>
 <p>O pagamento deverá ser efetuado mediante depósito bancário, ou outra forma ajustada entre os contratantes, nas seguintes condições:</p>
 <ul>
-  <li>50% (cinquenta por cento) na data de realização da reunião com o síndico;</li>
-  <li>50% (cinquenta por cento) para pagamento na entrega do Laudo.</li>
+<li>50% (cinquenta por cento) na data de realização da reunião com o síndico;</li>
+<li>50% (cinquenta por cento) para pagamento na entrega do Laudo.</li>
 </ul>
 
 <h2>6.- Prazos.</h2>
-<p>O laudo será entregue no prazo máximo de até <strong>${prazoNum} (${prazoExt}) dias úteis</strong>, contados a partir da data de recebimento da documentação solicitada em reunião com o síndico.</p>
+<p>O laudo será entregue no prazo máximo de até <b>${prazoNum} (${prazoEx}) dias úteis</b>, contados a partir da data de recebimento da documentação solicitada em reunião com o síndico.</p>
 <p>Também deverá haver comprometimento mútuo para execução dos trabalhos segundo agenda de trabalho, a ser definida de comum acordo entre o Inspetor e o síndico na reunião inicial.</p>
 
 <h2>7.- Rescisão e outras avenças.</h2>
-<div>${c.rescisao.split('\n').map((p: string) => p.trim() ? `<p>${p}</p>` : '').join('')}</div>
+${md2html(c.rescisao)}
 
 <p>Certos de que prestaremos à V.S. um serviço de alto padrão de qualidade, permanecemos à inteira disposição, para quaisquer esclarecimentos que se fizerem necessários.</p>
 <p>Atenciosamente,</p>
 
-<div class="assinatura">
-  <p>[Assinatura digital via Gov.br]</p>
-  <p class="assinatura-nome">${inspData.nome_inspetor}</p>
-  <p>${inspData.titulo_profissional} — CREA/CAU ${inspData.inscricao_crea_cau}</p>
-  ${inspData.especializacao ? `<p>Especialista ${inspData.especializacao}</p>` : ''}
+<div class="ass">
+<p>[Assinatura digital via Gov.br]</p>
+<p><b>${insp.nome_inspetor}</b></p>
+<p>${insp.titulo_profissional} — CREA/CAU ${insp.inscricao_crea_cau}</p>
+${insp.especializacao ? `<p>Especialista ${insp.especializacao}</p>` : ''}
 </div>
 
-<div class="de-acordo">
-  <p>De acordo: _____________________ CPF: _______________ Data: ___/___/______</p>
-  <p>Síndico/Preposto</p>
-</div>
+<p style="margin-top:24pt">De acordo: _____________________ CPF: _______________ Data: ___/___/______</p>
+<p>Síndico/Preposto</p>
 
-${inspData.rodape_documentos ? `<div class="rodape">${inspData.rodape_documentos}</div>` : ''}
+${insp.rodape_documentos ? `<div class="rod">${insp.rodape_documentos}</div>` : ''}
 
 </body>
 </html>`
