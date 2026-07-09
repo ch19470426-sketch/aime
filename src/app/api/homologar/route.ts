@@ -153,7 +153,7 @@ ${!isNR ? `<div class="f"><label>Causa provável (CP)</label><span style="white-
     const { error: uploadError } = await supabase.storage
       .from('aime')
       .upload(`vistorias_homologadas/${nomeHtml}`, htmlBuffer, {
-        contentType: 'text/html',
+        contentType: 'application/octet-stream',
         upsert: true,
       })
 
