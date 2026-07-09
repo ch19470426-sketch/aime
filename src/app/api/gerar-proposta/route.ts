@@ -171,7 +171,7 @@ function md2html(txt: string): string {
       html+=`<li>${item}</li>`
     } else {
       if(inUl){html+='</ul>';inUl=false}
-      html+=`<p>${t}</p>`
+      html+=`<p style="text-align:justify;margin:6pt 0">${t}</p>`
     }
   }
   if(inUl) html+='</ul>'
@@ -288,14 +288,14 @@ ${municipioUF}
 
 <div class="ref"><b>${c.ref}</b></div>
 
-<p>${c.apresentacao.replace(/\*\*([^*]+)\*\*/g,'<b>$1</b>').replace(/\*([^*]+)\*/g,'<i>$1</i>').replace(/^#+\s*/gm,'').trim()}</p>
+<p style="text-align:justify;margin:6pt 0">${c.apresentacao.replace(/\*\*([^*]+)\*\*/g,'<b>$1</b>').replace(/\*([^*]+)\*/g,'<i>$1</i>').replace(/^#+\s*/gm,'').trim()}</p>
 
 <div class="lema">
 <i>"Segurança e valorização do imóvel é resultado da adequada manutenção<br>
 e customização dos ambientes na busca de maior conforto e modernidade".</i>
 </div>
 
-<p>O serviço será executado para o(a) <b>${razaoSocial}</b>, localizado no <b>${endereco}</b>.</p>
+<p style="text-align:justify;margin:6pt 0">O serviço será executado para o(a) <b>${razaoSocial}</b>, localizado no <b>${endereco}</b>.</p>
 
 <h2>1.- Objetivo.</h2>
 ${md2html(c.objetivo)}
@@ -310,36 +310,36 @@ ${md2html(c.documentacao)}
 ${md2html(c.equipe)}
 
 <h2>5.- Honorários e Forma de Pagamento.</h2>
-<p>O preço dos serviços, com base na estimativa de horas trabalhadas, conforme tabela do IBAPE — Instituto Brasileiro de Avaliações e Perícias, e válido para 30 (trinta) dias, a partir desta data, é o seguinte:</p>
+<p style="text-align:justify;margin:6pt 0">O preço dos serviços, com base na estimativa de horas trabalhadas, conforme tabela do IBAPE — Instituto Brasileiro de Avaliações e Perícias, e válido para 30 (trinta) dias, a partir desta data, é o seguinte:</p>
 <ul>
 <li>O valor pela prestação do serviço é de <b>R$ ${valorFmt} (${valorEx} reais)</b> sem encargos. Este valor será acrescido de 15,50% referente a emissão da nota fiscal.</li>
 <li>Os demais impostos e taxas, inclusive encargos sociais pertinentes, correrão à conta do proponente.</li>
 </ul>
-<p>O pagamento deverá ser efetuado mediante depósito bancário, ou outra forma ajustada entre os contratantes, nas seguintes condições:</p>
+<p style="text-align:justify;margin:6pt 0">O pagamento deverá ser efetuado mediante depósito bancário, ou outra forma ajustada entre os contratantes, nas seguintes condições:</p>
 <ul>
 <li>50% (cinquenta por cento) na data de realização da reunião com o síndico;</li>
 <li>50% (cinquenta por cento) para pagamento na entrega do Laudo.</li>
 </ul>
 
 <h2>6.- Prazos.</h2>
-<p>O laudo será entregue no prazo máximo de até <b>${prazoNum} (${prazoEx}) dias úteis</b>, contados a partir da data de recebimento da documentação solicitada em reunião com o síndico.</p>
-<p>Também deverá haver comprometimento mútuo para execução dos trabalhos segundo agenda de trabalho, a ser definida de comum acordo entre o Inspetor e o síndico na reunião inicial.</p>
+<p style="text-align:justify;margin:6pt 0">O laudo será entregue no prazo máximo de até <b>${prazoNum} (${prazoEx}) dias úteis</b>, contados a partir da data de recebimento da documentação solicitada em reunião com o síndico.</p>
+<p style="text-align:justify;margin:6pt 0">Também deverá haver comprometimento mútuo para execução dos trabalhos segundo agenda de trabalho, a ser definida de comum acordo entre o Inspetor e o síndico na reunião inicial.</p>
 
 <h2>7.- Rescisão e outras avenças.</h2>
 ${md2html(c.rescisao)}
 
-<p>Certos de que prestaremos à V.S. um serviço de alto padrão de qualidade, permanecemos à inteira disposição, para quaisquer esclarecimentos que se fizerem necessários.</p>
-<p>Atenciosamente,</p>
+<p style="text-align:justify;margin:6pt 0">Certos de que prestaremos à V.S. um serviço de alto padrão de qualidade, permanecemos à inteira disposição, para quaisquer esclarecimentos que se fizerem necessários.</p>
+<p style="text-align:justify;margin:6pt 0">Atenciosamente,</p>
 
 <div class="ass">
-<p>[Assinatura digital via Gov.br]</p>
-<p><b>${insp.nome_inspetor}</b></p>
-<p>${insp.titulo_profissional} — CREA/CAU ${insp.inscricao_crea_cau}</p>
-${insp.especializacao ? `<p>Especialista ${insp.especializacao}</p>` : ''}
+<p style="text-align:justify;margin:6pt 0">[Assinatura digital via Gov.br]</p>
+<p style="text-align:justify;margin:6pt 0"><b>${insp.nome_inspetor}</b></p>
+<p style="text-align:justify;margin:6pt 0">${insp.titulo_profissional} — CREA/CAU ${insp.inscricao_crea_cau}</p>
+${insp.especializacao ? `<p style="text-align:justify;margin:6pt 0">Especialista ${insp.especializacao}</p>` : ''}
 </div>
 
 <p style="margin-top:24pt">De acordo: _____________________ CPF: _______________ Data: ___/___/______</p>
-<p>Síndico/Preposto</p>
+<p style="text-align:justify;margin:6pt 0">Síndico/Preposto</p>
 
 ${insp.rodape_documentos ? `<div class="rod">${insp.rodape_documentos}</div>` : ''}
 
