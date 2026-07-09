@@ -242,13 +242,14 @@ export async function POST(request: NextRequest) {
   body { font-family: Arial, sans-serif; font-size: 11pt; line-height: 1.6; color: #000; margin: 0; padding: 25px 35px 25px 40px; }
   .cabecalho { text-align: center; margin-bottom: 24px; border-bottom: 2px solid #1E3A8A; padding-bottom: 10px; }
   .cabecalho-txt { font-size: 9pt; color: #374151; white-space: pre-line; }
-  .destino { margin: 20px 0 20px auto; text-align: left; width: 55%; }
+  .destino-wrap { display: flex; justify-content: flex-end; margin: 20px 0; }
+  .destino { text-align: left; width: 55%; }
   .destino p { margin: 2px 0; font-weight: bold; }
   .ref { margin: 20px 0 16px; }
-  .slogan { margin: 16px auto; font-style: italic; text-align: center; color: #374151; width: 80%; }
+  .slogan { margin: 16px 0; font-style: italic; text-align: center; color: #374151; }
   h2 { font-size: 11pt; font-weight: bold; margin: 20px 0 8px; }
   p { margin: 8px 0; text-align: justify; }
-  ul { padding-left: 2cm; margin: 8px 0; list-style-type: disc; }
+  ul { padding-left: 2cm; margin: 8px 0; list-style-type: disc; text-align: justify; }
   li { margin-bottom: 6px; text-align: justify; }
   .assinatura { margin-top: 40px; padding-top: 16px; }
   .assinatura-nome { font-weight: bold; margin-top: 8px; }
@@ -262,7 +263,7 @@ export async function POST(request: NextRequest) {
 
 ${inspData.cabecalho_documentos ? `<div class="cabecalho"><div class="cabecalho-txt">${inspData.cabecalho_documentos}</div></div>` : ''}
 
-<div class="destino">
+<div class="destino-wrap"><div class="destino">
   <p>${municipioUF.split('/')[0]}, ${dataHoje}</p>
   <br>
   <p>${ao}</p>
@@ -274,7 +275,7 @@ ${inspData.cabecalho_documentos ? `<div class="cabecalho"><div class="cabecalho-
 
 <div class="intro"><p>${c.apresentacao}</p></div>
 
-<div class="slogan"><p><em>"Segurança e valorização do imóvel é resultado da adequada manutenção e customização dos ambientes na busca de maior conforto e modernidade".</em></p></div>
+<div class="slogan"><p style="text-align:center"><em>"Segurança e valorização do imóvel é resultado da adequada manutenção e<br>customização dos ambientes na busca de maior conforto e modernidade".</em></p></div>
 
 <p>O serviço será executado para o(a) <strong>${razaoSocial}</strong>, localizado no <strong>${endereco}</strong>.</p>
 
