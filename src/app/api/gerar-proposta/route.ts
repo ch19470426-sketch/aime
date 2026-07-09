@@ -246,8 +246,7 @@ h2 {
 }
 p {
   margin: 6pt 0;
-  text-align: justify;
-  text-indent: 0;
+  text-align: justify !important;
 }
 ul {
   margin: 6pt 0 6pt 1.5cm;
@@ -255,7 +254,7 @@ ul {
 }
 li {
   margin-bottom: 4pt;
-  text-align: justify;
+  text-align: justify !important;
 }
 b { font-weight: bold; }
 i { font-style: italic; }
