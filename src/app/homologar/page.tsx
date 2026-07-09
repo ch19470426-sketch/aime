@@ -124,7 +124,7 @@ function Tela40Inner() {
   const cpfInspetor   = params.get('cpf_inspetor')   ?? ''
   const cnpjoucpf     = params.get('cnpjoucpf')      ?? ''
 
-  const { bannerProps, informa, agradece, solicita } = useBanner()
+  const { bannerProps, informa, agradece, solicita, fechar } = useBanner()
 
   // Lista de formulários
   const [formularios,  setFormularios]  = useState<Formulario[]>([])
@@ -418,8 +418,9 @@ function Tela40Inner() {
     solicita('Descartar coleta',
       `Tem certeza que deseja descartar o registro "${form?.nome}"? Esta ação não pode ser desfeita.`,
       [
-        { label: 'Cancelar', acao: () => {}, estilo: 'secundario' },
+        { label: 'Cancelar', acao: () => fechar(), estilo: 'secundario' },
         { label: 'Descartar', acao: async () => {
+          fechar()
           try {
             await fetch(`/api/vistorias?nome=${form?.nome}`, { method: 'DELETE' })
             const novaLista = formularios.filter((_, i) => i !== indice)
