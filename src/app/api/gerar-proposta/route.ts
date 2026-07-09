@@ -269,7 +269,7 @@ p {
   text-align: justify !important;
 }
 ul {
-  margin: 6pt 0;
+  margin: 6pt 0 6pt 0.8cm;
   padding-left: 0;
   list-style: none;
 }
@@ -278,10 +278,10 @@ li {
   text-align: justify !important;
   padding-left: 1.2em;
   text-indent: -1.2em;
+  text-align-last: justify;
 }
 li::before {
   content: "• ";
-  font-size: 10pt;
 }
 b { font-weight: bold; }
 i { font-style: italic; }
