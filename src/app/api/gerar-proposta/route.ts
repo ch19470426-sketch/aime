@@ -269,14 +269,19 @@ p {
   text-align: justify !important;
 }
 ul {
-  margin: 6pt 0 6pt 0.8cm;
-  padding-left: 0.5cm;
-  list-style-type: disc;
+  margin: 6pt 0;
+  padding-left: 0;
+  list-style: none;
 }
 li {
   margin-bottom: 4pt;
   text-align: justify !important;
-  padding-left: 0.2cm;
+  padding-left: 1.2em;
+  text-indent: -1.2em;
+}
+li::before {
+  content: "• ";
+  font-size: 10pt;
 }
 b { font-weight: bold; }
 i { font-style: italic; }
