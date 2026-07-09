@@ -1,5 +1,5 @@
 // src/app/vistoria/tela37/page.tsx
-// AIMÊ — Tela 37: Vistoria Instalações Elétricas - NR-10
+// AIMÊ — Tela 37: Vistoria Máquinas e Equipamentos - NR-12
 
 'use client'
 
@@ -265,7 +265,7 @@ function Tela31Inner() {
       chaveInspetor, cpfInspetor, cnpjoucpf, tipoServico,
       savedAt: new Date().toISOString(),
       cnpjDisplay, razaoSocial, tipoAtivo, tagNrSerie, finalidade,
-      sistema, subsistema, anomalia, origem, local, complemento,
+      sistema, subsistema, anomalia, origem, resultado, local, complemento,
       gravidade: gravNum, urgencia: urgNum, abrangencia: abrNum, exposicao: expNum,
       grauRisco, prioridade, fotoNr: nrFinal, dataVistoria, fotoBase64, nc, cp,
     }
