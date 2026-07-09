@@ -593,19 +593,19 @@ function Tela40Inner() {
           <div style={S.block}>
             <div style={S.blockTitle}>Evidência Fotográfica</div>
             <div style={S.blockBody}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '6px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '3px' }}>
                 <div style={{ width: '60px' }}>
-                  <label style={S.fieldLabel}>Foto Nº</label>
-                  <input style={{ ...S.inputRO, textAlign: 'center', fontWeight: 700, color: '#1E3A8A', width: '100%', boxSizing: 'border-box' }} value={form.fotoNr} readOnly />
+                  <label style={{ fontSize: '6pt', fontWeight: 600, color: '#4a6480' }}>Foto Nº</label>
+                  <input style={{ ...S.inputRO, textAlign: 'center', fontWeight: 700, color: '#1E3A8A', width: '100%', boxSizing: 'border-box', padding: '1px 4px', fontSize: '7pt' }} value={form.fotoNr} readOnly />
                 </div>
                 <div style={{ width: '90px' }}>
-                  <label style={S.fieldLabel}>Data Vistoria</label>
-                  <input style={{ ...S.inputRO, width: '100%', boxSizing: 'border-box' }} value={form.dataVistoria} readOnly />
+                  <label style={{ fontSize: '6pt', fontWeight: 600, color: '#4a6480' }}>Data Vistoria</label>
+                  <input style={{ ...S.inputRO, width: '100%', boxSizing: 'border-box', padding: '1px 4px', fontSize: '7pt' }} value={form.dataVistoria} readOnly />
                 </div>
               </div>
               {fotoBase64
-                ? <img src={fotoBase64} alt="Foto" style={{ width: '100%', height: '90mm', objectFit: 'cover', borderRadius: '5px', border: '2px solid #1E3A8A', display: 'block' }} />
-                : <div style={{ width: '100%', height: '90mm', background: '#f1f5f9', border: '2px dashed #c3d4f0', borderRadius: '5px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94A3B8', fontSize: '7.5pt' }}>Sem foto</div>
+                ? <img src={fotoBase64} alt="Foto" style={{ width: '100%', height: '110mm', objectFit: 'cover', borderRadius: '5px', border: '2px solid #1E3A8A', display: 'block' }} />
+                : <div style={{ width: '100%', height: '110mm', background: '#f1f5f9', border: '2px dashed #c3d4f0', borderRadius: '5px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94A3B8', fontSize: '7.5pt' }}>Sem foto</div>
               }
             </div>
           </div>
