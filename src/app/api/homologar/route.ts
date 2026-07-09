@@ -148,13 +148,14 @@ ${!isNR ? `<div class="f"><label>Causa provável (CP)</label><span style="white-
 
     // 3. Salvar HTML em vistorias_homologadas/
     const nomeHtml = nomeArquivo.replace(/\.json$/, '.html')
-    const blob = new Blob([htmlContent], { type: 'text/html' })
+    const htmlBuffer = Buffer.from(htmlContent, 'utf-8')
     
     const { error: uploadError } = await supabase.storage
       .from('aime')
-      .upload(`vistorias_homologadas/${nomeHtml}`, blob, {
-        contentType: 'text/html',
+      .upload(`vistorias_homologadas/${nomeHtml}`, htmlBuffer, {
+        contentType: 'text/html; charset=utf-8',
         upsert: true,
+        duplex: 'half',
       })
 
     if (uploadError) {
