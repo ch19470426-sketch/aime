@@ -599,19 +599,17 @@ function Tela40Inner() {
           {/* EVIDÊNCIA FOTOGRÁFICA */}
           <div style={S.block}>
             <div style={S.blockTitle}>Evidência Fotográfica</div>
-            <div style={{ padding: '4px 10px 0' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '3px' }}>
-                <div style={{ width: '60px' }}>
-                  <label style={S.fieldLabel}>Foto nº</label>
-                  <input style={{ ...S.inputRO, textAlign: 'center', color: '#1E3A8A', fontWeight: 700, width: '100%', boxSizing: 'border-box' }} value={form.fotoNr} readOnly />
-                </div>
-                <div style={{ width: '80px' }}>
-                  <label style={S.fieldLabel}>Data da vistoria</label>
-                  <input style={{ ...S.inputRO, textAlign: 'center', color: '#1E3A8A', fontWeight: 600, width: '100%', boxSizing: 'border-box' }} value={form.dataVistoria} readOnly />
-                </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '3px 10px 2px' }}>
+              <div>
+                <div style={S.painelLabel}>FOTO Nº</div>
+                <div style={{ fontSize: '9pt', fontWeight: 800, color: '#1E3A8A', lineHeight: 1 }}>{form.fotoNr}</div>
+              </div>
+              <div style={{ textAlign: 'right' }}>
+                <div style={S.painelLabel}>DATA VISTORIA</div>
+                <div style={{ fontSize: '7.5pt', fontWeight: 600, color: '#374151', lineHeight: 1 }}>{form.dataVistoria}</div>
               </div>
             </div>
-            <div style={{ border: '1.5px dashed #c3d4f0', background: '#E8EEF7', height: '90mm', position: 'relative', overflow: 'hidden' }}>
+            <div style={{ height: '90mm', position: 'relative', overflow: 'hidden', background: '#E8EEF7', border: '1.5px dashed #c3d4f0' }}>
               {fotoBase64
                 ? <img src={fotoBase64} alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
                 : <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#8aa3c4', fontSize: '8pt' }}>Sem foto registrada</div>
