@@ -275,10 +275,10 @@ function Tela31Inner() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ nomeArquivo, payload })
     })
-    const resultado = await res.json()
+    const resJson = await res.json()
 
-    if (!res.ok || resultado.erro) {
-      setErroSave('Erro ao salvar: ' + (resultado.erro ?? res.statusText))
+    if (!res.ok || resJson.erro) {
+      setErroSave('Erro ao salvar: ' + (resJson.erro ?? res.statusText))
       setSalvando(false)
       return
     }
