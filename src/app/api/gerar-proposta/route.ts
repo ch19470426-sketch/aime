@@ -233,15 +233,16 @@ export async function POST(request: NextRequest) {
     const c = C[tipoServico] ?? C['11']
   // Pré-processar: juntar linhas com > de continuação ao item anterior
   function preProcessar(txt: string): string {
-    const linhas = txt.split('\n')
+    // Normalizar: substituir \\n por \n real, depois processar
+    const normalizado = txt.replace(/\\n/g, '\n')
+    const linhas = normalizado.split('\n')
     const result: string[] = []
     for (const linha of linhas) {
       const t = linha.trim()
       if (t.startsWith('>') && result.length > 0) {
-        // Continuação do item anterior — juntar
         result[result.length - 1] += ' ' + t.replace(/^>\s*/, '')
       } else {
-        result.push(linha)
+        result.push(t ? linha : '')
       }
     }
     return result.join('\n')
