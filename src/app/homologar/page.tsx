@@ -79,6 +79,22 @@ const VALOR_GUT_NR: Record<string, number> = {
   'exposicaorisco:Máximo 2 pessoas': 1, 'exposicaorisco:Até 6 pessoas': 3, 'exposicaorisco:Muitas pessoas': 5,
 }
 
+
+// Mapas reversos: número → texto para carregar listas na homologação
+const GR_PREDIAL_REVERSO: Record<number, Record<string, string>> = {
+  gravidade:   { 1: 'Estética', 2: 'Leve', 3: 'Moderada', 4: 'Alta', 5: 'Crítica' },
+  urgencia:    { 1: 'Pode aguardar', 3: 'Planejar', 5: 'Imediata' },
+  abrangencia: { 1: 'Ponto isolado', 3: 'Vários pontos', 5: 'Sistema completo' },
+  exposicao:   { 1: 'Baixa', 3: 'Média', 5: 'Alta' },
+}
+
+const GR_NR_REVERSO: Record<number, Record<string, string>> = {
+  gravidade:     { 1: 'Sem risco', 2: 'Lesão/dano baixo', 3: 'Lesão/dano moderado', 4: 'Lesão/dano grave', 5: 'Lesão/dano fatal' },
+  urgencia:      { 1: 'Pode aguardar', 3: 'Planejar', 5: 'Imediata' },
+  abrangencia:   { 1: 'Improvável', 3: 'Possível', 5: 'Provável/eminente' },
+  exposicao:     { 1: 'Máximo 2 pessoas', 3: 'Até 6 pessoas', 5: 'Muitas pessoas' },
+}
+
 function calcularGR(gra: number, urg: number, abr: number, exp: number): number {
   return Math.round((0.4 * gra + 0.3 * urg + 0.2 * abr + 0.1 * exp) * 20)
 }
@@ -250,7 +266,13 @@ function Tela40Inner() {
       setNc(data.nc ?? '')
       setCp(data.cp ?? '')
       setFeedbackIA('')
-      // Não definir descGravidade/etc pois os valores numéricos precisam ser mapeados de volta para texto
+      // Mapear valores numéricos de volta para texto nas listas
+      const isNRLocal = ehNR(data.tipoServico ?? '')
+      const mapRev = isNRLocal ? GR_NR_REVERSO : GR_PREDIAL_REVERSO
+      if (data.gravidade)   setDescGravidade(  (mapRev.gravidade   as Record<number,string>)[data.gravidade]   ?? '')
+      if (data.urgencia)    setDescUrgencia(   (mapRev.urgencia    as Record<number,string>)[data.urgencia]    ?? '')
+      if (data.abrangencia) setDescAbrangencia((mapRev.abrangencia as Record<number,string>)[data.abrangencia] ?? '')
+      if (data.exposicao)   setDescExposicao(  (mapRev.exposicao   as Record<number,string>)[data.exposicao]   ?? '')
     } catch(e) {
       informa('Erro', 'Não foi possível carregar o formulário.')
     } finally {
