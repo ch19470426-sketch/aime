@@ -173,7 +173,7 @@ function md2html(txt: string): string {
       .replace(/^#+\s*/,'')
       .replace(/\*\*([^*]+)\*\*/g,'<b>$1</b>')
       .replace(/\*([^*]+)\*/g,'<i>$1</i>')
-    const t = linha.trim()
+    const t = linha.trim().replace(/\s*>\s*/g,' ').trim()
     const ehLista = /^[-–•]/.test(t) || /^>\s/.test(linha)
 
     if (!t) {
@@ -192,7 +192,7 @@ function md2html(txt: string): string {
       liAtual = t.replace(/^[-–•>`]+\s*/,'')
     } else if (inUl && liAtual) {
       // Continuação de item de lista (linha sem marcador dentro de lista)
-      liAtual += ' ' + t
+      liAtual += ' ' + t.replace(/^>\s*/,'').trim()
     } else {
       // Texto normal
       if (inUl && !liAtual) { flushLi(); html+='</ul>'; inUl=false }
