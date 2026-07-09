@@ -353,37 +353,40 @@ function Tela40Inner() {
         })
       })
 
-      // Gerar HTML da vistoria e salvar em vistorias_homologadas/
-      const nomeHtml = form.nome.replace(/\.json$/, '.html')
-      const htmlContent = gerarHtmlVistoria(form, {
-        sistema, subsistema, anomalia,
-        origem: isNR ? resultado : origem,
-        local, complemento,
-        gravidade: gravNum || form.gravidade,
-        urgencia: urgNum || form.urgencia,
-        abrangencia: abrNum || form.abrangencia,
-        exposicao: expNum || form.exposicao,
-        grauRisco: grauRisco || form.grauRisco,
-        prioridade: prioridade || form.prioridade,
-        nc, cp,
-        dataHomologacao: new Date().toLocaleDateString('pt-BR'),
-        isNR,
-      })
-
-      // Salvar HTML em vistorias_homologadas/
-      await fetch('/api/salvar-vistoria', {
+      // Homologar server-side: gera HTML com foto, salva em vistorias_homologadas/, exclui JSON
+      const homologarRes = await fetch('/api/homologar', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          nomeArquivo: nomeHtml,
-          pasta: 'vistorias_homologadas',
-          payload: htmlContent,
-          contentType: 'text/html',
+          nomeArquivo: form.nome,
+          dadosVistoria: {
+            cnpjoucpf: form.cnpjoucpf,
+            cnpjDisplay: form.cnpjDisplay,
+            razaoSocial: form.razaoSocial,
+            tipoServico: form.tipoServico,
+            tipoAtivo: form.tipoAtivo,
+            tagNrSerie: form.tagNrSerie,
+            chaveInspetor: form.chaveInspetor,
+            sistema, subsistema, anomalia,
+            origem, resultado,
+            local, complemento,
+            gravidade: gravNum || form.gravidade,
+            urgencia: urgNum || form.urgencia,
+            abrangencia: abrNum || form.abrangencia,
+            exposicao: expNum || form.exposicao,
+            grauRisco: grauRisco || form.grauRisco,
+            prioridade: prioridade || form.prioridade,
+            fotoNr: form.fotoNr,
+            dataVistoria: form.dataVistoria,
+            dataHomologacao: new Date().toLocaleDateString('pt-BR'),
+            nc, cp, isNR,
+          }
         })
       })
-
-      // Excluir JSON de vistorias/
-      await fetch(`/api/vistorias?nome=${form.nome}`, { method: 'DELETE' })
+      const homologarData = await homologarRes.json()
+      if (!homologarRes.ok || homologarData.erro) {
+        throw new Error(homologarData.erro ?? 'Erro ao homologar')
+      }
 
       // Avançar — remover atual e ir para próximo
       const novaLista = formularios.filter((_, i) => i !== indice)
