@@ -592,21 +592,21 @@ function Tela40Inner() {
           {/* EVIDÊNCIA FOTOGRÁFICA */}
           <div style={S.block}>
             <div style={S.blockTitle}>Evidência Fotográfica</div>
-            <div style={{ ...S.blockBody, padding: '3px 10px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '2px' }}>
-                <div style={{ width: '60px' }}>
-                  <label style={{ fontSize: '6pt', fontWeight: 600, color: '#4a6480' }}>Foto Nº</label>
-                  <input style={{ ...S.inputRO, textAlign: 'center', fontWeight: 700, color: '#1E3A8A', width: '100%', boxSizing: 'border-box', padding: '1px 4px', fontSize: '7pt' }} value={form.fotoNr} readOnly />
-                </div>
-                <div style={{ width: '90px' }}>
-                  <label style={{ fontSize: '6pt', fontWeight: 600, color: '#4a6480' }}>Data Vistoria</label>
-                  <input style={{ ...S.inputRO, width: '100%', boxSizing: 'border-box', padding: '1px 4px', fontSize: '7pt' }} value={form.dataVistoria} readOnly />
-                </div>
+            <div style={S.blockBody}>
+              <div style={{ display: 'grid', gridTemplateColumns: '70px 1fr', gap: '6px', alignItems: 'end', marginBottom: '4px' }}>
+                <Field label="Foto nº">
+                  <input style={{ ...S.inputRO, textAlign: 'center', color: '#1E3A8A', fontWeight: 700 }} value={form.fotoNr} readOnly />
+                </Field>
+                <Field label="Data da vistoria">
+                  <input style={{ ...S.inputRO, textAlign: 'center', color: '#1E3A8A', fontWeight: 600 }} value={form.dataVistoria} readOnly />
+                </Field>
               </div>
-              {fotoBase64
-                ? <img src={fotoBase64} alt="Foto" style={{ width: '100%', height: '110mm', objectFit: 'cover', borderRadius: '5px', border: '2px solid #1E3A8A', display: 'block' }} />
-                : <div style={{ width: '100%', height: '110mm', background: '#f1f5f9', border: '2px dashed #c3d4f0', borderRadius: '5px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94A3B8', fontSize: '7.5pt' }}>Sem foto</div>
-              }
+              <div style={{ border: '1.5px dashed #c3d4f0', borderRadius: '5px', background: '#E8EEF7', height: '90mm', position: 'relative', overflow: 'hidden' }}>
+                {fotoBase64
+                  ? <img src={fotoBase64} alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
+                  : <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#8aa3c4', fontSize: '8pt' }}>Sem foto registrada</div>
+                }
+              </div>
             </div>
           </div>
 
