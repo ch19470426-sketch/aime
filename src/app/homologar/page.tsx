@@ -593,15 +593,13 @@ function Tela40Inner() {
           <div style={S.block}>
             <div style={S.blockTitle}>Evidência Fotográfica</div>
             <div style={S.blockBody}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-                <div>
-                  <div style={S.painelLabel}>FOTO Nº</div>
-                  <div style={{ fontSize: '9pt', fontWeight: 700, color: '#1E3A8A' }}>{form.fotoNr}</div>
-                </div>
-                <div style={{ textAlign: 'right' }}>
-                  <div style={S.painelLabel}>DATA VISTORIA</div>
-                  <div style={{ fontSize: '7.5pt', fontWeight: 600, color: '#374151' }}>{form.dataVistoria}</div>
-                </div>
+              <div style={{ ...S.row, ...S.c2, marginBottom: '6px' }}>
+                <Field label="Foto Nº">
+                  <input style={{ ...S.inputRO, textAlign: 'center', fontWeight: 700, color: '#1E3A8A' }} value={form.fotoNr} readOnly />
+                </Field>
+                <Field label="Data Vistoria">
+                  <input style={S.inputRO} value={form.dataVistoria} readOnly />
+                </Field>
               </div>
               {fotoBase64
                 ? <img src={fotoBase64} alt="Foto" style={{ width: '100%', height: '90mm', objectFit: 'cover', borderRadius: '5px', border: '2px solid #1E3A8A', display: 'block' }} />
