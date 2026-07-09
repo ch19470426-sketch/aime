@@ -1,5 +1,5 @@
 // src/app/api/vistorias/route.ts
-// AIMÊ — API para listar e ler formulários de vistoria do Storage
+// AIMÊ — API para listar, ler e deletar formulários de vistoria do Storage
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
@@ -9,19 +9,36 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
 
-// GET — listar e filtrar formulários por cnpjoucpf
+// GET — listar formulários por cnpjoucpf OU ler formulário específico por nome
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
+  const nome          = searchParams.get('nome')
   const chaveInspetor = searchParams.get('chave_inspetor')
   const cnpjoucpf     = searchParams.get('cnpjoucpf')
-  const tipoServico   = searchParams.get('tipo_servico') // opcional
 
+  // Ler formulário específico (com fotoBase64)
+  if (nome) {
+    try {
+      const { data, error } = await supabase.storage
+        .from('aime')
+        .download(`vistorias/${nome}`)
+
+      if (error || !data) return NextResponse.json({ erro: error?.message ?? 'Não encontrado' }, { status: 404 })
+
+      const text = await data.text()
+      const json = JSON.parse(text)
+      return NextResponse.json(json)
+    } catch (e) {
+      return NextResponse.json({ erro: String(e) }, { status: 500 })
+    }
+  }
+
+  // Listar e filtrar formulários por cnpjoucpf
   if (!chaveInspetor || !cnpjoucpf) {
     return NextResponse.json({ erro: 'chave_inspetor e cnpjoucpf são obrigatórios' }, { status: 400 })
   }
 
   try {
-    // Listar todos os arquivos do inspetor
     const { data: files, error } = await supabase.storage
       .from('aime')
       .list('vistorias', {
@@ -32,7 +49,6 @@ export async function GET(request: NextRequest) {
     if (error) return NextResponse.json({ erro: error.message }, { status: 500 })
     if (!files || files.length === 0) return NextResponse.json({ formularios: [] })
 
-    // Ler cada arquivo e filtrar por cnpjoucpf
     const formularios = []
     for (const file of files) {
       const { data, error: readError } = await supabase.storage
@@ -44,11 +60,11 @@ export async function GET(request: NextRequest) {
       const text = await data.text()
       const json = JSON.parse(text)
 
-      // Filtrar por cnpjoucpf e tipo_servico (se informado)
       if (json.cnpjoucpf !== cnpjoucpf) continue
-      if (tipoServico && json.tipoServico !== tipoServico) continue
 
-      formularios.push({ nome: file.name, ...json, fotoBase64: undefined })
+      // Excluir fotoBase64 da listagem para economizar banda
+      const { fotoBase64, ...semFoto } = json
+      formularios.push({ nome: file.name, ...semFoto })
     }
 
     return NextResponse.json({ formularios })
