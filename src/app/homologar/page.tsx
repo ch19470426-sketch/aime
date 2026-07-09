@@ -162,6 +162,18 @@ function Tela40Inner() {
   const [cp,               setCp]               = useState('')
 
   const form = formularios[indice]
+
+  // Acionar IA automaticamente ao alterar campos que impactam NC
+  const [camposAlterados, setCamposAlterados] = useState(false)
+  useEffect(() => {
+    if (!camposAlterados) return
+    if (!anomalia || !sistema || !subsistema) return
+    const timer = setTimeout(() => {
+      gerarNcCpIA()
+      setCamposAlterados(false)
+    }, 1000)
+    return () => clearTimeout(timer)
+  }, [camposAlterados])
   const ts   = form?.tipoServico ?? ''
   const isNR = ehNR(ts)
   const tipoServicoBanco = TIPO_SERVICO_BANCO[ts] ?? ''
@@ -276,6 +288,7 @@ function Tela40Inner() {
       setNc(fixEnc(data.nc ?? ''))
       setCp(fixEnc(data.cp ?? ''))
       setFeedbackIA('')
+      setCamposAlterados(false)
       // Mapear valores numéricos de volta para texto nas listas
       const isNRLocal = ehNR(data.tipoServico ?? '')
       const mapRev = isNRLocal ? GR_NR_REVERSO : GR_PREDIAL_REVERSO
@@ -483,13 +496,13 @@ function Tela40Inner() {
             <div style={S.blockBody}>
               <div style={{ ...S.row, ...S.c2 }}>
                 <Field label="Sistema">
-                  <select style={S.input} value={sistema} onChange={e => { setSistema(e.target.value); setSubsistema(''); setAnomalia('') }}>
+                  <select style={S.input} value={sistema} onChange={e => { setSistema(e.target.value); setSubsistema(''); setAnomalia(''); setCamposAlterados(false) }}>
                     <option value="">Selecione...</option>
                     {sistemas.map(s => <option key={s.sistema} value={s.sistema}>{s.sistema}</option>)}
                   </select>
                 </Field>
                 <Field label={isNR ? 'Subsistema / Componente' : 'Subsistema'}>
-                  <select style={S.input} value={subsistema} onChange={e => { setSubsistema(e.target.value); setAnomalia('') }} disabled={!sistema}>
+                  <select style={S.input} value={subsistema} onChange={e => { setSubsistema(e.target.value); setAnomalia(''); setCamposAlterados(false) }} disabled={!sistema}>
                     <option value="">Selecione...</option>
                     {subsistemasFiltrados.map(s => <option key={s} value={s}>{s}</option>)}
                   </select>
@@ -515,7 +528,7 @@ function Tela40Inner() {
                     </select>
                   </Field>
                   <Field label="Local/Instalação/Setor/Área *">
-                    <input style={S.input} value={local} onChange={e => setLocal(e.target.value)} placeholder="Ex: Quadro 2º pavimento..." />
+                    <input style={S.input} value={local} onChange={e => { setLocal(e.target.value); setCamposAlterados(true) }} placeholder="Ex: Quadro 2º pavimento..." />
                   </Field>
                   <Field label="Complemento">
                     <input style={S.input} value={complemento} onChange={e => setComplemento(e.target.value)} />
@@ -593,13 +606,15 @@ function Tela40Inner() {
           <div style={S.block}>
             <div style={S.blockTitle}>Evidência Fotográfica</div>
             <div style={S.blockBody}>
-              <div style={{ display: 'grid', gridTemplateColumns: '70px 1fr', gap: '6px', alignItems: 'end', marginBottom: '4px' }}>
-                <Field label="Foto nº">
-                  <input style={{ ...S.inputRO, textAlign: 'center', color: '#1E3A8A', fontWeight: 700 }} value={form.fotoNr} readOnly />
-                </Field>
-                <Field label="Data da vistoria">
-                  <input style={{ ...S.inputRO, textAlign: 'center', color: '#1E3A8A', fontWeight: 600 }} value={form.dataVistoria} readOnly />
-                </Field>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '4px' }}>
+                <div style={{ width: '60px' }}>
+                  <label style={S.fieldLabel}>Foto nº</label>
+                  <input style={{ ...S.inputRO, textAlign: 'center', color: '#1E3A8A', fontWeight: 700, width: '100%', boxSizing: 'border-box' }} value={form.fotoNr} readOnly />
+                </div>
+                <div style={{ width: '80px' }}>
+                  <label style={S.fieldLabel}>Data da vistoria</label>
+                  <input style={{ ...S.inputRO, textAlign: 'center', color: '#1E3A8A', fontWeight: 600, width: '100%', boxSizing: 'border-box' }} value={form.dataVistoria} readOnly />
+                </div>
               </div>
               <div style={{ border: '1.5px dashed #c3d4f0', borderRadius: '5px', background: '#E8EEF7', height: '90mm', position: 'relative', overflow: 'hidden' }}>
                 {fotoBase64
