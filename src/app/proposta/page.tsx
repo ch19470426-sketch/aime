@@ -176,7 +176,7 @@ function PropostaInner() {
     }
   }
 
-  async function buscarCep(cepVal: string) {
+  async function buscarCep(cepVal: string, nr?: string, comp?: string) {
     const cepLimpo = cepVal.replace(/\D/g, '')
     if (cepLimpo.length !== 8) return
     try {
@@ -184,8 +184,10 @@ function PropostaInner() {
       const data = await res.json()
       if (!data.erro) {
         setMunicipioUF(`${data.localidade}/${data.uf}`)
-        const partes = [data.logradouro, numero || null, complemento || null, data.bairro, `${data.localidade}/${data.uf}`].filter(Boolean)
-        const end = partes.join(', ')
+        const nrFinal = nr ?? numero
+        const compFinal = comp ?? complemento
+        const partes = [data.logradouro, nrFinal || null, compFinal || null, data.bairro].filter(Boolean)
+        const end = partes.join(', ') + `, ${data.localidade}/${data.uf}`
         setEndereco(end)
       }
     } catch {}
