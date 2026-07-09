@@ -593,13 +593,15 @@ function Tela40Inner() {
           <div style={S.block}>
             <div style={S.blockTitle}>Evidência Fotográfica</div>
             <div style={S.blockBody}>
-              <div style={{ ...S.row, ...S.c2, marginBottom: '6px' }}>
-                <Field label="Foto Nº">
-                  <input style={{ ...S.inputRO, textAlign: 'center', fontWeight: 700, color: '#1E3A8A' }} value={form.fotoNr} readOnly />
-                </Field>
-                <Field label="Data Vistoria">
-                  <input style={S.inputRO} value={form.dataVistoria} readOnly />
-                </Field>
+              <div style={{ display: 'flex', gap: '16px', marginBottom: '6px', alignItems: 'flex-start' }}>
+                <div style={{ width: '60px' }}>
+                  <label style={S.fieldLabel}>Foto Nº</label>
+                  <input style={{ ...S.inputRO, textAlign: 'center', fontWeight: 700, color: '#1E3A8A', width: '100%', boxSizing: 'border-box' }} value={form.fotoNr} readOnly />
+                </div>
+                <div style={{ width: '90px' }}>
+                  <label style={S.fieldLabel}>Data Vistoria</label>
+                  <input style={{ ...S.inputRO, width: '100%', boxSizing: 'border-box' }} value={form.dataVistoria} readOnly />
+                </div>
               </div>
               {fotoBase64
                 ? <img src={fotoBase64} alt="Foto" style={{ width: '100%', height: '90mm', objectFit: 'cover', borderRadius: '5px', border: '2px solid #1E3A8A', display: 'block' }} />
