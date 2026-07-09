@@ -164,7 +164,7 @@ function PropostaInner() {
         setCep(e.cep_estabelecimento?.replace('-','') ?? '')
         setNumero(e.numero_imovel ?? '')
         setComplemento(e.complemento ?? '')
-        await buscarCep(e.cep_estabelecimento?.replace('-','') ?? '')
+        await buscarCep(e.cep_estabelecimento?.replace('-','') ?? '', e.numero_imovel ?? '', e.complemento ?? '')
         setEtapa('valor')
       } else {
         setEtapa('cadastro')
@@ -216,7 +216,7 @@ function PropostaInner() {
         })
       })
       if (res.ok) {
-        await buscarCep(cep)
+        await buscarCep(cep, numero, complemento)
         setEtapa('valor')
       } else {
         informa('Erro', 'Não foi possível salvar o estabelecimento.')
@@ -313,7 +313,7 @@ function PropostaInner() {
                 <div style={{ ...S.row, ...S.c3 }}>
                   <Field label="CEP *">
                     <input style={S.input} value={cep} maxLength={8}
-                      onChange={e => { setCep(e.target.value); if (e.target.value.length === 8) buscarCep(e.target.value) }}
+                      onChange={e => { setCep(e.target.value); if (e.target.value.length === 8) buscarCep(e.target.value, numero, complemento) }}
                       placeholder="00000000" />
                   </Field>
                   <Field label="Número *">
