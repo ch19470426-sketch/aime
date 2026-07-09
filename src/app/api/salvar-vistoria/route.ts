@@ -10,6 +10,14 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
 
+export const config = {
+  api: {
+    bodyParser: {
+      sizeLimit: '10mb',
+    },
+  },
+}
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
@@ -19,11 +27,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ erro: 'nomeArquivo e payload são obrigatórios' }, { status: 400 })
     }
 
-    const folder      = pasta ?? 'vistorias'
-    const mimeType    = contentType ?? 'application/json'
-    const isHtml      = mimeType === 'text/html'
-    const conteudo    = isHtml ? payload : JSON.stringify(payload, null, 2)
-    const blob        = new Blob([conteudo], { type: mimeType })
+    const folder   = pasta ?? 'vistorias'
+    const mimeType = contentType ?? 'application/json'
+    const isHtml   = mimeType === 'text/html'
+    const conteudo = isHtml ? payload : JSON.stringify(payload, null, 2)
+    const blob     = new Blob([conteudo], { type: mimeType })
 
     const { error } = await supabase.storage
       .from('aime')
