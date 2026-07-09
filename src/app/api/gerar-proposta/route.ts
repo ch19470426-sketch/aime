@@ -154,55 +154,69 @@ function valorExt(v: string) {
   return c>0 ? `${n2e(i)} e ${n2e(c)} centavos` : n2e(i)
 }
 
+function limpar(s: string): string {
+  // Remove # de início, remove > solto, converte ** e *
+  return s
+    .replace(/^#+\s*/,'')
+    .replace(/\*\*([^*]*?)\*\*/g,'<b>$1</b>')
+    .replace(/\*([^*]*?)\*/g,'<i>$1</i>')
+    .replace(/(?<![a-zA-Z0-9])>(?![=])/g,'')
+    .trim()
+}
+
 function md2html(txt: string): string {
   const SP = 'style="text-align:justify;margin:6pt 0"'
-  const SL = 'style="text-align:justify"'
+  const SL = 'style="text-align:justify;text-align-last:left"'
   const linhas = txt.split('\n')
   let html = ''; let inUl = false
   let paraAtual = ''; let liAtual = ''
 
   function flushPara() {
-    if (paraAtual.trim()) { html += `<p ${SP}>${paraAtual.trim()}</p>`; paraAtual = '' }
+    if (paraAtual.trim()) {
+      html += `<p ${SP}>${paraAtual.trim()}</p>`
+      paraAtual = ''
+    }
   }
   function flushLi() {
-    if (liAtual.trim()) { html += `<li ${SL}>${liAtual.trim()}</li>`; liAtual = '' }
+    if (liAtual.trim()) {
+      html += `<li ${SL}>${liAtual.trim()}</li>`
+      liAtual = ''
+    }
   }
 
-  for (let linha of linhas) {
-    linha = linha
-      .replace(/^#+\s*/,'')
-      .replace(/\*\*([^*]+)\*\*/g,'<b>$1</b>')
-      .replace(/\*([^*]+)\*/g,'<i>$1</i>')
-    const t = linha.trim().replace(/\s*>\s*/g,' ').trim()
-    const ehLista = /^[-–•]/.test(t) || /^>\s/.test(linha)
+  for (const linha of linhas) {
+    const raw = linha.trim()
+    // Detectar marcador antes de limpar
+    const ehMarcador = /^[-–•]/.test(raw) || /^>\s+[A-Z]/.test(raw)
+    // Detectar continuação de lista (linha indentada com > dentro de lista)
+    const ehContinuacao = inUl && /^>\s/.test(raw) && !ehMarcador
+
+    const t = limpar(linha)
 
     if (!t) {
-      // Linha vazia: fecha item ou parágrafo atual
       flushLi()
       flushPara()
-      if (inUl) { html+='</ul>'; inUl=false }
+      if (inUl) { html += '</ul>'; inUl = false }
       continue
     }
 
-    if (ehLista) {
-      // Nova linha de lista — fecha parágrafo e item anterior
+    if (ehMarcador) {
       flushPara()
       flushLi()
-      if (!inUl) { html+='<ul>'; inUl=true }
-      liAtual = t.replace(/^[-–•>`]+\s*/,'')
-    } else if (inUl && liAtual) {
-      // Continuação de item de lista (linha sem marcador dentro de lista)
-      liAtual += ' ' + t.replace(/^>\s*/,'').trim()
+      if (!inUl) { html += '<ul>'; inUl = true }
+      liAtual = t.replace(/^[-–•>\s]+/,'')
+    } else if (ehContinuacao || (inUl && liAtual)) {
+      // Continuação do item atual
+      liAtual += ' ' + t.replace(/^[-–•>\s]+/,'')
     } else {
-      // Texto normal
-      if (inUl && !liAtual) { flushLi(); html+='</ul>'; inUl=false }
+      if (inUl) { flushLi(); html += '</ul>'; inUl = false }
       paraAtual += (paraAtual ? ' ' : '') + t
     }
   }
 
   flushLi()
   flushPara()
-  if (inUl) html+='</ul>'
+  if (inUl) html += '</ul>'
   return html
 }
 
@@ -284,9 +298,9 @@ ul {
 li {
   margin-bottom: 4pt;
   text-align: justify !important;
+  text-align-last: left !important;
   padding-left: 1.2em;
   text-indent: -1.2em;
-  text-align-last: justify;
 }
 li::before {
   content: "• ";
