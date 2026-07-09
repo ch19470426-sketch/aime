@@ -184,7 +184,8 @@ function PropostaInner() {
       const data = await res.json()
       if (!data.erro) {
         setMunicipioUF(`${data.localidade}/${data.uf}`)
-        const end = `${data.logradouro}, ${numero || ''}${complemento ? '/' + complemento : ''}, ${data.bairro}, ${data.localidade}/${data.uf}`
+        const partes = [data.logradouro, numero || null, complemento || null, data.bairro, `${data.localidade}/${data.uf}`].filter(Boolean)
+        const end = partes.join(', ')
         setEndereco(end)
       }
     } catch {}
