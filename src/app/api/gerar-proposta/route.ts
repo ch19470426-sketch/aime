@@ -155,16 +155,17 @@ function valorExt(v: string) {
 }
 
 function md2html(txt: string): string {
-  const ST = 'style="text-align:justify;margin:6pt 0"'
-  // Normalizar: juntar linhas consecutivas não-vazias e não-lista em parágrafo único
+  const SP = 'style="text-align:justify;margin:6pt 0"'
+  const SL = 'style="text-align:justify"'
   const linhas = txt.split('\n')
-  let html = ''; let inUl = false; let paraAtual = ''
+  let html = ''; let inUl = false
+  let paraAtual = ''; let liAtual = ''
 
   function flushPara() {
-    if (paraAtual.trim()) {
-      html += `<p ${ST}>${paraAtual.trim()}</p>`
-      paraAtual = ''
-    }
+    if (paraAtual.trim()) { html += `<p ${SP}>${paraAtual.trim()}</p>`; paraAtual = '' }
+  }
+  function flushLi() {
+    if (liAtual.trim()) { html += `<li ${SL}>${liAtual.trim()}</li>`; liAtual = '' }
   }
 
   for (let linha of linhas) {
@@ -173,26 +174,33 @@ function md2html(txt: string): string {
       .replace(/\*\*([^*]+)\*\*/g,'<b>$1</b>')
       .replace(/\*([^*]+)\*/g,'<i>$1</i>')
     const t = linha.trim()
+    const ehLista = /^[-–•]/.test(t) || /^>\s/.test(linha)
 
     if (!t) {
-      // Linha vazia = fim de parágrafo
+      // Linha vazia: fecha item ou parágrafo atual
+      flushLi()
       flushPara()
       if (inUl) { html+='</ul>'; inUl=false }
       continue
     }
 
-    if (/^[-–>]/.test(t)) {
-      // Item de lista
+    if (ehLista) {
+      // Nova linha de lista — fecha parágrafo e item anterior
       flushPara()
+      flushLi()
       if (!inUl) { html+='<ul>'; inUl=true }
-      html+=`<li style="text-align:justify">${t.replace(/^[-–>`]+\s*/,'')}</li>`
+      liAtual = t.replace(/^[-–•>`]+\s*/,'')
+    } else if (inUl && liAtual) {
+      // Continuação de item de lista (linha sem marcador dentro de lista)
+      liAtual += ' ' + t
     } else {
-      // Texto normal — acumular no parágrafo atual
-      if (inUl) { html+='</ul>'; inUl=false }
+      // Texto normal
+      if (inUl && !liAtual) { flushLi(); html+='</ul>'; inUl=false }
       paraAtual += (paraAtual ? ' ' : '') + t
     }
   }
 
+  flushLi()
   flushPara()
   if (inUl) html+='</ul>'
   return html
