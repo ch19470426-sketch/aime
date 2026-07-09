@@ -592,8 +592,8 @@ function Tela40Inner() {
           {/* EVIDÊNCIA FOTOGRÁFICA */}
           <div style={S.block}>
             <div style={S.blockTitle}>Evidência Fotográfica</div>
-            <div style={S.blockBody}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '3px' }}>
+            <div style={{ ...S.blockBody, padding: '3px 10px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '2px' }}>
                 <div style={{ width: '60px' }}>
                   <label style={{ fontSize: '6pt', fontWeight: 600, color: '#4a6480' }}>Foto Nº</label>
                   <input style={{ ...S.inputRO, textAlign: 'center', fontWeight: 700, color: '#1E3A8A', width: '100%', boxSizing: 'border-box', padding: '1px 4px', fontSize: '7pt' }} value={form.fotoNr} readOnly />
