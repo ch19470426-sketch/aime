@@ -4,7 +4,7 @@
 
 'use client'
 
-import { Suspense, useEffect, useState } from 'react'
+import React, { Suspense, useEffect, useRef, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Image from 'next/image'
 import Banner from '@/components/Banner'
@@ -162,18 +162,15 @@ function Tela40Inner() {
   const [cp,               setCp]               = useState('')
 
   const form = formularios[indice]
+  const iaTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  // Acionar IA automaticamente ao alterar campos que impactam NC
-  const [camposAlterados, setCamposAlterados] = useState(false)
-  useEffect(() => {
-    if (!camposAlterados) return
-    if (!anomalia || !sistema || !subsistema) return
-    const timer = setTimeout(() => {
+  function acionarIAComDebounce() {
+    if (iaTimerRef.current) clearTimeout(iaTimerRef.current)
+    iaTimerRef.current = setTimeout(() => {
       gerarNcCpIA()
-      setCamposAlterados(false)
-    }, 1000)
-    return () => clearTimeout(timer)
-  }, [camposAlterados])
+    }, 800)
+  }
+
   const ts   = form?.tipoServico ?? ''
   const isNR = ehNR(ts)
   const tipoServicoBanco = TIPO_SERVICO_BANCO[ts] ?? ''
@@ -288,7 +285,6 @@ function Tela40Inner() {
       setNc(fixEnc(data.nc ?? ''))
       setCp(fixEnc(data.cp ?? ''))
       setFeedbackIA('')
-      setCamposAlterados(false)
       // Mapear valores numéricos de volta para texto nas listas
       const isNRLocal = ehNR(data.tipoServico ?? '')
       const mapRev = isNRLocal ? GR_NR_REVERSO : GR_PREDIAL_REVERSO
@@ -496,13 +492,13 @@ function Tela40Inner() {
             <div style={S.blockBody}>
               <div style={{ ...S.row, ...S.c2 }}>
                 <Field label="Sistema">
-                  <select style={S.input} value={sistema} onChange={e => { setSistema(e.target.value); setSubsistema(''); setAnomalia(''); setCamposAlterados(false) }}>
+                  <select style={S.input} value={sistema} onChange={e => { setSistema(e.target.value); setSubsistema(''); setAnomalia('') }}>
                     <option value="">Selecione...</option>
                     {sistemas.map(s => <option key={s.sistema} value={s.sistema}>{s.sistema}</option>)}
                   </select>
                 </Field>
                 <Field label={isNR ? 'Subsistema / Componente' : 'Subsistema'}>
-                  <select style={S.input} value={subsistema} onChange={e => { setSubsistema(e.target.value); setAnomalia(''); setCamposAlterados(false) }} disabled={!sistema}>
+                  <select style={S.input} value={subsistema} onChange={e => { setSubsistema(e.target.value); setAnomalia('') }} disabled={!sistema}>
                     <option value="">Selecione...</option>
                     {subsistemasFiltrados.map(s => <option key={s} value={s}>{s}</option>)}
                   </select>
@@ -528,7 +524,7 @@ function Tela40Inner() {
                     </select>
                   </Field>
                   <Field label="Local/Instalação/Setor/Área *">
-                    <input style={S.input} value={local} onChange={e => { setLocal(e.target.value); setCamposAlterados(true) }} placeholder="Ex: Quadro 2º pavimento..." />
+                    <input style={S.input} value={local} onChange={e => { setLocal(e.target.value) }} placeholder="Ex: Quadro 2º pavimento..." />
                   </Field>
                   <Field label="Complemento">
                     <input style={S.input} value={complemento} onChange={e => setComplemento(e.target.value)} />
