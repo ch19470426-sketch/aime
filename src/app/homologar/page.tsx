@@ -342,7 +342,7 @@ function Tela40Inner() {
       })
 
       // Gerar HTML da vistoria e salvar em vistorias_homologadas/
-      const nomeHtml = form.nome.replace('.json', '.html')
+      const nomeHtml = form.nome.replace(/\.json$/, '.html')
       const htmlContent = gerarHtmlVistoria(form, {
         sistema, subsistema, anomalia,
         origem: isNR ? resultado : origem,
@@ -373,19 +373,20 @@ function Tela40Inner() {
       // Excluir JSON de vistorias/
       await fetch(`/api/vistorias?nome=${form.nome}`, { method: 'DELETE' })
 
-      // Avançar
+      // Avançar — remover atual e ir para próximo
       const novaLista = formularios.filter((_, i) => i !== indice)
-      const proximoIdx = indice < novaLista.length ? indice : indice - 1
-
+      
       if (novaLista.length === 0) {
         agradece('Homologação concluída!',
           'Todos os registros foram revisados e homologados com sucesso.',
           () => window.location.href = '/dashboard'
         )
-      } else {
-        setFormularios(novaLista)
-        await carregarFormularioCompleto(novaLista[proximoIdx].nome, novaLista, proximoIdx)
+        return
       }
+      
+      const proximoIdx = indice < novaLista.length ? indice : novaLista.length - 1
+      setFormularios(novaLista)
+      await carregarFormularioCompleto(novaLista[proximoIdx].nome, novaLista, proximoIdx)
     } catch(e) {
       informa('Erro', 'Não foi possível salvar o registro. Tente novamente.')
     } finally {
@@ -444,13 +445,7 @@ function Tela40Inner() {
         <div style={S.divider} />
         <div style={S.formBody}>
 
-          {/* Contador */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-            <span style={{ fontSize: '7.5pt', color: '#4a6480' }}>
-              Registro <strong>{indice + 1}</strong> de <strong>{formularios.length}</strong> — {form.nome}
-            </span>
-            <span style={{ fontSize: '7.5pt', color: corGR, fontWeight: 700 }}>GR: {grauRisco} — {prioridade}</span>
-          </div>
+
 
           {/* IDENTIFICAÇÃO */}
           <div style={S.block}>
@@ -588,20 +583,24 @@ function Tela40Inner() {
           <div style={S.block}>
             <div style={S.blockTitle}>Evidência Fotográfica</div>
             <div style={S.blockBody}>
-              <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
-                <div>
-                  <div style={S.painelLabel}>FOTO Nº</div>
-                  <div style={{ fontSize: '24px', fontWeight: 800, color: '#1E3A8A' }}>{form.fotoNr}</div>
-                </div>
-                <div>
-                  <div style={S.painelLabel}>DATA VISTORIA</div>
-                  <div style={{ fontSize: '8pt', fontWeight: 600, color: '#374151', marginTop: '4px' }}>{form.dataVistoria}</div>
-                </div>
+              <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
                 {form.fotoBase64 && (
-                  <div style={{ flex: 1 }}>
-                    <img src={form.fotoBase64} alt="Foto" style={{ width: '100%', maxHeight: '90mm', objectFit: 'cover', borderRadius: '5px', border: '2px solid #1E3A8A' }} />
+                  <div style={{ flexShrink: 0, width: '40%' }}>
+                    <img src={form.fotoBase64} alt="Foto" style={{ width: '100%', maxHeight: '90mm', objectFit: 'cover', borderRadius: '5px', border: '2px solid #1E3A8A', display: 'block' }} />
                   </div>
                 )}
+                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                    <div>
+                      <div style={S.painelLabel}>FOTO Nº</div>
+                      <div style={{ fontSize: '16px', fontWeight: 800, color: '#1E3A8A' }}>{form.fotoNr}</div>
+                    </div>
+                    <div style={{ textAlign: 'right' }}>
+                      <div style={S.painelLabel}>DATA VISTORIA</div>
+                      <div style={{ fontSize: '8pt', fontWeight: 600, color: '#374151', marginTop: '2px' }}>{form.dataVistoria}</div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -621,12 +620,7 @@ function Tela40Inner() {
                   <textarea style={{ ...S.input, ...S.textarea }} value={cp} maxLength={500} onChange={e => setCp(e.target.value)} />
                 </Field>
               )}
-              <div style={{ textAlign: 'right', marginTop: '4px' }}>
-                <button onClick={gerarNcCpIA} disabled={gerandoIA}
-                  style={{ background: '#E8EEF7', border: '1px solid #c3d4f0', borderRadius: '4px', padding: '3px 10px', fontSize: '7pt', color: '#1E3A8A', cursor: 'pointer', fontFamily: 'inherit' }}>
-                  {gerandoIA ? '⏳ Gerando...' : '✨ Regerar NC' + (isNR ? '' : '/CP') + ' via IA'}
-                </button>
-              </div>
+
             </div>
           </div>
 
