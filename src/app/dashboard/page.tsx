@@ -82,7 +82,7 @@ const menuGrupos = [
 ]
 
 // Tipos de serviço que são vistorias (abre tela de CNPJ/CPF)
-const CODIGOS_VISTORIA = [31, 32, 33, 34, 35, 36, 37, 38, 40]
+const CODIGOS_VISTORIA = [11,12,13,14,15,16,17,18,19,31,32,33,34,35,36,37,38,40]
 
 // Tipos de serviço que coletam CPF (pessoa física) em vez de CNPJ
 const CODIGOS_CPF = [13, 23, 33, 43]
@@ -234,6 +234,11 @@ export default function Dashboard() {
     const tamanhoEsperado = coletaCpf ? 11 : 14
     if (docLimpo.length < tamanhoEsperado) {
       setMsgErro(`${coletaCpf ? "CPF" : "CNPJ"} incompleto (${docLimpo.length}/${tamanhoEsperado} dígitos)`)
+      return
+    }
+    // Códigos 11-19: Propostas
+    if (Number(tipoServico) >= 11 && Number(tipoServico) <= 19) {
+      window.location.href = `/proposta?cpf_inspetor=${cpfInspetor}&chave_inspetor=${chaveInspetor}&cnpjoucpf=${docLimpo}&tipo_servico=${tipoServico}`
       return
     }
     // Código 40: Homologar Vistoria
