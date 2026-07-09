@@ -154,6 +154,38 @@ function numeroParaExtenso(valor: number): string {
   return valor.toString()
 }
 
+function dataPorExtenso(d: Date): string {
+  const meses = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro']
+  return `${d.getDate()} de ${meses[d.getMonth()]} de ${d.getFullYear()}`
+}
+
+function limparMd(txt: string): string {
+  return txt
+    .replace(/^#+\s*/gm, '')
+    .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*([^*]+)\*/g, '<em>$1</em>')
+    .trim()
+}
+
+function processarBloco(txt: string): string {
+  const linhas = txt.split('\n')
+  let html = ''; let inUl = false
+  for (const linha of linhas) {
+    const t = limparMd(linha)
+    if (!t) { if (inUl) { html += '</ul>'; inUl = false }; continue }
+    if (t.startsWith('-') || linha.trim().startsWith('-') || linha.trim().startsWith('>')) {
+      const item = t.replace(/^[->`]+\s*/, '')
+      if (!inUl) { html += '<ul>'; inUl = true }
+      html += `<li>${item}</li>`
+    } else {
+      if (inUl) { html += '</ul>'; inUl = false }
+      html += `<p>${t}</p>`
+    }
+  }
+  if (inUl) html += '</ul>'
+  return html
+}
+
 function valorExtenso(v: string): string {
   const n = parseFloat(v.replace(',', '.'))
   if (isNaN(n)) return ''
@@ -192,7 +224,8 @@ export async function POST(request: NextRequest) {
       ? cnpjoucpf.replace(/^(\d{3})(\d{3})(\d{3})(\d{2})$/, '$1.$2.$3-$4')
       : cnpjoucpf.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, '$1.$2.$3/$4-$5')
 
-    const dataHoje = new Date().toLocaleDateString('pt-BR')
+    const hoje = new Date()
+    const dataHoje = dataPorExtenso(hoje)
     const valorNum = parseFloat(valor.replace(',', '.'))
     const valorFmt = valorNum.toLocaleString('pt-BR', { minimumFractionDigits: 2 })
     const valorExt = valorExtenso(valor)
@@ -205,23 +238,22 @@ export async function POST(request: NextRequest) {
 <head>
 <meta charset="UTF-8">
 <style>
-  @page { size: A4; margin: 2cm 2cm 2cm 2.5cm; }
-  body { font-family: Arial, sans-serif; font-size: 11pt; line-height: 1.6; color: #000; margin: 0; padding: 20px 30px 20px 35px; text-align: justify; }
-  .cabecalho { text-align: center; margin-bottom: 20px; border-bottom: 2px solid #1E3A8A; padding-bottom: 10px; }
+  @page { size: A4; margin: 2cm 1.5cm 2cm 2.5cm; }
+  body { font-family: Arial, sans-serif; font-size: 11pt; line-height: 1.6; color: #000; margin: 0; padding: 25px 35px 25px 40px; }
+  .cabecalho { text-align: center; margin-bottom: 24px; border-bottom: 2px solid #1E3A8A; padding-bottom: 10px; }
   .cabecalho-txt { font-size: 9pt; color: #374151; white-space: pre-line; }
-  .destino { margin: 20px 0; float: right; text-align: left; width: 60%; }
+  .destino { margin: 20px 0 20px auto; text-align: left; width: 55%; }
   .destino p { margin: 2px 0; font-weight: bold; }
-  .destino-clear { clear: both; }
-  .ref { margin: 16px 0; }
-  .slogan { margin: 20px 0; font-style: italic; text-align: center; color: #374151; }
-  h2 { font-size: 11pt; font-weight: bold; margin: 16px 0 6px; }
-  ul { padding-left: 40px; margin: 8px 0; }
-  li { margin-bottom: 4px; text-align: justify; }
+  .ref { margin: 20px 0 16px; }
+  .slogan { margin: 16px auto; font-style: italic; text-align: center; color: #374151; width: 80%; }
+  h2 { font-size: 11pt; font-weight: bold; margin: 20px 0 8px; }
+  p { margin: 8px 0; text-align: justify; }
+  ul { padding-left: 2cm; margin: 8px 0; list-style-type: disc; }
+  li { margin-bottom: 6px; text-align: justify; }
   .assinatura { margin-top: 40px; padding-top: 16px; }
   .assinatura-nome { font-weight: bold; margin-top: 8px; }
   .de-acordo { margin-top: 30px; font-size: 10pt; }
   .rodape { margin-top: 30px; border-top: 1px solid #c3d4f0; padding-top: 8px; font-size: 9pt; color: #374151; text-align: center; white-space: pre-line; }
-  p { margin: 8px 0; text-align: justify; }
   strong { font-weight: bold; }
   em { font-style: italic; }
 </style>
@@ -231,15 +263,13 @@ export async function POST(request: NextRequest) {
 ${inspData.cabecalho_documentos ? `<div class="cabecalho"><div class="cabecalho-txt">${inspData.cabecalho_documentos}</div></div>` : ''}
 
 <div class="destino">
-  <p>${municipioUF}, ${dataHoje}</p>
+  <p>${municipioUF.split('/')[0]}, ${dataHoje}</p>
   <br>
   <p>${ao}</p>
   <p>${razaoSocial}</p>
   <p>${labelDoc} ${docFmt}</p>
   <p>${municipioUF}</p>
 </div>
-<div class="destino-clear"></div>
-
 <div class="ref"><strong>${c.ref}</strong></div>
 
 <div class="intro"><p>${c.apresentacao}</p></div>
