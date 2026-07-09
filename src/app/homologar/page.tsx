@@ -512,7 +512,7 @@ function Tela40Inner() {
                       if (val === 'Conforme') { setNc('Requisito atendido plenamente.') }
                       else if (val === 'Não aplicável') { setNc('Requisito não se aplica à instalação.') }
                       else if (val === 'Não verificado') { setNc('') }
-                      else if (val === 'Não conforme') { setNc('') }
+                      else if (val === 'Não conforme') { setNc(''); acionarIA() }
                     }}>
                       <option value="">Selecione...</option>
                       {['Conforme', 'Não conforme', 'Não aplicável', 'Não verificado'].map(r => <option key={r} value={r}>{r}</option>)}
@@ -596,7 +596,7 @@ function Tela40Inner() {
           {/* EVIDÊNCIA FOTOGRÁFICA */}
           <div style={S.block}>
             <div style={S.blockTitle}>Evidência Fotográfica</div>
-            <div style={{ ...S.blockBody, gap: 0, padding: '3px 10px 5px' }}>
+            <div style={{ padding: '4px 10px 6px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '3px' }}>
                 <div style={{ width: '60px' }}>
                   <label style={S.fieldLabel}>Foto nº</label>
@@ -620,16 +620,7 @@ function Tela40Inner() {
           <div style={S.block}>
             <div style={S.blockTitle}>{isNR ? 'Não Conformidade / Observações' : 'Resultado da Análise e Avaliação'}</div>
             <div style={S.blockBody}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-                {feedbackIA
-                  ? <div style={{ fontSize: '7pt', color: '#1E3A8A', background: '#EEF4FF', padding: '2px 8px', borderRadius: '4px' }}>{feedbackIA}</div>
-                  : <span />
-                }
-                <button onClick={gerarNcCpIA} disabled={gerandoIA || !anomalia}
-                  style={{ background: '#E8EEF7', border: '1px solid #c3d4f0', borderRadius: '4px', padding: '2px 8px', fontSize: '6.5pt', color: '#1E3A8A', cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap' }}>
-                  {gerandoIA ? '⏳' : '✨ Regerar NC via IA'}
-                </button>
-              </div>
+              {feedbackIA && <div style={{ fontSize: '6.5pt', color: '#1E3A8A', background: '#EEF4FF', padding: '2px 8px', borderRadius: '4px', marginBottom: '3px' }}>{feedbackIA}</div>}
               <Field label="Não conformidade (NC)">
                 <textarea style={{ ...S.input, ...S.textarea }} value={nc} maxLength={500}
                   readOnly={isNR && (resultado === 'Conforme' || resultado === 'Não aplicável')}
