@@ -1,5 +1,5 @@
 // src/app/vistoria/tela38/page.tsx
-// AIMÊ — Tela 38: Vistoria Caldeiras, Vasos de Pressão, Tubulações e Tanques - NR-13
+// AIMÊ — Tela 38: Vistoria Caldeiras, Vasos de Pressão - NR-13
 
 'use client'
 
@@ -275,10 +275,10 @@ function Tela31Inner() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ nomeArquivo, payload })
     })
-    const resultado = await res.json()
+    const resJson = await res.json()
 
-    if (!res.ok || resultado.erro) {
-      setErroSave('Erro ao salvar: ' + (resultado.erro ?? res.statusText))
+    if (!res.ok || resJson.erro) {
+      setErroSave('Erro ao salvar: ' + (resJson.erro ?? res.statusText))
       setSalvando(false)
       return
     }
