@@ -133,6 +133,7 @@ function Tela40Inner() {
   const [salvando,     setSalvando]     = useState(false)
   const [gerandoIA,    setGerandoIA]    = useState(false)
   const [feedbackIA,   setFeedbackIA]   = useState('')
+  const [fotoBase64,    setFotoBase64]    = useState('')
 
   // Listas de validação (carregadas do banco)
   const [sistemas,     setSistemas]     = useState<ItemSistema[]>([])
@@ -261,6 +262,7 @@ function Tela40Inner() {
       setAnomalia(data.anomalia ?? '')
       setOrigem(data.origem ?? '')
       setResultado(data.resultado ?? '')
+      setFotoBase64(data.fotoBase64 ?? '')
       setLocal(data.local ?? '')
       setComplemento(data.complemento ?? '')
       // Corrigir encoding Latin-1 → UTF-8 que ocorre no Storage
@@ -274,6 +276,7 @@ function Tela40Inner() {
       setNc(fixEnc(data.nc ?? ''))
       setCp(fixEnc(data.cp ?? ''))
       setFeedbackIA('')
+      setFotoBase64('')
       // Mapear valores numéricos de volta para texto nas listas
       const isNRLocal = ehNR(data.tipoServico ?? '')
       const mapRev = isNRLocal ? GR_NR_REVERSO : GR_PREDIAL_REVERSO
@@ -593,8 +596,8 @@ function Tela40Inner() {
             <div style={S.blockBody}>
               <div style={{ display: 'grid', gridTemplateColumns: 'auto 1fr', gap: '10px', alignItems: 'flex-start' }}>
                 <div style={{ width: '90mm', minWidth: '90mm' }}>
-                  {form.fotoBase64
-                    ? <img src={form.fotoBase64} alt="Foto" style={{ width: '100%', height: '90mm', objectFit: 'cover', borderRadius: '5px', border: '2px solid #1E3A8A', display: 'block' }} />
+                  {fotoBase64
+                    ? <img src={fotoBase64} alt="Foto" style={{ width: '100%', height: '90mm', objectFit: 'cover', borderRadius: '5px', border: '2px solid #1E3A8A', display: 'block' }} />
                     : <div style={{ width: '100%', height: '90mm', background: '#f1f5f9', border: '2px dashed #c3d4f0', borderRadius: '5px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94A3B8', fontSize: '7.5pt' }}>Sem foto</div>
                   }
                 </div>
