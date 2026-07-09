@@ -591,22 +591,21 @@ function Tela40Inner() {
           <div style={S.block}>
             <div style={S.blockTitle}>Evidência Fotográfica</div>
             <div style={S.blockBody}>
-              <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
-                {form.fotoBase64 && (
-                  <div style={{ flexShrink: 0, width: '40%' }}>
-                    <img src={form.fotoBase64} alt="Foto" style={{ width: '100%', maxHeight: '90mm', objectFit: 'cover', borderRadius: '5px', border: '2px solid #1E3A8A', display: 'block' }} />
+              <div style={{ display: 'grid', gridTemplateColumns: 'auto 1fr', gap: '10px', alignItems: 'flex-start' }}>
+                <div style={{ width: '90mm', minWidth: '90mm' }}>
+                  {form.fotoBase64
+                    ? <img src={form.fotoBase64} alt="Foto" style={{ width: '100%', height: '90mm', objectFit: 'cover', borderRadius: '5px', border: '2px solid #1E3A8A', display: 'block' }} />
+                    : <div style={{ width: '100%', height: '90mm', background: '#f1f5f9', border: '2px dashed #c3d4f0', borderRadius: '5px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94A3B8', fontSize: '7.5pt' }}>Sem foto</div>
+                  }
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <div>
+                    <div style={S.painelLabel}>FOTO Nº</div>
+                    <div style={{ fontSize: '9pt', fontWeight: 700, color: '#1E3A8A' }}>{form.fotoNr}</div>
                   </div>
-                )}
-                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                    <div>
-                      <div style={S.painelLabel}>FOTO Nº</div>
-                      <div style={{ fontSize: '11px', fontWeight: 700, color: '#1E3A8A' }}>{form.fotoNr}</div>
-                    </div>
-                    <div style={{ textAlign: 'right' }}>
-                      <div style={S.painelLabel}>DATA VISTORIA</div>
-                      <div style={{ fontSize: '7.5pt', fontWeight: 600, color: '#374151', marginTop: '2px' }}>{form.dataVistoria}</div>
-                    </div>
+                  <div style={{ textAlign: 'right' }}>
+                    <div style={S.painelLabel}>DATA VISTORIA</div>
+                    <div style={{ fontSize: '7.5pt', fontWeight: 600, color: '#374151', marginTop: '2px' }}>{form.dataVistoria}</div>
                   </div>
                 </div>
               </div>
