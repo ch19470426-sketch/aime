@@ -205,24 +205,23 @@ export async function POST(request: NextRequest) {
 <head>
 <meta charset="UTF-8">
 <style>
-  body { font-family: Arial, sans-serif; font-size: 10pt; line-height: 1.6; color: #000; margin: 0; padding: 20px 40px; }
+  @page { size: A4; margin: 2cm 2cm 2cm 2.5cm; }
+  body { font-family: Arial, sans-serif; font-size: 11pt; line-height: 1.6; color: #000; margin: 0; padding: 20px 30px 20px 35px; text-align: justify; }
   .cabecalho { text-align: center; margin-bottom: 20px; border-bottom: 2px solid #1E3A8A; padding-bottom: 10px; }
-  .cabecalho img { max-height: 80px; }
   .cabecalho-txt { font-size: 9pt; color: #374151; white-space: pre-line; }
-  .destino { margin: 20px 0; }
+  .destino { margin: 20px 0; float: right; text-align: left; width: 60%; }
   .destino p { margin: 2px 0; font-weight: bold; }
+  .destino-clear { clear: both; }
   .ref { margin: 16px 0; }
-  .intro { margin: 16px 0; }
-  .frase { margin: 10px 0; }
-  .slogan { margin: 16px 0; font-style: italic; color: #374151; }
-  h2 { font-size: 11pt; color: #1E3A8A; margin: 16px 0 6px; border-bottom: 1px solid #c3d4f0; padding-bottom: 2px; }
-  ul { padding-left: 20px; }
-  li { margin-bottom: 4px; }
-  .assinatura { margin-top: 40px; border-top: 1px solid #c3d4f0; padding-top: 16px; }
+  .slogan { margin: 20px 0; font-style: italic; text-align: center; color: #374151; }
+  h2 { font-size: 11pt; font-weight: bold; margin: 16px 0 6px; }
+  ul { padding-left: 40px; margin: 8px 0; }
+  li { margin-bottom: 4px; text-align: justify; }
+  .assinatura { margin-top: 40px; padding-top: 16px; }
   .assinatura-nome { font-weight: bold; margin-top: 8px; }
-  .de-acordo { margin-top: 30px; font-size: 9pt; }
-  .rodape { margin-top: 30px; border-top: 1px solid #c3d4f0; padding-top: 8px; font-size: 8pt; color: #374151; text-align: center; white-space: pre-line; }
-  p { margin: 8px 0; }
+  .de-acordo { margin-top: 30px; font-size: 10pt; }
+  .rodape { margin-top: 30px; border-top: 1px solid #c3d4f0; padding-top: 8px; font-size: 9pt; color: #374151; text-align: center; white-space: pre-line; }
+  p { margin: 8px 0; text-align: justify; }
   strong { font-weight: bold; }
   em { font-style: italic; }
 </style>
@@ -239,6 +238,7 @@ ${inspData.cabecalho_documentos ? `<div class="cabecalho"><div class="cabecalho-
   <p>${labelDoc} ${docFmt}</p>
   <p>${municipioUF}</p>
 </div>
+<div class="destino-clear"></div>
 
 <div class="ref"><strong>${c.ref}</strong></div>
 
