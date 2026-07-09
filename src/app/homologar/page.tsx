@@ -508,9 +508,11 @@ function Tela40Inner() {
                   <Field label="Resultado">
                     <select style={S.input} value={resultado} onChange={e => {
                       setResultado(e.target.value)
-                      if (e.target.value === 'Conforme') setNc('Requisito atendido plenamente.')
-                      else if (e.target.value === 'Não aplicável') setNc('Requisito não se aplica à instalação.')
-                      else setNc('')
+                      const val = e.target.value
+                      if (val === 'Conforme') { setNc('Requisito atendido plenamente.') }
+                      else if (val === 'Não aplicável') { setNc('Requisito não se aplica à instalação.') }
+                      else if (val === 'Não verificado') { setNc('') }
+                      else if (val === 'Não conforme') { setNc('') }
                     }}>
                       <option value="">Selecione...</option>
                       {['Conforme', 'Não conforme', 'Não aplicável', 'Não verificado'].map(r => <option key={r} value={r}>{r}</option>)}
@@ -594,8 +596,8 @@ function Tela40Inner() {
           {/* EVIDÊNCIA FOTOGRÁFICA */}
           <div style={S.block}>
             <div style={S.blockTitle}>Evidência Fotográfica</div>
-            <div style={S.blockBody}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '4px' }}>
+            <div style={{ ...S.blockBody, gap: 0, padding: '3px 10px 5px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '3px' }}>
                 <div style={{ width: '60px' }}>
                   <label style={S.fieldLabel}>Foto nº</label>
                   <input style={{ ...S.inputRO, textAlign: 'center', color: '#1E3A8A', fontWeight: 700, width: '100%', boxSizing: 'border-box' }} value={form.fotoNr} readOnly />
