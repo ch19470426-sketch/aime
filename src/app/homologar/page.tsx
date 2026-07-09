@@ -263,8 +263,16 @@ function Tela40Inner() {
       setResultado(data.resultado ?? '')
       setLocal(data.local ?? '')
       setComplemento(data.complemento ?? '')
-      setNc(data.nc ?? '')
-      setCp(data.cp ?? '')
+      // Corrigir encoding Latin-1 → UTF-8 que ocorre no Storage
+      const fixEnc = (s: string) => {
+        try {
+          return decodeURIComponent(escape(s))
+        } catch {
+          return s
+        }
+      }
+      setNc(fixEnc(data.nc ?? ''))
+      setCp(fixEnc(data.cp ?? ''))
       setFeedbackIA('')
       // Mapear valores numéricos de volta para texto nas listas
       const isNRLocal = ehNR(data.tipoServico ?? '')
@@ -593,11 +601,11 @@ function Tela40Inner() {
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                     <div>
                       <div style={S.painelLabel}>FOTO Nº</div>
-                      <div style={{ fontSize: '16px', fontWeight: 800, color: '#1E3A8A' }}>{form.fotoNr}</div>
+                      <div style={{ fontSize: '11px', fontWeight: 700, color: '#1E3A8A' }}>{form.fotoNr}</div>
                     </div>
                     <div style={{ textAlign: 'right' }}>
                       <div style={S.painelLabel}>DATA VISTORIA</div>
-                      <div style={{ fontSize: '8pt', fontWeight: 600, color: '#374151', marginTop: '2px' }}>{form.dataVistoria}</div>
+                      <div style={{ fontSize: '7.5pt', fontWeight: 600, color: '#374151', marginTop: '2px' }}>{form.dataVistoria}</div>
                     </div>
                   </div>
                 </div>
