@@ -385,7 +385,7 @@ function Tela40Inner() {
       })
       const homologarData = await homologarRes.json()
       if (!homologarRes.ok || homologarData.erro) {
-        throw new Error(homologarData.erro ?? 'Erro ao homologar')
+        throw new Error(`Homologar falhou (${homologarRes.status}): ${homologarData.erro ?? JSON.stringify(homologarData)}`)
       }
 
       // Avançar — remover atual e ir para próximo
@@ -403,7 +403,7 @@ function Tela40Inner() {
       setFormularios(novaLista)
       await carregarFormularioCompleto(novaLista[proximoIdx].nome, novaLista, proximoIdx)
     } catch(e) {
-      informa('Erro', 'Não foi possível salvar o registro. Tente novamente.')
+      informa('Erro ao salvar', String(e))
     } finally {
       setSalvando(false)
     }
