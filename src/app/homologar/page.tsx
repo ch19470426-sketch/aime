@@ -319,15 +319,50 @@ function Tela40Inner() {
         })
       })
 
+      // Gerar HTML da vistoria e salvar em vistorias_homologadas/
+      const nomeHtml = form.nome.replace('.json', '.html')
+      const htmlContent = gerarHtmlVistoria(form, {
+        sistema, subsistema, anomalia,
+        origem: isNR ? resultado : origem,
+        local, complemento,
+        gravidade: gravNum || form.gravidade,
+        urgencia: urgNum || form.urgencia,
+        abrangencia: abrNum || form.abrangencia,
+        exposicao: expNum || form.exposicao,
+        grauRisco: grauRisco || form.grauRisco,
+        prioridade: prioridade || form.prioridade,
+        nc, cp,
+        dataHomologacao: new Date().toLocaleDateString('pt-BR'),
+        isNR,
+      })
+
+      // Salvar HTML em vistorias_homologadas/
+      await fetch('/api/salvar-vistoria', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          nomeArquivo: nomeHtml,
+          pasta: 'vistorias_homologadas',
+          payload: htmlContent,
+          contentType: 'text/html',
+        })
+      })
+
+      // Excluir JSON de vistorias/
+      await fetch(`/api/vistorias?nome=${form.nome}`, { method: 'DELETE' })
+
       // Avançar
-      const proximoIdx = indice + 1
-      if (proximoIdx >= formularios.length) {
+      const novaLista = formularios.filter((_, i) => i !== indice)
+      const proximoIdx = indice < novaLista.length ? indice : indice - 1
+
+      if (novaLista.length === 0) {
         agradece('Homologação concluída!',
           'Todos os registros foram revisados e homologados com sucesso.',
           () => window.location.href = '/dashboard'
         )
       } else {
-        await carregarFormularioCompleto(formularios[proximoIdx].nome, formularios, proximoIdx)
+        setFormularios(novaLista)
+        await carregarFormularioCompleto(novaLista[proximoIdx].nome, novaLista, proximoIdx)
       }
     } catch(e) {
       informa('Erro', 'Não foi possível salvar o registro. Tente novamente.')
@@ -591,6 +626,146 @@ function Tela40Inner() {
       <Banner {...bannerProps} />
     </div>
   )
+}
+
+
+// ─── Gerador de HTML da vistoria ─────────────────────────────────────────────
+interface DadosHomologacao {
+  sistema: string; subsistema: string; anomalia: string; origem: string
+  local: string; complemento: string; gravidade: number; urgencia: number
+  abrangencia: number; exposicao: number; grauRisco: number; prioridade: string
+  nc: string; cp: string; dataHomologacao: string; isNR: boolean
+}
+
+function gerarHtmlVistoria(form: Formulario, dados: DadosHomologacao): string {
+  const corGR = dados.grauRisco >= (dados.isNR ? 75 : 64) ? '#E24B4A'
+    : dados.grauRisco >= (dados.isNR ? 50 : 35) ? '#E8A000' : '#1A7A3C'
+
+  return `<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<style>
+  body { font-family: Arial, Helvetica, sans-serif; margin: 0; padding: 10px; background: #fff; font-size: 7.5pt; color: #1a1a2e; }
+  .header { background: #1E3A8A; padding: 8px 16px; display: flex; align-items: center; gap: 12px; }
+  .header h1 { font-size: 11pt; font-weight: 700; color: #fff; margin: 0; flex: 1; text-align: center; }
+  .header p { font-size: 7pt; color: #B5D4F4; margin: 2px 0 0; text-align: center; }
+  .divider { height: 2px; background: #1E3A8A; }
+  .body { padding: 10px 14px; }
+  .block { border: 1px solid #c3d4f0; border-radius: 6px; overflow: hidden; margin-bottom: 5px; }
+  .block-title { background: #1E3A8A; color: #fff; font-size: 7.5pt; font-weight: 700; padding: 3px 10px; }
+  .block-body { padding: 5px 10px; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
+  .grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px; }
+  .grid4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 4px; }
+  .field { display: flex; flex-direction: column; gap: 1px; margin-bottom: 3px; }
+  .field label { font-size: 6.5pt; font-weight: 600; color: #4a6480; }
+  .field span { border: 1px solid #c3d4f0; border-radius: 4px; padding: 2px 5px; font-size: 7.5pt; background: #f1f5f9; color: #374151; }
+  .field-edit span { background: #fff; }
+  .foto { width: 100%; max-height: 90mm; object-fit: cover; border-radius: 5px; border: 2px solid #1E3A8A; }
+  .gr-bar-wrap { flex: 1; height: 5px; background: #c3d4f0; border-radius: 99px; overflow: hidden; }
+  .gr-bar { height: 100%; border-radius: 99px; }
+  .badge { display: inline-flex; align-items: center; padding: 2px 10px; border-radius: 99px; font-size: 7.5pt; font-weight: 700; }
+  .metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; margin-top: 4px; }
+  .metric { background: #E8EEF7; border: 2px solid #c3d4f0; border-radius: 5px; padding: 3px 8px; display: flex; align-items: center; gap: 8px; }
+  .stamp { background: #E6F5EE; border: 2px solid #1A7A3C; border-radius: 8px; padding: 6px 12px; text-align: center; margin-top: 8px; }
+  .stamp span { color: #1A7A3C; font-weight: 700; font-size: 8pt; }
+</style>
+</head>
+<body>
+<div class="header">
+  <div style="flex:1;text-align:center">
+    <h1>AIMÊ — Vistoria Homologada</h1>
+    <p>Formulário de registro de vistoria — ${TITULO_TIPO[form.tipoServico] ?? form.tipoServico}</p>
+  </div>
+</div>
+<div class="divider"></div>
+<div class="body">
+
+  <div class="block">
+    <div class="block-title">Identificação</div>
+    <div class="block-body">
+      <div class="grid2">
+        <div class="field"><label>${form.cnpjoucpf.length === 11 ? 'CPF' : 'CNPJ'}</label><span>${form.cnpjDisplay || form.cnpjoucpf}</span></div>
+        <div class="field"><label>${form.cnpjoucpf.length === 11 ? 'Nome' : 'Razão social'}</label><span>${form.razaoSocial}</span></div>
+      </div>
+      <div class="grid3">
+        <div class="field"><label>Tipo de serviço</label><span>${TITULO_TIPO[form.tipoServico] ?? form.tipoServico}</span></div>
+        <div class="field"><label>Ativo a vistoriar</label><span>${form.tipoAtivo}</span></div>
+        <div class="field"><label>TAG / Nº Série</label><span>${form.tagNrSerie}</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="block">
+    <div class="block-title">${dados.isNR ? 'Apuração da Conformidade Regulatória' : 'Manifestação Patológica'}</div>
+    <div class="block-body">
+      <div class="grid2">
+        <div class="field"><label>Sistema</label><span>${dados.sistema}</span></div>
+        <div class="field"><label>${dados.isNR ? 'Subsistema / Componente' : 'Subsistema'}</label><span>${dados.subsistema}</span></div>
+      </div>
+      <div class="field"><label>${dados.isNR ? 'Requisito Normativo' : 'Anomalia / Falha'}</label><span>${dados.anomalia}</span></div>
+      <div class="grid3">
+        <div class="field"><label>${dados.isNR ? 'Resultado' : 'Origem'}</label><span>${dados.origem}</span></div>
+        <div class="field"><label>${dados.isNR ? 'Local/Instalação/Setor/Área' : 'Local de ocorrência'}</label><span>${dados.local}</span></div>
+        <div class="field"><label>Complemento</label><span>${dados.complemento}</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="block">
+    <div class="block-title">Classificação de Risco</div>
+    <div class="block-body">
+      <div class="grid4">
+        <div class="field"><label>Gravidade</label><span>${dados.gravidade}</span></div>
+        <div class="field"><label>Urgência</label><span>${dados.urgencia}</span></div>
+        <div class="field"><label>${dados.isNR ? 'Probabilidade' : 'Abrangência'}</label><span>${dados.abrangencia}</span></div>
+        <div class="field"><label>${dados.isNR ? 'Exposição risco' : 'Exposição'}</label><span>${dados.exposicao}</span></div>
+      </div>
+      <div class="metrics">
+        <div class="metric" style="border-color:${corGR}">
+          <span style="font-size:6.5pt;color:#4a6480;font-weight:600">Grau de Risco</span>
+          <span style="font-size:13pt;font-weight:700;color:${corGR}">${dados.grauRisco}</span>
+          <div class="gr-bar-wrap"><div class="gr-bar" style="width:${dados.grauRisco}%;background:${corGR}"></div></div>
+        </div>
+        <div class="metric" style="border-color:${corGR};justify-content:center">
+          <span style="font-size:6.5pt;color:#4a6480;font-weight:600">Prioridade</span>
+          <span class="badge" style="color:${corGR}">${dados.prioridade}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="block">
+    <div class="block-title">Evidência Fotográfica</div>
+    <div class="block-body" style="display:flex;gap:12px;align-items:flex-start">
+      <div>
+        <div style="font-size:6.5pt;font-weight:700;color:#94A3B8;text-transform:uppercase">Foto Nº</div>
+        <div style="font-size:24px;font-weight:800;color:#1E3A8A">${form.fotoNr}</div>
+      </div>
+      <div>
+        <div style="font-size:6.5pt;font-weight:700;color:#94A3B8;text-transform:uppercase">Data Vistoria</div>
+        <div style="font-size:8pt;font-weight:600;color:#374151;margin-top:4px">${form.dataVistoria}</div>
+      </div>
+      ${form.fotoBase64 ? `<div style="flex:1"><img src="${form.fotoBase64}" class="foto" alt="Foto evidência" /></div>` : ''}
+    </div>
+  </div>
+
+  <div class="block">
+    <div class="block-title">${dados.isNR ? 'Não Conformidade / Observações' : 'Resultado da Análise e Avaliação'}</div>
+    <div class="block-body">
+      <div class="field field-edit"><label>Não conformidade (NC)</label><span style="white-space:pre-wrap">${dados.nc}</span></div>
+      ${!dados.isNR ? `<div class="field field-edit"><label>Causa provável (CP)</label><span style="white-space:pre-wrap">${dados.cp}</span></div>` : ''}
+    </div>
+  </div>
+
+  <div class="stamp">
+    <span>✓ Vistoria homologada em ${dados.dataHomologacao} — ${form.chaveInspetor}</span>
+  </div>
+
+</div>
+</body>
+</html>`
 }
 
 // ─── Sub-componentes ──────────────────────────────────────────────────────────
