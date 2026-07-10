@@ -210,19 +210,25 @@ function PropostaInner() {
       const url = isUpdate
         ? `${SUPA_URL}/rest/v1/estabelecimento?cnpjoucpf=eq.${cnpjoucpf}`
         : `${SUPA_URL}/rest/v1/estabelecimento`
+      const payload = {
+        cnpjoucpf,
+        razao_social_nome: razaoSocial,
+        cep_estabelecimento: cep.trim(),
+        numero_imovel: numero.trim(),
+        complemento: complemento?.trim() ?? null,
+        tipo_id: 1,
+        ...(isUpdate ? {} : { data_cadastro: new Date().toISOString().split('T')[0] })
+      }
+      console.log('PAYLOAD PATCH:', JSON.stringify(payload), 'URL:', url)
       const res = await fetch(url, {
         method,
         headers: {
           'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}`,
           'Content-Type': 'application/json', 'Prefer': 'return=minimal'
         },
-        body: JSON.stringify({
-          cnpjoucpf, razao_social_nome: razaoSocial,
-          cep_estabelecimento: cep, numero_imovel: numero,
-          complemento, tipo_id: 1,
-          ...(isUpdate ? {} : { data_cadastro: new Date().toISOString().split('T')[0] })
-        })
+        body: JSON.stringify(payload)
       })
+      console.log('RESP:', res.status, res.ok)
       if (res.ok) {
         // Re-buscar do banco para garantir dados frescos na tela
         const estAtual = await query('estabelecimento', `cnpjoucpf=eq.${cnpjoucpf}&select=cnpjoucpf,razao_social_nome,cep_estabelecimento,numero_imovel,complemento`)
