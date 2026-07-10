@@ -226,6 +226,9 @@ function conselho(titulo: string): string {
   if (titulo === 'Corretor Imóvel') return 'CRECI'
   return 'CREA'
 }
+function tituloLimpo(titulo: string): string {
+  return titulo.replace(/\s*(CREA|CAU|CRECI)\s*/gi,'').trim()
+}
 
 export async function POST(request: NextRequest) {
   try {
