@@ -219,7 +219,6 @@ function PropostaInner() {
         tipo_id: 1,
         ...(isUpdate ? {} : { data_cadastro: new Date().toISOString().split('T')[0] })
       }
-      console.log('PAYLOAD PATCH:', JSON.stringify(payload), 'URL:', url)
       const res = await fetch(url, {
         method,
         headers: {
@@ -228,36 +227,32 @@ function PropostaInner() {
         },
         body: JSON.stringify(payload)
       })
-      console.log('RESP:', res.status, res.ok)
       if (res.ok) {
-        // Re-buscar do banco para garantir dados frescos na tela
-        const estAtual = await query('estabelecimento', `cnpjoucpf=eq.${cnpjoucpf}&select=cnpjoucpf,razao_social_nome,cep_estabelecimento,numero_imovel,complemento`)
-        if (Array.isArray(estAtual) && estAtual[0]) {
-          const e = estAtual[0]
-          setEst(e)
-          setRazaoSocial(e.razao_social_nome ?? '')
-          setCep((e.cep_estabelecimento ?? '').replace(/\D/g,'').trim())
-          setNumero(e.numero_imovel ?? '')
-          setComplemento(e.complemento ?? '')
-          // Buscar endereço com dados frescos do banco
-          const cepFresco = (e.cep_estabelecimento ?? '').replace(/\D/g,'')
-          console.log('CEP fresco:', cepFresco, 'NR:', e.numero_imovel)
-          if (cepFresco.length === 8) {
-            try {
-              const vr = await fetch(`https://viacep.com.br/ws/${cepFresco}/json/`)
-              const vd = await vr.json()
-              console.log('ViaCEP:', vd.logradouro, vd.erro)
-              if (!vd.erro) {
-                const partes = [vd.logradouro, e.numero_imovel||null, e.complemento||null, vd.bairro].filter(Boolean)
-                const endFresco = partes.join(', ') + `, ${vd.localidade}/${vd.uf}`
-                console.log('Endereço novo:', endFresco)
-                setEndereco(endFresco)
-                setLogradouro(vd.logradouro)
-                setMunicipioUF(`${vd.localidade}/${vd.uf}`)
-              }
-            } catch(ex) { console.log('ViaCEP erro:', ex) }
-          }
+        // Usar valores locais do payload (não re-buscar do banco pois tem cache)
+        const cepLocal = cep.trim()
+        const nrLocal = numero.trim()
+        const compLocal = complemento?.trim() ?? ''
+        
+        // Atualizar estados com valores que acabaram de ser salvos
+        setEst({ cnpjoucpf, razao_social_nome: razaoSocial, cep_estabelecimento: cepLocal, numero_imovel: nrLocal, complemento: compLocal })
+        setCep(cepLocal)
+        setNumero(nrLocal)
+        setComplemento(compLocal)
+
+        // Buscar endereço com CEP novo
+        if (cepLocal.length === 8) {
+          try {
+            const vr = await fetch(`https://viacep.com.br/ws/${cepLocal}/json/`)
+            const vd = await vr.json()
+            if (!vd.erro) {
+              const partes = [vd.logradouro, nrLocal||null, compLocal||null, vd.bairro].filter(Boolean)
+              setEndereco(partes.join(', ') + `, ${vd.localidade}/${vd.uf}`)
+              setLogradouro(vd.logradouro)
+              setMunicipioUF(`${vd.localidade}/${vd.uf}`)
+            }
+          } catch {}
         }
+
         setModoEdicao(false)
         if (isUpdate) {
           informa('Dados salvos', 'Os dados do estabelecimento foram atualizados com sucesso.')
