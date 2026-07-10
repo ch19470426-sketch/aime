@@ -419,6 +419,9 @@ function conselho(titulo: string): string {
   if (titulo === 'Corretor Imóvel') return 'CRECI'
   return 'CREA'
 }
+function tituloLimpo(titulo: string): string {
+  return titulo.replace(/\s*(CREA|CAU|CRECI)\s*/gi,'').trim()
+}
 
 function gerarScriptDatas(n: number): string {
   const linhas: string[] = []
@@ -567,7 +570,7 @@ export async function POST(request: NextRequest) {
     partes.push('<button class="add" onclick="addDoc()">+ Adicionar documento</button>')
     partes.push('<div class="ass">')
     partes.push('<p><strong>' + insp.nome_inspetor + '</strong></p>')
-    partes.push('<p>' + insp.titulo_profissional + ' — ' + siglaConselho + ' ' + insp.inscricao_crea_cau + '</p>')
+    partes.push('<p>' + tituloLimpo(insp.titulo_profissional) + ' — ' + siglaConselho + ' ' + insp.inscricao_crea_cau + '</p>')
     if (insp.especializacao) partes.push('<p>Especialista ' + insp.especializacao + '</p>')
     partes.push('<p style="margin-top:20pt">De acordo: _____________________ CPF: _______________ Data: ___/___/______</p>')
     partes.push('<p>' + (String(plano.parceiro ?? '')).replace('Inspetor e ','') + '</p>')
