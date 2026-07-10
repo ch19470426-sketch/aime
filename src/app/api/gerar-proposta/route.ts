@@ -229,6 +229,9 @@ function conselho(titulo: string): string {
 function tituloLimpo(titulo: string): string {
   return titulo.replace(/\s*(CREA|CAU|CRECI)\s*/gi,'').trim()
 }
+function numLimpo(num: string): string {
+  return num.replace(/^(CREA|CAU|CRECI)[\s\-]*/gi,'').trim()
+}
 
 export async function POST(request: NextRequest) {
   try {
