@@ -431,7 +431,7 @@ function PlanoInner() {
 
                 {/* Campos elevador/NR */}
                 {(isElevador || isNR) && (
-                  <div style={{ ...S.row, isElevador ? S.c2 : S.c3 }}>
+                  <div style={{ ...S.row, ...(isElevador ? S.c2 : S.c3) }}>
                     <Field label="Fabricante/Marca *">
                       <input style={S.input} value={ativoAtual.fabricante_marca}
                         onChange={e => atualizarAtivo('fabricante_marca', e.target.value)} />
