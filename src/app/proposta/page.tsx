@@ -163,7 +163,7 @@ function PropostaInner() {
         const e = estData[0]
         setEst(e)
         setRazaoSocial(e.razao_social_nome)
-        setCep(e.cep_estabelecimento?.replace('-','') ?? '')
+        setCep((e.cep_estabelecimento ?? '').replace(/\D/g,'').trim())
         setNumero(e.numero_imovel ?? '')
         setComplemento(e.complemento ?? '')
         await buscarCep(e.cep_estabelecimento?.replace('-','') ?? '', e.numero_imovel ?? '', e.complemento ?? '')
@@ -236,7 +236,7 @@ function PropostaInner() {
           const e = estAtual[0]
           setEst(e)
           setRazaoSocial(e.razao_social_nome ?? '')
-          setCep((e.cep_estabelecimento ?? '').replace(/\D/g,''))
+          setCep((e.cep_estabelecimento ?? '').replace(/\D/g,'').trim())
           setNumero(e.numero_imovel ?? '')
           setComplemento(e.complemento ?? '')
           // Buscar endereço com dados frescos do banco
