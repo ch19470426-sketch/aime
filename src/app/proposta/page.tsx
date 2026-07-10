@@ -116,6 +116,7 @@ function PropostaInner() {
   const [insp,        setInsp]        = useState<Inspetor | null>(null)
   const [endereco,    setEndereco]    = useState('')
   const [municipioUF, setMunicipioUF] = useState('')
+  const [logradouro,  setLogradouro]  = useState('')
   const [carregando,  setCarregando]  = useState(true)
   const [salvando,    setSalvando]    = useState(false)
   const [etapa,       setEtapa]       = useState<'cadastro' | 'valor' | 'preview'>('cadastro')
@@ -187,6 +188,7 @@ function PropostaInner() {
       const data = await res.json()
       if (!data.erro) {
         setMunicipioUF(`${data.localidade}/${data.uf}`)
+        setLogradouro(data.logradouro)
         const nrFinal = nr ?? numero
         const compFinal = comp ?? complemento
         const partes = [data.logradouro, nrFinal || null, compFinal || null, data.bairro].filter(Boolean)
@@ -221,7 +223,6 @@ function PropostaInner() {
           ...(isUpdate ? {} : { data_cadastro: new Date().toISOString().split('T')[0] })
         })
       })
-      console.log('PATCH status:', res.status, res.ok)
       if (res.ok) {
         // Capturar valores locais antes de qualquer setState
         const nrLocal = numero
@@ -239,6 +240,7 @@ function PropostaInner() {
               const partes = [vd.logradouro, nrLocal||null, compLocal||null, vd.bairro].filter(Boolean)
               const endNovo = partes.join(', ') + `, ${vd.localidade}/${vd.uf}`
               setMunicipioUF(`${vd.localidade}/${vd.uf}`)
+              setLogradouro(vd.logradouro)
               setEndereco(endNovo)
             }
           } catch {}
@@ -258,7 +260,7 @@ function PropostaInner() {
           setEtapa('valor')
         }
       } else {
-        const errTxt = await res.text(); informa('Erro', `Não foi possível salvar: ${res.status} ${errTxt}`)
+        informa('Erro', 'Não foi possível salvar o estabelecimento.')
       }
     } finally {
       setSalvando(false)
@@ -374,9 +376,11 @@ function PropostaInner() {
                       placeholder={modoEdicao ? 'Apto, sala...' : ''} />
                   </Field>
                 </div>
-                {endereco && (
+                {logradouro && (
                   <Field label="Endereço">
-                    <input style={S.inputRO} value={endereco} readOnly />
+                    <input style={S.inputRO}
+                      value={[logradouro, numero||null, complemento||null].filter(Boolean).join(', ') + (municipioUF ? `, ${municipioUF}` : '')}
+                      readOnly />
                   </Field>
                 )}
 
