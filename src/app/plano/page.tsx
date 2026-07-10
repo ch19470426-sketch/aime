@@ -116,14 +116,11 @@ function PlanoInner() {
   const [salvando,   setSalvando]   = useState(false)
   const [ativos,     setAtivos]     = useState<Ativo[]>([])
   const [ativoAtual, setAtivoAtual] = useState<Ativo>({ ...ATIVO_VAZIO })
-  const [est,        setEst]        = useState<Record<string,string> | null>(null)
+  const [est,        setEst]        = useState<Record<string,string> | null>(null) // eslint-disable-line
   const [insp,       setInsp]       = useState<Record<string,string> | null>(null)
   const [htmlPlano,  setHtmlPlano]  = useState('')
 
   // Dados do documento — editáveis pelo inspetor
-  const [datasAtiv,  setDatasAtiv]  = useState<{inicio: string; fim: string}[]>([])
-  const [situDocs,   setSituDocs]   = useState<string[]>([])
-  const [resultDocs, setResultDocs] = useState<string[]>([])
 
   async function query(table: string, qparams: string) {
     const res = await fetch(`${SUPA_URL}/rest/v1/${table}?${qparams}`, {
@@ -246,7 +243,7 @@ function PlanoInner() {
       const res = await fetch('/api/gerar-plano', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ tipoServico, cpfInspetor, cnpjoucpf, ativos, datasAtiv, situDocs, resultDocs })
+        body: JSON.stringify({ tipoServico, cpfInspetor, cnpjoucpf, ativos })
       })
       const data = await res.json()
       if (data.html) {
