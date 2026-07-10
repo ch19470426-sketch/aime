@@ -413,6 +413,13 @@ const PLANOS: Record<string, Record<string, unknown>> = {
 const MESES = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro']
 function dataExtenso(d: Date) { return `${d.getDate()} de ${MESES[d.getMonth()]} de ${d.getFullYear()}` }
 
+
+function conselho(titulo: string): string {
+  if (titulo === 'Arquiteto') return 'CAU'
+  if (titulo === 'Corretor Imóvel') return 'CRECI'
+  return 'CREA'
+}
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
@@ -469,33 +476,22 @@ export async function POST(request: NextRequest) {
     // Gerar linhas de atividades com campos editáveis
     const linhasAtiv = atividades.map((a, i) => `
       <tr>
-        <td style="text-align:center">${a.horas}</td>
-        <td style="text-align:center">${a.dias}</td>
-        <td><input type="date" name="ini_${i}" style="width:100%;border:none;border-bottom:1px solid #1E3A8A;font-size:8pt;font-family:Arial"></td>
-        <td><input type="date" name="fim_${i}" style="width:100%;border:none;border-bottom:1px solid #1E3A8A;font-size:8pt;font-family:Arial"></td>
         <td>${a.descricao}</td>
+        <td><input type="date" id="ini_${i}" name="ini_${i}" onchange="validarDatas(${i})" style="width:100%;border:none;border-bottom:1px solid #1E3A8A;font-size:8pt;font-family:Arial"></td>
+        <td><input type="date" id="fim_${i}" name="fim_${i}" onchange="validarDatas(${i})" style="width:100%;border:none;border-bottom:1px solid #1E3A8A;font-size:8pt;font-family:Arial"></td>
       </tr>`).join('')
 
     // Gerar linhas de documentos com selects
     const linhasDocs = documentos.map((doc, i) => `
       <tr>
         <td>${doc}</td>
-        <td>
-          <select name="sit_${i}" style="width:100%;border:none;border-bottom:1px solid #1E3A8A;font-size:8pt;font-family:Arial">
-            <option value="">—</option>
-            <option>Entregue</option>
-            <option>Pendente</option>
-            <option>Desnecessário</option>
-          </select>
-        </td>
-        <td>
-          <select name="res_${i}" style="width:100%;border:none;border-bottom:1px solid #1E3A8A;font-size:8pt;font-family:Arial">
-            <option value="">—</option>
-            <option>Conforme</option>
-            <option>Não conforme</option>
-            <option>Não se aplica</option>
-          </select>
-        </td>
+        <td><select name="sit_${i}" style="width:100%;border:none;border-bottom:1px solid #1E3A8A;font-size:8pt;font-family:Arial">
+          <option value="">—</option><option>Entregue</option><option>Pendente</option><option>Desnecessário</option>
+        </select></td>
+        <td><select name="res_${i}" style="width:100%;border:none;border-bottom:1px solid #1E3A8A;font-size:8pt;font-family:Arial">
+          <option value="">—</option><option>Conforme</option><option>Não conforme</option><option>Não se aplica</option>
+        </select></td>
+        <td style="text-align:center"><button onclick="remLinha(this)" style="background:#DC2626;color:#fff;border:none;border-radius:4px;padding:2px 8px;cursor:pointer;font-size:8pt">✕</button></td>
       </tr>`).join('')
 
     const html = `<!DOCTYPE html>
@@ -518,14 +514,49 @@ tr:nth-child(even) { background: #f8fafc; }
 .rod { margin-top: 20pt; padding-top: 8pt; border-top: 1px solid #ccc; font-size: 8pt; text-align: center; white-space: pre-line; color: #374151; }
 .info { background: #FFF9E6; border: 1px solid #F59E0B; border-radius: 4px; padding: 6pt 10pt; margin: 8pt 0; font-size: 8.5pt; color: #92400E; }
 </style>
+<script>
+function validarDatas(idx) {
+  const ini = document.getElementById('ini_' + idx)
+  const fim = document.getElementById('fim_' + idx)
+  if (ini && fim && ini.value && fim.value && fim.value < ini.value) {
+    alert('A data fim não pode ser anterior à data início.')
+    fim.value = ''
+    return
+  }
+  if (idx > 0) {
+    const iniAnterior = document.getElementById('ini_' + (idx - 1))
+    if (iniAnterior && ini && ini.value && iniAnterior.value && ini.value < iniAnterior.value) {
+      alert('A data início não pode ser anterior à data início da atividade anterior.')
+      ini.value = ''
+      fim.value = ''
+      return
+    }
+  }
+}
+function addLinha() {
+  const tbody = document.getElementById('tbodyDocs')
+  const tr = document.createElement('tr')
+  tr.innerHTML = `
+    <td><input type="text" placeholder="Documento..." style="width:100%;border:none;border-bottom:1px solid #1E3A8A;font-size:8.5pt;font-family:Arial"></td>
+    <td><select style="width:100%;border:none;border-bottom:1px solid #1E3A8A;font-size:8pt;font-family:Arial">
+      <option value="">—</option><option>Entregue</option><option>Pendente</option><option>Desnecessário</option>
+    </select></td>
+    <td><select style="width:100%;border:none;border-bottom:1px solid #1E3A8A;font-size:8pt;font-family:Arial">
+      <option value="">—</option><option>Conforme</option><option>Não conforme</option><option>Não se aplica</option>
+    </select></td>
+    <td style="text-align:center"><button onclick="this.closest('tr').remove()" style="background:#DC2626;color:#fff;border:none;border-radius:4px;padding:2px 8px;cursor:pointer;font-size:8pt">✕</button></td>
+  `
+  tbody.appendChild(tr)
+}
+function remLinha(btn) { btn.closest('tr').remove() }
+</script>
 </head>
 <body>
 ${insp.cabecalho_documentos ? `<div class="cab">${insp.cabecalho_documentos}</div>` : ''}
 <h1>${plano.titulo}</h1>
 <p style="text-align:center;color:#374151;margin-bottom:10pt">${municipio}, ${dataHoje}</p>
-<p><strong>Estabelecimento:</strong> ${est.razao_social_nome}</p>
+<p style="display:flex;justify-content:space-between"><span><strong>Estabelecimento:</strong> ${est.razao_social_nome}</span><span><strong>CNPJ/CPF:</strong> ${cnpjoucpf}</span></p>
 <p><strong>Endereço:</strong> ${endereco}</p>
-<p><strong>CNPJ/CPF:</strong> ${cnpjoucpf}</p>
 
 <h2>Ativos a Vistoriar</h2>
 <table>
@@ -539,12 +570,9 @@ ${insp.cabecalho_documentos ? `<div class="cab">${insp.cabecalho_documentos}</di
 <div class="info">⚠️ Favor preencher as datas de início e fim de cada atividade abaixo.</div>
 <table>
   <thead><tr>
-    <th colspan="2">Duração Prevista</th>
-    <th colspan="2">Período</th>
-    <th rowspan="2" style="width:50%">Atividades</th>
-  </tr>
-  <tr>
-    <th>Horas</th><th>Dias Úteis</th><th>Dt. Início</th><th>Dt. Fim</th>
+    <th style="width:60%">Atividades</th>
+    <th style="width:20%">Dt. Início</th>
+    <th style="width:20%">Dt. Fim</th>
   </tr></thead>
   <tbody>${linhasAtiv}</tbody>
 </table>
@@ -553,16 +581,18 @@ ${insp.cabecalho_documentos ? `<div class="cab">${insp.cabecalho_documentos}</di
 <div class="info">⚠️ Favor verificar e ajustar a relação de documentos abaixo.</div>
 <table>
   <thead><tr>
-    <th style="width:60%">Documento</th>
-    <th style="width:20%">Situação</th>
-    <th style="width:20%">Resultado</th>
+    <th style="width:55%">Documento</th>
+    <th style="width:18%">Situação</th>
+    <th style="width:18%">Resultado</th>
+    <th style="width:9%">Ação</th>
   </tr></thead>
-  <tbody>${linhasDocs}</tbody>
+  <tbody id="tbodyDocs">${linhasDocs}</tbody>
 </table>
+<button onclick="addLinha()" style="margin-top:6pt;background:#1E3A8A;color:#fff;border:none;border-radius:4px;padding:4px 12px;cursor:pointer;font-size:8pt">+ Adicionar documento</button>
 
 <div class="ass">
   <p><strong>${insp.nome_inspetor}</strong></p>
-  <p>${insp.titulo_profissional} — CREA/CAU ${insp.inscricao_crea_cau}</p>
+  <p>${insp.titulo_profissional} — ${conselho(insp.titulo_profissional)} ${insp.inscricao_crea_cau}</p>
   ${insp.especializacao ? `<p>Especialista ${insp.especializacao}</p>` : ''}
   <p style="margin-top:20pt">De acordo: _____________________ CPF: _______________ Data: ___/___/______</p>
   <p>${plano.parceiro?.toString().replace('Inspetor e ','') ?? 'Responsável'}</p>
