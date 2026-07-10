@@ -221,6 +221,7 @@ function PropostaInner() {
           ...(isUpdate ? {} : { data_cadastro: new Date().toISOString().split('T')[0] })
         })
       })
+      console.log('PATCH status:', res.status, res.ok)
       if (res.ok) {
         // Capturar valores locais antes de qualquer setState
         const nrLocal = numero
@@ -257,7 +258,7 @@ function PropostaInner() {
           setEtapa('valor')
         }
       } else {
-        informa('Erro', 'Não foi possível salvar o estabelecimento.')
+        const errTxt = await res.text(); informa('Erro', `Não foi possível salvar: ${res.status} ${errTxt}`)
       }
     } finally {
       setSalvando(false)
