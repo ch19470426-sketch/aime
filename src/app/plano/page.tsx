@@ -365,8 +365,13 @@ function PlanoInner() {
                 </div>
                 <div style={{ ...S.row, ...S.c2 }}>
                   <Field label="WhatsApp">
-                    <input style={S.input} value={ativoAtual.whatsapp_responsavel} maxLength={11}
-                      onChange={e => atualizarAtivo('whatsapp_responsavel', e.target.value.replace(/\D/g,''))} placeholder="Ex: 27999999999" />
+                    <input style={S.input} value={
+                      ativoAtual.whatsapp_responsavel.replace(/^(\d{2})(\d{5})(\d{4})$/, '($1) $2-$3')
+                        .replace(/^(\d{2})(\d{4})(\d{4})$/, '($1) $2-$3')
+                    }
+                      maxLength={15}
+                      onChange={e => atualizarAtivo('whatsapp_responsavel', e.target.value.replace(/\D/g,''))}
+                      placeholder="(27) 99999-9999" />
                   </Field>
                   <Field label="E-mail">
                     <input style={S.input} value={ativoAtual.email_responsavel}
