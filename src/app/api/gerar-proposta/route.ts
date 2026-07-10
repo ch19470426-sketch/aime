@@ -386,7 +386,7 @@ ${md2html(cp.equipe)}
 <p style="text-align:justify;margin:6pt 0">O preço dos serviços, com base na estimativa de horas trabalhadas, conforme tabela do IBAPE — Instituto Brasileiro de Avaliações e Perícias, e válido para 30 (trinta) dias, a partir desta data, é o seguinte:</p>
 <ul>
 <li style="text-align:justify;text-align-last:left">O valor pela prestação do serviço é de <b>R$ ${valorFmt} (${valorEx} reais)</b>.</li>
-<li style="text-align:justify;text-align-last:left">Demais impostos e taxas, inclusive encargos sociais pertinentes, correrão à conta do proponente.</li>
+<li style="text-align:justify;text-align-last:left">Impostos e taxas, inclusive encargos sociais pertinentes, correrão à conta do proponente.</li>
 </ul>
 <p style="text-align:justify;margin:6pt 0">O pagamento deverá ser efetuado mediante depósito bancário, ou outra forma ajustada entre os contratantes, nas seguintes condições:</p>
 <ul>
