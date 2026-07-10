@@ -222,15 +222,35 @@ function PropostaInner() {
         })
       })
       if (res.ok) {
-        // Atualizar estado com dados novos para refletir na tela e na proposta
-        const estNovo: Estabelecimento = {
-          cnpjoucpf, razao_social_nome: razaoSocial,
-          cep_estabelecimento: cep, numero_imovel: numero, complemento
+        // Capturar valores locais antes de qualquer setState
+        const nrLocal = numero
+        const compLocal = complemento
+        const cepLocal = cep
+        const razaoLocal = razaoSocial
+
+        // Buscar endereço com valores locais garantidos
+        const cepLimpo = cepLocal.replace(/\D/g, '')
+        if (cepLimpo.length === 8) {
+          try {
+            const vr = await fetch(`https://viacep.com.br/ws/${cepLimpo}/json/`)
+            const vd = await vr.json()
+            if (!vd.erro) {
+              const partes = [vd.logradouro, nrLocal||null, compLocal||null, vd.bairro].filter(Boolean)
+              const endNovo = partes.join(', ') + `, ${vd.localidade}/${vd.uf}`
+              setMunicipioUF(`${vd.localidade}/${vd.uf}`)
+              setEndereco(endNovo)
+            }
+          } catch {}
         }
-        setEst(estNovo)
-        setRazaoSocial(razaoSocial)
-        await buscarCep(cep, numero, complemento)
+
+        // Atualizar todos os estados com valores locais
+        setEst({ cnpjoucpf, razao_social_nome: razaoLocal, cep_estabelecimento: cepLocal, numero_imovel: nrLocal, complemento: compLocal })
+        setRazaoSocial(razaoLocal)
+        setCep(cepLocal)
+        setNumero(nrLocal)
+        setComplemento(compLocal)
         setModoEdicao(false)
+
         if (isUpdate) {
           informa('Dados salvos', 'Os dados do estabelecimento foram atualizados com sucesso.')
         } else {
