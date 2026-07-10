@@ -488,7 +488,7 @@ const S: Record<string, React.CSSProperties> = {
   c2:         { gridTemplateColumns: '1fr 1fr' },
   c3:         { gridTemplateColumns: '1fr 1fr 1fr' },
   field:      { display: 'flex', flexDirection: 'column', gap: '2px' },
-  fieldLabel: { fontSize: '6.5pt', fontWeight: 600, color: '#4a6480', textTransform: 'uppercase' },
+  fieldLabel: { fontSize: '6.5pt', fontWeight: 600, color: '#4a6480' },
   input:      { width: '100%', border: '1px solid #c3d4f0', borderRadius: '4px', padding: '4px 6px', fontSize: '8pt', color: '#1a1a2e', fontFamily: 'inherit', background: '#ffffff', boxSizing: 'border-box' },
   inputRO:    { width: '100%', border: '1px solid #e2e8f0', borderRadius: '4px', padding: '4px 6px', fontSize: '8pt', color: '#64748b', fontFamily: 'inherit', background: '#f1f5f9', boxSizing: 'border-box' },
   footer:     { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginTop: '8px' },
