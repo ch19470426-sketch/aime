@@ -134,6 +134,7 @@ function PlanoInner() {
   }, [cnpjoucpf, cpfInspetor])
 
   async function carregar() {
+    setAtivoAtual({ ...ATIVO_VAZIO })
     setCarregando(true)
     try {
       // Verificar estabelecimento
@@ -240,6 +241,11 @@ function PlanoInner() {
   async function gerarPlano() {
     setSalvando(true)
     try {
+      solicita(
+        'Atenção — Plano de Trabalho',
+        'Favor verificar e ajustar as datas no item 1.1 e a relação de documentos no item 1.2 antes de salvar o plano.',
+        [{ label: 'Entendido', acao: () => fechar(), estilo: 'primario' }]
+      )
       const res = await fetch('/api/gerar-plano', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
