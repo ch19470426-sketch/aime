@@ -226,7 +226,6 @@ function PropostaInner() {
       if (res.ok) {
         // Re-buscar do banco para garantir dados frescos na tela
         const estAtual = await query('estabelecimento', `cnpjoucpf=eq.${cnpjoucpf}&select=cnpjoucpf,razao_social_nome,cep_estabelecimento,numero_imovel,complemento`)
-        console.log('REBUSCA:', JSON.stringify(estAtual))
         if (Array.isArray(estAtual) && estAtual[0]) {
           const e = estAtual[0]
           setEst(e)
@@ -234,7 +233,6 @@ function PropostaInner() {
           setCep((e.cep_estabelecimento ?? '').replace(/\D/g,''))
           setNumero(e.numero_imovel ?? '')
           setComplemento(e.complemento ?? '')
-          setLogradouro('')
           // Buscar endereço com dados frescos do banco
           const cepFresco = (e.cep_estabelecimento ?? '').replace(/\D/g,'')
           if (cepFresco.length === 8) {
@@ -373,11 +371,9 @@ function PropostaInner() {
                       placeholder={modoEdicao ? 'Apto, sala...' : ''} />
                   </Field>
                 </div>
-                {logradouro && (
+                {endereco && (
                   <Field label="Endereço">
-                    <input style={S.inputRO}
-                      value={[logradouro, numero||null, complemento||null].filter(Boolean).join(', ') + (municipioUF ? `, ${municipioUF}` : '')}
-                      readOnly />
+                    <input style={S.inputRO} value={endereco} readOnly />
                   </Field>
                 )}
 
