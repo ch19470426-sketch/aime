@@ -203,8 +203,9 @@ function PropostaInner() {
     }
     setSalvando(true)
     try {
-      const method = est ? 'PATCH' : 'POST'
-      const url = est
+      const isUpdate = !!est
+      const method = isUpdate ? 'PATCH' : 'POST'
+      const url = isUpdate
         ? `${SUPA_URL}/rest/v1/estabelecimento?cnpjoucpf=eq.${cnpjoucpf}`
         : `${SUPA_URL}/rest/v1/estabelecimento`
       const res = await fetch(url, {
@@ -217,12 +218,24 @@ function PropostaInner() {
           cnpjoucpf, razao_social_nome: razaoSocial,
           cep_estabelecimento: cep, numero_imovel: numero,
           complemento, tipo_id: 1,
-          ...(est ? {} : { data_cadastro: new Date().toISOString().split('T')[0] })
+          ...(isUpdate ? {} : { data_cadastro: new Date().toISOString().split('T')[0] })
         })
       })
       if (res.ok) {
+        // Atualizar estado com dados novos para refletir na tela e na proposta
+        const estNovo: Estabelecimento = {
+          cnpjoucpf, razao_social_nome: razaoSocial,
+          cep_estabelecimento: cep, numero_imovel: numero, complemento
+        }
+        setEst(estNovo)
+        setRazaoSocial(razaoSocial)
         await buscarCep(cep, numero, complemento)
-        setEtapa('valor')
+        setModoEdicao(false)
+        if (isUpdate) {
+          informa('Dados salvos', 'Os dados do estabelecimento foram atualizados com sucesso.')
+        } else {
+          setEtapa('valor')
+        }
       } else {
         informa('Erro', 'Não foi possível salvar o estabelecimento.')
       }
