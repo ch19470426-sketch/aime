@@ -1,6 +1,4 @@
 // src/app/api/gerar-plano/route.ts
-// AIMÊ — Gera HTML do Plano de Trabalho
-
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 
@@ -411,8 +409,10 @@ const PLANOS: Record<string, Record<string, unknown>> = {
 }
 
 const MESES = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro']
-function dataExtenso(d: Date) { return `${d.getDate()} de ${MESES[d.getMonth()]} de ${d.getFullYear()}` }
 
+function dataExtenso(d: Date) {
+  return d.getDate() + ' de ' + MESES[d.getMonth()] + ' de ' + d.getFullYear()
+}
 
 function conselho(titulo: string): string {
   if (titulo === 'Arquiteto') return 'CAU'
@@ -420,199 +420,162 @@ function conselho(titulo: string): string {
   return 'CREA'
 }
 
+function gerarScriptDatas(n: number): string {
+  const linhas: string[] = []
+  linhas.push('<script>')
+  linhas.push('function validarDatas(idx){')
+  linhas.push('  var ini=document.getElementById("ini_"+idx);')
+  linhas.push('  var fim=document.getElementById("fim_"+idx);')
+  linhas.push('  if(ini&&fim&&ini.value&&fim.value&&fim.value<ini.value){alert("Data fim nao pode ser anterior a data inicio.");fim.value="";return;}')
+  linhas.push('  if(idx>0){var ant=document.getElementById("ini_"+(idx-1));')
+  linhas.push('    if(ant&&ini&&ini.value&&ant.value&&ini.value<ant.value){alert("Data inicio nao pode ser anterior a atividade anterior.");ini.value="";fim.value="";}}')
+  linhas.push('}')
+  linhas.push('function addDoc(){')
+  linhas.push('  var tb=document.getElementById("tbDocs");')
+  linhas.push('  var tr=tb.insertRow();')
+  linhas.push('  var td1=tr.insertCell();var td2=tr.insertCell();var td3=tr.insertCell();var td4=tr.insertCell();')
+  linhas.push('  var inp=document.createElement("input");inp.style.cssText="width:100%;border:none;border-bottom:1px solid #1E3A8A;font-size:8.5pt;font-family:Arial";')
+  linhas.push('  td1.appendChild(inp);')
+  linhas.push('  function makesel(opts){var s=document.createElement("select");s.style.cssText="width:100%;border:none;border-bottom:1px solid #1E3A8A;font-size:8pt;font-family:Arial";opts.forEach(function(o){var op=document.createElement("option");op.textContent=o;s.appendChild(op);});return s;}')
+  linhas.push('  td2.appendChild(makesel(["—","Entregue","Pendente","Desnecessario"]));')
+  linhas.push('  td3.appendChild(makesel(["—","Conforme","Nao conforme","Nao se aplica"]));')
+  linhas.push('  var btn=document.createElement("button");btn.textContent="X";btn.style.cssText="background:#DC2626;color:#fff;border:none;border-radius:4px;padding:2px 8px;cursor:pointer;font-size:8pt";')
+  linhas.push('  btn.onclick=function(){tr.parentNode.removeChild(tr);};td4.appendChild(btn);')
+  linhas.push('}')
+  linhas.push('function remDoc(btn){var tr=btn.parentNode.parentNode;tr.parentNode.removeChild(tr);}')
+  linhas.push('</script>')
+  return linhas.join('\n')
+}
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
     const { tipoServico, cpfInspetor, cnpjoucpf, ativos } = body
 
-    // Buscar inspetor
     const { data: insp } = await supabase.from('inspetor')
       .select('nome_inspetor,titulo_profissional,inscricao_crea_cau,especializacao,cabecalho_documentos,rodape_documentos')
       .eq('cpf_inspetor', cpfInspetor).single()
     if (!insp) return NextResponse.json({ erro: 'Inspetor não encontrado' }, { status: 404 })
 
-    // Buscar estabelecimento
     const { data: est } = await supabase.from('estabelecimento')
       .select('razao_social_nome,cep_estabelecimento,numero_imovel,complemento')
       .eq('cnpjoucpf', cnpjoucpf).single()
     if (!est) return NextResponse.json({ erro: 'Estabelecimento não encontrado' }, { status: 404 })
 
-    // Buscar endereço via ViaCEP
     let endereco = ''
     let municipioUF = ''
     try {
       const cep = (est.cep_estabelecimento ?? '').replace(/\D/g,'')
       if (cep.length === 8) {
-        const vr = await fetch(`https://viacep.com.br/ws/${cep}/json/`)
+        const vr = await fetch('https://viacep.com.br/ws/' + cep + '/json/')
         const vd = await vr.json()
         if (!vd.erro) {
           const partes = [vd.logradouro, est.numero_imovel||null, est.complemento||null, vd.bairro].filter(Boolean)
-          endereco = partes.join(', ') + `, ${vd.localidade}/${vd.uf}`
-          municipioUF = `${vd.localidade}/${vd.uf}`
+          endereco = partes.join(', ') + ', ' + vd.localidade + '/' + vd.uf
+          municipioUF = vd.localidade + '/' + vd.uf
         }
       }
     } catch {}
 
     const plano = PLANOS[tipoServico] as Record<string, unknown>
-    if (!plano) return NextResponse.json({ erro: 'Tipo de serviço não encontrado' }, { status: 400 })
+    if (!plano) return NextResponse.json({ erro: 'Tipo não encontrado' }, { status: 400 })
 
     const atividades = plano.atividades as {horas: number; dias: number; descricao: string}[]
     const documentos = plano.documentos as string[]
     const dataHoje = dataExtenso(new Date())
     const municipio = municipioUF.split('/')[0]?.trim() ?? ''
+    const siglaConselho = conselho(insp.titulo_profissional)
 
-    // Gerar linhas de ativos
-    const linhasAtivos = (ativos as Record<string, string>[]).map((a, i) => `
-      <tr>
-        <td>${i+1}</td>
-        <td>${a.tipo_ativo ?? ''}</td>
-        <td>${a.tag_ativo_nr_serie ?? ''}</td>
-        <td>${a.nome_responsavel ?? ''}</td>
-        <td>${a.funcao_responsavel ?? ''}</td>
-        <td>${a.whatsapp_responsavel ?? ''}</td>
-        <td>${a.uso_ativo ?? ''}</td>
-      </tr>`).join('')
+    // Linhas de ativos
+    const linhasAtivos = (ativos as Record<string, string>[]).map((a, i) => [
+      '<tr>',
+      '<td>' + (i+1) + '</td>',
+      '<td>' + (a.tipo_ativo ?? '') + '</td>',
+      '<td>' + (a.tag_ativo_nr_serie ?? '') + '</td>',
+      '<td>' + (a.nome_responsavel ?? '') + '</td>',
+      '<td>' + (a.funcao_responsavel ?? '') + '</td>',
+      '<td>' + (a.whatsapp_responsavel ?? '') + '</td>',
+      '<td>' + (a.uso_ativo ?? '') + '</td>',
+      '</tr>'
+    ].join('')).join('')
 
-    // Gerar linhas de atividades com campos editáveis
-    const linhasAtiv = atividades.map((a, i) => `
-      <tr>
-        <td>${a.descricao}</td>
-        <td><input type="date" id="ini_${i}" name="ini_${i}" onchange="validarDatas(${i})" style="width:100%;border:none;border-bottom:1px solid #1E3A8A;font-size:8pt;font-family:Arial"></td>
-        <td><input type="date" id="fim_${i}" name="fim_${i}" onchange="validarDatas(${i})" style="width:100%;border:none;border-bottom:1px solid #1E3A8A;font-size:8pt;font-family:Arial"></td>
-      </tr>`).join('')
+    // Linhas de atividades
+    const linhasAtiv = atividades.map((a, i) => {
+      const stInp = 'width:100%;border:none;border-bottom:1px solid #1E3A8A;font-size:8pt;font-family:Arial'
+      return [
+        '<tr>',
+        '<td style="text-align:justify">' + a.descricao + '</td>',
+        '<td><input type="date" id="ini_' + i + '" onchange="validarDatas(' + i + ')" style="' + stInp + '"></td>',
+        '<td><input type="date" id="fim_' + i + '" onchange="validarDatas(' + i + ')" style="' + stInp + '"></td>',
+        '</tr>'
+      ].join('')
+    }).join('')
 
-    // Gerar linhas de documentos com selects
-    const linhasDocs = documentos.map((doc, i) => `
-      <tr>
-        <td>${doc}</td>
-        <td><select name="sit_${i}" style="width:100%;border:none;border-bottom:1px solid #1E3A8A;font-size:8pt;font-family:Arial">
-          <option value="">—</option><option>Entregue</option><option>Pendente</option><option>Desnecessário</option>
-        </select></td>
-        <td><select name="res_${i}" style="width:100%;border:none;border-bottom:1px solid #1E3A8A;font-size:8pt;font-family:Arial">
-          <option value="">—</option><option>Conforme</option><option>Não conforme</option><option>Não se aplica</option>
-        </select></td>
-        <td style="text-align:center"><button onclick="remLinha(this)" style="background:#DC2626;color:#fff;border:none;border-radius:4px;padding:2px 8px;cursor:pointer;font-size:8pt">✕</button></td>
-      </tr>`).join('')
+    // Linhas de documentos
+    const stSel = 'width:100%;border:none;border-bottom:1px solid #1E3A8A;font-size:8pt;font-family:Arial'
+    const optSit = '<option value="">—</option><option>Entregue</option><option>Pendente</option><option>Desnecessário</option>'
+    const optRes = '<option value="">—</option><option>Conforme</option><option>Não conforme</option><option>Não se aplica</option>'
+    const linhasDocs = documentos.map((doc) => [
+      '<tr>',
+      '<td>' + doc + '</td>',
+      '<td><select style="' + stSel + '">' + optSit + '</select></td>',
+      '<td><select style="' + stSel + '">' + optRes + '</select></td>',
+      '<td style="text-align:center"><button onclick="remDoc(this)" style="background:#DC2626;color:#fff;border:none;border-radius:4px;padding:2px 8px;cursor:pointer;font-size:8pt">✕</button></td>',
+      '</tr>'
+    ].join('')).join('')
 
-  
-  const scriptJs = `
-function validarDatas(idx) {
-  const ini = document.getElementById('ini_' + idx)
-  const fim = document.getElementById('fim_' + idx)
-  if (ini && fim && ini.value && fim.value && fim.value < ini.value) {
-    alert('A data fim nao pode ser anterior a data inicio.')
-    fim.value = ''
-    return
-  }
-  if (idx > 0) {
-    const iniAnterior = document.getElementById('ini_' + (idx - 1))
-    if (iniAnterior && ini && ini.value && iniAnterior.value && ini.value < iniAnterior.value) {
-      alert('A data inicio nao pode ser anterior a data inicio da atividade anterior.')
-      ini.value = ''
-      fim.value = ''
-      return
-    }
-  }
-}
-function addLinha() {
-  const tbody = document.getElementById('tbodyDocs')
-  const tr = document.createElement('tr')
-  const sel1 = document.createElement('select')
-  sel1.style = 'width:100%;border:none;border-bottom:1px solid #1E3A8A;font-size:8pt;font-family:Arial'
-  sel1.innerHTML = '<option value="">—</option><option>Entregue</option><option>Pendente</option><option>Desnecessario</option>'
-  const sel2 = document.createElement('select')
-  sel2.style = 'width:100%;border:none;border-bottom:1px solid #1E3A8A;font-size:8pt;font-family:Arial'
-  sel2.innerHTML = '<option value="">—</option><option>Conforme</option><option>Nao conforme</option><option>Nao se aplica</option>'
-  const inp = document.createElement('input')
-  inp.placeholder = 'Documento...'
-  inp.style = 'width:100%;border:none;border-bottom:1px solid #1E3A8A;font-size:8.5pt;font-family:Arial'
-  const btn = document.createElement('button')
-  btn.textContent = 'X'
-  btn.style = 'background:#DC2626;color:#fff;border:none;border-radius:4px;padding:2px 8px;cursor:pointer;font-size:8pt'
-  btn.onclick = function(){ this.closest('tr').remove() }
-  const td1 = document.createElement('td'); td1.appendChild(inp)
-  const td2 = document.createElement('td'); td2.appendChild(sel1)
-  const td3 = document.createElement('td'); td3.appendChild(sel2)
-  const td4 = document.createElement('td'); td4.style.textAlign='center'; td4.appendChild(btn)
-  tr.appendChild(td1); tr.appendChild(td2); tr.appendChild(td3); tr.appendChild(td4)
-  tbody.appendChild(tr)
-}
-function remLinha(btn) { btn.closest('tr').remove() }
-`
+    const css = [
+      '* { box-sizing: border-box; margin: 0; padding: 0; }',
+      'body { font-family: Arial, sans-serif; font-size: 10pt; line-height: 1.5; color: #000; padding: 1.5cm 2cm 1.5cm 2.5cm; }',
+      '.cab { text-align: center; margin-bottom: 16pt; padding-bottom: 8pt; border-bottom: 2px solid #1E3A8A; font-size: 9pt; color: #374151; white-space: pre-line; }',
+      'h1 { font-size: 13pt; font-weight: bold; color: #1E3A8A; text-align: center; margin: 12pt 0 4pt; }',
+      'h2 { font-size: 11pt; font-weight: bold; color: #1E3A8A; margin: 14pt 0 6pt; }',
+      'p { margin: 4pt 0; text-align: justify; }',
+      '.row { display: flex; justify-content: space-between; margin: 4pt 0; }',
+      'table { width: 100%; border-collapse: collapse; margin: 6pt 0; font-size: 8.5pt; }',
+      'th { background: #1E3A8A; color: #fff; padding: 4pt 6pt; text-align: left; font-size: 8pt; }',
+      'td { border: 1px solid #c3d4f0; padding: 3pt 6pt; vertical-align: middle; }',
+      'tr:nth-child(even) { background: #f8fafc; }',
+      '.info { background: #FFF9E6; border: 1px solid #F59E0B; border-radius: 4px; padding: 6pt 10pt; margin: 8pt 0; font-size: 8.5pt; color: #92400E; }',
+      '.ass { margin-top: 30pt; padding-top: 10pt; border-top: 1px solid #ccc; line-height: 1.8; }',
+      '.rod { margin-top: 20pt; padding-top: 8pt; border-top: 1px solid #ccc; font-size: 8pt; text-align: center; white-space: pre-line; color: #374151; }',
+      'button.add { margin-top: 6pt; background: #1E3A8A; color: #fff; border: none; border-radius: 4px; padding: 4px 12px; cursor: pointer; font-size: 8pt; }',
+    ].join('\n')
 
-  const html = \`<!DOCTYPE html\`
-<html lang="pt-BR">
-<head>
-<meta charset="UTF-8">
-<style>
-* { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: Arial, sans-serif; font-size: 10pt; line-height: 1.5; color: #000; padding: 1.5cm 2cm 1.5cm 2.5cm; }
-.cab { text-align: center; margin-bottom: 16pt; padding-bottom: 8pt; border-bottom: 2px solid #1E3A8A; font-size: 9pt; color: #374151; white-space: pre-line; }
-h1 { font-size: 13pt; font-weight: bold; color: #1E3A8A; text-align: center; margin: 12pt 0 4pt; }
-h2 { font-size: 11pt; font-weight: bold; color: #1E3A8A; margin: 14pt 0 6pt; }
-h3 { font-size: 10pt; font-weight: bold; margin: 10pt 0 4pt; }
-p { margin: 4pt 0; text-align: justify; }
-table { width: 100%; border-collapse: collapse; margin: 6pt 0; font-size: 8.5pt; }
-th { background: #1E3A8A; color: #fff; padding: 4pt 6pt; text-align: left; font-size: 8pt; }
-td { border: 1px solid #c3d4f0; padding: 3pt 6pt; vertical-align: middle; }
-tr:nth-child(even) { background: #f8fafc; }
-.ass { margin-top: 30pt; padding-top: 10pt; border-top: 1px solid #ccc; line-height: 1.8; }
-.rod { margin-top: 20pt; padding-top: 8pt; border-top: 1px solid #ccc; font-size: 8pt; text-align: center; white-space: pre-line; color: #374151; }
-.info { background: #FFF9E6; border: 1px solid #F59E0B; border-radius: 4px; padding: 6pt 10pt; margin: 8pt 0; font-size: 8.5pt; color: #92400E; }
-</style>
-<script>\${scriptJs}</script>
-</head>
-<body>
-${insp.cabecalho_documentos ? `<div class="cab">${insp.cabecalho_documentos}</div>` : ''}
-<h1>${plano.titulo}</h1>
-<p style="text-align:center;color:#374151;margin-bottom:10pt">${municipio}, ${dataHoje}</p>
-<p style="display:flex;justify-content:space-between"><span><strong>Estabelecimento:</strong> ${est.razao_social_nome}</span><span><strong>CNPJ/CPF:</strong> ${cnpjoucpf}</span></p>
-<p><strong>Endereço:</strong> ${endereco}</p>
+    const partes: string[] = []
+    partes.push('<!DOCTYPE html>')
+    partes.push('<html lang="pt-BR"><head><meta charset="UTF-8">')
+    partes.push('<style>' + css + '</style>')
+    partes.push(gerarScriptDatas(atividades.length))
+    partes.push('</head><body>')
+    if (insp.cabecalho_documentos) partes.push('<div class="cab">' + insp.cabecalho_documentos + '</div>')
+    partes.push('<h1>' + plano.titulo + '</h1>')
+    partes.push('<p style="text-align:center;color:#374151;margin-bottom:10pt">' + municipio + ', ' + dataHoje + '</p>')
+    partes.push('<div class="row"><span><strong>Estabelecimento:</strong> ' + est.razao_social_nome + '</span><span><strong>CNPJ/CPF:</strong> ' + cnpjoucpf + '</span></div>')
+    partes.push('<p><strong>Endereço:</strong> ' + endereco + '</p>')
+    partes.push('<h2>Ativos a Vistoriar</h2>')
+    partes.push('<table><thead><tr><th>#</th><th>Tipo</th><th>TAG/Série</th><th>Responsável</th><th>Função</th><th>WhatsApp</th><th>Uso</th></tr></thead>')
+    partes.push('<tbody>' + linhasAtivos + '</tbody></table>')
+    partes.push('<h2>1.1.- Plano de Trabalho — ' + plano.parceiro + '</h2>')
+    partes.push('<div class="info">⚠️ Favor preencher as datas de início e fim de cada atividade.</div>')
+    partes.push('<table><thead><tr><th style="width:60%">Atividades</th><th style="width:20%">Dt. Início</th><th style="width:20%">Dt. Fim</th></tr></thead>')
+    partes.push('<tbody>' + linhasAtiv + '</tbody></table>')
+    partes.push('<h2>1.2.- Relação de Documentos Solicitados</h2>')
+    partes.push('<div class="info">⚠️ Favor verificar e ajustar a relação de documentos.</div>')
+    partes.push('<table><thead><tr><th style="width:55%">Documento</th><th style="width:18%">Situação</th><th style="width:18%">Resultado</th><th style="width:9%">Ação</th></tr></thead>')
+    partes.push('<tbody id="tbDocs">' + linhasDocs + '</tbody></table>')
+    partes.push('<button class="add" onclick="addDoc()">+ Adicionar documento</button>')
+    partes.push('<div class="ass">')
+    partes.push('<p><strong>' + insp.nome_inspetor + '</strong></p>')
+    partes.push('<p>' + insp.titulo_profissional + ' — ' + siglaConselho + ' ' + insp.inscricao_crea_cau + '</p>')
+    if (insp.especializacao) partes.push('<p>Especialista ' + insp.especializacao + '</p>')
+    partes.push('<p style="margin-top:20pt">De acordo: _____________________ CPF: _______________ Data: ___/___/______</p>')
+    partes.push('<p>' + (String(plano.parceiro ?? '')).replace('Inspetor e ','') + '</p>')
+    partes.push('</div>')
+    if (insp.rodape_documentos) partes.push('<div class="rod">' + insp.rodape_documentos + '</div>')
+    partes.push('</body></html>')
 
-<h2>Ativos a Vistoriar</h2>
-<table>
-  <thead><tr>
-    <th>#</th><th>Tipo</th><th>TAG/Nº Série</th><th>Responsável</th><th>Função</th><th>WhatsApp</th><th>Uso</th>
-  </tr></thead>
-  <tbody>${linhasAtivos}</tbody>
-</table>
-
-<h2>1.1.- Plano de Trabalho — ${plano.parceiro}</h2>
-<div class="info">⚠️ Favor preencher as datas de início e fim de cada atividade abaixo.</div>
-<table>
-  <thead><tr>
-    <th style="width:60%">Atividades</th>
-    <th style="width:20%">Dt. Início</th>
-    <th style="width:20%">Dt. Fim</th>
-  </tr></thead>
-  <tbody>${linhasAtiv}</tbody>
-</table>
-
-<h2>1.2.- Relação de Documentos Solicitados</h2>
-<div class="info">⚠️ Favor verificar e ajustar a relação de documentos abaixo.</div>
-<table>
-  <thead><tr>
-    <th style="width:55%">Documento</th>
-    <th style="width:18%">Situação</th>
-    <th style="width:18%">Resultado</th>
-    <th style="width:9%">Ação</th>
-  </tr></thead>
-  <tbody id="tbodyDocs">${linhasDocs}</tbody>
-</table>
-<button onclick="addLinha()" style="margin-top:6pt;background:#1E3A8A;color:#fff;border:none;border-radius:4px;padding:4px 12px;cursor:pointer;font-size:8pt">+ Adicionar documento</button>
-
-<div class="ass">
-  <p><strong>${insp.nome_inspetor}</strong></p>
-  <p>${insp.titulo_profissional} — ${conselho(insp.titulo_profissional)} ${insp.inscricao_crea_cau}</p>
-  ${insp.especializacao ? `<p>Especialista ${insp.especializacao}</p>` : ''}
-  <p style="margin-top:20pt">De acordo: _____________________ CPF: _______________ Data: ___/___/______</p>
-  <p>${plano.parceiro?.toString().replace('Inspetor e ','') ?? 'Responsável'}</p>
-</div>
-
-${insp.rodape_documentos ? `<div class="rod">${insp.rodape_documentos}</div>` : ''}
-</body>
-</html>`
-
+    const html = partes.join('\n')
     return NextResponse.json({ html })
   } catch (err) {
     return NextResponse.json({ erro: String(err) }, { status: 500 })
