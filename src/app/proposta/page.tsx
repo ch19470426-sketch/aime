@@ -224,36 +224,32 @@ function PropostaInner() {
         })
       })
       if (res.ok) {
-        // Capturar valores locais antes de qualquer setState
-        const nrLocal = numero
-        const compLocal = complemento
-        const cepLocal = cep
-        const razaoLocal = razaoSocial
-
-        // Buscar endereço com valores locais garantidos
-        const cepLimpo = cepLocal.replace(/\D/g, '')
-        if (cepLimpo.length === 8) {
-          try {
-            const vr = await fetch(`https://viacep.com.br/ws/${cepLimpo}/json/`)
-            const vd = await vr.json()
-            if (!vd.erro) {
-              const partes = [vd.logradouro, nrLocal||null, compLocal||null, vd.bairro].filter(Boolean)
-              const endNovo = partes.join(', ') + `, ${vd.localidade}/${vd.uf}`
-              setMunicipioUF(`${vd.localidade}/${vd.uf}`)
-              setLogradouro(vd.logradouro)
-              setEndereco(endNovo)
-            }
-          } catch {}
+        // Re-buscar do banco para garantir dados frescos na tela
+        const estAtual = await query('estabelecimento', `cnpjoucpf=eq.${cnpjoucpf}&select=cnpjoucpf,razao_social_nome,cep_estabelecimento,numero_imovel,complemento`)
+        if (Array.isArray(estAtual) && estAtual[0]) {
+          const e = estAtual[0]
+          setEst(e)
+          setRazaoSocial(e.razao_social_nome ?? '')
+          setCep((e.cep_estabelecimento ?? '').replace(/\D/g,''))
+          setNumero(e.numero_imovel ?? '')
+          setComplemento(e.complemento ?? '')
+          setLogradouro('')
+          // Buscar endereço com dados frescos do banco
+          const cepFresco = (e.cep_estabelecimento ?? '').replace(/\D/g,'')
+          if (cepFresco.length === 8) {
+            try {
+              const vr = await fetch(`https://viacep.com.br/ws/${cepFresco}/json/`)
+              const vd = await vr.json()
+              if (!vd.erro) {
+                const partes = [vd.logradouro, e.numero_imovel||null, e.complemento||null, vd.bairro].filter(Boolean)
+                setEndereco(partes.join(', ') + `, ${vd.localidade}/${vd.uf}`)
+                setLogradouro(vd.logradouro)
+                setMunicipioUF(`${vd.localidade}/${vd.uf}`)
+              }
+            } catch {}
+          }
         }
-
-        // Atualizar todos os estados com valores locais
-        setEst({ cnpjoucpf, razao_social_nome: razaoLocal, cep_estabelecimento: cepLocal, numero_imovel: nrLocal, complemento: compLocal })
-        setRazaoSocial(razaoLocal)
-        setCep(cepLocal)
-        setNumero(nrLocal)
-        setComplemento(compLocal)
         setModoEdicao(false)
-
         if (isUpdate) {
           informa('Dados salvos', 'Os dados do estabelecimento foram atualizados com sucesso.')
         } else {
