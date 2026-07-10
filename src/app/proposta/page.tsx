@@ -94,7 +94,7 @@ export default function PropostaPage() {
   return (
     <Suspense fallback={
       <div style={S.body}><div style={S.page}>
-        <HeaderBar titulo="Carregando..." />
+        <HeaderBar titulo="Carregando..." subtitulo="" />
         <div style={S.divider} />
       </div></div>
     }>
@@ -290,7 +290,7 @@ function PropostaInner() {
 
   if (carregando) return (
     <div style={S.body}><div style={S.page}>
-      <HeaderBar titulo={titulo} />
+      <HeaderBar titulo={etapa === 'cadastro' ? 'Cadastrar Estabelecimento' : titulo} subtitulo={etapa === 'cadastro' ? 'Cadastrar novo estabelecimento ou alterar seus dados' : 'Proposta técnica e comercial'} />
       <div style={S.divider} />
       <p style={{ padding: '40px', textAlign: 'center', color: '#4a6480', fontSize: '9pt' }}>Carregando...</p>
       <Banner {...bannerProps} />
@@ -300,7 +300,7 @@ function PropostaInner() {
   return (
     <div style={S.body}>
       <div style={S.page}>
-        <HeaderBar titulo={titulo} />
+        <HeaderBar titulo={etapa === 'cadastro' ? 'Cadastrar Estabelecimento' : titulo} subtitulo={etapa === 'cadastro' ? 'Cadastrar novo estabelecimento ou alterar seus dados' : 'Proposta técnica e comercial'} />
         <div style={S.divider} />
         <div style={S.formBody}>
 
@@ -452,7 +452,7 @@ function PropostaInner() {
   )
 }
 
-function HeaderBar({ titulo }: { titulo: string }) {
+function HeaderBar({ titulo, subtitulo }: { titulo: string; subtitulo: string }) {
   return (
     <div style={S.header}>
       <div style={{ width: '80px', height: '36px', flexShrink: 0, display: 'flex', alignItems: 'center' }}>
@@ -460,9 +460,7 @@ function HeaderBar({ titulo }: { titulo: string }) {
       </div>
       <div style={{ flex: 1, textAlign: 'center' }}>
         <h1 style={{ fontSize: '11pt', fontWeight: 700, color: '#fff', margin: 0 }}>{titulo}</h1>
-        <p style={{ fontSize: '7pt', color: '#B5D4F4', marginTop: '2px' }}>
-          {etapa === 'cadastro' ? 'Cadastrar novo estabelecimento ou alterar seus dados' : 'Proposta técnica e comercial'}
-        </p>
+        <p style={{ fontSize: '7pt', color: '#B5D4F4', marginTop: '2px' }}>{subtitulo}</p>
       </div>
     </div>
   )
