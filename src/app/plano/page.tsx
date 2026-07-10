@@ -9,6 +9,12 @@ import Image from 'next/image'
 import Banner from '@/components/Banner'
 import { useBanner } from '@/hooks/useBanner'
 
+function fmtCNPJ(v: string): string {
+  if (v.length === 14) return v.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5')
+  if (v.length === 11) return v.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4')
+  return v
+}
+
 const SUPA_URL = 'https://asgorarunzhiojqioxzq.supabase.co'
 const SUPA_KEY = 'sb_publishable_dH85HYKGxv3X0te627VfOw_OGaPoNMF'
 
@@ -130,6 +136,7 @@ function PlanoInner() {
   }
 
   useEffect(() => {
+    setAtivoAtual({ ...ATIVO_VAZIO })
     carregar()
   }, [cnpjoucpf, cpfInspetor])
 
@@ -540,7 +547,7 @@ function HeaderBar({ titulo, subtitulo }: { titulo: string; subtitulo: string })
       </div>
       <div style={{ flex: 1, textAlign: 'center' }}>
         <h1 style={{ fontSize: '11pt', fontWeight: 700, color: '#fff', margin: 0 }}>{titulo}</h1>
-        <p style={{ fontSize: '7pt', color: '#B5D4F4', marginTop: '2px' }}>{subtitulo}</p>
+        <p style={{ fontSize: '8.5pt', color: '#B5D4F4', marginTop: '2px' }}>{subtitulo}</p>
       </div>
     </div>
   )
