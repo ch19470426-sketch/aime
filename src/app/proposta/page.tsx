@@ -346,15 +346,15 @@ function PropostaInner() {
                   </Field>
                 )}
 
-                {/* MODO VISUALIZAÇÃO: perguntar se deseja alterar */}
+                {/* MODO VISUALIZAÇÃO */}
                 {!modoEdicao && (
-                  <div style={S.footer}>
-                    <button style={{ ...S.btn, ...S.btnSec }} onClick={() => setModoEdicao(true)}>
-                      ✏️ Alterar dados
-                    </button>
-                    <button style={{ ...S.btn, ...S.btnPri }} onClick={() => setEtapa('valor')}>
-                      Continuar →
-                    </button>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px', marginTop: '8px' }}>
+                    <button style={{ ...S.btn, background: '#DC2626', color: '#fff', border: 'none' }}
+                      onClick={() => window.location.href = '/dashboard'}>Cancelar</button>
+                    <button style={{ ...S.btn, ...S.btnSec }}
+                      onClick={() => setModoEdicao(true)}>✏️ Alterar dados</button>
+                    <button style={{ ...S.btn, ...S.btnPri }}
+                      onClick={() => setEtapa('valor')}>Continuar →</button>
                   </div>
                 )}
 
