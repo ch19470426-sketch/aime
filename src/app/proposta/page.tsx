@@ -119,6 +119,7 @@ function PropostaInner() {
   const [carregando,  setCarregando]  = useState(true)
   const [salvando,    setSalvando]    = useState(false)
   const [etapa,       setEtapa]       = useState<'cadastro' | 'valor' | 'preview'>('cadastro')
+  const [modoEdicao,  setModoEdicao]  = useState(false)
 
   // Campos do estabelecimento (editáveis)
   const [razaoSocial, setRazaoSocial] = useState('')
@@ -165,8 +166,10 @@ function PropostaInner() {
         setNumero(e.numero_imovel ?? '')
         setComplemento(e.complemento ?? '')
         await buscarCep(e.cep_estabelecimento?.replace('-','') ?? '', e.numero_imovel ?? '', e.complemento ?? '')
-        setEtapa('valor')
+        setModoEdicao(false)
+        setEtapa('cadastro')
       } else {
+        setModoEdicao(true)
         setEtapa('cadastro')
       }
     } catch(e) {
@@ -301,7 +304,7 @@ function PropostaInner() {
         <div style={S.divider} />
         <div style={S.formBody}>
 
-          {/* ETAPA 1: CADASTRO DO ESTABELECIMENTO */}
+          {/* ETAPA 1: CADASTRO / VISUALIZAÇÃO DO ESTABELECIMENTO */}
           {etapa === 'cadastro' && (
             <div style={S.block}>
               <div style={S.blockTitle}>Dados do {isPF ? 'Imóvel / Proprietário' : 'Estabelecimento / Condomínio'}</div>
@@ -309,35 +312,64 @@ function PropostaInner() {
                 <Field label={isPF ? 'CPF' : 'CNPJ'}>
                   <input style={S.inputRO} value={formatarCNPJ(cnpjoucpf)} readOnly />
                 </Field>
-                <Field label={isPF ? 'Nome do proprietário *' : 'Razão social / Nome do condomínio *'}>
-                  <input style={S.input} value={razaoSocial} onChange={e => setRazaoSocial(e.target.value)} placeholder="Nome completo ou razão social" />
+                <Field label={isPF ? 'Nome do proprietário' : 'Razão social / Nome do condomínio'}>
+                  <input style={modoEdicao ? S.input : S.inputRO}
+                    value={razaoSocial} readOnly={!modoEdicao}
+                    onChange={e => setRazaoSocial(e.target.value)}
+                    placeholder={modoEdicao ? 'Nome completo ou razão social' : ''} />
                 </Field>
                 <div style={{ ...S.row, ...S.c3 }}>
-                  <Field label="CEP *">
-                    <input style={S.input} value={cep} maxLength={8}
+                  <Field label="CEP">
+                    <input style={modoEdicao ? S.input : S.inputRO}
+                      value={cep} maxLength={8} readOnly={!modoEdicao}
                       onChange={e => { setCep(e.target.value); if (e.target.value.length === 8) buscarCep(e.target.value, numero, complemento) }}
-                      placeholder="00000000" />
+                      placeholder={modoEdicao ? '00000000' : ''} />
                   </Field>
-                  <Field label="Número *">
-                    <input style={S.input} value={numero} onChange={e => setNumero(e.target.value)} placeholder="Nº" />
+                  <Field label="Número">
+                    <input style={modoEdicao ? S.input : S.inputRO}
+                      value={numero} readOnly={!modoEdicao}
+                      onChange={e => setNumero(e.target.value)}
+                      placeholder={modoEdicao ? 'Nº' : ''} />
                   </Field>
                   <Field label="Complemento">
-                    <input style={S.input} value={complemento} onChange={e => setComplemento(e.target.value)} placeholder="Apto, sala..." />
+                    <input style={modoEdicao ? S.input : S.inputRO}
+                      value={complemento} readOnly={!modoEdicao}
+                      onChange={e => setComplemento(e.target.value)}
+                      placeholder={modoEdicao ? 'Apto, sala...' : ''} />
                   </Field>
                 </div>
-                {municipioUF && (
-                  <Field label="Endereço encontrado">
+                {endereco && (
+                  <Field label="Endereço">
                     <input style={S.inputRO} value={endereco} readOnly />
                   </Field>
                 )}
-                <div style={S.footer}>
-                  <button style={{ ...S.btn, ...S.btnSec }} onClick={() => window.location.href = '/dashboard'}>
-                    Cancelar
-                  </button>
-                  <button style={{ ...S.btn, ...S.btnPri, opacity: salvando ? 0.6 : 1 }} onClick={salvarEstabelecimento} disabled={salvando}>
-                    {salvando ? 'Salvando...' : est ? 'Atualizar e continuar' : 'Cadastrar e continuar'}
-                  </button>
-                </div>
+
+                {/* MODO VISUALIZAÇÃO: perguntar se deseja alterar */}
+                {!modoEdicao && (
+                  <div style={S.footer}>
+                    <button style={{ ...S.btn, ...S.btnSec }} onClick={() => setModoEdicao(true)}>
+                      ✏️ Alterar dados
+                    </button>
+                    <button style={{ ...S.btn, ...S.btnPri }} onClick={() => setEtapa('valor')}>
+                      Continuar →
+                    </button>
+                  </div>
+                )}
+
+                {/* MODO EDIÇÃO: salvar ou cancelar */}
+                {modoEdicao && (
+                  <div style={S.footer}>
+                    <button style={{ ...S.btn, ...S.btnSec }}
+                      onClick={() => { est ? setModoEdicao(false) : window.location.href = '/dashboard' }}>
+                      {est ? 'Cancelar alteração' : 'Voltar ao dashboard'}
+                    </button>
+                    <button style={{ ...S.btn, ...S.btnPri, opacity: salvando ? 0.6 : 1 }}
+                      onClick={salvarEstabelecimento} disabled={salvando}>
+                      {salvando ? 'Salvando...' : est ? 'Salvar alteração' : 'Cadastrar e continuar'}
+                    </button>
+                  </div>
+                )}
+
               </div>
             </div>
           )}
