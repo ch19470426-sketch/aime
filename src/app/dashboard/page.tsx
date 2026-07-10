@@ -236,6 +236,11 @@ export default function Dashboard() {
       setMsgErro(`${coletaCpf ? "CPF" : "CNPJ"} incompleto (${docLimpo.length}/${tamanhoEsperado} dígitos)`)
       return
     }
+    // Códigos 21-29: Planos de Trabalho
+    if (Number(tipoServico) >= 21 && Number(tipoServico) <= 29) {
+      window.location.href = `/plano?cpf_inspetor=${cpfInspetor}&chave_inspetor=${chaveInspetor}&cnpjoucpf=${docLimpo}&tipo_servico=${tipoServico}`
+      return
+    }
     // Códigos 11-19: Propostas
     if (Number(tipoServico) >= 11 && Number(tipoServico) <= 19) {
       window.location.href = `/proposta?cpf_inspetor=${cpfInspetor}&chave_inspetor=${chaveInspetor}&cnpjoucpf=${docLimpo}&tipo_servico=${tipoServico}`
