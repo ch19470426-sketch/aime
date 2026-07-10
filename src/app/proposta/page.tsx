@@ -235,17 +235,21 @@ function PropostaInner() {
           setComplemento(e.complemento ?? '')
           // Buscar endereço com dados frescos do banco
           const cepFresco = (e.cep_estabelecimento ?? '').replace(/\D/g,'')
+          console.log('CEP fresco:', cepFresco, 'NR:', e.numero_imovel)
           if (cepFresco.length === 8) {
             try {
               const vr = await fetch(`https://viacep.com.br/ws/${cepFresco}/json/`)
               const vd = await vr.json()
+              console.log('ViaCEP:', vd.logradouro, vd.erro)
               if (!vd.erro) {
                 const partes = [vd.logradouro, e.numero_imovel||null, e.complemento||null, vd.bairro].filter(Boolean)
-                setEndereco(partes.join(', ') + `, ${vd.localidade}/${vd.uf}`)
+                const endFresco = partes.join(', ') + `, ${vd.localidade}/${vd.uf}`
+                console.log('Endereço novo:', endFresco)
+                setEndereco(endFresco)
                 setLogradouro(vd.logradouro)
                 setMunicipioUF(`${vd.localidade}/${vd.uf}`)
               }
-            } catch {}
+            } catch(ex) { console.log('ViaCEP erro:', ex) }
           }
         }
         setModoEdicao(false)
