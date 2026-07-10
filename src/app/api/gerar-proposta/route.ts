@@ -220,6 +220,13 @@ function md2html(txt: string): string {
   return html
 }
 
+
+function conselho(titulo: string): string {
+  if (titulo === 'Arquiteto') return 'CAU'
+  if (titulo === 'Corretor Imóvel') return 'CRECI'
+  return 'CREA'
+}
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
