@@ -494,7 +494,53 @@ export async function POST(request: NextRequest) {
         <td style="text-align:center"><button onclick="remLinha(this)" style="background:#DC2626;color:#fff;border:none;border-radius:4px;padding:2px 8px;cursor:pointer;font-size:8pt">✕</button></td>
       </tr>`).join('')
 
-    const html = `<!DOCTYPE html>
+  
+  const scriptJs = `
+function validarDatas(idx) {
+  const ini = document.getElementById('ini_' + idx)
+  const fim = document.getElementById('fim_' + idx)
+  if (ini && fim && ini.value && fim.value && fim.value < ini.value) {
+    alert('A data fim nao pode ser anterior a data inicio.')
+    fim.value = ''
+    return
+  }
+  if (idx > 0) {
+    const iniAnterior = document.getElementById('ini_' + (idx - 1))
+    if (iniAnterior && ini && ini.value && iniAnterior.value && ini.value < iniAnterior.value) {
+      alert('A data inicio nao pode ser anterior a data inicio da atividade anterior.')
+      ini.value = ''
+      fim.value = ''
+      return
+    }
+  }
+}
+function addLinha() {
+  const tbody = document.getElementById('tbodyDocs')
+  const tr = document.createElement('tr')
+  const sel1 = document.createElement('select')
+  sel1.style = 'width:100%;border:none;border-bottom:1px solid #1E3A8A;font-size:8pt;font-family:Arial'
+  sel1.innerHTML = '<option value="">—</option><option>Entregue</option><option>Pendente</option><option>Desnecessario</option>'
+  const sel2 = document.createElement('select')
+  sel2.style = 'width:100%;border:none;border-bottom:1px solid #1E3A8A;font-size:8pt;font-family:Arial'
+  sel2.innerHTML = '<option value="">—</option><option>Conforme</option><option>Nao conforme</option><option>Nao se aplica</option>'
+  const inp = document.createElement('input')
+  inp.placeholder = 'Documento...'
+  inp.style = 'width:100%;border:none;border-bottom:1px solid #1E3A8A;font-size:8.5pt;font-family:Arial'
+  const btn = document.createElement('button')
+  btn.textContent = 'X'
+  btn.style = 'background:#DC2626;color:#fff;border:none;border-radius:4px;padding:2px 8px;cursor:pointer;font-size:8pt'
+  btn.onclick = function(){ this.closest('tr').remove() }
+  const td1 = document.createElement('td'); td1.appendChild(inp)
+  const td2 = document.createElement('td'); td2.appendChild(sel1)
+  const td3 = document.createElement('td'); td3.appendChild(sel2)
+  const td4 = document.createElement('td'); td4.style.textAlign='center'; td4.appendChild(btn)
+  tr.appendChild(td1); tr.appendChild(td2); tr.appendChild(td3); tr.appendChild(td4)
+  tbody.appendChild(tr)
+}
+function remLinha(btn) { btn.closest('tr').remove() }
+`
+
+  const html = \`<!DOCTYPE html\`
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -514,42 +560,7 @@ tr:nth-child(even) { background: #f8fafc; }
 .rod { margin-top: 20pt; padding-top: 8pt; border-top: 1px solid #ccc; font-size: 8pt; text-align: center; white-space: pre-line; color: #374151; }
 .info { background: #FFF9E6; border: 1px solid #F59E0B; border-radius: 4px; padding: 6pt 10pt; margin: 8pt 0; font-size: 8.5pt; color: #92400E; }
 </style>
-<script>
-function validarDatas(idx) {
-  const ini = document.getElementById('ini_' + idx)
-  const fim = document.getElementById('fim_' + idx)
-  if (ini && fim && ini.value && fim.value && fim.value < ini.value) {
-    alert('A data fim não pode ser anterior à data início.')
-    fim.value = ''
-    return
-  }
-  if (idx > 0) {
-    const iniAnterior = document.getElementById('ini_' + (idx - 1))
-    if (iniAnterior && ini && ini.value && iniAnterior.value && ini.value < iniAnterior.value) {
-      alert('A data início não pode ser anterior à data início da atividade anterior.')
-      ini.value = ''
-      fim.value = ''
-      return
-    }
-  }
-}
-function addLinha() {
-  const tbody = document.getElementById('tbodyDocs')
-  const tr = document.createElement('tr')
-  tr.innerHTML = `
-    <td><input type="text" placeholder="Documento..." style="width:100%;border:none;border-bottom:1px solid #1E3A8A;font-size:8.5pt;font-family:Arial"></td>
-    <td><select style="width:100%;border:none;border-bottom:1px solid #1E3A8A;font-size:8pt;font-family:Arial">
-      <option value="">—</option><option>Entregue</option><option>Pendente</option><option>Desnecessário</option>
-    </select></td>
-    <td><select style="width:100%;border:none;border-bottom:1px solid #1E3A8A;font-size:8pt;font-family:Arial">
-      <option value="">—</option><option>Conforme</option><option>Não conforme</option><option>Não se aplica</option>
-    </select></td>
-    <td style="text-align:center"><button onclick="this.closest('tr').remove()" style="background:#DC2626;color:#fff;border:none;border-radius:4px;padding:2px 8px;cursor:pointer;font-size:8pt">✕</button></td>
-  `
-  tbody.appendChild(tr)
-}
-function remLinha(btn) { btn.closest('tr').remove() }
-</script>
+<script>\${scriptJs}</script>
 </head>
 <body>
 ${insp.cabecalho_documentos ? `<div class="cab">${insp.cabecalho_documentos}</div>` : ''}
