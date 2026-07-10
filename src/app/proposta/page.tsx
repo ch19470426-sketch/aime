@@ -329,12 +329,14 @@ function PropostaInner() {
                     <input style={modoEdicao ? S.input : S.inputRO}
                       value={numero} readOnly={!modoEdicao}
                       onChange={e => setNumero(e.target.value)}
+                      onBlur={e => { if (cep.length === 8) buscarCep(cep, e.target.value, complemento) }}
                       placeholder={modoEdicao ? 'Nº' : ''} />
                   </Field>
                   <Field label="Complemento">
                     <input style={modoEdicao ? S.input : S.inputRO}
                       value={complemento} readOnly={!modoEdicao}
                       onChange={e => setComplemento(e.target.value)}
+                      onBlur={e => { if (cep.length === 8) buscarCep(cep, numero, e.target.value) }}
                       placeholder={modoEdicao ? 'Apto, sala...' : ''} />
                   </Field>
                 </div>
@@ -458,7 +460,9 @@ function HeaderBar({ titulo }: { titulo: string }) {
       </div>
       <div style={{ flex: 1, textAlign: 'center' }}>
         <h1 style={{ fontSize: '11pt', fontWeight: 700, color: '#fff', margin: 0 }}>{titulo}</h1>
-        <p style={{ fontSize: '7pt', color: '#B5D4F4', marginTop: '2px' }}>Proposta técnica e comercial</p>
+        <p style={{ fontSize: '7pt', color: '#B5D4F4', marginTop: '2px' }}>
+          {etapa === 'cadastro' ? 'Cadastrar novo estabelecimento ou alterar seus dados' : 'Proposta técnica e comercial'}
+        </p>
       </div>
     </div>
   )
