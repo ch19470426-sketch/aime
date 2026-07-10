@@ -226,6 +226,7 @@ function PropostaInner() {
       if (res.ok) {
         // Re-buscar do banco para garantir dados frescos na tela
         const estAtual = await query('estabelecimento', `cnpjoucpf=eq.${cnpjoucpf}&select=cnpjoucpf,razao_social_nome,cep_estabelecimento,numero_imovel,complemento`)
+        console.log('REBUSCA:', JSON.stringify(estAtual))
         if (Array.isArray(estAtual) && estAtual[0]) {
           const e = estAtual[0]
           setEst(e)
