@@ -261,6 +261,45 @@ function PlanoInner() {
     }
   }
 
+  function coletarESalvar() {
+    const iframe = document.getElementById('iframePlano') as HTMLIFrameElement
+    if (!iframe?.contentWindow) { salvarPlanoComHtml(htmlPlano); return }
+    // Pedir ao iframe para serializar seus dados
+    const handler = (e: MessageEvent) => {
+      if (e.data?.type === 'planoHtml') {
+        window.removeEventListener('message', handler)
+        salvarPlanoComHtml(e.data.html)
+      }
+    }
+    window.addEventListener('message', handler)
+    iframe.contentWindow.postMessage('serializarPlano', '*')
+    // Timeout de segurança
+    setTimeout(() => {
+      window.removeEventListener('message', handler)
+      salvarPlanoComHtml(htmlPlano)
+    }, 2000)
+  }
+
+  async function salvarPlanoComHtml(html: string) {
+    setSalvando(true)
+    try {
+      const nomeArq = chaveInspetor + '_plano_' + tipoServico + '_' + cnpjoucpf + '.html'
+      const res = await fetch('/api/salvar-vistoria', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nomeArquivo: nomeArq, pasta: 'documentos_inspetor', payload: html, contentType: 'application/json' })
+      })
+      const data = await res.json()
+      if (data.sucesso) {
+        agradece('Plano salvo!', 'Salvo em Documentos do Inspetor.', () => window.location.href = '/dashboard')
+      } else {
+        informa('Erro', data.erro ?? 'Não foi possível salvar.')
+      }
+    } finally {
+      setSalvando(false)
+    }
+  }
+
   async function salvarPlano() {
     setSalvando(true)
     try {
@@ -539,14 +578,20 @@ function PlanoInner() {
           {etapa === 'plano' && (
             <div>
               <div style={S.block}>
-                <div style={S.blockTitle}>Preview do Plano de Trabalho</div>
+                <div style={S.blockTitle}>Plano de Trabalho — preencha datas e documentos abaixo</div>
                 <div style={{ padding: '8px 10px' }}>
-                  <iframe srcDoc={htmlPlano} style={{ width: '100%', height: '700px', border: '1px solid #c3d4f0', borderRadius: '4px' }} title="Plano" />
+                  <iframe
+                    id="iframePlano"
+                    srcDoc={htmlPlano}
+                    style={{ width: '100%', height: '680px', border: '1px solid #c3d4f0', borderRadius: '4px' }}
+                    title="Plano"
+                  />
                 </div>
               </div>
-              <div style={{ ...S.footer, marginTop: '8px' }}>
+              <div style={{ ...S.footer, gridTemplateColumns: '1fr 1fr', marginTop: '8px' }}>
                 <button style={{ ...S.btn, ...S.btnSec }} onClick={() => setEtapa('ativo')}>← Voltar</button>
-                <button style={{ ...S.btn, ...S.btnPri, opacity: salvando ? 0.6 : 1 }} onClick={salvarPlano} disabled={salvando}>
+                <button style={{ ...S.btn, ...S.btnPri, opacity: salvando ? 0.6 : 1 }}
+                  onClick={coletarESalvar} disabled={salvando}>
                   {salvando ? 'Salvando...' : '💾 Salvar plano'}
                 </button>
               </div>
