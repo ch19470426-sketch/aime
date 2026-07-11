@@ -9,19 +9,6 @@ import Image from 'next/image'
 import Banner from '@/components/Banner'
 import { useBanner } from '@/hooks/useBanner'
 
-function fmtCNPJ(v: string): string {
-  if (v.length === 14) return v.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5')
-  if (v.length === 11) return v.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4')
-  return v
-}
-function fmtWpp(v: string): string {
-  const d = String(v).replace(/\D/g,'')
-  if (d.length === 11) return d.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3')
-  if (d.length === 10) return d.replace(/(\d{2})(\d{4})(\d{4})/, '($1) $2-$3')
-  if (d.length === 9)  return d.replace(/(\d{1})(\d{4})(\d{4})/, '$1 $2-$3')
-  return v
-}
-
 const SUPA_URL = 'https://asgorarunzhiojqioxzq.supabase.co'
 const SUPA_KEY = 'sb_publishable_dH85HYKGxv3X0te627VfOw_OGaPoNMF'
 
@@ -37,7 +24,6 @@ const TITULO_TIPO: Record<string, string> = {
   '29': 'Plano de Trabalho — Plano de Manutenção',
 }
 
-// Correlação tipo plano → tipo vistoria
 const TIPO_VISTORIA: Record<string, string> = {
   '21': '31 Autovistoria', '22': '32 Vistoria inspeção',
   '23': '33 Vistoria imóvel novo', '24': '34 Vistoria fachada',
@@ -66,6 +52,19 @@ const SUBTIPOS: Record<string, string[]> = {
 const FLUIDOS = ['Classe A','Classe B','Classe C','Classe D','Vapor','Ar comprimido','GLP','Nitrogênio','Outro']
 const USOS = ['Produção/processo','Transporte','Residencial','Comercial','Industrial','Institucional','Misto']
 const FUNCOES = ['Administrador','Síndico','Proprietário']
+
+function fmtCNPJ(v: string): string {
+  if (v.length === 14) return v.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5')
+  if (v.length === 11) return v.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4')
+  return v
+}
+
+function fmtWpp(v: string): string {
+  const d = String(v || '').replace(/\D/g, '')
+  if (d.length === 11) return d.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3')
+  if (d.length === 10) return d.replace(/(\d{2})(\d{4})(\d{4})/, '($1) $2-$3')
+  return v || ''
+}
 
 interface Ativo {
   tipo_ativo: string; tag_ativo_nr_serie: string; cpf_responsavel: string
@@ -111,10 +110,9 @@ function PlanoInner() {
   const { bannerProps, informa, agradece, solicita, fechar } = useBanner()
 
   const tsVistoria = TIPO_VISTORIA[tipoServico] ?? '31 Autovistoria'
-  const tsNum      = tsVistoria.split(' ')[0] // "31", "32" etc
+  const tsNum      = tsVistoria.split(' ')[0]
   const titulo     = TITULO_TIPO[tipoServico] ?? 'Plano de Trabalho'
 
-  // Grupos de tipo de serviço
   const isPredial  = ['31','32','33'].includes(tsNum)
   const isFachada  = tsNum === '34'
   const isElevador = tsNum === '35'
@@ -130,11 +128,7 @@ function PlanoInner() {
   const [salvando,   setSalvando]   = useState(false)
   const [ativos,     setAtivos]     = useState<Ativo[]>([])
   const [ativoAtual, setAtivoAtual] = useState<Ativo>({ ...ATIVO_VAZIO })
-  const [est,        setEst]        = useState<Record<string,string> | null>(null) // eslint-disable-line
-  const [insp,       setInsp]       = useState<Record<string,string> | null>(null)
   const [htmlPlano,  setHtmlPlano]  = useState('')
-
-  // Dados do documento — editáveis pelo inspetor
 
   async function query(table: string, qparams: string) {
     const res = await fetch(`${SUPA_URL}/rest/v1/${table}?${qparams}`, {
@@ -149,11 +143,9 @@ function PlanoInner() {
   }, [cnpjoucpf, cpfInspetor])
 
   async function carregar() {
-    setAtivoAtual({ ...ATIVO_VAZIO })
     setCarregando(true)
     try {
-      // Verificar estabelecimento
-      const estData = await query('estabelecimento', `cnpjoucpf=eq.${cnpjoucpf}&select=*`)
+      const estData = await query('estabelecimento', `cnpjoucpf=eq.${cnpjoucpf}&select=cnpjoucpf`)
       if (!Array.isArray(estData) || !estData[0]) {
         informa(
           'Estabelecimento não cadastrado',
@@ -163,21 +155,13 @@ function PlanoInner() {
         setCarregando(false)
         return
       }
-      setEst(estData[0])
-
-      // Buscar inspetor
-      const inspData = await query('inspetor', `cpf_inspetor=eq.${cpfInspetor}&select=*`)
-      if (Array.isArray(inspData) && inspData[0]) setInsp(inspData[0])
-
-      // Buscar ativos já cadastrados
       const ativoData = await query('ativos_a_vistoriar',
         `cpf_inspetor=eq.${cpfInspetor}&cnpjoucpf=eq.${cnpjoucpf}&tipo_servico=eq.${encodeURIComponent(tsVistoria)}&select=*&order=data_cadastro`)
       if (Array.isArray(ativoData)) {
         setAtivos(ativoData)
         setShowForm(ativoData.length === 0)
       }
-
-    } catch(e) {
+    } catch {
       informa('Erro', 'Não foi possível carregar os dados.')
     } finally {
       setCarregando(false)
@@ -220,7 +204,7 @@ function PlanoInner() {
         cpf_responsavel: ativoAtual.cpf_responsavel || null,
         nome_responsavel: ativoAtual.nome_responsavel,
         funcao_responsavel: ativoAtual.funcao_responsavel,
-        whatsapp_responsavel: ativoAtual.whatsapp_responsavel.replace(/\D/g,'') || null,
+        whatsapp_responsavel: ativoAtual.whatsapp_responsavel.replace(/\D/g, '') || null,
         email_responsavel: ativoAtual.email_responsavel || null,
         finalidade_vistoria: ativoAtual.finalidade_vistoria,
         data_inicio_operacao: ativoAtual.data_inicio_operacao || null,
@@ -248,7 +232,7 @@ function PlanoInner() {
         setAtivos(novos)
         setAtivoAtual({ ...ATIVO_VAZIO })
         setShowForm(false)
-        informa('Ativo cadastrado', `${ativoAtual.tipo_ativo} cadastrado com sucesso. Deseja cadastrar outro ativo?`)
+        informa('Ativo cadastrado', `${ativoAtual.tipo_ativo} cadastrado com sucesso.`)
       } else {
         informa('Erro', 'Não foi possível cadastrar o ativo.')
       }
@@ -259,24 +243,19 @@ function PlanoInner() {
 
   async function gerarPlano() {
     setSalvando(true)
+    solicita('Atenção — Plano de Trabalho',
+      'Após gerar o plano, preencha as datas no item 1.1 e verifique os documentos no item 1.2 antes de salvar.',
+      [{ label: 'Entendido', acao: () => fechar(), estilo: 'primario' }]
+    )
     try {
-      solicita(
-        'Atenção — Plano de Trabalho',
-        'Favor verificar e ajustar as datas no item 1.1 e a relação de documentos no item 1.2 antes de salvar o plano.',
-        [{ label: 'Entendido', acao: () => fechar(), estilo: 'primario' }]
-      )
       const res = await fetch('/api/gerar-plano', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ tipoServico, cpfInspetor, cnpjoucpf, ativos })
       })
       const data = await res.json()
-      if (data.html) {
-        setHtmlPlano(data.html)
-        setEtapa('plano')
-      } else {
-        informa('Erro', data.erro ?? 'Não foi possível gerar o plano.')
-      }
+      if (data.html) { setHtmlPlano(data.html); setEtapa('plano') }
+      else informa('Erro', data.erro ?? 'Não foi possível gerar o plano.')
     } finally {
       setSalvando(false)
     }
@@ -293,7 +272,7 @@ function PlanoInner() {
       })
       const data = await res.json()
       if (data.sucesso) {
-        agradece('Plano de trabalho salvo!', `O plano foi salvo em "Documentos inspetor" como ${nomeArq}.`, () => window.location.href = '/dashboard')
+        agradece('Plano salvo!', `Salvo como ${nomeArq}.`, () => window.location.href = '/dashboard')
       } else {
         informa('Erro', data.erro ?? 'Não foi possível salvar.')
       }
@@ -318,265 +297,262 @@ function PlanoInner() {
         <div style={S.divider} />
         <div style={S.formBody}>
 
-          {/* ── ETAPA 1: CADASTRO DE ATIVOS ── */}
-          {etapa === 'ativo' && (<>
+          {/* ── ETAPA 1: ATIVOS ── */}
+          {etapa === 'ativo' && (
+            <div>
+              {/* Listagem de ativos cadastrados */}
+              {ativos.length > 0 && (
+                <div style={{ ...S.block, marginBottom: '8px' }}>
+                  <div style={S.blockTitle}>Ativos cadastrados — {fmtCNPJ(cnpjoucpf)} ({ativos.length})</div>
+                  <div style={{ padding: '4px 10px' }}>
+                    {ativos.map((a, i) => (
+                      <div key={i} style={{ borderBottom: '1px solid #e2e8f0', padding: '5px 0' }}>
+                        <div style={{ ...S.row, ...S.c3 }}>
+                          <Field label="Tipo de ativo">
+                            <input style={S.inputRO} value={a.tipo_ativo ?? ''} readOnly />
+                          </Field>
+                          <Field label="TAG / Nº Série">
+                            <input style={S.inputRO} value={a.tag_ativo_nr_serie ?? ''} readOnly />
+                          </Field>
+                          <Field label="Finalidade">
+                            <input style={S.inputRO} value={a.finalidade_vistoria ?? ''} readOnly />
+                          </Field>
+                        </div>
+                        <div style={{ ...S.row, ...S.c3 }}>
+                          <Field label="Responsável">
+                            <input style={S.inputRO} value={a.nome_responsavel ?? ''} readOnly />
+                          </Field>
+                          <Field label="Função">
+                            <input style={S.inputRO} value={a.funcao_responsavel ?? ''} readOnly />
+                          </Field>
+                          <Field label="WhatsApp">
+                            <input style={S.inputRO} value={fmtWpp(a.whatsapp_responsavel ?? '')} readOnly />
+                          </Field>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
-            {/* Ativos já cadastrados */}
-            {ativos.length > 0 && (
-              <div style={S.block}>
-                <div style={S.blockTitle}>Ativos cadastrados ({ativos.length})</div>
-                <div style={{ padding: '4px 10px' }}>
-                  {ativos.map((a, i) => (
-                    <div key={i} style={{ borderBottom: '1px solid #e2e8f0', padding: '5px 0' }}>
-                      <div style={{ ...S.row, ...S.c3 }}>
-                        <Field label="Tipo de ativo">
-                          <input style={S.inputRO} value={a.tipo_ativo ?? ''} readOnly />
+              {/* Formulário cadastro novo ativo */}
+              {showForm && (
+                <div style={{ ...S.block, marginBottom: '8px' }}>
+                  <div style={S.blockTitle}>Dados do ativo a vistoriar</div>
+                  <div style={S.blockBody}>
+                    <div style={{ ...S.row, ...S.c2 }}>
+                      <Field label="Tipo de ativo *">
+                        <select style={S.input} value={ativoAtual.tipo_ativo} onChange={e => atualizarAtivo('tipo_ativo', e.target.value)}>
+                          <option value="">Selecione...</option>
+                          {(TIPOS_ATIVO[tsNum] ?? []).map(t => <option key={t} value={t}>{t}</option>)}
+                        </select>
+                      </Field>
+                      {needsTag ? (
+                        <Field label="TAG / Nº Série *">
+                          <input style={S.input} value={ativoAtual.tag_ativo_nr_serie}
+                            onChange={e => atualizarAtivo('tag_ativo_nr_serie', e.target.value)} placeholder="Ex: ELV-01" />
                         </Field>
-                        <Field label="TAG / Nº Série">
-                          <input style={S.inputRO} value={a.tag_ativo_nr_serie ?? ''} readOnly />
+                      ) : (
+                        <Field label="Finalidade da vistoria *">
+                          <input style={S.input} value={ativoAtual.finalidade_vistoria}
+                            onChange={e => atualizarAtivo('finalidade_vistoria', e.target.value)} placeholder="Ex: Inspeção predial periódica" />
                         </Field>
-                        <Field label="Finalidade">
-                          <input style={S.inputRO} value={a.finalidade_vistoria ?? ''} readOnly />
-                        </Field>
-                      </div>
-                      <div style={{ ...S.row, ...S.c3 }}>
-                        <Field label="Responsável">
-                          <input style={S.inputRO} value={a.nome_responsavel ?? ''} readOnly />
-                        </Field>
-                        <Field label="Função">
-                          <input style={S.inputRO} value={a.funcao_responsavel ?? ''} readOnly />
-                        </Field>
-                        <Field label="WhatsApp">
-                          <input style={S.inputRO} value={fmtWpp(a.whatsapp_responsavel ?? '')} readOnly />
-                        </Field>
-                      </div>
+                      )}
                     </div>
-                  ))}
-                </div>
-              </div>
-            )}
 
-            {/* Formulário novo ativo */}
-            {showForm && <div style={S.block}>
-              <div style={S.blockTitle}>Dados do ativo a vistoriar</div>
-              <div style={S.blockBody}>
-
-                <div style={{ ...S.row, ...S.c2 }}>
-                  <Field label="Tipo de ativo *">
-                    <select style={S.input} value={ativoAtual.tipo_ativo} onChange={e => atualizarAtivo('tipo_ativo', e.target.value)}>
-                      <option value="">Selecione...</option>
-                      {(TIPOS_ATIVO[tsNum] ?? []).map(t => <option key={t} value={t}>{t}</option>)}
-                    </select>
-                  </Field>
-                  {needsTag ? (
-                    <Field label="TAG / Nº Série *">
-                      <input style={S.input} value={ativoAtual.tag_ativo_nr_serie}
-                        onChange={e => atualizarAtivo('tag_ativo_nr_serie', e.target.value)} placeholder="Ex: ELV-01" />
-                    </Field>
-                  ) : (
-                    <Field label="Finalidade da vistoria *">
-                      <input style={S.input} value={ativoAtual.finalidade_vistoria}
-                        onChange={e => atualizarAtivo('finalidade_vistoria', e.target.value)} placeholder="Ex: Inspeção predial periódica" />
-                    </Field>
-                  )}
-                </div>
-
-                {needsTag && (
-                  <Field label="Finalidade da vistoria *">
-                    <input style={S.input} value={ativoAtual.finalidade_vistoria}
-                      onChange={e => atualizarAtivo('finalidade_vistoria', e.target.value)} placeholder="Ex: Inspeção de segurança" />
-                  </Field>
-                )}
-
-                <div style={S.sectionTitle}>Responsável pelo ativo</div>
-                <div style={{ ...S.row, ...S.c3 }}>
-                  <Field label="Nome *">
-                    <input style={S.input} value={ativoAtual.nome_responsavel}
-                      onChange={e => atualizarAtivo('nome_responsavel', e.target.value)} />
-                  </Field>
-                  <Field label="Função *">
-                    <select style={S.input} value={ativoAtual.funcao_responsavel}
-                      onChange={e => atualizarAtivo('funcao_responsavel', e.target.value)}>
-                      <option value="">Selecione...</option>
-                      {FUNCOES.map(f => <option key={f} value={f}>{f}</option>)}
-                    </select>
-                  </Field>
-                  <Field label="CPF">
-                    <input style={S.input} value={ativoAtual.cpf_responsavel} maxLength={11}
-                      onChange={e => atualizarAtivo('cpf_responsavel', e.target.value.replace(/\D/g,''))} placeholder="Somente dígitos" />
-                  </Field>
-                </div>
-                <div style={{ ...S.row, ...S.c2 }}>
-                  <Field label="WhatsApp">
-                    <input style={S.input}
-                      value={fmtWpp(ativoAtual.whatsapp_responsavel)}
-                      maxLength={15}
-                      onChange={e => atualizarAtivo('whatsapp_responsavel', e.target.value.replace(/\D/g,'').slice(0,11))}
-                      placeholder="(27) 99999-9999" />
-                  </Field>
-                  <Field label="E-mail">
-                    <input style={S.input} value={ativoAtual.email_responsavel}
-                      onChange={e => atualizarAtivo('email_responsavel', e.target.value)} placeholder="email@dominio.com" />
-                  </Field>
-                </div>
-
-                <div style={S.sectionTitle}>Características do ativo</div>
-                <div style={{ ...S.row, ...S.c2 }}>
-                  <Field label="Data de início de operação *">
-                    <input style={S.input} type="date" value={ativoAtual.data_inicio_operacao}
-                      onChange={e => atualizarAtivo('data_inicio_operacao', e.target.value)} />
-                  </Field>
-                  <Field label="Uso do ativo *">
-                    <select style={S.input} value={ativoAtual.uso_ativo}
-                      onChange={e => atualizarAtivo('uso_ativo', e.target.value)}>
-                      <option value="">Selecione...</option>
-                      {USOS.map(u => <option key={u} value={u}>{u}</option>)}
-                    </select>
-                  </Field>
-                </div>
-
-                {/* Campos predial */}
-                {isPredial && (
-                  <div style={{ ...S.row, ...S.c4 }}>
-                    <Field label="Pavimentos *">
-                      <input style={S.input} type="number" min="1" value={ativoAtual.numero_pavimentos}
-                        onChange={e => atualizarAtivo('numero_pavimentos', e.target.value)} />
-                    </Field>
-                    <Field label="Unidades/salas">
-                      <input style={S.input} type="number" min="1" value={ativoAtual.numero_unidades_salas}
-                        onChange={e => atualizarAtivo('numero_unidades_salas', e.target.value)} />
-                    </Field>
-                    <Field label="Área terreno (m²)">
-                      <input style={S.input} type="number" step="0.01" value={ativoAtual.area_terreno}
-                        onChange={e => atualizarAtivo('area_terreno', e.target.value)} />
-                    </Field>
-                    <Field label="Área construída (m²) *">
-                      <input style={S.input} type="number" step="0.01" value={ativoAtual.area_construida}
-                        onChange={e => atualizarAtivo('area_construida', e.target.value)} />
-                    </Field>
-                  </div>
-                )}
-
-                {/* Campos fachada */}
-                {isFachada && (
-                  <div style={{ ...S.row, ...S.c3 }}>
-                    <Field label="Pavimentos *">
-                      <input style={S.input} type="number" min="1" value={ativoAtual.numero_pavimentos}
-                        onChange={e => atualizarAtivo('numero_pavimentos', e.target.value)} />
-                    </Field>
-                    <Field label="Número de fachadas *">
-                      <input style={S.input} type="number" min="1" value={ativoAtual.numero_fachadas}
-                        onChange={e => atualizarAtivo('numero_fachadas', e.target.value)} />
-                    </Field>
-                    <Field label="Perímetro fachadas (m)">
-                      <input style={S.input} type="number" value={ativoAtual.perimetro_fachadas}
-                        onChange={e => atualizarAtivo('perimetro_fachadas', e.target.value)} />
-                    </Field>
-                  </div>
-                )}
-
-                {/* Campos elevador/NR */}
-                {(isElevador || isNR) && (
-                  <div style={{ ...S.row, ...(isElevador ? S.c2 : S.c3) }}>
-                    <Field label="Fabricante/Marca *">
-                      <input style={S.input} value={ativoAtual.fabricante_marca}
-                        onChange={e => atualizarAtivo('fabricante_marca', e.target.value)} />
-                    </Field>
-                    {isElevador && (
-                      <Field label="Pavimentos *">
-                        <input style={S.input} type="number" min="1" value={ativoAtual.numero_pavimentos}
-                          onChange={e => atualizarAtivo('numero_pavimentos', e.target.value)} />
+                    {needsTag && (
+                      <Field label="Finalidade da vistoria *">
+                        <input style={S.input} value={ativoAtual.finalidade_vistoria}
+                          onChange={e => atualizarAtivo('finalidade_vistoria', e.target.value)} placeholder="Ex: Inspeção de segurança" />
                       </Field>
                     )}
-                    <Field label="Capacidade/Potência *">
-                      <input style={S.input} type="number" step="0.01" value={ativoAtual.capacidade_potencia}
-                        onChange={e => atualizarAtivo('capacidade_potencia', e.target.value)} placeholder="kW/kVA/kg/h/m³" />
-                    </Field>
-                  </div>
-                )}
 
-                {/* Campos NR específicos */}
-                {isNR && (
-                  <div style={{ ...S.row, ...S.c2 }}>
-                    <Field label="Subtipo *">
-                      <select style={S.input} value={ativoAtual.subtipo}
-                        onChange={e => atualizarAtivo('subtipo', e.target.value)}>
-                        <option value="">Selecione...</option>
-                        {(SUBTIPOS[tsNum] ?? []).map(s => <option key={s} value={s}>{s}</option>)}
-                      </select>
-                    </Field>
-                    {(isNR10 || isNR13) && (
-                      <Field label={isNR10 ? 'Tensão (kV) *' : 'Pressão (kPa) *'}>
-                        <input style={S.input} type="number" step="0.01" value={ativoAtual.tensao_pressao_kv_kpa}
-                          onChange={e => atualizarAtivo('tensao_pressao_kv_kpa', e.target.value)} />
+                    <div style={S.sectionTitle}>Responsável pelo ativo</div>
+                    <div style={{ ...S.row, ...S.c3 }}>
+                      <Field label="Nome *">
+                        <input style={S.input} value={ativoAtual.nome_responsavel}
+                          onChange={e => atualizarAtivo('nome_responsavel', e.target.value)} />
                       </Field>
+                      <Field label="Função *">
+                        <select style={S.input} value={ativoAtual.funcao_responsavel}
+                          onChange={e => atualizarAtivo('funcao_responsavel', e.target.value)}>
+                          <option value="">Selecione...</option>
+                          {FUNCOES.map(f => <option key={f} value={f}>{f}</option>)}
+                        </select>
+                      </Field>
+                      <Field label="CPF">
+                        <input style={S.input} value={ativoAtual.cpf_responsavel} maxLength={11}
+                          onChange={e => atualizarAtivo('cpf_responsavel', e.target.value.replace(/\D/g, ''))} placeholder="Somente dígitos" />
+                      </Field>
+                    </div>
+                    <div style={{ ...S.row, ...S.c2 }}>
+                      <Field label="WhatsApp">
+                        <input style={S.input} value={fmtWpp(ativoAtual.whatsapp_responsavel)} maxLength={15}
+                          onChange={e => atualizarAtivo('whatsapp_responsavel', e.target.value.replace(/\D/g, '').slice(0, 11))}
+                          placeholder="(27) 99999-9999" />
+                      </Field>
+                      <Field label="E-mail">
+                        <input style={S.input} value={ativoAtual.email_responsavel}
+                          onChange={e => atualizarAtivo('email_responsavel', e.target.value)} placeholder="email@dominio.com" />
+                      </Field>
+                    </div>
+
+                    <div style={S.sectionTitle}>Características do ativo</div>
+                    <div style={{ ...S.row, ...S.c2 }}>
+                      <Field label="Data de início de operação *">
+                        <input style={S.input} type="date" value={ativoAtual.data_inicio_operacao}
+                          onChange={e => atualizarAtivo('data_inicio_operacao', e.target.value)} />
+                      </Field>
+                      <Field label="Uso do ativo *">
+                        <select style={S.input} value={ativoAtual.uso_ativo}
+                          onChange={e => atualizarAtivo('uso_ativo', e.target.value)}>
+                          <option value="">Selecione...</option>
+                          {USOS.map(u => <option key={u} value={u}>{u}</option>)}
+                        </select>
+                      </Field>
+                    </div>
+
+                    {isPredial && (
+                      <div style={{ ...S.row, ...S.c4 }}>
+                        <Field label="Pavimentos *">
+                          <input style={S.input} type="number" min="1" value={ativoAtual.numero_pavimentos}
+                            onChange={e => atualizarAtivo('numero_pavimentos', e.target.value)} />
+                        </Field>
+                        <Field label="Unidades/salas">
+                          <input style={S.input} type="number" min="1" value={ativoAtual.numero_unidades_salas}
+                            onChange={e => atualizarAtivo('numero_unidades_salas', e.target.value)} />
+                        </Field>
+                        <Field label="Área terreno (m²)">
+                          <input style={S.input} type="number" step="0.01" value={ativoAtual.area_terreno}
+                            onChange={e => atualizarAtivo('area_terreno', e.target.value)} />
+                        </Field>
+                        <Field label="Área construída (m²) *">
+                          <input style={S.input} type="number" step="0.01" value={ativoAtual.area_construida}
+                            onChange={e => atualizarAtivo('area_construida', e.target.value)} />
+                        </Field>
+                      </div>
                     )}
-                  </div>
-                )}
 
-                {/* Campos NR-13 específicos */}
-                {isNR13 && (
-                  <div style={{ ...S.row, ...S.c2 }}>
-                    <Field label="Fluido/Classe *">
-                      <select style={S.input} value={ativoAtual.fluido_classe_fluido}
-                        onChange={e => atualizarAtivo('fluido_classe_fluido', e.target.value)}>
-                        <option value="">Selecione...</option>
-                        {FLUIDOS.map(f => <option key={f} value={f}>{f}</option>)}
-                      </select>
-                    </Field>
-                    <Field label="Volume interno (m³) *">
-                      <input style={S.input} type="number" step="0.0001" value={ativoAtual.volume_interno_m3}
-                        onChange={e => atualizarAtivo('volume_interno_m3', e.target.value)} />
-                    </Field>
-                  </div>
-                )}
+                    {isFachada && (
+                      <div style={{ ...S.row, ...S.c3 }}>
+                        <Field label="Pavimentos *">
+                          <input style={S.input} type="number" min="1" value={ativoAtual.numero_pavimentos}
+                            onChange={e => atualizarAtivo('numero_pavimentos', e.target.value)} />
+                        </Field>
+                        <Field label="Número de fachadas *">
+                          <input style={S.input} type="number" min="1" value={ativoAtual.numero_fachadas}
+                            onChange={e => atualizarAtivo('numero_fachadas', e.target.value)} />
+                        </Field>
+                        <Field label="Perímetro fachadas (m)">
+                          <input style={S.input} type="number" value={ativoAtual.perimetro_fachadas}
+                            onChange={e => atualizarAtivo('perimetro_fachadas', e.target.value)} />
+                        </Field>
+                      </div>
+                    )}
 
-                <div style={{ ...S.footer, gridTemplateColumns: '1fr 1fr', marginTop: '8px' }}>
-                  <button style={{ ...S.btn, ...S.btnSec }}
-                    onClick={() => { setShowForm(false); setAtivoAtual({ ...ATIVO_VAZIO }) }}>
-                    Cancelar
-                  </button>
-                  <button style={{ ...S.btn, ...S.btnPri, opacity: salvando ? 0.6 : 1 }}
-                    onClick={salvarAtivo} disabled={salvando}>
-                    {salvando ? 'Salvando...' : 'Cadastrar + ativo'}
-                  </button>
+                    {(isElevador || isNR) && (
+                      <div style={{ ...S.row, ...(isElevador ? S.c3 : S.c2) }}>
+                        <Field label="Fabricante/Marca *">
+                          <input style={S.input} value={ativoAtual.fabricante_marca}
+                            onChange={e => atualizarAtivo('fabricante_marca', e.target.value)} />
+                        </Field>
+                        {isElevador && (
+                          <Field label="Pavimentos *">
+                            <input style={S.input} type="number" min="1" value={ativoAtual.numero_pavimentos}
+                              onChange={e => atualizarAtivo('numero_pavimentos', e.target.value)} />
+                          </Field>
+                        )}
+                        <Field label="Capacidade/Potência *">
+                          <input style={S.input} type="number" step="0.01" value={ativoAtual.capacidade_potencia}
+                            onChange={e => atualizarAtivo('capacidade_potencia', e.target.value)} placeholder="kW/kVA/kg/h/m³" />
+                        </Field>
+                      </div>
+                    )}
+
+                    {isNR && (
+                      <div style={{ ...S.row, ...S.c2 }}>
+                        <Field label="Subtipo *">
+                          <select style={S.input} value={ativoAtual.subtipo}
+                            onChange={e => atualizarAtivo('subtipo', e.target.value)}>
+                            <option value="">Selecione...</option>
+                            {(SUBTIPOS[tsNum] ?? []).map(s => <option key={s} value={s}>{s}</option>)}
+                          </select>
+                        </Field>
+                        {(isNR10 || isNR13) && (
+                          <Field label={isNR10 ? 'Tensão (kV) *' : 'Pressão (kPa) *'}>
+                            <input style={S.input} type="number" step="0.01" value={ativoAtual.tensao_pressao_kv_kpa}
+                              onChange={e => atualizarAtivo('tensao_pressao_kv_kpa', e.target.value)} />
+                          </Field>
+                        )}
+                      </div>
+                    )}
+
+                    {isNR13 && (
+                      <div style={{ ...S.row, ...S.c2 }}>
+                        <Field label="Fluido/Classe *">
+                          <select style={S.input} value={ativoAtual.fluido_classe_fluido}
+                            onChange={e => atualizarAtivo('fluido_classe_fluido', e.target.value)}>
+                            <option value="">Selecione...</option>
+                            {FLUIDOS.map(f => <option key={f} value={f}>{f}</option>)}
+                          </select>
+                        </Field>
+                        <Field label="Volume interno (m³) *">
+                          <input style={S.input} type="number" step="0.0001" value={ativoAtual.volume_interno_m3}
+                            onChange={e => atualizarAtivo('volume_interno_m3', e.target.value)} />
+                        </Field>
+                      </div>
+                    )}
+
+                    <div style={{ ...S.footer, marginTop: '8px' }}>
+                      <button style={{ ...S.btn, ...S.btnSec }}
+                        onClick={() => { setShowForm(false); setAtivoAtual({ ...ATIVO_VAZIO }) }}>
+                        Cancelar
+                      </button>
+                      <button style={{ ...S.btn, ...S.btnPri, opacity: salvando ? 0.6 : 1 }}
+                        onClick={salvarAtivo} disabled={salvando}>
+                        {salvando ? 'Salvando...' : 'Cadastrar + ativo'}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Botões principais */}
+              <div style={{ ...S.footer, gridTemplateColumns: '1fr 1fr 1fr' }}>
+                <button style={{ ...S.btn, background: '#DC2626', color: '#fff', border: 'none' }}
+                  onClick={() => window.location.href = '/dashboard'}>
+                  Cancelar
+                </button>
+                <button style={{ ...S.btn, ...S.btnSec }}
+                  onClick={() => { setShowForm(true); setAtivoAtual({ ...ATIVO_VAZIO }) }}>
+                  Cadastrar + ativo
+                </button>
+                <button style={{ ...S.btn, ...S.btnPri, opacity: (ativos.length === 0 || salvando) ? 0.5 : 1 }}
+                  onClick={gerarPlano} disabled={ativos.length === 0 || salvando}>
+                  {ativos.length === 0 ? 'Cadastre um ativo' : `Gerar plano (${ativos.length}) →`}
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* ── ETAPA 2: PREVIEW ── */}
+          {etapa === 'plano' && (
+            <div>
+              <div style={S.block}>
+                <div style={S.blockTitle}>Preview do Plano de Trabalho</div>
+                <div style={{ padding: '8px 10px' }}>
+                  <iframe srcDoc={htmlPlano} style={{ width: '100%', height: '700px', border: '1px solid #c3d4f0', borderRadius: '4px' }} title="Plano" />
                 </div>
               </div>
-            </div>}
-
-            {/* Botões principais */}
-            <div style={{ ...S.footer, gridTemplateColumns: '1fr 1fr 1fr' }}>
-              <button style={{ ...S.btn, background: '#DC2626', color: '#fff', border: 'none' }}
-                onClick={() => window.location.href = '/dashboard'}>Cancelar</button>
-              <button style={{ ...S.btn, ...S.btnSec }}
-                onClick={() => { setShowForm(true); setAtivoAtual({ ...ATIVO_VAZIO }) }}>
-                Cadastrar + ativo
-              </button>
-              <button style={{ ...S.btn, ...S.btnPri }}
-                onClick={gerarPlano} disabled={ativos.length === 0 || salvando}>
-                {ativos.length === 0 ? 'Cadastre um ativo' : `Gerar plano (${ativos.length}) →`}
-              </button>
-            </div>
-          </>)}
-
-          {/* ── ETAPA 2: PREVIEW DO PLANO ── */}
-          {etapa === 'plano' && (<>
-            <div style={{ ...S.block }}>
-              <div style={S.blockTitle}>Preview do Plano de Trabalho</div>
-              <div style={{ padding: '8px 10px' }}>
-                <iframe srcDoc={htmlPlano} style={{ width: '100%', height: '700px', border: '1px solid #c3d4f0', borderRadius: '4px' }} title="Plano" />
+              <div style={{ ...S.footer, marginTop: '8px' }}>
+                <button style={{ ...S.btn, ...S.btnSec }} onClick={() => setEtapa('ativo')}>← Voltar</button>
+                <button style={{ ...S.btn, ...S.btnPri, opacity: salvando ? 0.6 : 1 }} onClick={salvarPlano} disabled={salvando}>
+                  {salvando ? 'Salvando...' : '💾 Salvar plano'}
+                </button>
               </div>
             </div>
-            <div style={S.footer}>
-              <button style={{ ...S.btn, ...S.btnSec }} onClick={() => setEtapa('ativo')}>← Voltar</button>
-              <button style={{ ...S.btn, ...S.btnPri, opacity: salvando ? 0.6 : 1 }} onClick={salvarPlano} disabled={salvando}>
-                {salvando ? 'Salvando...' : '💾 Salvar plano'}
-              </button>
-            </div>
-          </>)}
+          )}
 
-        </div>
-        </div>
         </div>
       </div>
       <Banner {...bannerProps} />
