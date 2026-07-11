@@ -309,6 +309,7 @@ function PlanoInner() {
         body: JSON.stringify({ tipoServico, cpfInspetor, cnpjoucpf, ativos, datas, docs })
       })
       const htmlData = await resHtml.json()
+      console.log('HTML a salvar - DOCTYPE:', htmlData.html?.includes('<!DOCTYPE'), 'Arial:', htmlData.html?.includes('Arial'), 'inicio:', htmlData.html?.substring(0,100))
       if (!htmlData.html) { informa('Erro', 'Não foi possível gerar o plano.'); return }
       const nomeArq = chaveInspetor + '_plano_' + tipoServico + '_' + cnpjoucpf + '.html'
       const res = await fetch('/api/salvar-vistoria', {
