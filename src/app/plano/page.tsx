@@ -239,7 +239,7 @@ function PlanoInner() {
         setAtivos(novos)
         setAtivoAtual({ ...ATIVO_VAZIO })
         setShowForm(false)
-        informa('Ativo cadastrado', `${ativoAtual.tipo_ativo} cadastrado com sucesso.`)
+        informa('Ativo cadastrado', `${ativoAtual.tipo_ativo} cadastrado com sucesso. Cadastre mais ativos ou clique em Gerar plano.`)
       } else {
         informa('Erro', 'Não foi possível cadastrar o ativo.')
       }
@@ -538,19 +538,17 @@ function PlanoInner() {
                 </div>
               )}
 
-              {/* Botões principais — só quando formulário fechado */}
-              {!showForm && (
-                <div style={{ ...S.footer }}>
-                  <button style={{ ...S.btn, ...S.btnSec }}
-                    onClick={() => { setShowForm(true); setAtivoAtual({ ...ATIVO_VAZIO }) }}>
-                    + Cadastrar ativo
-                  </button>
-                  <button style={{ ...S.btn, ...S.btnPri, opacity: (ativos.length === 0 || salvando) ? 0.5 : 1 }}
-                    onClick={gerarPlano} disabled={ativos.length === 0 || salvando}>
-                    {ativos.length === 0 ? '+ Cadastrar ativo' : `Gerar plano (${ativos.length}) →`}
-                  </button>
-                </div>
-              )}
+              {/* Botões principais */}
+              <div style={{ ...S.footer }}>
+                <button style={{ ...S.btn, ...S.btnSec }}
+                  onClick={() => { setShowForm(!showForm); setAtivoAtual({ ...ATIVO_VAZIO }) }}>
+                  {showForm ? '✕ Fechar cadastro' : '+ Cadastrar ativo'}
+                </button>
+                <button style={{ ...S.btn, ...S.btnPri, opacity: (ativos.length === 0 || salvando) ? 0.5 : 1 }}
+                  onClick={gerarPlano} disabled={ativos.length === 0 || salvando}>
+                  {ativos.length === 0 ? '+ Cadastrar ativo' : `Gerar plano (${ativos.length}) →`}
+                </button>
+              </div>
             </div>
           )}
 
