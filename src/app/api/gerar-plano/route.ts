@@ -610,7 +610,15 @@ export async function POST(request: NextRequest) {
     partes.push('</body></html>')
 
     const html = partes.join('\n')
-    return NextResponse.json({ html, planoInfo: { titulo: plano.titulo, parceiro: plano.parceiro, atividades, documentos } })
+    const docInfo = {
+      nome: insp.nome_inspetor,
+      titulo: tituloLimpo(insp.titulo_profissional),
+      cabecalho: insp.cabecalho_documentos ?? '',
+      rodape: insp.rodape_documentos ?? '',
+      conselho: siglaConselho,
+      inscricao: numLimpo(insp.inscricao_crea_cau)
+    }
+    return NextResponse.json({ html, planoInfo: { titulo: String(plano.titulo), parceiro: String(plano.parceiro), atividades, documentos }, docInfo, endereco })
   } catch (err) {
     return NextResponse.json({ erro: String(err) }, { status: 500 })
   }
