@@ -129,9 +129,6 @@ function PlanoInner() {
   const [ativos,     setAtivos]     = useState<Ativo[]>([])
   const [ativoAtual, setAtivoAtual] = useState<Ativo>({ ...ATIVO_VAZIO })
   const [htmlPlano,  setHtmlPlano]  = useState('')
-  const [datas,      setDatas]      = useState<{ini: string; fim: string}[]>([])
-  const [docs,       setDocs]       = useState<{doc: string; sit: string; res: string}[]>([])
-  const [planoInfo,  setPlanoInfo]  = useState<{titulo: string; parceiro: string; atividades: {horas:number;dias:number;descricao:string}[]; documentos: string[]}>({titulo:'',parceiro:'',atividades:[],documentos:[]})
 
   async function query(table: string, qparams: string) {
     const res = await fetch(`${SUPA_URL}/rest/v1/${table}?${qparams}`, {
@@ -244,10 +241,6 @@ function PlanoInner() {
     }
   }
 
-
-
-
-
   async function gerarPlano() {
     setSalvando(true)
     solicita('Atenção — Plano de Trabalho',
@@ -261,15 +254,7 @@ function PlanoInner() {
         body: JSON.stringify({ tipoServico, cpfInspetor, cnpjoucpf, ativos })
       })
       const data = await res.json()
-      if (data.html) {
-        setHtmlPlano(data.html)
-        if (data.planoInfo) {
-          setPlanoInfo(data.planoInfo)
-          setDatas(data.planoInfo.atividades.map(() => ({ ini: '', fim: '' })))
-          setDocs(data.planoInfo.documentos.map((d: string) => ({ doc: d, sit: '', res: '' })))
-        }
-        setEtapa('plano')
-      }
+      if (data.html) { setHtmlPlano(data.html); setEtapa('plano') }
       else informa('Erro', data.erro ?? 'Não foi possível gerar o plano.')
     } finally {
       setSalvando(false)
@@ -279,24 +264,15 @@ function PlanoInner() {
   async function salvarPlano() {
     setSalvando(true)
     try {
-      // Gerar HTML final com datas e docs preenchidos
-      const resHtml = await fetch('/api/gerar-plano', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ tipoServico, cpfInspetor, cnpjoucpf, ativos, datas, docs })
-      })
-      const htmlData = await resHtml.json()
-      if (!htmlData.html) { informa('Erro', 'Não foi possível gerar o plano.'); return }
-
-      const nomeArq = chaveInspetor + '_plano_' + tipoServico + '_' + cnpjoucpf + '.html'
+      const nomeArq = `${chaveInspetor}_plano_${tipoServico}_${cnpjoucpf}.html`
       const res = await fetch('/api/salvar-vistoria', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ nomeArquivo: nomeArq, pasta: 'documentos_inspetor', payload: htmlData.html, contentType: 'application/json' })
+        body: JSON.stringify({ nomeArquivo: nomeArq, pasta: 'documentos_inspetor', payload: htmlPlano, contentType: 'application/json' })
       })
       const data = await res.json()
       if (data.sucesso) {
-        agradece('Plano salvo!', 'Salvo em Documentos do Inspetor.', () => window.location.href = '/dashboard')
+        agradece('Plano salvo!', `Salvo como ${nomeArq}.`, () => window.location.href = '/dashboard')
       } else {
         informa('Erro', data.erro ?? 'Não foi possível salvar.')
       }
@@ -559,109 +535,19 @@ function PlanoInner() {
             </div>
           )}
 
-          {/* ── ETAPA 2: PLANO ── */}
+          {/* ── ETAPA 2: PREVIEW ── */}
           {etapa === 'plano' && (
             <div>
               <div style={S.block}>
-                <div style={S.blockTitle}>Revisar Plano de Trabalho</div>
-                <div style={S.blockBody}>
-
-                  {/* 1.1 Agenda */}
-                  <div style={S.sectionTitle}>1.1.- Plano de Trabalho — {planoInfo.parceiro}</div>
-                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '7.5pt' }}>
-                    <thead>
-                      <tr style={{ background: '#1E3A8A', color: '#fff' }}>
-                        <th style={{ padding: '3px 6px', textAlign: 'left', width: '60%' }}>Atividade</th>
-                        <th style={{ padding: '3px 6px', textAlign: 'center', width: '20%' }}>Dt. Início</th>
-                        <th style={{ padding: '3px 6px', textAlign: 'center', width: '20%' }}>Dt. Fim</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {planoInfo.atividades.map((a, i) => (
-                        <tr key={i} style={{ borderBottom: '1px solid #e2e8f0', background: i%2===0?'#f8fafc':'#fff' }}>
-                          <td style={{ padding: '3px 6px' }}>{a.descricao}</td>
-                          <td style={{ padding: '2px 4px' }}>
-                            <input style={{ ...S.input, fontSize: '7pt', padding: '2px 4px' }} type="date"
-                              value={datas[i]?.ini ?? ''}
-                              onChange={e => {
-                                const v = e.target.value
-                                if (i > 0 && datas[i-1]?.ini && v < datas[i-1].ini) {
-                                  informa('Data inválida', 'Data início não pode ser anterior à atividade anterior.')
-                                  return
-                                }
-                                setDatas(prev => prev.map((d, j) => j===i ? {...d, ini: v} : d))
-                              }} />
-                          </td>
-                          <td style={{ padding: '2px 4px' }}>
-                            <input style={{ ...S.input, fontSize: '7pt', padding: '2px 4px' }} type="date"
-                              value={datas[i]?.fim ?? ''}
-                              onChange={e => {
-                                const v = e.target.value
-                                if (datas[i]?.ini && v < datas[i].ini) {
-                                  informa('Data inválida', 'Data fim não pode ser anterior à data início.')
-                                  return
-                                }
-                                setDatas(prev => prev.map((d, j) => j===i ? {...d, fim: v} : d))
-                              }} />
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-
-                  {/* 1.2 Documentos */}
-                  <div style={{ ...S.sectionTitle, marginTop: '8px' }}>1.2.- Relação de Documentos Solicitados</div>
-                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '7.5pt' }}>
-                    <thead>
-                      <tr style={{ background: '#1E3A8A', color: '#fff' }}>
-                        <th style={{ padding: '3px 6px', textAlign: 'left', width: '50%' }}>Documento</th>
-                        <th style={{ padding: '3px 6px', textAlign: 'left', width: '20%' }}>Situação</th>
-                        <th style={{ padding: '3px 6px', textAlign: 'left', width: '20%' }}>Resultado</th>
-                        <th style={{ padding: '3px 6px', width: '10%' }}></th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {docs.map((d, i) => (
-                        <tr key={i} style={{ borderBottom: '1px solid #e2e8f0', background: i%2===0?'#f8fafc':'#fff' }}>
-                          <td style={{ padding: '2px 4px' }}>
-                            <input style={{ ...S.input, fontSize: '7pt', padding: '2px 4px' }} value={d.doc}
-                              onChange={e => setDocs(prev => prev.map((x, j) => j===i ? {...x, doc: e.target.value} : x))} />
-                          </td>
-                          <td style={{ padding: '2px 4px' }}>
-                            <select style={{ ...S.input, fontSize: '7pt', padding: '2px 4px' }} value={d.sit}
-                              onChange={e => setDocs(prev => prev.map((x, j) => j===i ? {...x, sit: e.target.value} : x))}>
-                              <option value="">—</option>
-                              <option>Entregue</option><option>Pendente</option><option>Desnecessário</option>
-                            </select>
-                          </td>
-                          <td style={{ padding: '2px 4px' }}>
-                            <select style={{ ...S.input, fontSize: '7pt', padding: '2px 4px' }} value={d.res}
-                              onChange={e => setDocs(prev => prev.map((x, j) => j===i ? {...x, res: e.target.value} : x))}>
-                              <option value="">—</option>
-                              <option>Conforme</option><option>Não conforme</option><option>Não se aplica</option>
-                            </select>
-                          </td>
-                          <td style={{ padding: '2px 4px', textAlign: 'center' }}>
-                            <button onClick={() => setDocs(prev => prev.filter((_, j) => j!==i))}
-                              style={{ background: '#DC2626', color: '#fff', border: 'none', borderRadius: '4px', padding: '1px 6px', cursor: 'pointer', fontSize: '7pt' }}>✕</button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                  <button onClick={() => setDocs(prev => [...prev, {doc: '', sit: '', res: ''}])}
-                    style={{ marginTop: '6px', background: '#1E3A8A', color: '#fff', border: 'none', borderRadius: '4px', padding: '3px 10px', cursor: 'pointer', fontSize: '7.5pt' }}>
-                    + Adicionar documento
-                  </button>
-
+                <div style={S.blockTitle}>Preview do Plano de Trabalho</div>
+                <div style={{ padding: '8px 10px' }}>
+                  <iframe srcDoc={htmlPlano} style={{ width: '100%', height: '700px', border: '1px solid #c3d4f0', borderRadius: '4px' }} title="Plano" />
                 </div>
               </div>
-
               <div style={{ ...S.footer, marginTop: '8px' }}>
                 <button style={{ ...S.btn, ...S.btnSec }} onClick={() => setEtapa('ativo')}>← Voltar</button>
-                <button style={{ ...S.btn, ...S.btnPri, opacity: salvando ? 0.6 : 1 }}
-                  onClick={salvarPlano} disabled={salvando}>
-                  {salvando ? 'Salvando...' : '✅ Salvar plano'}
+                <button style={{ ...S.btn, ...S.btnPri, opacity: salvando ? 0.6 : 1 }} onClick={salvarPlano} disabled={salvando}>
+                  {salvando ? 'Salvando...' : '💾 Salvar plano'}
                 </button>
               </div>
             </div>
