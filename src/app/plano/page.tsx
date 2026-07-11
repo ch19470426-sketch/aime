@@ -173,10 +173,10 @@ function PlanoInner() {
       // Verificar se já existe plano salvo via API de vistorias
       const nomeExist = chaveInspetor + '_plano_' + tipoServico + '_' + cnpjoucpf + '.html'
       try {
-        const resArq = await fetch('/api/vistorias?nome=' + encodeURIComponent(nomeExist) + '&pasta=documentos_inspetor')
+        const resArq = await fetch('/api/ler-documento?nome=' + encodeURIComponent(nomeExist) + '&pasta=documentos_inspetor')
         if (resArq.ok) {
           const arqData = await resArq.json()
-          if (arqData.html) {
+          if (arqData.existe && arqData.html) {
             solicita(
               'Plano existente encontrado',
               'Já existe um Plano de Trabalho salvo. Deseja abrir o existente ou criar um novo?',
