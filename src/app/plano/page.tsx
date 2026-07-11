@@ -755,7 +755,7 @@ function PlanoInner() {
                 </div>
               </div>
 
-              <div style={{ ...S.footer, gridTemplateColumns: modoVisu ? '1fr 1fr' : '1fr 1fr', marginTop: '8px' }}>
+              <div style={{ ...S.footer, marginTop: '8px' }}>
                 <button style={{ ...S.btn, ...S.btnSec }} onClick={() => setEtapa('ativo')}>← Voltar</button>
                 <button style={{ ...S.btn, ...S.btnPri, opacity: salvando ? 0.6 : 1 }}
                   onClick={salvarPlano} disabled={salvando}>
