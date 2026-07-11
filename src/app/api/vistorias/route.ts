@@ -13,15 +13,16 @@ const supabase = createClient(
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
   const nome          = searchParams.get('nome')
+  const pasta         = searchParams.get('pasta') ?? 'vistorias'
   const chaveInspetor = searchParams.get('chave_inspetor')
   const cnpjoucpf     = searchParams.get('cnpjoucpf')
 
-  // Ler formulário específico (com fotoBase64)
+  // Ler formulário específico
   if (nome) {
     try {
       const { data, error } = await supabase.storage
         .from('aime')
-        .download(`vistorias/${nome}`)
+        .download(`${pasta}/${nome}`)
 
       if (error || !data) return NextResponse.json({ erro: error?.message ?? 'Não encontrado' }, { status: 404 })
 
