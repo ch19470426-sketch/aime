@@ -531,11 +531,11 @@ function PlanoInner() {
                     <div style={{ ...S.footer, marginTop: '8px' }}>
                       <button style={{ ...S.btn, ...S.btnSec }}
                         onClick={() => { setShowForm(false); setAtivoAtual({ ...ATIVO_VAZIO }) }}>
-                        Cancelar
+                        ← Fechar
                       </button>
                       <button style={{ ...S.btn, ...S.btnPri, opacity: salvando ? 0.6 : 1 }}
                         onClick={salvarAtivo} disabled={salvando}>
-                        {salvando ? 'Salvando...' : 'Cadastrar + ativo'}
+                        {salvando ? 'Salvando...' : '💾 Salvar ativo'}
                       </button>
                     </div>
                   </div>
@@ -554,7 +554,7 @@ function PlanoInner() {
                 </button>
                 <button style={{ ...S.btn, ...S.btnPri, opacity: (ativos.length === 0 || salvando) ? 0.5 : 1 }}
                   onClick={gerarPlano} disabled={ativos.length === 0 || salvando}>
-                  {ativos.length === 0 ? 'Cadastre um ativo' : `Gerar plano (${ativos.length}) →`}
+                  {ativos.length === 0 ? 'Cadastrar ativo' : `Gerar plano (${ativos.length}) →`}
                 </button>
               </div>
             </div>
