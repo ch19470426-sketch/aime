@@ -162,8 +162,10 @@ function PlanoInner() {
         return
       }
       setEst(estData[0])
-      const ativoData = await query('ativos_a_vistoriar',
-        `cpf_inspetor=eq.${cpfInspetor}&cnpjoucpf=eq.${cnpjoucpf}&tipo_servico=eq.${encodeURIComponent(tsVistoria)}&select=*&order=data_cadastro`)
+      const qAtivo = `cpf_inspetor=eq.${cpfInspetor}&cnpjoucpf=eq.${cnpjoucpf}&tipo_servico=eq.${encodeURIComponent(tsVistoria)}&select=*&order=data_cadastro`
+      console.log('QUERY ATIVOS:', qAtivo)
+      const ativoData = await query('ativos_a_vistoriar', qAtivo)
+      console.log('ATIVOS resultado:', JSON.stringify(ativoData))
       if (Array.isArray(ativoData)) {
         setAtivos(ativoData)
         setShowForm(ativoData.length === 0)
