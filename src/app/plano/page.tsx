@@ -279,15 +279,24 @@ function PlanoInner() {
   async function salvarPlano() {
     setSalvando(true)
     try {
-      const nomeArq = `${chaveInspetor}_plano_${tipoServico}_${cnpjoucpf}.html`
+      // Gerar HTML final com datas e docs preenchidos
+      const resHtml = await fetch('/api/gerar-plano', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tipoServico, cpfInspetor, cnpjoucpf, ativos, datas, docs })
+      })
+      const htmlData = await resHtml.json()
+      if (!htmlData.html) { informa('Erro', 'Não foi possível gerar o plano.'); return }
+
+      const nomeArq = chaveInspetor + '_plano_' + tipoServico + '_' + cnpjoucpf + '.html'
       const res = await fetch('/api/salvar-vistoria', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ nomeArquivo: nomeArq, pasta: 'documentos_inspetor', payload: htmlPlano, contentType: 'application/json' })
+        body: JSON.stringify({ nomeArquivo: nomeArq, pasta: 'documentos_inspetor', payload: htmlData.html, contentType: 'application/json' })
       })
       const data = await res.json()
       if (data.sucesso) {
-        agradece('Plano salvo!', `Salvo como ${nomeArq}.`, () => window.location.href = '/dashboard')
+        agradece('Plano salvo!', 'Salvo em Documentos do Inspetor.', () => window.location.href = '/dashboard')
       } else {
         informa('Erro', data.erro ?? 'Não foi possível salvar.')
       }
