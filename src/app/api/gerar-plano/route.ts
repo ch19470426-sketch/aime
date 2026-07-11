@@ -472,7 +472,9 @@ function gerarScriptDatas(n: number): string {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { tipoServico, cpfInspetor, cnpjoucpf, ativos } = body
+    const { tipoServico, cpfInspetor, cnpjoucpf, ativos, datas, docs } = body
+    const datasAtiv = (datas ?? []) as {ini: string; fim: string}[]
+    const docsLista = (docs ?? []) as {doc: string; sit: string; res: string}[]
 
     const { data: insp } = await supabase.from('inspetor')
       .select('nome_inspetor,titulo_profissional,inscricao_crea_cau,especializacao,cabecalho_documentos,rodape_documentos')
@@ -523,12 +525,14 @@ export async function POST(request: NextRequest) {
 
     // Linhas de atividades
     const linhasAtiv = atividades.map((a, i) => {
+      const ini = datasAtiv[i]?.ini ?? ''
+      const fim = datasAtiv[i]?.fim ?? ''
       const stInp = 'width:100%;border:none;border-bottom:1px solid #1E3A8A;font-size:8pt;font-family:Arial'
       return [
         '<tr>',
         '<td style="text-align:justify">' + a.descricao + '</td>',
-        '<td><input type="date" id="ini_' + i + '" onchange="validarDatas(' + i + ')" style="' + stInp + '"></td>',
-        '<td><input type="date" id="fim_' + i + '" onchange="validarDatas(' + i + ')" style="' + stInp + '"></td>',
+        ini ? '<td>' + ini + '</td>' : '<td><input type="date" id="ini_' + i + '" style="' + stInp + '"></td>',
+        fim ? '<td>' + fim + '</td>' : '<td><input type="date" id="fim_' + i + '" style="' + stInp + '"></td>',
         '</tr>'
       ].join('')
     }).join('')
@@ -537,14 +541,20 @@ export async function POST(request: NextRequest) {
     const stSel = 'width:100%;border:none;border-bottom:1px solid #1E3A8A;font-size:8pt;font-family:Arial'
     const optSit = '<option value="">—</option><option>Entregue</option><option>Pendente</option><option>Desnecessário</option>'
     const optRes = '<option value="">—</option><option>Conforme</option><option>Não conforme</option><option>Não se aplica</option>'
-    const linhasDocs = documentos.map((doc) => [
+    const listaFinal = docsLista.length > 0 ? docsLista : documentos.map(d => ({doc: d, sit: '', res: ''}))
+    const linhasDocs = listaFinal.map((item) => {
+      const doc = typeof item === 'string' ? item : item.doc
+      const sit = typeof item === 'string' ? '' : item.sit
+      const res = typeof item === 'string' ? '' : item.res
+      return [
       '<tr>',
       '<td>' + doc + '</td>',
-      '<td><select style="' + stSel + '">' + optSit + '</select></td>',
-      '<td><select style="' + stSel + '">' + optRes + '</select></td>',
+      '<td><select style="' + stSel + '"><option value="">—</option><option' + (sit==="Entregue"?" selected":"") + '>Entregue</option><option' + (sit==="Pendente"?" selected":"") + '>Pendente</option><option' + (sit==="Desnecessário"?" selected":"") + '>Desnecessário</option></select></td>',
+      '<td><select style="' + stSel + '"><option value="">—</option><option' + (res==="Conforme"?" selected":"") + '>Conforme</option><option' + (res==="Não conforme"?" selected":"") + '>Não conforme</option><option' + (res==="Não se aplica"?" selected":"") + '>Não se aplica</option></select></td>',
       '<td style="text-align:center"><button onclick="remDoc(this)" style="background:#DC2626;color:#fff;border:none;border-radius:4px;padding:2px 8px;cursor:pointer;font-size:8pt">✕</button></td>',
       '</tr>'
-    ].join('')).join('')
+    ].join('')
+    }).join('')
 
     const css = [
       '* { box-sizing: border-box; margin: 0; padding: 0; }',
