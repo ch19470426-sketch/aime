@@ -133,7 +133,6 @@ function PlanoInner() {
   const [planoInfo,  setPlanoInfo]  = useState<{titulo:string;parceiro:string;atividades:{horas:number;dias:number;descricao:string}[];documentos:string[]}>({titulo:'',parceiro:'',atividades:[],documentos:[]})
   const [datas,      setDatas]      = useState<{ini:string;fim:string}[]>([])
   const [docs,       setDocs]       = useState<{doc:string;sit:string;res:string}[]>([])
-  const [dadosExist, setDadosExist] = useState<Record<string,unknown> | null>(null)
   const [infoDoc,    setInfoDoc]    = useState<{nome:string;titulo:string;cabecalho:string;rodape:string;conselho:string;inscricao:string}>({nome:'',titulo:'',cabecalho:'',rodape:'',conselho:'',inscricao:''})
   const [enderecoDoc,setEnderecoDoc]= useState('')
 
@@ -189,7 +188,27 @@ function PlanoInner() {
                 try { dadosSalvos = JSON.parse(jsonData.html) } catch {}
               }
             }
-            setDadosExist(dadosSalvos)
+            sessionStorage.setItem('planoExist', JSON.stringify(dadosSalvos))
+            solicita(
+              'Plano existente encontrado',
+              'Já existe um Plano de Trabalho salvo. Deseja continuar editando ou criar um novo?',
+              [
+                { label: 'Continuar editando', acao: () => {
+                  const raw = sessionStorage.getItem('planoExist')
+                  if (raw) {
+                    const d = JSON.parse(raw)
+                    if (d.planoInfo) setPlanoInfo(d.planoInfo)
+                    if (d.docInfo) setInfoDoc(d.docInfo)
+                    if (d.endereco) setEnderecoDoc(d.endereco)
+                    if (d.datas) setDatas(d.datas)
+                    if (d.docs) setDocs(d.docs)
+                    sessionStorage.removeItem('planoExist')
+                  }
+                  setEtapa('plano')
+                }, estilo: 'primario' },
+                { label: 'Criar novo', acao: () => { sessionStorage.removeItem('planoExist') }, estilo: 'secundario' },
+              ]
+            )
           }
         }
       } catch {}
@@ -576,32 +595,6 @@ function PlanoInner() {
                         {salvando ? 'Salvando...' : 'Cadastrar + ativo'}
                       </button>
                     </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Plano existente */}
-              {dadosExist && (
-                <div style={{ background: '#EFF6FF', border: '1px solid #3B82F6', borderRadius: '6px', padding: '10px 14px', marginBottom: '8px' }}>
-                  <p style={{ fontSize: '8pt', fontWeight: 700, color: '#1E3A8A', marginBottom: '6px' }}>📄 Plano de Trabalho existente encontrado</p>
-                  <p style={{ fontSize: '7.5pt', color: '#374151', marginBottom: '8px' }}>Deseja continuar editando o plano salvo ou criar um novo?</p>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-                    <button style={{ ...S.btn, ...S.btnSec }}
-                      onClick={() => setDadosExist(null)}>
-                      Criar novo
-                    </button>
-                    <button style={{ ...S.btn, ...S.btnPri }}
-                      onClick={() => {
-                        if (dadosExist.planoInfo) setPlanoInfo(dadosExist.planoInfo as typeof planoInfo)
-                        if (dadosExist.docInfo) setInfoDoc(dadosExist.docInfo as typeof infoDoc)
-                        if (dadosExist.endereco) setEnderecoDoc(dadosExist.endereco as string)
-                        if (dadosExist.datas) setDatas(dadosExist.datas as {ini:string;fim:string}[])
-                        if (dadosExist.docs) setDocs(dadosExist.docs as {doc:string;sit:string;res:string}[])
-                        setDadosExist(null)
-                        setEtapa('plano')
-                      }}>
-                      Continuar editando →
-                    </button>
                   </div>
                 </div>
               )}
