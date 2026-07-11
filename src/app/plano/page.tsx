@@ -283,14 +283,14 @@ function PlanoInner() {
   }
 
   function abrirExistente() {
-    fechar()
-    if (!dadosExist) return
+    if (!dadosExist) { fechar(); return }
     if (dadosExist.planoInfo) setPlanoInfo(dadosExist.planoInfo as typeof planoInfo)
     if (dadosExist.docInfo) setInfoDoc(dadosExist.docInfo as typeof infoDoc)
     if (dadosExist.endereco) setEnderecoDoc(dadosExist.endereco as string)
     if (dadosExist.datas) setDatas(dadosExist.datas as {ini:string;fim:string}[])
     if (dadosExist.docs) setDocs(dadosExist.docs as {doc:string;sit:string;res:string}[])
-    setTimeout(() => setEtapa('plano'), 100)
+    setEtapa('plano')
+    fechar()
   }
 
   async function gerarPlano() {
