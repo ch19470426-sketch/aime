@@ -4,6 +4,7 @@
 'use client'
 
 import { Suspense, useEffect, useState } from 'react'
+import { flushSync } from 'react-dom'
 import { useSearchParams } from 'next/navigation'
 import Image from 'next/image'
 import Banner from '@/components/Banner'
@@ -123,7 +124,6 @@ function PlanoInner() {
   const needsTag   = isElevador || isNR12 || isNR13
 
   const [etapa,      setEtapa]      = useState<'ativo' | 'plano'>('ativo')
-  const [irParaPlano, setIrParaPlano] = useState(false)
   const [showForm,   setShowForm]   = useState(false)
   const [carregando, setCarregando] = useState(true)
   const [salvando,   setSalvando]   = useState(false)
@@ -149,12 +149,7 @@ function PlanoInner() {
     carregar()
   }, [cnpjoucpf, cpfInspetor])
 
-  useEffect(() => {
-    if (irParaPlano) {
-      setEtapa('plano')
-      setIrParaPlano(false)
-    }
-  }, [irParaPlano, planoInfo])
+
 
   async function carregar() {
     setCarregando(true)
@@ -200,12 +195,14 @@ function PlanoInner() {
               [
                 { label: 'Continuar editando', acao: () => {
                   if (dadosSalvos) {
-                    if (dadosSalvos.planoInfo) setPlanoInfo(dadosSalvos.planoInfo as typeof planoInfo)
-                    if (dadosSalvos.docInfo) setInfoDoc(dadosSalvos.docInfo as typeof infoDoc)
-                    if (dadosSalvos.endereco) setEnderecoDoc(dadosSalvos.endereco as string)
-                    if (dadosSalvos.datas) setDatas(dadosSalvos.datas as {ini:string;fim:string}[])
-                    if (dadosSalvos.docs) setDocs(dadosSalvos.docs as {doc:string;sit:string;res:string}[])
-                    setIrParaPlano(true)
+                    flushSync(() => {
+                      if (dadosSalvos.planoInfo) setPlanoInfo(dadosSalvos.planoInfo as typeof planoInfo)
+                      if (dadosSalvos.docInfo) setInfoDoc(dadosSalvos.docInfo as typeof infoDoc)
+                      if (dadosSalvos.endereco) setEnderecoDoc(dadosSalvos.endereco as string)
+                      if (dadosSalvos.datas) setDatas(dadosSalvos.datas as {ini:string;fim:string}[])
+                      if (dadosSalvos.docs) setDocs(dadosSalvos.docs as {doc:string;sit:string;res:string}[])
+                    })
+                    setEtapa('plano')
                   }
                   fechar()
                 }, estilo: 'primario' },
