@@ -562,77 +562,102 @@ function PlanoInner() {
           {/* ── ETAPA 2: PLANO ── */}
           {etapa === 'plano' && (
             <div>
-              {/* 1.1 Agenda */}
-              <div style={{ ...S.block, marginBottom: '8px' }}>
-                <div style={S.blockTitle}>1.1.- Plano de Trabalho — {planoInfo.parceiro}</div>
+              <div style={S.block}>
+                <div style={S.blockTitle}>Revisar Plano de Trabalho</div>
                 <div style={S.blockBody}>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '4px', marginBottom: '4px' }}>
-                    <span style={{ fontSize: '7pt', fontWeight: 700, color: '#1E3A8A' }}>Atividade</span>
-                    <span style={{ fontSize: '7pt', fontWeight: 700, color: '#1E3A8A' }}>Dt. Início</span>
-                    <span style={{ fontSize: '7pt', fontWeight: 700, color: '#1E3A8A' }}>Dt. Fim</span>
-                  </div>
-                  {planoInfo.atividades.map((a, i) => (
-                    <div key={i} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '4px', borderBottom: '1px solid #e2e8f0', paddingBottom: '4px' }}>
-                      <span style={{ fontSize: '7.5pt', paddingTop: '4px' }}>{a.descricao}</span>
-                      <input style={S.input} type="date" value={datas[i]?.ini ?? ''}
-                        onChange={e => {
-                          const v = e.target.value
-                          if (i > 0 && datas[i-1]?.ini && v < datas[i-1].ini) {
-                            informa('Data inválida', 'A data início não pode ser anterior à atividade anterior.')
-                            return
-                          }
-                          setDatas(prev => prev.map((d, j) => j === i ? { ...d, ini: v } : d))
-                        }} />
-                      <input style={S.input} type="date" value={datas[i]?.fim ?? ''}
-                        onChange={e => {
-                          const v = e.target.value
-                          if (datas[i]?.ini && v < datas[i].ini) {
-                            informa('Data inválida', 'A data fim não pode ser anterior à data início.')
-                            return
-                          }
-                          setDatas(prev => prev.map((d, j) => j === i ? { ...d, fim: v } : d))
-                        }} />
-                    </div>
-                  ))}
-                </div>
-              </div>
 
-              {/* 1.2 Documentos */}
-              <div style={{ ...S.block, marginBottom: '8px' }}>
-                <div style={S.blockTitle}>1.2.- Relação de Documentos Solicitados</div>
-                <div style={S.blockBody}>
-                  <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr auto', gap: '4px', marginBottom: '4px' }}>
-                    <span style={{ fontSize: '7pt', fontWeight: 700, color: '#1E3A8A' }}>Documento</span>
-                    <span style={{ fontSize: '7pt', fontWeight: 700, color: '#1E3A8A' }}>Situação</span>
-                    <span style={{ fontSize: '7pt', fontWeight: 700, color: '#1E3A8A' }}>Resultado</span>
-                    <span></span>
-                  </div>
-                  {docs.map((d, i) => (
-                    <div key={i} style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr auto', gap: '4px', borderBottom: '1px solid #e2e8f0', paddingBottom: '4px', alignItems: 'center' }}>
-                      <input style={S.input} value={d.doc}
-                        onChange={e => setDocs(prev => prev.map((x, j) => j === i ? { ...x, doc: e.target.value } : x))} />
-                      <select style={S.input} value={d.sit}
-                        onChange={e => setDocs(prev => prev.map((x, j) => j === i ? { ...x, sit: e.target.value } : x))}>
-                        <option value="">—</option>
-                        <option>Entregue</option><option>Pendente</option><option>Desnecessário</option>
-                      </select>
-                      <select style={S.input} value={d.res}
-                        onChange={e => setDocs(prev => prev.map((x, j) => j === i ? { ...x, res: e.target.value } : x))}>
-                        <option value="">—</option>
-                        <option>Conforme</option><option>Não conforme</option><option>Não se aplica</option>
-                      </select>
-                      <button onClick={() => setDocs(prev => prev.filter((_, j) => j !== i))}
-                        style={{ background: '#DC2626', color: '#fff', border: 'none', borderRadius: '4px', padding: '2px 8px', cursor: 'pointer', fontSize: '8pt' }}>✕</button>
-                    </div>
-                  ))}
-                  <button onClick={() => setDocs(prev => [...prev, { doc: '', sit: '', res: '' }])}
-                    style={{ ...S.btn, ...S.btnSec, fontSize: '7.5pt', padding: '4px 12px', borderRadius: '4px', marginTop: '4px', width: 'fit-content' }}>
+                  {/* 1.1 Agenda */}
+                  <div style={S.sectionTitle}>1.1.- Plano de Trabalho — {planoInfo.parceiro}</div>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '7.5pt' }}>
+                    <thead>
+                      <tr style={{ background: '#1E3A8A', color: '#fff' }}>
+                        <th style={{ padding: '3px 6px', textAlign: 'left', width: '60%' }}>Atividade</th>
+                        <th style={{ padding: '3px 6px', textAlign: 'center', width: '20%' }}>Dt. Início</th>
+                        <th style={{ padding: '3px 6px', textAlign: 'center', width: '20%' }}>Dt. Fim</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {planoInfo.atividades.map((a, i) => (
+                        <tr key={i} style={{ borderBottom: '1px solid #e2e8f0', background: i%2===0?'#f8fafc':'#fff' }}>
+                          <td style={{ padding: '3px 6px' }}>{a.descricao}</td>
+                          <td style={{ padding: '2px 4px' }}>
+                            <input style={{ ...S.input, fontSize: '7pt', padding: '2px 4px' }} type="date"
+                              value={datas[i]?.ini ?? ''}
+                              onChange={e => {
+                                const v = e.target.value
+                                if (i > 0 && datas[i-1]?.ini && v < datas[i-1].ini) {
+                                  informa('Data inválida', 'Data início não pode ser anterior à atividade anterior.')
+                                  return
+                                }
+                                setDatas(prev => prev.map((d, j) => j===i ? {...d, ini: v} : d))
+                              }} />
+                          </td>
+                          <td style={{ padding: '2px 4px' }}>
+                            <input style={{ ...S.input, fontSize: '7pt', padding: '2px 4px' }} type="date"
+                              value={datas[i]?.fim ?? ''}
+                              onChange={e => {
+                                const v = e.target.value
+                                if (datas[i]?.ini && v < datas[i].ini) {
+                                  informa('Data inválida', 'Data fim não pode ser anterior à data início.')
+                                  return
+                                }
+                                setDatas(prev => prev.map((d, j) => j===i ? {...d, fim: v} : d))
+                              }} />
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+
+                  {/* 1.2 Documentos */}
+                  <div style={{ ...S.sectionTitle, marginTop: '8px' }}>1.2.- Relação de Documentos Solicitados</div>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '7.5pt' }}>
+                    <thead>
+                      <tr style={{ background: '#1E3A8A', color: '#fff' }}>
+                        <th style={{ padding: '3px 6px', textAlign: 'left', width: '50%' }}>Documento</th>
+                        <th style={{ padding: '3px 6px', textAlign: 'left', width: '20%' }}>Situação</th>
+                        <th style={{ padding: '3px 6px', textAlign: 'left', width: '20%' }}>Resultado</th>
+                        <th style={{ padding: '3px 6px', width: '10%' }}></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {docs.map((d, i) => (
+                        <tr key={i} style={{ borderBottom: '1px solid #e2e8f0', background: i%2===0?'#f8fafc':'#fff' }}>
+                          <td style={{ padding: '2px 4px' }}>
+                            <input style={{ ...S.input, fontSize: '7pt', padding: '2px 4px' }} value={d.doc}
+                              onChange={e => setDocs(prev => prev.map((x, j) => j===i ? {...x, doc: e.target.value} : x))} />
+                          </td>
+                          <td style={{ padding: '2px 4px' }}>
+                            <select style={{ ...S.input, fontSize: '7pt', padding: '2px 4px' }} value={d.sit}
+                              onChange={e => setDocs(prev => prev.map((x, j) => j===i ? {...x, sit: e.target.value} : x))}>
+                              <option value="">—</option>
+                              <option>Entregue</option><option>Pendente</option><option>Desnecessário</option>
+                            </select>
+                          </td>
+                          <td style={{ padding: '2px 4px' }}>
+                            <select style={{ ...S.input, fontSize: '7pt', padding: '2px 4px' }} value={d.res}
+                              onChange={e => setDocs(prev => prev.map((x, j) => j===i ? {...x, res: e.target.value} : x))}>
+                              <option value="">—</option>
+                              <option>Conforme</option><option>Não conforme</option><option>Não se aplica</option>
+                            </select>
+                          </td>
+                          <td style={{ padding: '2px 4px', textAlign: 'center' }}>
+                            <button onClick={() => setDocs(prev => prev.filter((_, j) => j!==i))}
+                              style={{ background: '#DC2626', color: '#fff', border: 'none', borderRadius: '4px', padding: '1px 6px', cursor: 'pointer', fontSize: '7pt' }}>✕</button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                  <button onClick={() => setDocs(prev => [...prev, {doc: '', sit: '', res: ''}])}
+                    style={{ marginTop: '6px', background: '#1E3A8A', color: '#fff', border: 'none', borderRadius: '4px', padding: '3px 10px', cursor: 'pointer', fontSize: '7.5pt' }}>
                     + Adicionar documento
                   </button>
+
                 </div>
               </div>
 
-              <div style={{ ...S.footer, gridTemplateColumns: '1fr 1fr', marginTop: '8px' }}>
+              <div style={{ ...S.footer, marginTop: '8px' }}>
                 <button style={{ ...S.btn, ...S.btnSec }} onClick={() => setEtapa('ativo')}>← Voltar</button>
                 <button style={{ ...S.btn, ...S.btnPri, opacity: salvando ? 0.6 : 1 }}
                   onClick={salvarPlano} disabled={salvando}>
