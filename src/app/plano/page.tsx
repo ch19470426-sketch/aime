@@ -1,6 +1,4 @@
-// src/app/plano/page.tsx
-// AIMÊ — Tela Plano de Trabalho (tipos 21-29)
-
+// src/app/plano/page.tsx — v3 com estado único dadosPlano
 'use client'
 
 import { Suspense, useEffect, useState } from 'react'
@@ -58,7 +56,6 @@ function fmtCNPJ(v: string): string {
   if (v.length === 11) return v.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4')
   return v
 }
-
 function fmtWpp(v: string): string {
   const d = String(v || '').replace(/\D/g, '')
   if (d.length === 11) return d.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3')
@@ -87,6 +84,21 @@ const ATIVO_VAZIO: Ativo = {
   volume_interno_m3: '',
 }
 
+interface DadosPlano {
+  planoInfo: { titulo: string; parceiro: string; atividades: {horas:number;dias:number;descricao:string}[]; documentos: string[] }
+  datas: { ini: string; fim: string }[]
+  docs: { doc: string; sit: string; res: string }[]
+  infoDoc: { nome: string; titulo: string; cabecalho: string; rodape: string; conselho: string; inscricao: string }
+  endereco: string
+}
+
+const DADOS_PLANO_VAZIO: DadosPlano = {
+  planoInfo: { titulo: '', parceiro: '', atividades: [], documentos: [] },
+  datas: [], docs: [],
+  infoDoc: { nome: '', titulo: '', cabecalho: '', rodape: '', conselho: '', inscricao: '' },
+  endereco: ''
+}
+
 export default function PlanoPage() {
   return (
     <Suspense fallback={
@@ -107,7 +119,7 @@ function PlanoInner() {
   const cnpjoucpf     = params.get('cnpjoucpf')      ?? ''
   const tipoServico   = params.get('tipo_servico')   ?? '21'
 
-  const { bannerProps, informa, agradece, solicita, fechar } = useBanner()
+  const { bannerProps, informa, agradece, fechar } = useBanner()
 
   const tsVistoria = TIPO_VISTORIA[tipoServico] ?? '31 Autovistoria'
   const tsNum      = tsVistoria.split(' ')[0]
@@ -122,6 +134,7 @@ function PlanoInner() {
   const isNR       = isNR10 || isNR12 || isNR13
   const needsTag   = isElevador || isNR12 || isNR13
 
+  // Estado único para dados do plano
   const [etapa,      setEtapa]      = useState<'ativo' | 'plano'>('ativo')
   const [showForm,   setShowForm]   = useState(false)
   const [carregando, setCarregando] = useState(true)
@@ -129,12 +142,8 @@ function PlanoInner() {
   const [est,        setEst]        = useState<{razao_social_nome:string}|null>(null)
   const [ativos,     setAtivos]     = useState<Ativo[]>([])
   const [ativoAtual, setAtivoAtual] = useState<Ativo>({ ...ATIVO_VAZIO })
-  const [htmlPlano,  setHtmlPlano]  = useState('')
-  const [planoInfo,  setPlanoInfo]  = useState<{titulo:string;parceiro:string;atividades:{horas:number;dias:number;descricao:string}[];documentos:string[]}>({titulo:'',parceiro:'',atividades:[],documentos:[]})
-  const [datas,      setDatas]      = useState<{ini:string;fim:string}[]>([])
-  const [docs,       setDocs]       = useState<{doc:string;sit:string;res:string}[]>([])
-  const [infoDoc,    setInfoDoc]    = useState<{nome:string;titulo:string;cabecalho:string;rodape:string;conselho:string;inscricao:string}>({nome:'',titulo:'',cabecalho:'',rodape:'',conselho:'',inscricao:''})
-  const [enderecoDoc,setEnderecoDoc]= useState('')
+  const [dp,         setDp]         = useState<DadosPlano>(DADOS_PLANO_VAZIO)
+  const [temExist,   setTemExist]   = useState(false)
 
   async function query(table: string, qparams: string) {
     const res = await fetch(`${SUPA_URL}/rest/v1/${table}?${qparams}`, {
@@ -148,18 +157,14 @@ function PlanoInner() {
     carregar()
   }, [cnpjoucpf, cpfInspetor])
 
-
-
   async function carregar() {
     setCarregando(true)
     try {
-      const estData = await query('estabelecimento', `cnpjoucpf=eq.${cnpjoucpf}&select=cnpjoucpf`)
+      const estData = await query('estabelecimento', `cnpjoucpf=eq.${cnpjoucpf}&select=*`)
       if (!Array.isArray(estData) || !estData[0]) {
-        informa(
-          'Estabelecimento não cadastrado',
-          'Para o CNPJ/CPF informado não há Estabelecimento cadastrado. O cadastro do Estabelecimento deve ser efetuado na geração da proposta comercial.',
-          () => window.location.href = '/dashboard'
-        )
+        informa('Estabelecimento não cadastrado',
+          'Para o CNPJ/CPF informado não há Estabelecimento cadastrado. O cadastro deve ser efetuado na geração da proposta comercial.',
+          () => window.location.href = '/dashboard')
         setCarregando(false)
         return
       }
@@ -170,51 +175,19 @@ function PlanoInner() {
         setAtivos(ativoData)
         setShowForm(ativoData.length === 0)
       }
-
-      // Verificar se já existe plano salvo via API de vistorias
-      const nomeExist = chaveInspetor + '_plano_' + tipoServico + '_' + cnpjoucpf + '.html'
-      try {
-        const resArq = await fetch('/api/ler-documento?nome=' + encodeURIComponent(nomeExist) + '&pasta=documentos_inspetor')
-        if (resArq.ok) {
-          const arqData = await resArq.json()
-          if (arqData.existe) {
-            // Tentar carregar JSON com dados editáveis
-            const nomeJson = nomeExist.replace('.html', '.json')
-            const resJson = await fetch('/api/ler-documento?nome=' + encodeURIComponent(nomeJson) + '&pasta=documentos_inspetor')
-            let dadosSalvos: Record<string, unknown> | null = null
-            if (resJson.ok) {
-              const jsonData = await resJson.json()
-              if (jsonData.existe && jsonData.html) {
-                try { dadosSalvos = JSON.parse(jsonData.html) } catch {}
-              }
-            }
-            sessionStorage.setItem('planoExist', JSON.stringify(dadosSalvos))
-            solicita(
-              'Plano existente encontrado',
-              'Já existe um Plano de Trabalho salvo. Deseja continuar editando ou criar um novo?',
-              [
-                { label: 'Continuar editando', acao: () => {
-                  const raw = sessionStorage.getItem('planoExist')
-                  sessionStorage.removeItem('planoExist')
-                  fechar()
-                  if (raw) {
-                    const d = JSON.parse(raw)
-                    console.log('DADOS:', Object.keys(d), 'planoInfo titulo:', d.planoInfo?.titulo, 'datas:', d.datas?.length, 'docs:', d.docs?.length)
-                    if (d.planoInfo) setPlanoInfo(d.planoInfo)
-                    if (d.docInfo) setInfoDoc(d.docInfo)
-                    if (d.endereco) setEnderecoDoc(d.endereco)
-                    if (d.datas) setDatas(d.datas)
-                    if (d.docs) setDocs(d.docs)
-                    setTimeout(() => setEtapa('plano'), 50)
-                  }
-                }, estilo: 'primario' },
-                { label: 'Criar novo', acao: () => { sessionStorage.removeItem('planoExist'); fechar() }, estilo: 'secundario' },
-              ]
-            )
-          }
+      // Verificar se existe JSON salvo
+      const nomeJson = chaveInspetor + '_plano_' + tipoServico + '_' + cnpjoucpf + '.json'
+      const resJson = await fetch('/api/ler-documento?nome=' + encodeURIComponent(nomeJson) + '&pasta=documentos_inspetor')
+      if (resJson.ok) {
+        const jd = await resJson.json()
+        if (jd.existe && jd.html) {
+          try {
+            const d = JSON.parse(jd.html) as DadosPlano
+            setDp(d)
+            setTemExist(true)
+          } catch {}
         }
-      } catch {}
-
+      }
     } catch {
       informa('Erro', 'Não foi possível carregar os dados.')
     } finally {
@@ -253,8 +226,7 @@ function PlanoInner() {
       const payload = {
         cpf_inspetor: cpfInspetor, cnpjoucpf, tipo_servico: tsVistoria,
         data_cadastro: new Date().toISOString(),
-        tipo_ativo: ativoAtual.tipo_ativo,
-        tag_ativo_nr_serie: tag,
+        tipo_ativo: ativoAtual.tipo_ativo, tag_ativo_nr_serie: tag,
         cpf_responsavel: ativoAtual.cpf_responsavel || null,
         nome_responsavel: ativoAtual.nome_responsavel,
         funcao_responsavel: ativoAtual.funcao_responsavel,
@@ -297,29 +269,26 @@ function PlanoInner() {
 
   async function gerarPlano() {
     setSalvando(true)
-    solicita('Atenção — Plano de Trabalho',
-      'Após gerar o plano, preencha as datas no item 1.1 e verifique os documentos no item 1.2 antes de salvar.',
-      [{ label: 'Entendido', acao: () => fechar(), estilo: 'primario' }]
-    )
     try {
       const res = await fetch('/api/gerar-plano', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ tipoServico, cpfInspetor, cnpjoucpf, ativos })
+        body: JSON.stringify({ tipoServico, cpfInspetor, cnpjoucpf, ativos, datas: dp.datas, docs: dp.docs })
       })
       const data = await res.json()
       if (data.html) {
-        setHtmlPlano(data.html)
-        if (data.planoInfo) {
-          setPlanoInfo(data.planoInfo)
-          setDatas(data.planoInfo.atividades.map(() => ({ini:'', fim:''})))
-          setDocs(data.planoInfo.documentos.map((d: string) => ({doc:d, sit:'', res:''})))
+        const novoDp: DadosPlano = {
+          planoInfo: data.planoInfo ?? DADOS_PLANO_VAZIO.planoInfo,
+          datas: dp.datas.length > 0 ? dp.datas : (data.planoInfo?.atividades ?? []).map(() => ({ ini: '', fim: '' })),
+          docs: dp.docs.length > 0 ? dp.docs : (data.planoInfo?.documentos ?? []).map((d: string) => ({ doc: d, sit: '', res: '' })),
+          infoDoc: data.docInfo ?? DADOS_PLANO_VAZIO.infoDoc,
+          endereco: data.endereco ?? ''
         }
-        if (data.docInfo) setInfoDoc(data.docInfo)
-        if (data.endereco) setEnderecoDoc(data.endereco)
+        setDp(novoDp)
         setEtapa('plano')
+      } else {
+        informa('Erro', data.erro ?? 'Não foi possível gerar o plano.')
       }
-      else informa('Erro', data.erro ?? 'Não foi possível gerar o plano.')
     } finally {
       setSalvando(false)
     }
@@ -328,38 +297,25 @@ function PlanoInner() {
   async function salvarPlano() {
     setSalvando(true)
     try {
-      // Gerar HTML final
       const resHtml = await fetch('/api/gerar-plano', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ tipoServico, cpfInspetor, cnpjoucpf, ativos, datas, docs })
+        body: JSON.stringify({ tipoServico, cpfInspetor, cnpjoucpf, ativos, datas: dp.datas, docs: dp.docs })
       })
       const htmlData = await resHtml.json()
       if (!htmlData.html) { informa('Erro', 'Não foi possível gerar o plano.'); return }
-
       const nomeBase = chaveInspetor + '_plano_' + tipoServico + '_' + cnpjoucpf
-
-      // Salvar HTML
-      const resHtml2 = await fetch('/api/salvar-vistoria', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      await fetch('/api/salvar-vistoria', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ nomeArquivo: nomeBase + '.html', pasta: 'documentos_inspetor', payload: htmlData.html, contentType: 'application/json' })
       })
-
-      // Salvar JSON com dados editáveis para reabrir
-      const dadosPlano = { tipoServico, datas, docs, planoInfo: htmlData.planoInfo, docInfo: htmlData.docInfo, endereco: htmlData.endereco }
+      const dpFinal: DadosPlano = { ...dp, planoInfo: htmlData.planoInfo ?? dp.planoInfo, infoDoc: htmlData.docInfo ?? dp.infoDoc, endereco: htmlData.endereco ?? dp.endereco }
       await fetch('/api/salvar-vistoria', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ nomeArquivo: nomeBase + '.json', pasta: 'documentos_inspetor', payload: JSON.stringify(dadosPlano), contentType: 'application/json' })
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nomeArquivo: nomeBase + '.json', pasta: 'documentos_inspetor', payload: JSON.stringify(dpFinal), contentType: 'application/json' })
       })
-
-      const data = await resHtml2.json()
-      if (data.sucesso) {
-        agradece('Plano salvo!', 'Salvo em Documentos do Inspetor.', () => window.location.href = '/dashboard')
-      } else {
-        informa('Erro', data.erro ?? 'Não foi possível salvar.')
-      }
+      setTemExist(true)
+      agradece('Plano salvo!', 'Salvo em Documentos do Inspetor.', () => window.location.href = '/dashboard')
     } finally {
       setSalvando(false)
     }
@@ -384,7 +340,20 @@ function PlanoInner() {
           {/* ── ETAPA 1: ATIVOS ── */}
           {etapa === 'ativo' && (
             <div>
-              {/* Listagem de ativos cadastrados */}
+              {/* Aviso plano existente */}
+              {temExist && (
+                <div style={{ background: '#EFF6FF', border: '1px solid #3B82F6', borderRadius: '6px', padding: '8px 12px', marginBottom: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontSize: '7.5pt', color: '#1E3A8A', fontWeight: 600 }}>📄 Plano salvo encontrado</span>
+                  <div style={{ display: 'flex', gap: '6px' }}>
+                    <button style={{ ...S.btn, ...S.btnSec, padding: '4px 10px', fontSize: '7pt' }}
+                      onClick={() => setTemExist(false)}>Ignorar</button>
+                    <button style={{ ...S.btn, ...S.btnPri, padding: '4px 10px', fontSize: '7pt' }}
+                      onClick={() => setEtapa('plano')}>Continuar editando →</button>
+                  </div>
+                </div>
+              )}
+
+              {/* Listagem de ativos */}
               {ativos.length > 0 && (
                 <div style={{ ...S.block, marginBottom: '8px' }}>
                   <div style={S.blockTitle}>Ativos cadastrados — {fmtCNPJ(cnpjoucpf)} ({ativos.length})</div>
@@ -392,26 +361,14 @@ function PlanoInner() {
                     {ativos.map((a, i) => (
                       <div key={i} style={{ borderBottom: '1px solid #e2e8f0', padding: '5px 0' }}>
                         <div style={{ ...S.row, ...S.c3 }}>
-                          <Field label="Tipo de ativo">
-                            <input style={S.inputRO} value={a.tipo_ativo ?? ''} readOnly />
-                          </Field>
-                          <Field label="TAG / Nº Série">
-                            <input style={S.inputRO} value={a.tag_ativo_nr_serie ?? ''} readOnly />
-                          </Field>
-                          <Field label="Finalidade">
-                            <input style={S.inputRO} value={a.finalidade_vistoria ?? ''} readOnly />
-                          </Field>
+                          <Field label="Tipo de ativo"><input style={S.inputRO} value={a.tipo_ativo ?? ''} readOnly /></Field>
+                          <Field label="TAG / Nº Série"><input style={S.inputRO} value={a.tag_ativo_nr_serie ?? ''} readOnly /></Field>
+                          <Field label="Finalidade"><input style={S.inputRO} value={a.finalidade_vistoria ?? ''} readOnly /></Field>
                         </div>
                         <div style={{ ...S.row, ...S.c3 }}>
-                          <Field label="Responsável">
-                            <input style={S.inputRO} value={a.nome_responsavel ?? ''} readOnly />
-                          </Field>
-                          <Field label="Função">
-                            <input style={S.inputRO} value={a.funcao_responsavel ?? ''} readOnly />
-                          </Field>
-                          <Field label="WhatsApp">
-                            <input style={S.inputRO} value={fmtWpp(a.whatsapp_responsavel ?? '')} readOnly />
-                          </Field>
+                          <Field label="Responsável"><input style={S.inputRO} value={a.nome_responsavel ?? ''} readOnly /></Field>
+                          <Field label="Função"><input style={S.inputRO} value={a.funcao_responsavel ?? ''} readOnly /></Field>
+                          <Field label="WhatsApp"><input style={S.inputRO} value={fmtWpp(a.whatsapp_responsavel ?? '')} readOnly /></Field>
                         </div>
                       </div>
                     ))}
@@ -443,31 +400,22 @@ function PlanoInner() {
                         </Field>
                       )}
                     </div>
-
                     {needsTag && (
                       <Field label="Finalidade da vistoria *">
                         <input style={S.input} value={ativoAtual.finalidade_vistoria}
                           onChange={e => atualizarAtivo('finalidade_vistoria', e.target.value)} placeholder="Ex: Inspeção de segurança" />
                       </Field>
                     )}
-
                     <div style={S.sectionTitle}>Responsável pelo ativo</div>
                     <div style={{ ...S.row, ...S.c3 }}>
-                      <Field label="Nome *">
-                        <input style={S.input} value={ativoAtual.nome_responsavel}
-                          onChange={e => atualizarAtivo('nome_responsavel', e.target.value)} />
-                      </Field>
+                      <Field label="Nome *"><input style={S.input} value={ativoAtual.nome_responsavel} onChange={e => atualizarAtivo('nome_responsavel', e.target.value)} /></Field>
                       <Field label="Função *">
-                        <select style={S.input} value={ativoAtual.funcao_responsavel}
-                          onChange={e => atualizarAtivo('funcao_responsavel', e.target.value)}>
+                        <select style={S.input} value={ativoAtual.funcao_responsavel} onChange={e => atualizarAtivo('funcao_responsavel', e.target.value)}>
                           <option value="">Selecione...</option>
                           {FUNCOES.map(f => <option key={f} value={f}>{f}</option>)}
                         </select>
                       </Field>
-                      <Field label="CPF">
-                        <input style={S.input} value={ativoAtual.cpf_responsavel} maxLength={11}
-                          onChange={e => atualizarAtivo('cpf_responsavel', e.target.value.replace(/\D/g, ''))} placeholder="Somente dígitos" />
-                      </Field>
+                      <Field label="CPF"><input style={S.input} value={ativoAtual.cpf_responsavel} maxLength={11} onChange={e => atualizarAtivo('cpf_responsavel', e.target.value.replace(/\D/g, ''))} placeholder="Somente dígitos" /></Field>
                     </div>
                     <div style={{ ...S.row, ...S.c2 }}>
                       <Field label="WhatsApp">
@@ -475,125 +423,65 @@ function PlanoInner() {
                           onChange={e => atualizarAtivo('whatsapp_responsavel', e.target.value.replace(/\D/g, '').slice(0, 11))}
                           placeholder="(27) 99999-9999" />
                       </Field>
-                      <Field label="E-mail">
-                        <input style={S.input} value={ativoAtual.email_responsavel}
-                          onChange={e => atualizarAtivo('email_responsavel', e.target.value)} placeholder="email@dominio.com" />
-                      </Field>
+                      <Field label="E-mail"><input style={S.input} value={ativoAtual.email_responsavel} onChange={e => atualizarAtivo('email_responsavel', e.target.value)} placeholder="email@dominio.com" /></Field>
                     </div>
-
                     <div style={S.sectionTitle}>Características do ativo</div>
                     <div style={{ ...S.row, ...S.c2 }}>
-                      <Field label="Data de início de operação *">
-                        <input style={S.input} type="date" value={ativoAtual.data_inicio_operacao}
-                          onChange={e => atualizarAtivo('data_inicio_operacao', e.target.value)} />
-                      </Field>
+                      <Field label="Data de início de operação *"><input style={S.input} type="date" value={ativoAtual.data_inicio_operacao} onChange={e => atualizarAtivo('data_inicio_operacao', e.target.value)} /></Field>
                       <Field label="Uso do ativo *">
-                        <select style={S.input} value={ativoAtual.uso_ativo}
-                          onChange={e => atualizarAtivo('uso_ativo', e.target.value)}>
+                        <select style={S.input} value={ativoAtual.uso_ativo} onChange={e => atualizarAtivo('uso_ativo', e.target.value)}>
                           <option value="">Selecione...</option>
                           {USOS.map(u => <option key={u} value={u}>{u}</option>)}
                         </select>
                       </Field>
                     </div>
-
                     {isPredial && (
                       <div style={{ ...S.row, ...S.c4 }}>
-                        <Field label="Pavimentos *">
-                          <input style={S.input} type="number" min="1" value={ativoAtual.numero_pavimentos}
-                            onChange={e => atualizarAtivo('numero_pavimentos', e.target.value)} />
-                        </Field>
-                        <Field label="Unidades/salas">
-                          <input style={S.input} type="number" min="1" value={ativoAtual.numero_unidades_salas}
-                            onChange={e => atualizarAtivo('numero_unidades_salas', e.target.value)} />
-                        </Field>
-                        <Field label="Área terreno (m²)">
-                          <input style={S.input} type="number" step="0.01" value={ativoAtual.area_terreno}
-                            onChange={e => atualizarAtivo('area_terreno', e.target.value)} />
-                        </Field>
-                        <Field label="Área construída (m²) *">
-                          <input style={S.input} type="number" step="0.01" value={ativoAtual.area_construida}
-                            onChange={e => atualizarAtivo('area_construida', e.target.value)} />
-                        </Field>
+                        <Field label="Pavimentos *"><input style={S.input} type="number" min="1" value={ativoAtual.numero_pavimentos} onChange={e => atualizarAtivo('numero_pavimentos', e.target.value)} /></Field>
+                        <Field label="Unidades/salas"><input style={S.input} type="number" min="1" value={ativoAtual.numero_unidades_salas} onChange={e => atualizarAtivo('numero_unidades_salas', e.target.value)} /></Field>
+                        <Field label="Área terreno (m²)"><input style={S.input} type="number" step="0.01" value={ativoAtual.area_terreno} onChange={e => atualizarAtivo('area_terreno', e.target.value)} /></Field>
+                        <Field label="Área construída (m²) *"><input style={S.input} type="number" step="0.01" value={ativoAtual.area_construida} onChange={e => atualizarAtivo('area_construida', e.target.value)} /></Field>
                       </div>
                     )}
-
                     {isFachada && (
                       <div style={{ ...S.row, ...S.c3 }}>
-                        <Field label="Pavimentos *">
-                          <input style={S.input} type="number" min="1" value={ativoAtual.numero_pavimentos}
-                            onChange={e => atualizarAtivo('numero_pavimentos', e.target.value)} />
-                        </Field>
-                        <Field label="Número de fachadas *">
-                          <input style={S.input} type="number" min="1" value={ativoAtual.numero_fachadas}
-                            onChange={e => atualizarAtivo('numero_fachadas', e.target.value)} />
-                        </Field>
-                        <Field label="Perímetro fachadas (m)">
-                          <input style={S.input} type="number" value={ativoAtual.perimetro_fachadas}
-                            onChange={e => atualizarAtivo('perimetro_fachadas', e.target.value)} />
-                        </Field>
+                        <Field label="Pavimentos *"><input style={S.input} type="number" min="1" value={ativoAtual.numero_pavimentos} onChange={e => atualizarAtivo('numero_pavimentos', e.target.value)} /></Field>
+                        <Field label="Número de fachadas *"><input style={S.input} type="number" min="1" value={ativoAtual.numero_fachadas} onChange={e => atualizarAtivo('numero_fachadas', e.target.value)} /></Field>
+                        <Field label="Perímetro fachadas (m)"><input style={S.input} type="number" value={ativoAtual.perimetro_fachadas} onChange={e => atualizarAtivo('perimetro_fachadas', e.target.value)} /></Field>
                       </div>
                     )}
-
                     {(isElevador || isNR) && (
                       <div style={{ ...S.row, ...(isElevador ? S.c3 : S.c2) }}>
-                        <Field label="Fabricante/Marca *">
-                          <input style={S.input} value={ativoAtual.fabricante_marca}
-                            onChange={e => atualizarAtivo('fabricante_marca', e.target.value)} />
-                        </Field>
-                        {isElevador && (
-                          <Field label="Pavimentos *">
-                            <input style={S.input} type="number" min="1" value={ativoAtual.numero_pavimentos}
-                              onChange={e => atualizarAtivo('numero_pavimentos', e.target.value)} />
-                          </Field>
-                        )}
-                        <Field label="Capacidade/Potência *">
-                          <input style={S.input} type="number" step="0.01" value={ativoAtual.capacidade_potencia}
-                            onChange={e => atualizarAtivo('capacidade_potencia', e.target.value)} placeholder="kW/kVA/kg/h/m³" />
-                        </Field>
+                        <Field label="Fabricante/Marca *"><input style={S.input} value={ativoAtual.fabricante_marca} onChange={e => atualizarAtivo('fabricante_marca', e.target.value)} /></Field>
+                        {isElevador && <Field label="Pavimentos *"><input style={S.input} type="number" min="1" value={ativoAtual.numero_pavimentos} onChange={e => atualizarAtivo('numero_pavimentos', e.target.value)} /></Field>}
+                        <Field label="Capacidade/Potência *"><input style={S.input} type="number" step="0.01" value={ativoAtual.capacidade_potencia} onChange={e => atualizarAtivo('capacidade_potencia', e.target.value)} placeholder="kW/kVA/kg/h/m³" /></Field>
                       </div>
                     )}
-
                     {isNR && (
                       <div style={{ ...S.row, ...S.c2 }}>
                         <Field label="Subtipo *">
-                          <select style={S.input} value={ativoAtual.subtipo}
-                            onChange={e => atualizarAtivo('subtipo', e.target.value)}>
+                          <select style={S.input} value={ativoAtual.subtipo} onChange={e => atualizarAtivo('subtipo', e.target.value)}>
                             <option value="">Selecione...</option>
                             {(SUBTIPOS[tsNum] ?? []).map(s => <option key={s} value={s}>{s}</option>)}
                           </select>
                         </Field>
-                        {(isNR10 || isNR13) && (
-                          <Field label={isNR10 ? 'Tensão (kV) *' : 'Pressão (kPa) *'}>
-                            <input style={S.input} type="number" step="0.01" value={ativoAtual.tensao_pressao_kv_kpa}
-                              onChange={e => atualizarAtivo('tensao_pressao_kv_kpa', e.target.value)} />
-                          </Field>
-                        )}
+                        {(isNR10 || isNR13) && <Field label={isNR10 ? 'Tensão (kV) *' : 'Pressão (kPa) *'}><input style={S.input} type="number" step="0.01" value={ativoAtual.tensao_pressao_kv_kpa} onChange={e => atualizarAtivo('tensao_pressao_kv_kpa', e.target.value)} /></Field>}
                       </div>
                     )}
-
                     {isNR13 && (
                       <div style={{ ...S.row, ...S.c2 }}>
                         <Field label="Fluido/Classe *">
-                          <select style={S.input} value={ativoAtual.fluido_classe_fluido}
-                            onChange={e => atualizarAtivo('fluido_classe_fluido', e.target.value)}>
+                          <select style={S.input} value={ativoAtual.fluido_classe_fluido} onChange={e => atualizarAtivo('fluido_classe_fluido', e.target.value)}>
                             <option value="">Selecione...</option>
                             {FLUIDOS.map(f => <option key={f} value={f}>{f}</option>)}
                           </select>
                         </Field>
-                        <Field label="Volume interno (m³) *">
-                          <input style={S.input} type="number" step="0.0001" value={ativoAtual.volume_interno_m3}
-                            onChange={e => atualizarAtivo('volume_interno_m3', e.target.value)} />
-                        </Field>
+                        <Field label="Volume interno (m³) *"><input style={S.input} type="number" step="0.0001" value={ativoAtual.volume_interno_m3} onChange={e => atualizarAtivo('volume_interno_m3', e.target.value)} /></Field>
                       </div>
                     )}
-
                     <div style={{ ...S.footer, marginTop: '8px' }}>
-                      <button style={{ ...S.btn, ...S.btnSec }}
-                        onClick={() => { setShowForm(false); setAtivoAtual({ ...ATIVO_VAZIO }) }}>
-                        Cancelar
-                      </button>
-                      <button style={{ ...S.btn, ...S.btnPri, opacity: salvando ? 0.6 : 1 }}
-                        onClick={salvarAtivo} disabled={salvando}>
+                      <button style={{ ...S.btn, ...S.btnSec }} onClick={() => { setShowForm(false); setAtivoAtual({ ...ATIVO_VAZIO }) }}>Cancelar</button>
+                      <button style={{ ...S.btn, ...S.btnPri, opacity: salvando ? 0.6 : 1 }} onClick={salvarAtivo} disabled={salvando}>
                         {salvando ? 'Salvando...' : 'Cadastrar + ativo'}
                       </button>
                     </div>
@@ -603,14 +491,8 @@ function PlanoInner() {
 
               {/* Botões principais */}
               <div style={{ ...S.footer, gridTemplateColumns: '1fr 1fr 1fr' }}>
-                <button style={{ ...S.btn, background: '#DC2626', color: '#fff', border: 'none' }}
-                  onClick={() => window.location.href = '/dashboard'}>
-                  Cancelar
-                </button>
-                <button style={{ ...S.btn, ...S.btnSec }}
-                  onClick={() => { setShowForm(true); setAtivoAtual({ ...ATIVO_VAZIO }) }}>
-                  Cadastrar + ativo
-                </button>
+                <button style={{ ...S.btn, background: '#DC2626', color: '#fff', border: 'none' }} onClick={() => window.location.href = '/dashboard'}>Cancelar</button>
+                <button style={{ ...S.btn, ...S.btnSec }} onClick={() => { setShowForm(true); setAtivoAtual({ ...ATIVO_VAZIO }) }}>Cadastrar + ativo</button>
                 <button style={{ ...S.btn, ...S.btnPri, opacity: (ativos.length === 0 || salvando) ? 0.5 : 1 }}
                   onClick={gerarPlano} disabled={ativos.length === 0 || salvando}>
                   {ativos.length === 0 ? 'Cadastre um ativo' : `Gerar plano (${ativos.length}) →`}
@@ -619,35 +501,26 @@ function PlanoInner() {
             </div>
           )}
 
-          {/* ── ETAPA 2: PLANO REACT ── */}
+          {/* ── ETAPA 2: PLANO ── */}
           {etapa === 'plano' && (
             <div>
-              {/* Documento estilizado */}
-              <div style={{ border: '1px solid #c3d4f0', borderRadius: '6px', overflow: 'hidden', marginBottom: '8px' }}>
-                <div style={S.blockTitle}>{planoInfo.titulo}</div>
-                <div style={{ padding: '10px 14px', fontSize: '8.5pt', fontFamily: 'Arial, sans-serif' }}>
-
-
-                  {/* Cabeçalho do inspetor */}
-                  {infoDoc.cabecalho && (
+              <div style={S.block}>
+                <div style={S.blockTitle}>{dp.planoInfo.titulo || titulo}</div>
+                <div style={S.blockBody}>
+                  {dp.infoDoc.cabecalho && (
                     <div style={{ textAlign: 'center', borderBottom: '2px solid #1E3A8A', paddingBottom: '6px', marginBottom: '8px', fontSize: '8pt', color: '#374151', whiteSpace: 'pre-line' }}>
-                      {infoDoc.cabecalho}
+                      {dp.infoDoc.cabecalho}
                     </div>
                   )}
-
-                  {/* Identificação */}
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px', fontSize: '8.5pt' }}>
                     <span><b>Estabelecimento:</b> {est?.razao_social_nome ?? cnpjoucpf}</span>
                     <span><b>CNPJ/CPF:</b> {fmtCNPJ(cnpjoucpf)}</span>
                   </div>
-                  {enderecoDoc && <div style={{ marginBottom: '8px' }}><b>Endereço:</b> {enderecoDoc}</div>}
+                  {dp.endereco && <div style={{ marginBottom: '8px', fontSize: '8.5pt' }}><b>Endereço:</b> {dp.endereco}</div>}
 
                   {/* 1.1 Agenda */}
-                  <div style={{ fontWeight: 700, color: '#1E3A8A', borderBottom: '1px solid #1E3A8A', marginBottom: '4px', marginTop: '10px' }}>
-                    1.1.- Plano de Trabalho — {planoInfo.parceiro}
-                  </div>
-                  <div style={{ background: '#FFF9E6', border: '1px solid #F59E0B', borderRadius: '4px', padding: '4px 8px', marginBottom: '6px', fontSize: '7.5pt', color: '#92400E' }}>
-                    ⚠️ Preencha as datas de início e fim de cada atividade.
+                  <div style={{ fontWeight: 700, color: '#1E3A8A', borderBottom: '1px solid #1E3A8A', marginBottom: '4px', marginTop: '10px', fontSize: '8.5pt' }}>
+                    1.1.- Plano de Trabalho — {dp.planoInfo.parceiro}
                   </div>
                   <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '8pt', marginBottom: '10px' }}>
                     <thead>
@@ -658,31 +531,31 @@ function PlanoInner() {
                       </tr>
                     </thead>
                     <tbody>
-                      {planoInfo.atividades.map((a, i) => (
+                      {dp.planoInfo.atividades.map((a, i) => (
                         <tr key={i} style={{ background: i%2===0?'#f8fafc':'#fff', borderBottom: '1px solid #e2e8f0' }}>
                           <td style={{ padding: '3px 6px', textAlign: 'justify' }}>{a.descricao}</td>
                           <td style={{ padding: '2px 4px' }}>
                             <input type="date" style={{ ...S.input, fontSize: '7.5pt', padding: '2px 4px' }}
-                              value={datas[i]?.ini ?? ''}
+                              value={dp.datas[i]?.ini ?? ''}
                               onChange={e => {
                                 const v = e.target.value
-                                if (i > 0 && datas[i-1]?.ini && v < datas[i-1].ini) {
-                                  informa('Data inválida', 'A data início não pode ser anterior à data início da atividade anterior.')
+                                if (i > 0 && dp.datas[i-1]?.ini && v < dp.datas[i-1].ini) {
+                                  informa('Data inválida', 'A data início não pode ser anterior à atividade anterior.')
                                   return
                                 }
-                                setDatas(prev => prev.map((d,j) => j===i ? {...d, ini:v} : d))
+                                setDp(prev => ({ ...prev, datas: prev.datas.map((d,j) => j===i ? {...d, ini:v} : d) }))
                               }} />
                           </td>
                           <td style={{ padding: '2px 4px' }}>
                             <input type="date" style={{ ...S.input, fontSize: '7.5pt', padding: '2px 4px' }}
-                              value={datas[i]?.fim ?? ''}
+                              value={dp.datas[i]?.fim ?? ''}
                               onChange={e => {
                                 const v = e.target.value
-                                if (datas[i]?.ini && v < datas[i].ini) {
+                                if (dp.datas[i]?.ini && v < dp.datas[i].ini) {
                                   informa('Data inválida', 'A data fim não pode ser anterior à data início.')
                                   return
                                 }
-                                setDatas(prev => prev.map((d,j) => j===i ? {...d, fim:v} : d))
+                                setDp(prev => ({ ...prev, datas: prev.datas.map((d,j) => j===i ? {...d, fim:v} : d) }))
                               }} />
                           </td>
                         </tr>
@@ -691,11 +564,8 @@ function PlanoInner() {
                   </table>
 
                   {/* 1.2 Documentos */}
-                  <div style={{ fontWeight: 700, color: '#1E3A8A', borderBottom: '1px solid #1E3A8A', marginBottom: '4px' }}>
+                  <div style={{ fontWeight: 700, color: '#1E3A8A', borderBottom: '1px solid #1E3A8A', marginBottom: '4px', fontSize: '8.5pt' }}>
                     1.2.- Relação de Documentos Solicitados
-                  </div>
-                  <div style={{ background: '#FFF9E6', border: '1px solid #F59E0B', borderRadius: '4px', padding: '4px 8px', marginBottom: '6px', fontSize: '7.5pt', color: '#92400E' }}>
-                    ⚠️ Verifique e ajuste a relação de documentos abaixo.
                   </div>
                   <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '8pt', marginBottom: '6px' }}>
                     <thead>
@@ -707,64 +577,56 @@ function PlanoInner() {
                       </tr>
                     </thead>
                     <tbody>
-                      {docs.map((d, i) => (
+                      {dp.docs.map((d, i) => (
                         <tr key={i} style={{ background: i%2===0?'#f8fafc':'#fff', borderBottom: '1px solid #e2e8f0' }}>
                           <td style={{ padding: '2px 4px' }}>
-                            <input style={{ ...S.input, fontSize: '7.5pt', padding: '2px 4px' }}
-                              value={d.doc}
-                              onChange={e => setDocs(prev => prev.map((x,j) => j===i ? {...x, doc:e.target.value} : x))} />
+                            <input style={{ ...S.input, fontSize: '7.5pt', padding: '2px 4px' }} value={d.doc}
+                              onChange={e => setDp(prev => ({ ...prev, docs: prev.docs.map((x,j) => j===i ? {...x, doc:e.target.value} : x) }))} />
                           </td>
                           <td style={{ padding: '2px 4px' }}>
-                            <select style={{ ...S.input, fontSize: '7.5pt', padding: '2px 4px' }}
-                              value={d.sit}
-                              onChange={e => setDocs(prev => prev.map((x,j) => j===i ? {...x, sit:e.target.value} : x))}>
+                            <select style={{ ...S.input, fontSize: '7.5pt', padding: '2px 4px' }} value={d.sit}
+                              onChange={e => setDp(prev => ({ ...prev, docs: prev.docs.map((x,j) => j===i ? {...x, sit:e.target.value} : x) }))}>
                               <option value="">—</option>
                               <option>Entregue</option><option>Pendente</option><option>Desnecessário</option>
                             </select>
                           </td>
                           <td style={{ padding: '2px 4px' }}>
-                            <select style={{ ...S.input, fontSize: '7.5pt', padding: '2px 4px' }}
-                              value={d.res}
-                              onChange={e => setDocs(prev => prev.map((x,j) => j===i ? {...x, res:e.target.value} : x))}>
+                            <select style={{ ...S.input, fontSize: '7.5pt', padding: '2px 4px' }} value={d.res}
+                              onChange={e => setDp(prev => ({ ...prev, docs: prev.docs.map((x,j) => j===i ? {...x, res:e.target.value} : x) }))}>
                               <option value="">—</option>
                               <option>Conforme</option><option>Não conforme</option><option>Não se aplica</option>
                             </select>
                           </td>
                           <td style={{ padding: '2px 4px', textAlign: 'center' }}>
-                            <button onClick={() => setDocs(prev => prev.filter((_,j) => j!==i))}
+                            <button onClick={() => setDp(prev => ({ ...prev, docs: prev.docs.filter((_,j) => j!==i) }))}
                               style={{ background:'#DC2626', color:'#fff', border:'none', borderRadius:'4px', padding:'2px 6px', cursor:'pointer', fontSize:'8pt' }}>✕</button>
                           </td>
                         </tr>
                       ))}
                     </tbody>
                   </table>
-                  <button onClick={() => setDocs(prev => [...prev, {doc:'', sit:'', res:''}])}
+                  <button onClick={() => setDp(prev => ({ ...prev, docs: [...prev.docs, {doc:'', sit:'', res:''}] }))}
                     style={{ background:'#1E3A8A', color:'#fff', border:'none', borderRadius:'4px', padding:'3px 10px', cursor:'pointer', fontSize:'7.5pt', marginBottom:'10px' }}>
                     + Adicionar documento
                   </button>
 
                   {/* Assinatura */}
                   <div style={{ borderTop: '1px solid #ccc', paddingTop: '8px', marginTop: '8px', lineHeight: 1.8, fontSize: '8pt' }}>
-                    <p><b>{infoDoc.nome}</b></p>
-                    <p>{infoDoc.titulo} — {infoDoc.conselho} {infoDoc.inscricao}</p>
+                    <p><b>{dp.infoDoc.nome}</b></p>
+                    <p>{dp.infoDoc.titulo} — {dp.infoDoc.conselho} {dp.infoDoc.inscricao}</p>
                     <p style={{ marginTop: '16px' }}>De acordo: _____________________ CPF: _______________ Data: ___/___/______</p>
-                    <p>{planoInfo.parceiro?.replace('Inspetor e ','')}</p>
+                    <p>{dp.planoInfo.parceiro?.replace('Inspetor e ','')}</p>
                   </div>
-
-                  {/* Rodapé */}
-                  {infoDoc.rodape && (
+                  {dp.infoDoc.rodape && (
                     <div style={{ borderTop: '1px solid #ccc', marginTop: '12px', paddingTop: '6px', fontSize: '7.5pt', textAlign: 'center', color: '#374151', whiteSpace: 'pre-line' }}>
-                      {infoDoc.rodape}
+                      {dp.infoDoc.rodape}
                     </div>
                   )}
-
                 </div>
               </div>
-
               <div style={{ ...S.footer, marginTop: '8px' }}>
                 <button style={{ ...S.btn, ...S.btnSec }} onClick={() => setEtapa('ativo')}>← Voltar</button>
-                <button style={{ ...S.btn, ...S.btnPri, opacity: salvando ? 0.6 : 1 }}
-                  onClick={salvarPlano} disabled={salvando}>
+                <button style={{ ...S.btn, ...S.btnPri, opacity: salvando ? 0.6 : 1 }} onClick={salvarPlano} disabled={salvando}>
                   {salvando ? 'Salvando...' : '💾 Salvar plano'}
                 </button>
               </div>
