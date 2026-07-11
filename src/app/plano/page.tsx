@@ -541,7 +541,8 @@ function PlanoInner() {
                     {salvando ? 'Salvando...' : 'Cadastrar + ativo'}
                   </button>
                 </div>
-              </div>}
+              </div>
+            </div>}
 
             {/* Botões principais */}
             <div style={{ ...S.footer, gridTemplateColumns: '1fr 1fr 1fr' }}>
