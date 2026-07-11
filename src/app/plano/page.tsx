@@ -325,8 +325,7 @@ function PlanoInner() {
                     <div key={i} style={{ fontSize: '7.5pt', padding: '3px 0', borderBottom: '1px solid #f1f5f9', color: '#374151' }}>
                       <b>{i+1}. {a.tipo_ativo}</b>
                       {needsTag ? ` — TAG: ${a.tag_ativo_nr_serie}` : ''}
-                      {' — '}{a.nome_responsavel} ({a.funcao_responsavel})
-                      {a.whatsapp_responsavel ? ` — ${fmtWpp(a.whatsapp_responsavel)}` : ''}
+                      {a.finalidade_vistoria ? ` — ${a.finalidade_vistoria}` : ''}
                     </div>
                   ))}
                 </div>
@@ -513,7 +512,7 @@ function PlanoInner() {
                     onClick={() => window.location.href = '/dashboard'}>Cancelar</button>
                   <button style={{ ...S.btn, ...S.btnSec, opacity: salvando ? 0.6 : 1 }}
                     onClick={salvarAtivo} disabled={salvando}>
-                    {salvando ? 'Salvando...' : '+ Cadastrar ativo'}
+                    {salvando ? 'Salvando...' : 'Cadastrar + ativo'}
                   </button>
                   <button style={{ ...S.btn, ...S.btnPri }}
                     onClick={gerarPlano} disabled={ativos.length === 0 || salvando}>
