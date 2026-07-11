@@ -162,10 +162,8 @@ function PlanoInner() {
         return
       }
       setEst(estData[0])
-      const qAtivo = `cpf_inspetor=eq.${cpfInspetor}&cnpjoucpf=eq.${cnpjoucpf}&tipo_servico=eq.${encodeURIComponent(tsVistoria)}&select=*&order=data_cadastro`
-      console.log('QUERY ATIVOS:', qAtivo)
-      const ativoData = await query('ativos_a_vistoriar', qAtivo)
-      console.log('ATIVOS resultado:', JSON.stringify(ativoData))
+      const ativoData = await query('ativos_a_vistoriar',
+        `cpf_inspetor=eq.${cpfInspetor}&cnpjoucpf=eq.${cnpjoucpf}&tipo_servico=eq.${encodeURIComponent(tsVistoria)}&select=*&order=data_cadastro`)
       if (Array.isArray(ativoData)) {
         setAtivos(ativoData)
         setShowForm(ativoData.length === 0)
@@ -257,6 +255,7 @@ function PlanoInner() {
       [{ label: 'Entendido', acao: () => fechar(), estilo: 'primario' }]
     )
     try {
+      console.log('GERAR PLANO ativos:', ativos.length, ativos.map((a:Record<string,string>) => a.tipo_ativo))
       const res = await fetch('/api/gerar-plano', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
