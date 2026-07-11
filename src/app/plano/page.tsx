@@ -241,52 +241,32 @@ function PlanoInner() {
     }
   }
 
-  function capturarHtml(): string {
-    try {
-      const iframe = document.getElementById('iframePlano') as HTMLIFrameElement
-      if (iframe?.contentDocument) return iframe.contentDocument.documentElement.outerHTML
-    } catch {}
-    return htmlPlano
-  }
-
-  function capturarEVoltar(destino: 'ativo') {
-    const html = capturarHtml()
-    setHtmlPlano(html)
-    setEtapa(destino)
-  }
-
-  function capturarERascunho() {
-    const html = capturarHtml()
-    setHtmlPlano(html)
-    informa('Rascunho preservado', 'Os dados foram preservados. Você pode continuar editando.')
-  }
-
-  function capturarESalvar() {
-    const html = capturarHtml()
-    setHtmlPlano(html)
-    // salvarPlano usa htmlPlano mas como setState é async, passar direto
-    salvarPlanoComHtml(html)
-  }
-
-  async function salvarPlanoComHtml(html: string) {
-    setSalvando(true)
-    try {
-      const nomeArq = chaveInspetor + '_plano_' + tipoServico + '_' + cnpjoucpf + '.html'
-      const res = await fetch('/api/salvar-vistoria', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ nomeArquivo: nomeArq, pasta: 'documentos_inspetor', payload: html, contentType: 'application/json' })
+  function coletarEAtualizar() {
+    // Coletar valores dos inputs/selects do container e serializar como atributos
+    const container = document.getElementById('planoContainer')
+    if (!container) return
+    // Inputs de data
+    container.querySelectorAll('input[type="date"]').forEach((el) => {
+      const input = el as HTMLInputElement
+      if (input.value) input.setAttribute('value', input.value)
+    })
+    // Selects
+    container.querySelectorAll('select').forEach((el) => {
+      const sel = el as HTMLSelectElement
+      Array.from(sel.options).forEach((opt, i) => {
+        if (i === sel.selectedIndex) opt.setAttribute('selected', 'selected')
+        else opt.removeAttribute('selected')
       })
-      const data = await res.json()
-      if (data.sucesso) {
-        agradece('Plano salvo!', 'Salvo em Documentos do Inspetor.', () => window.location.href = '/dashboard')
-      } else {
-        informa('Erro', data.erro ?? 'Não foi possível salvar.')
-      }
-    } finally {
-      setSalvando(false)
-    }
+    })
+    // Inputs de texto
+    container.querySelectorAll('input[type="text"], input:not([type])').forEach((el) => {
+      const input = el as HTMLInputElement
+      input.setAttribute('value', input.value)
+    })
+    setHtmlPlano(container.innerHTML)
   }
+
+
 
   async function gerarPlano() {
     setSalvando(true)
@@ -587,32 +567,14 @@ function PlanoInner() {
             <div>
               <div style={S.block}>
                 <div style={S.blockTitle}>Preview do Plano de Trabalho — preencha datas e documentos antes de salvar</div>
-                <div style={{ padding: '8px 10px' }}>
-                  <iframe
-                    id="iframePlano"
-                    srcDoc={htmlPlano}
-                    style={{ width: '100%', height: '700px', border: '1px solid #c3d4f0', borderRadius: '4px' }}
-                    title="Plano"
-                    onLoad={e => {
-                      const iframe = e.currentTarget
-                      // Injetar listener postMessage no iframe
-                      try {
-                        const doc = iframe.contentDocument
-                        if (doc) {
-                          const s = doc.createElement('script')
-                          s.textContent = 'window.addEventListener("message",function(e){if(e.data==="getHtml")e.source.postMessage({type:"html",html:document.documentElement.outerHTML},e.origin);})'
-                          doc.head.appendChild(s)
-                        }
-                      } catch {}
-                    }}
-                  />
-                </div>
+                <div id="planoContainer" style={{ padding: '8px 10px', maxHeight: '700px', overflowY: 'auto', border: '1px solid #c3d4f0', borderRadius: '4px', background: '#fff' }}
+                  dangerouslySetInnerHTML={{ __html: htmlPlano }} />
               </div>
               <div style={{ ...S.footer, gridTemplateColumns: '1fr 1fr 1fr', marginTop: '8px' }}>
-                <button style={{ ...S.btn, ...S.btnSec }} onClick={() => capturarEVoltar('ativo')}>← Voltar</button>
-                <button style={{ ...S.btn, ...S.btnSec }} onClick={() => capturarERascunho()}>💾 Rascunho</button>
+                <button style={{ ...S.btn, ...S.btnSec }} onClick={() => { coletarEAtualizar(); setEtapa('ativo') }}>← Voltar</button>
+                <button style={{ ...S.btn, ...S.btnSec }} onClick={() => { coletarEAtualizar(); informa('Rascunho preservado', 'Dados preservados. Continue editando.') }}>💾 Rascunho</button>
                 <button style={{ ...S.btn, ...S.btnPri, opacity: salvando ? 0.6 : 1 }}
-                  onClick={() => capturarESalvar()} disabled={salvando}>
+                  onClick={() => { coletarEAtualizar(); salvarPlano() }} disabled={salvando}>
                   {salvando ? 'Salvando...' : '✅ Salvar plano'}
                 </button>
               </div>
