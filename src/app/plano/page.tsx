@@ -309,7 +309,6 @@ function PlanoInner() {
         body: JSON.stringify({ tipoServico, cpfInspetor, cnpjoucpf, ativos, datas, docs })
       })
       const htmlData = await resHtml.json()
-      console.log('HTML a salvar - DOCTYPE:', htmlData.html?.includes('<!DOCTYPE'), 'Arial:', htmlData.html?.includes('Arial'), 'inicio:', htmlData.html?.substring(0,100))
       if (!htmlData.html) { informa('Erro', 'Não foi possível gerar o plano.'); return }
       const nomeArq = chaveInspetor + '_plano_' + tipoServico + '_' + cnpjoucpf + '.html'
       const res = await fetch('/api/salvar-vistoria', {
@@ -590,15 +589,14 @@ function PlanoInner() {
                 <div style={S.blockTitle}>{planoInfo.titulo}</div>
                 <div style={{ padding: '10px 14px', fontSize: '8.5pt', fontFamily: 'Arial, sans-serif' }}>
                   {modoVisu && (
-                    <div style={{ textAlign: 'center', padding: '8px 0' }}>
-                      <p style={{ fontSize: '7.5pt', color: '#64748b', marginBottom: '6px' }}>
-                        Plano salvo em {new Date().toLocaleDateString('pt-BR')}
-                      </p>
-                      <iframe
-                        srcDoc={htmlPlano}
-                        style={{ width: '100%', height: '700px', border: '1px solid #c3d4f0', borderRadius: '4px', background: '#fff' }}
-                        title="Plano salvo"
-                      />
+                    <div style={{ overflow: 'auto', background: '#E8EEF7', padding: '12px', borderRadius: '4px' }}>
+                      <div style={{ transform: 'scale(0.75)', transformOrigin: 'top center', width: '210mm', margin: '0 auto' }}>
+                        <iframe
+                          srcDoc={htmlPlano}
+                          style={{ width: '210mm', height: '900px', border: 'none', background: '#fff', display: 'block' }}
+                          title="Plano salvo"
+                        />
+                      </div>
                     </div>
                   )}
                   {!modoVisu && (<>
