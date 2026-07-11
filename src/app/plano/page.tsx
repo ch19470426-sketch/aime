@@ -130,7 +130,6 @@ function PlanoInner() {
   const [ativos,     setAtivos]     = useState<Ativo[]>([])
   const [ativoAtual, setAtivoAtual] = useState<Ativo>({ ...ATIVO_VAZIO })
   const [htmlPlano,  setHtmlPlano]  = useState('')
-  const [modoVisu,   setModoVisu]   = useState(false)
   const [planoInfo,  setPlanoInfo]  = useState<{titulo:string;parceiro:string;atividades:{horas:number;dias:number;descricao:string}[];documentos:string[]}>({titulo:'',parceiro:'',atividades:[],documentos:[]})
   const [datas,      setDatas]      = useState<{ini:string;fim:string}[]>([])
   const [docs,       setDocs]       = useState<{doc:string;sit:string;res:string}[]>([])
@@ -176,12 +175,33 @@ function PlanoInner() {
         const resArq = await fetch('/api/ler-documento?nome=' + encodeURIComponent(nomeExist) + '&pasta=documentos_inspetor')
         if (resArq.ok) {
           const arqData = await resArq.json()
-          if (arqData.existe && arqData.html) {
+          if (arqData.existe) {
+            // Tentar carregar JSON com dados editáveis
+            const nomeJson = nomeExist.replace('.html', '.json')
+            const resJson = await fetch('/api/ler-documento?nome=' + encodeURIComponent(nomeJson) + '&pasta=documentos_inspetor')
+            let dadosSalvos: Record<string, unknown> | null = null
+            if (resJson.ok) {
+              const jsonData = await resJson.json()
+              if (jsonData.existe && jsonData.html) {
+                try { dadosSalvos = JSON.parse(jsonData.html) } catch {}
+              }
+            }
             solicita(
               'Plano existente encontrado',
-              'Já existe um Plano de Trabalho salvo. Deseja abrir o existente ou criar um novo?',
+              'Já existe um Plano de Trabalho salvo. Deseja continuar editando ou criar um novo?',
               [
-                { label: 'Abrir existente', acao: () => { setHtmlPlano(arqData.html); setModoVisu(true); setEtapa('plano'); fechar() }, estilo: 'primario' },
+                { label: 'Continuar editando', acao: () => {
+                  if (dadosSalvos) {
+                    if (dadosSalvos.datas) setDatas(dadosSalvos.datas as {ini:string;fim:string}[])
+                    if (dadosSalvos.docs) setDocs(dadosSalvos.docs as {doc:string;sit:string;res:string}[])
+                    if (dadosSalvos.planoInfo) setPlanoInfo(dadosSalvos.planoInfo as typeof planoInfo)
+                    if (dadosSalvos.docInfo) setInfoDoc(dadosSalvos.docInfo as typeof infoDoc)
+                    if (dadosSalvos.endereco) setEnderecoDoc(dadosSalvos.endereco as string)
+                  }
+                  setModoVisu(false)
+                  setEtapa('plano')
+                  fechar()
+                }, estilo: 'primario' },
                 { label: 'Criar novo', acao: () => fechar(), estilo: 'secundario' },
               ]
             )
@@ -302,7 +322,7 @@ function PlanoInner() {
   async function salvarPlano() {
     setSalvando(true)
     try {
-      // Gerar HTML final com datas e docs preenchidos
+      // Gerar HTML final
       const resHtml = await fetch('/api/gerar-plano', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -310,13 +330,25 @@ function PlanoInner() {
       })
       const htmlData = await resHtml.json()
       if (!htmlData.html) { informa('Erro', 'Não foi possível gerar o plano.'); return }
-      const nomeArq = chaveInspetor + '_plano_' + tipoServico + '_' + cnpjoucpf + '.html'
-      const res = await fetch('/api/salvar-vistoria', {
+
+      const nomeBase = chaveInspetor + '_plano_' + tipoServico + '_' + cnpjoucpf
+
+      // Salvar HTML
+      const resHtml2 = await fetch('/api/salvar-vistoria', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ nomeArquivo: nomeArq, pasta: 'documentos_inspetor', payload: htmlData.html, contentType: 'application/json' })
+        body: JSON.stringify({ nomeArquivo: nomeBase + '.html', pasta: 'documentos_inspetor', payload: htmlData.html, contentType: 'application/json' })
       })
-      const data = await res.json()
+
+      // Salvar JSON com dados editáveis para reabrir
+      const dadosPlano = { tipoServico, datas, docs, planoInfo: htmlData.planoInfo, docInfo: htmlData.docInfo, endereco: htmlData.endereco }
+      await fetch('/api/salvar-vistoria', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nomeArquivo: nomeBase + '.json', pasta: 'documentos_inspetor', payload: JSON.stringify(dadosPlano), contentType: 'application/json' })
+      })
+
+      const data = await resHtml2.json()
       if (data.sucesso) {
         agradece('Plano salvo!', 'Salvo em Documentos do Inspetor.', () => window.location.href = '/dashboard')
       } else {
@@ -588,14 +620,7 @@ function PlanoInner() {
               <div style={{ border: '1px solid #c3d4f0', borderRadius: '6px', overflow: 'hidden', marginBottom: '8px' }}>
                 <div style={S.blockTitle}>{planoInfo.titulo}</div>
                 <div style={{ padding: '10px 14px', fontSize: '8.5pt', fontFamily: 'Arial, sans-serif' }}>
-                  {modoVisu && (
-                    <iframe
-                      srcDoc={htmlPlano}
-                      style={{ width: '100%', height: '800px', border: 'none', background: '#fff', display: 'block', borderRadius: '4px' }}
-                      title="Plano salvo"
-                    />
-                  )}
-                  {!modoVisu && (<>
+
 
                   {/* Cabeçalho do inspetor */}
                   {infoDoc.cabecalho && (
@@ -726,21 +751,16 @@ function PlanoInner() {
                       {infoDoc.rodape}
                     </div>
                   )}
-                  </>)}
+
                 </div>
               </div>
 
               <div style={{ ...S.footer, gridTemplateColumns: modoVisu ? '1fr 1fr' : '1fr 1fr', marginTop: '8px' }}>
-                <button style={{ ...S.btn, ...S.btnSec }}
-                  onClick={() => { setModoVisu(false); setEtapa('ativo') }}>
-                  {modoVisu ? '+ Criar novo plano' : '← Voltar'}
+                <button style={{ ...S.btn, ...S.btnSec }} onClick={() => setEtapa('ativo')}>← Voltar</button>
+                <button style={{ ...S.btn, ...S.btnPri, opacity: salvando ? 0.6 : 1 }}
+                  onClick={salvarPlano} disabled={salvando}>
+                  {salvando ? 'Salvando...' : '💾 Salvar plano'}
                 </button>
-                {!modoVisu && (
-                  <button style={{ ...S.btn, ...S.btnPri, opacity: salvando ? 0.6 : 1 }}
-                    onClick={salvarPlano} disabled={salvando}>
-                    {salvando ? 'Salvando...' : '💾 Salvar plano'}
-                  </button>
-                )}
               </div>
             </div>
           )}
