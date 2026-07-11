@@ -191,6 +191,7 @@ function PlanoInner() {
               'Já existe um Plano de Trabalho salvo. Deseja continuar editando ou criar um novo?',
               [
                 { label: 'Continuar editando', acao: () => {
+                  console.log('dadosSalvos:', dadosSalvos)
                   if (dadosSalvos) {
                     if (dadosSalvos.datas) setDatas(dadosSalvos.datas as {ini:string;fim:string}[])
                     if (dadosSalvos.docs) setDocs(dadosSalvos.docs as {doc:string;sit:string;res:string}[])
@@ -198,7 +199,6 @@ function PlanoInner() {
                     if (dadosSalvos.docInfo) setInfoDoc(dadosSalvos.docInfo as typeof infoDoc)
                     if (dadosSalvos.endereco) setEnderecoDoc(dadosSalvos.endereco as string)
                   }
-                  setModoVisu(false)
                   setEtapa('plano')
                   fechar()
                 }, estilo: 'primario' },
