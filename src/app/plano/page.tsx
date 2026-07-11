@@ -282,13 +282,13 @@ function PlanoInner() {
     setSalvando(true)
     try {
       // Gerar HTML final com datas e docs preenchidos
-      console.log('SALVAR datas:', JSON.stringify(datas), 'docs:', docs.length)
       const resHtml = await fetch('/api/gerar-plano', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ tipoServico, cpfInspetor, cnpjoucpf, ativos, datas, docs })
       })
       const htmlData = await resHtml.json()
+      console.log('HTML gerado, tem 2026:', htmlData.html?.includes('2026'))
       if (!htmlData.html) { informa('Erro', 'Não foi possível gerar o plano.'); return }
       const nomeArq = chaveInspetor + '_plano_' + tipoServico + '_' + cnpjoucpf + '.html'
       const res = await fetch('/api/salvar-vistoria', {
