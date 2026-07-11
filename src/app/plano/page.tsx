@@ -173,11 +173,13 @@ function PlanoInner() {
       // Verificar se já existe plano salvo
       const nomeExist = chaveInspetor + '_plano_' + tipoServico + '_' + cnpjoucpf + '.html'
       try {
-        const SUPA_SRV = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://asgorarunzhiojqioxzq.supabase.co'
-        const resArq = await fetch(
-          SUPA_SRV + '/storage/v1/object/documentos_inspetor/' + encodeURIComponent(nomeExist),
+        const SUPA_SRV = 'https://asgorarunzhiojqioxzq.supabase.co'
+        const urlArq = SUPA_SRV + '/storage/v1/object/documentos_inspetor/' + nomeExist
+        console.log('Buscando plano:', urlArq)
+        const resArq = await fetch(urlArq,
           { headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY } }
         )
+        console.log('Status plano existente:', resArq.status)
         if (resArq.ok) {
           const htmlExist = await resArq.text()
           solicita(
