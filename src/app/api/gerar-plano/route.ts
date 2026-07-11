@@ -414,6 +414,17 @@ function dataExtenso(d: Date) {
   return d.getDate() + ' de ' + MESES[d.getMonth()] + ' de ' + d.getFullYear()
 }
 
+function fmtCNPJ(v: string): string {
+  if (v.length === 14) return v.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5')
+  if (v.length === 11) return v.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4')
+  return v
+}
+function fmtWpp(v: string): string {
+  const d = String(v || '').replace(/\D/g, '')
+  if (d.length === 11) return d.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3')
+  if (d.length === 10) return d.replace(/(\d{2})(\d{4})(\d{4})/, '($1) $2-$3')
+  return v || ''
+}
 function conselho(titulo: string): string {
   if (titulo === 'Arquiteto') return 'CAU'
   if (titulo === 'Corretor Imóvel') return 'CRECI'
@@ -429,12 +440,17 @@ function numLimpo(num: string): string {
 function gerarScriptDatas(n: number): string {
   const linhas: string[] = []
   linhas.push('<script>')
+  linhas.push('function showMsg(msg){')
+  linhas.push('  var el=document.getElementById("msgBanner");')
+  linhas.push('  el.textContent=msg;el.style.display="block";')
+  linhas.push('  setTimeout(function(){el.style.display="none";},4000);')
+  linhas.push('}')
   linhas.push('function validarDatas(idx){')
   linhas.push('  var ini=document.getElementById("ini_"+idx);')
   linhas.push('  var fim=document.getElementById("fim_"+idx);')
-  linhas.push('  if(ini&&fim&&ini.value&&fim.value&&fim.value<ini.value){alert("Data fim nao pode ser anterior a data inicio.");fim.value="";return;}')
+  linhas.push('  if(ini&&fim&&ini.value&&fim.value&&fim.value<ini.value){showMsg("⚠️ Data fim não pode ser anterior à data início.");fim.value="";return;}')
   linhas.push('  if(idx>0){var ant=document.getElementById("ini_"+(idx-1));')
-  linhas.push('    if(ant&&ini&&ini.value&&ant.value&&ini.value<ant.value){alert("Data inicio nao pode ser anterior a atividade anterior.");ini.value="";fim.value="";}}')
+  linhas.push('    if(ant&&ini&&ini.value&&ant.value&&ini.value<ant.value){showMsg("⚠️ Data início não pode ser anterior à atividade anterior.");ini.value="";fim.value="";}}')
   linhas.push('}')
   linhas.push('function addDoc(){')
   linhas.push('  var tb=document.getElementById("tbDocs");')
@@ -500,7 +516,7 @@ export async function POST(request: NextRequest) {
       '<td>' + (a.tag_ativo_nr_serie ?? '') + '</td>',
       '<td>' + (a.nome_responsavel ?? '') + '</td>',
       '<td>' + (a.funcao_responsavel ?? '') + '</td>',
-      '<td>' + (a.whatsapp_responsavel ?? '') + '</td>',
+      '<td>' + fmtWpp(a.whatsapp_responsavel ?? '') + '</td>',
       '<td>' + (a.uso_ativo ?? '') + '</td>',
       '</tr>'
     ].join('')).join('')
@@ -554,6 +570,7 @@ export async function POST(request: NextRequest) {
     partes.push('<style>' + css + '</style>')
     partes.push(gerarScriptDatas(atividades.length))
     partes.push('</head><body>')
+    partes.push('<div id="msgBanner" style="display:none;position:fixed;top:16px;left:50%;transform:translateX(-50%);background:#1E3A8A;color:#fff;padding:10px 24px;border-radius:8px;font-size:10pt;font-family:Arial;z-index:999;box-shadow:0 4px 12px rgba(0,0,0,0.3)"></div>')
     if (insp.cabecalho_documentos) partes.push('<div class="cab">' + insp.cabecalho_documentos + '</div>')
     partes.push('<h1>' + plano.titulo + '</h1>')
     partes.push('<p style="text-align:center;color:#374151;margin-bottom:10pt">' + municipio + ', ' + dataHoje + '</p>')
