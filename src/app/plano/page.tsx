@@ -195,6 +195,8 @@ function PlanoInner() {
               [
                 { label: 'Continuar editando', acao: () => {
                   const raw = sessionStorage.getItem('planoExist')
+                  sessionStorage.removeItem('planoExist')
+                  fechar()
                   if (raw) {
                     const d = JSON.parse(raw)
                     if (d.planoInfo) setPlanoInfo(d.planoInfo)
@@ -202,11 +204,10 @@ function PlanoInner() {
                     if (d.endereco) setEnderecoDoc(d.endereco)
                     if (d.datas) setDatas(d.datas)
                     if (d.docs) setDocs(d.docs)
-                    sessionStorage.removeItem('planoExist')
+                    setTimeout(() => setEtapa('plano'), 50)
                   }
-                  setEtapa('plano')
                 }, estilo: 'primario' },
-                { label: 'Criar novo', acao: () => { sessionStorage.removeItem('planoExist') }, estilo: 'secundario' },
+                { label: 'Criar novo', acao: () => { sessionStorage.removeItem('planoExist'); fechar() }, estilo: 'secundario' },
               ]
             )
           }
