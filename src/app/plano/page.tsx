@@ -126,9 +126,15 @@ function PlanoInner() {
   const [showForm,   setShowForm]   = useState(false)
   const [carregando, setCarregando] = useState(true)
   const [salvando,   setSalvando]   = useState(false)
+  const [est,        setEst]        = useState<{razao_social_nome:string}|null>(null)
   const [ativos,     setAtivos]     = useState<Ativo[]>([])
   const [ativoAtual, setAtivoAtual] = useState<Ativo>({ ...ATIVO_VAZIO })
   const [htmlPlano,  setHtmlPlano]  = useState('')
+  const [planoInfo,  setPlanoInfo]  = useState<{titulo:string;parceiro:string;atividades:{horas:number;dias:number;descricao:string}[];documentos:string[]}>({titulo:'',parceiro:'',atividades:[],documentos:[]})
+  const [datas,      setDatas]      = useState<{ini:string;fim:string}[]>([])
+  const [docs,       setDocs]       = useState<{doc:string;sit:string;res:string}[]>([])
+  const [infoDoc,    setInfoDoc]    = useState<{nome:string;titulo:string;cabecalho:string;rodape:string;conselho:string;inscricao:string}>({nome:'',titulo:'',cabecalho:'',rodape:'',conselho:'',inscricao:''})
+  const [enderecoDoc,setEnderecoDoc]= useState('')
 
   async function query(table: string, qparams: string) {
     const res = await fetch(`${SUPA_URL}/rest/v1/${table}?${qparams}`, {
@@ -155,6 +161,7 @@ function PlanoInner() {
         setCarregando(false)
         return
       }
+      setEst(estData[0])
       const ativoData = await query('ativos_a_vistoriar',
         `cpf_inspetor=eq.${cpfInspetor}&cnpjoucpf=eq.${cnpjoucpf}&tipo_servico=eq.${encodeURIComponent(tsVistoria)}&select=*&order=data_cadastro`)
       if (Array.isArray(ativoData)) {
@@ -254,47 +261,18 @@ function PlanoInner() {
         body: JSON.stringify({ tipoServico, cpfInspetor, cnpjoucpf, ativos })
       })
       const data = await res.json()
-      if (data.html) { setHtmlPlano(data.html); setEtapa('plano') }
+      if (data.html) {
+        setHtmlPlano(data.html)
+        if (data.planoInfo) {
+          setPlanoInfo(data.planoInfo)
+          setDatas(data.planoInfo.atividades.map(() => ({ini:'', fim:''})))
+          setDocs(data.planoInfo.documentos.map((d: string) => ({doc:d, sit:'', res:''})))
+        }
+        if (data.docInfo) setInfoDoc(data.docInfo)
+        if (data.endereco) setEnderecoDoc(data.endereco)
+        setEtapa('plano')
+      }
       else informa('Erro', data.erro ?? 'Não foi possível gerar o plano.')
-    } finally {
-      setSalvando(false)
-    }
-  }
-
-  function coletarESalvar() {
-    const iframe = document.getElementById('iframePlano') as HTMLIFrameElement
-    if (!iframe?.contentWindow) { salvarPlanoComHtml(htmlPlano); return }
-    // Pedir ao iframe para serializar seus dados
-    const handler = (e: MessageEvent) => {
-      if (e.data?.type === 'planoHtml') {
-        window.removeEventListener('message', handler)
-        salvarPlanoComHtml(e.data.html)
-      }
-    }
-    window.addEventListener('message', handler)
-    iframe.contentWindow.postMessage('serializarPlano', '*')
-    // Timeout de segurança
-    setTimeout(() => {
-      window.removeEventListener('message', handler)
-      salvarPlanoComHtml(htmlPlano)
-    }, 2000)
-  }
-
-  async function salvarPlanoComHtml(html: string) {
-    setSalvando(true)
-    try {
-      const nomeArq = chaveInspetor + '_plano_' + tipoServico + '_' + cnpjoucpf + '.html'
-      const res = await fetch('/api/salvar-vistoria', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ nomeArquivo: nomeArq, pasta: 'documentos_inspetor', payload: html, contentType: 'application/json' })
-      })
-      const data = await res.json()
-      if (data.sucesso) {
-        agradece('Plano salvo!', 'Salvo em Documentos do Inspetor.', () => window.location.href = '/dashboard')
-      } else {
-        informa('Erro', data.erro ?? 'Não foi possível salvar.')
-      }
     } finally {
       setSalvando(false)
     }
@@ -303,15 +281,23 @@ function PlanoInner() {
   async function salvarPlano() {
     setSalvando(true)
     try {
-      const nomeArq = `${chaveInspetor}_plano_${tipoServico}_${cnpjoucpf}.html`
+      // Gerar HTML final com datas e docs preenchidos
+      const resHtml = await fetch('/api/gerar-plano', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tipoServico, cpfInspetor, cnpjoucpf, ativos, datas, docs })
+      })
+      const htmlData = await resHtml.json()
+      if (!htmlData.html) { informa('Erro', 'Não foi possível gerar o plano.'); return }
+      const nomeArq = chaveInspetor + '_plano_' + tipoServico + '_' + cnpjoucpf + '.html'
       const res = await fetch('/api/salvar-vistoria', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ nomeArquivo: nomeArq, pasta: 'documentos_inspetor', payload: htmlPlano, contentType: 'application/json' })
+        body: JSON.stringify({ nomeArquivo: nomeArq, pasta: 'documentos_inspetor', payload: htmlData.html, contentType: 'application/json' })
       })
       const data = await res.json()
       if (data.sucesso) {
-        agradece('Plano salvo!', `Salvo como ${nomeArq}.`, () => window.location.href = '/dashboard')
+        agradece('Plano salvo!', 'Salvo em Documentos do Inspetor.', () => window.location.href = '/dashboard')
       } else {
         informa('Erro', data.erro ?? 'Não foi possível salvar.')
       }
@@ -574,24 +560,150 @@ function PlanoInner() {
             </div>
           )}
 
-          {/* ── ETAPA 2: PREVIEW ── */}
+          {/* ── ETAPA 2: PLANO REACT ── */}
           {etapa === 'plano' && (
             <div>
-              <div style={S.block}>
-                <div style={S.blockTitle}>Plano de Trabalho — preencha datas e documentos abaixo</div>
-                <div style={{ padding: '8px 10px' }}>
-                  <iframe
-                    id="iframePlano"
-                    srcDoc={htmlPlano}
-                    style={{ width: '100%', height: '680px', border: '1px solid #c3d4f0', borderRadius: '4px' }}
-                    title="Plano"
-                  />
+              {/* Documento estilizado */}
+              <div style={{ border: '1px solid #c3d4f0', borderRadius: '6px', overflow: 'hidden', marginBottom: '8px' }}>
+                <div style={S.blockTitle}>{planoInfo.titulo}</div>
+                <div style={{ padding: '10px 14px', fontSize: '8.5pt', fontFamily: 'Arial, sans-serif' }}>
+
+                  {/* Cabeçalho do inspetor */}
+                  {infoDoc.cabecalho && (
+                    <div style={{ textAlign: 'center', borderBottom: '2px solid #1E3A8A', paddingBottom: '6px', marginBottom: '8px', fontSize: '8pt', color: '#374151', whiteSpace: 'pre-line' }}>
+                      {infoDoc.cabecalho}
+                    </div>
+                  )}
+
+                  {/* Identificação */}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+                    <span><b>Estabelecimento:</b> {est?.razao_social_nome ?? cnpjoucpf}</span>
+                    <span><b>CNPJ/CPF:</b> {fmtCNPJ(cnpjoucpf)}</span>
+                  </div>
+                  {enderecoDoc && <div style={{ marginBottom: '8px' }}><b>Endereço:</b> {enderecoDoc}</div>}
+
+                  {/* 1.1 Agenda */}
+                  <div style={{ fontWeight: 700, color: '#1E3A8A', borderBottom: '1px solid #1E3A8A', marginBottom: '4px', marginTop: '10px' }}>
+                    1.1.- Plano de Trabalho — {planoInfo.parceiro}
+                  </div>
+                  <div style={{ background: '#FFF9E6', border: '1px solid #F59E0B', borderRadius: '4px', padding: '4px 8px', marginBottom: '6px', fontSize: '7.5pt', color: '#92400E' }}>
+                    ⚠️ Preencha as datas de início e fim de cada atividade.
+                  </div>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '8pt', marginBottom: '10px' }}>
+                    <thead>
+                      <tr style={{ background: '#1E3A8A', color: '#fff' }}>
+                        <th style={{ padding: '3px 6px', textAlign: 'left' }}>Atividade</th>
+                        <th style={{ padding: '3px 6px', textAlign: 'center', width: '130px' }}>Dt. Início</th>
+                        <th style={{ padding: '3px 6px', textAlign: 'center', width: '130px' }}>Dt. Fim</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {planoInfo.atividades.map((a, i) => (
+                        <tr key={i} style={{ background: i%2===0?'#f8fafc':'#fff', borderBottom: '1px solid #e2e8f0' }}>
+                          <td style={{ padding: '3px 6px', textAlign: 'justify' }}>{a.descricao}</td>
+                          <td style={{ padding: '2px 4px' }}>
+                            <input type="date" style={{ ...S.input, fontSize: '7.5pt', padding: '2px 4px' }}
+                              value={datas[i]?.ini ?? ''}
+                              onChange={e => {
+                                const v = e.target.value
+                                if (i > 0 && datas[i-1]?.ini && v < datas[i-1].ini) {
+                                  informa('Data inválida', 'A data início não pode ser anterior à data início da atividade anterior.')
+                                  return
+                                }
+                                setDatas(prev => prev.map((d,j) => j===i ? {...d, ini:v} : d))
+                              }} />
+                          </td>
+                          <td style={{ padding: '2px 4px' }}>
+                            <input type="date" style={{ ...S.input, fontSize: '7.5pt', padding: '2px 4px' }}
+                              value={datas[i]?.fim ?? ''}
+                              onChange={e => {
+                                const v = e.target.value
+                                if (datas[i]?.ini && v < datas[i].ini) {
+                                  informa('Data inválida', 'A data fim não pode ser anterior à data início.')
+                                  return
+                                }
+                                setDatas(prev => prev.map((d,j) => j===i ? {...d, fim:v} : d))
+                              }} />
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+
+                  {/* 1.2 Documentos */}
+                  <div style={{ fontWeight: 700, color: '#1E3A8A', borderBottom: '1px solid #1E3A8A', marginBottom: '4px' }}>
+                    1.2.- Relação de Documentos Solicitados
+                  </div>
+                  <div style={{ background: '#FFF9E6', border: '1px solid #F59E0B', borderRadius: '4px', padding: '4px 8px', marginBottom: '6px', fontSize: '7.5pt', color: '#92400E' }}>
+                    ⚠️ Verifique e ajuste a relação de documentos abaixo.
+                  </div>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '8pt', marginBottom: '6px' }}>
+                    <thead>
+                      <tr style={{ background: '#1E3A8A', color: '#fff' }}>
+                        <th style={{ padding: '3px 6px', textAlign: 'left' }}>Documento</th>
+                        <th style={{ padding: '3px 6px', textAlign: 'left', width: '120px' }}>Situação</th>
+                        <th style={{ padding: '3px 6px', textAlign: 'left', width: '120px' }}>Resultado</th>
+                        <th style={{ padding: '3px 6px', width: '32px' }}></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {docs.map((d, i) => (
+                        <tr key={i} style={{ background: i%2===0?'#f8fafc':'#fff', borderBottom: '1px solid #e2e8f0' }}>
+                          <td style={{ padding: '2px 4px' }}>
+                            <input style={{ ...S.input, fontSize: '7.5pt', padding: '2px 4px' }}
+                              value={d.doc}
+                              onChange={e => setDocs(prev => prev.map((x,j) => j===i ? {...x, doc:e.target.value} : x))} />
+                          </td>
+                          <td style={{ padding: '2px 4px' }}>
+                            <select style={{ ...S.input, fontSize: '7.5pt', padding: '2px 4px' }}
+                              value={d.sit}
+                              onChange={e => setDocs(prev => prev.map((x,j) => j===i ? {...x, sit:e.target.value} : x))}>
+                              <option value="">—</option>
+                              <option>Entregue</option><option>Pendente</option><option>Desnecessário</option>
+                            </select>
+                          </td>
+                          <td style={{ padding: '2px 4px' }}>
+                            <select style={{ ...S.input, fontSize: '7.5pt', padding: '2px 4px' }}
+                              value={d.res}
+                              onChange={e => setDocs(prev => prev.map((x,j) => j===i ? {...x, res:e.target.value} : x))}>
+                              <option value="">—</option>
+                              <option>Conforme</option><option>Não conforme</option><option>Não se aplica</option>
+                            </select>
+                          </td>
+                          <td style={{ padding: '2px 4px', textAlign: 'center' }}>
+                            <button onClick={() => setDocs(prev => prev.filter((_,j) => j!==i))}
+                              style={{ background:'#DC2626', color:'#fff', border:'none', borderRadius:'4px', padding:'2px 6px', cursor:'pointer', fontSize:'8pt' }}>✕</button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                  <button onClick={() => setDocs(prev => [...prev, {doc:'', sit:'', res:''}])}
+                    style={{ background:'#1E3A8A', color:'#fff', border:'none', borderRadius:'4px', padding:'3px 10px', cursor:'pointer', fontSize:'7.5pt', marginBottom:'10px' }}>
+                    + Adicionar documento
+                  </button>
+
+                  {/* Assinatura */}
+                  <div style={{ borderTop: '1px solid #ccc', paddingTop: '8px', marginTop: '8px', lineHeight: 1.8, fontSize: '8pt' }}>
+                    <p><b>{infoDoc.nome}</b></p>
+                    <p>{infoDoc.titulo} — {infoDoc.conselho} {infoDoc.inscricao}</p>
+                    <p style={{ marginTop: '16px' }}>De acordo: _____________________ CPF: _______________ Data: ___/___/______</p>
+                    <p>{planoInfo.parceiro?.replace('Inspetor e ','')}</p>
+                  </div>
+
+                  {/* Rodapé */}
+                  {infoDoc.rodape && (
+                    <div style={{ borderTop: '1px solid #ccc', marginTop: '12px', paddingTop: '6px', fontSize: '7.5pt', textAlign: 'center', color: '#374151', whiteSpace: 'pre-line' }}>
+                      {infoDoc.rodape}
+                    </div>
+                  )}
                 </div>
               </div>
-              <div style={{ ...S.footer, gridTemplateColumns: '1fr 1fr', marginTop: '8px' }}>
+
+              <div style={{ ...S.footer, marginTop: '8px' }}>
                 <button style={{ ...S.btn, ...S.btnSec }} onClick={() => setEtapa('ativo')}>← Voltar</button>
                 <button style={{ ...S.btn, ...S.btnPri, opacity: salvando ? 0.6 : 1 }}
-                  onClick={coletarESalvar} disabled={salvando}>
+                  onClick={salvarPlano} disabled={salvando}>
                   {salvando ? 'Salvando...' : '💾 Salvar plano'}
                 </button>
               </div>
