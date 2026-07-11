@@ -542,17 +542,19 @@ function PlanoInner() {
                 </div>
               )}
 
-              {/* Botões principais */}
-              <div style={{ ...S.footer }}>
-                <button style={{ ...S.btn, ...S.btnSec }}
-                  onClick={() => { setShowForm(true); setAtivoAtual({ ...ATIVO_VAZIO }) }}>
-                  Cadastrar + ativo
-                </button>
-                <button style={{ ...S.btn, ...S.btnPri, opacity: (ativos.length === 0 || salvando) ? 0.5 : 1 }}
-                  onClick={gerarPlano} disabled={ativos.length === 0 || salvando}>
-                  {ativos.length === 0 ? 'Cadastrar ativo' : `Gerar plano (${ativos.length}) →`}
-                </button>
-              </div>
+              {/* Botões principais — só quando formulário fechado */}
+              {!showForm && (
+                <div style={{ ...S.footer }}>
+                  <button style={{ ...S.btn, ...S.btnSec }}
+                    onClick={() => { setShowForm(true); setAtivoAtual({ ...ATIVO_VAZIO }) }}>
+                    + Cadastrar ativo
+                  </button>
+                  <button style={{ ...S.btn, ...S.btnPri, opacity: (ativos.length === 0 || salvando) ? 0.5 : 1 }}
+                    onClick={gerarPlano} disabled={ativos.length === 0 || salvando}>
+                    {ativos.length === 0 ? '+ Cadastrar ativo' : `Gerar plano (${ativos.length}) →`}
+                  </button>
+                </div>
+              )}
             </div>
           )}
 
