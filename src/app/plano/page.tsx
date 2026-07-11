@@ -170,26 +170,22 @@ function PlanoInner() {
         setShowForm(ativoData.length === 0)
       }
 
-      // Verificar se já existe plano salvo
+      // Verificar se já existe plano salvo via API de vistorias
       const nomeExist = chaveInspetor + '_plano_' + tipoServico + '_' + cnpjoucpf + '.html'
       try {
-        const SUPA_SRV = 'https://asgorarunzhiojqioxzq.supabase.co'
-        const urlArq = SUPA_SRV + '/storage/v1/object/documentos_inspetor/' + nomeExist
-        console.log('Buscando plano:', urlArq)
-        const resArq = await fetch(urlArq,
-          { headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY } }
-        )
-        console.log('Status plano existente:', resArq.status)
+        const resArq = await fetch('/api/vistorias?nome=' + encodeURIComponent(nomeExist) + '&pasta=documentos_inspetor')
         if (resArq.ok) {
-          const htmlExist = await resArq.text()
-          solicita(
-            'Plano existente encontrado',
-            'Já existe um Plano de Trabalho salvo. Deseja abrir o existente ou criar um novo?',
-            [
-              { label: 'Abrir existente', acao: () => { setHtmlPlano(htmlExist); setModoVisu(true); setEtapa('plano'); fechar() }, estilo: 'primario' },
-              { label: 'Criar novo', acao: () => fechar(), estilo: 'secundario' },
-            ]
-          )
+          const arqData = await resArq.json()
+          if (arqData.html) {
+            solicita(
+              'Plano existente encontrado',
+              'Já existe um Plano de Trabalho salvo. Deseja abrir o existente ou criar um novo?',
+              [
+                { label: 'Abrir existente', acao: () => { setHtmlPlano(arqData.html); setModoVisu(true); setEtapa('plano'); fechar() }, estilo: 'primario' },
+                { label: 'Criar novo', acao: () => fechar(), estilo: 'secundario' },
+              ]
+            )
+          }
         }
       } catch {}
 
