@@ -556,8 +556,6 @@ function PlanoInner() {
                 {ativos.length === 0 ? 'Cadastre um ativo' : `Gerar plano (${ativos.length}) →`}
               </button>
             </div>
-              </div>
-            </div>
           </>)}
 
           {/* ── ETAPA 2: PREVIEW DO PLANO ── */}
