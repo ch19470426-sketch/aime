@@ -574,7 +574,7 @@ export async function POST(request: NextRequest) {
     if (insp.cabecalho_documentos) partes.push('<div class="cab">' + insp.cabecalho_documentos + '</div>')
     partes.push('<h1>' + plano.titulo + '</h1>')
     partes.push('<p style="text-align:center;color:#374151;margin-bottom:10pt">' + municipio + ', ' + dataHoje + '</p>')
-    partes.push('<div class="row"><span><strong>Estabelecimento:</strong> ' + est.razao_social_nome + '</span><span><strong>CNPJ/CPF:</strong> ' + cnpjoucpf + '</span></div>')
+    partes.push('<div class="row"><span><strong>Estabelecimento:</strong> ' + est.razao_social_nome + '</span><span><strong>CNPJ/CPF:</strong> ' + fmtCNPJ(cnpjoucpf) + '</span></div>')
     partes.push('<p><strong>Endereço:</strong> ' + endereco + '</p>')
     partes.push('<h2>Ativos a Vistoriar</h2>')
     partes.push('<table><thead><tr><th>#</th><th>Tipo</th><th>TAG/Série</th><th>Responsável</th><th>Função</th><th>WhatsApp</th><th>Uso</th></tr></thead>')
