@@ -255,7 +255,6 @@ function PlanoInner() {
       [{ label: 'Entendido', acao: () => fechar(), estilo: 'primario' }]
     )
     try {
-      console.log('GERAR PLANO ativos:', ativos.length, ativos.map((a:Record<string,string>) => a.tipo_ativo))
       const res = await fetch('/api/gerar-plano', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -582,6 +581,37 @@ function PlanoInner() {
                     <span><b>CNPJ/CPF:</b> {fmtCNPJ(cnpjoucpf)}</span>
                   </div>
                   {enderecoDoc && <div style={{ marginBottom: '8px' }}><b>Endereço:</b> {enderecoDoc}</div>}
+
+                  {/* Ativos a Vistoriar */}
+                  <div style={{ fontWeight: 700, color: '#1E3A8A', borderBottom: '1px solid #1E3A8A', marginBottom: '4px', marginTop: '10px' }}>
+                    Ativos a Vistoriar
+                  </div>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '8pt', marginBottom: '10px' }}>
+                    <thead>
+                      <tr style={{ background: '#1E3A8A', color: '#fff' }}>
+                        <th style={{ padding: '3px 6px' }}>#</th>
+                        <th style={{ padding: '3px 6px', textAlign: 'left' }}>Tipo</th>
+                        <th style={{ padding: '3px 6px', textAlign: 'left' }}>TAG/Série</th>
+                        <th style={{ padding: '3px 6px', textAlign: 'left' }}>Responsável</th>
+                        <th style={{ padding: '3px 6px', textAlign: 'left' }}>Função</th>
+                        <th style={{ padding: '3px 6px', textAlign: 'left' }}>WhatsApp</th>
+                        <th style={{ padding: '3px 6px', textAlign: 'left' }}>Uso</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {ativos.map((a, i) => (
+                        <tr key={i} style={{ background: i%2===0?'#f8fafc':'#fff', borderBottom: '1px solid #e2e8f0' }}>
+                          <td style={{ padding: '3px 6px', textAlign: 'center' }}>{i+1}</td>
+                          <td style={{ padding: '3px 6px' }}>{a.tipo_ativo}</td>
+                          <td style={{ padding: '3px 6px' }}>{a.tag_ativo_nr_serie}</td>
+                          <td style={{ padding: '3px 6px' }}>{a.nome_responsavel}</td>
+                          <td style={{ padding: '3px 6px' }}>{a.funcao_responsavel}</td>
+                          <td style={{ padding: '3px 6px' }}>{fmtWpp(a.whatsapp_responsavel ?? '')}</td>
+                          <td style={{ padding: '3px 6px' }}>{a.uso_ativo}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
 
                   {/* 1.1 Agenda */}
                   <div style={{ fontWeight: 700, color: '#1E3A8A', borderBottom: '1px solid #1E3A8A', marginBottom: '4px', marginTop: '10px' }}>
