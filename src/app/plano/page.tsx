@@ -130,6 +130,7 @@ function PlanoInner() {
   const [ativos,     setAtivos]     = useState<Ativo[]>([])
   const [ativoAtual, setAtivoAtual] = useState<Ativo>({ ...ATIVO_VAZIO })
   const [htmlPlano,  setHtmlPlano]  = useState('')
+  const [modoVisu,   setModoVisu]   = useState(false)
   const [planoInfo,  setPlanoInfo]  = useState<{titulo:string;parceiro:string;atividades:{horas:number;dias:number;descricao:string}[];documentos:string[]}>({titulo:'',parceiro:'',atividades:[],documentos:[]})
   const [datas,      setDatas]      = useState<{ini:string;fim:string}[]>([])
   const [docs,       setDocs]       = useState<{doc:string;sit:string;res:string}[]>([])
@@ -183,7 +184,7 @@ function PlanoInner() {
             'Plano existente encontrado',
             'Já existe um Plano de Trabalho salvo. Deseja abrir o existente ou criar um novo?',
             [
-              { label: 'Abrir existente', acao: () => { setHtmlPlano(htmlExist); setEtapa('plano'); fechar() }, estilo: 'primario' },
+              { label: 'Abrir existente', acao: () => { setHtmlPlano(htmlExist); setModoVisu(true); setEtapa('plano'); fechar() }, estilo: 'primario' },
               { label: 'Criar novo', acao: () => fechar(), estilo: 'secundario' },
             ]
           )
@@ -589,6 +590,10 @@ function PlanoInner() {
               <div style={{ border: '1px solid #c3d4f0', borderRadius: '6px', overflow: 'hidden', marginBottom: '8px' }}>
                 <div style={S.blockTitle}>{planoInfo.titulo}</div>
                 <div style={{ padding: '10px 14px', fontSize: '8.5pt', fontFamily: 'Arial, sans-serif' }}>
+                  {modoVisu && (
+                    <iframe srcDoc={htmlPlano} style={{ width: '100%', height: '680px', border: 'none' }} title="Plano salvo" />
+                  )}
+                  {!modoVisu && (<>
 
                   {/* Cabeçalho do inspetor */}
                   {infoDoc.cabecalho && (
@@ -719,15 +724,21 @@ function PlanoInner() {
                       {infoDoc.rodape}
                     </div>
                   )}
+                  </>)}
                 </div>
               </div>
 
-              <div style={{ ...S.footer, marginTop: '8px' }}>
-                <button style={{ ...S.btn, ...S.btnSec }} onClick={() => setEtapa('ativo')}>← Voltar</button>
-                <button style={{ ...S.btn, ...S.btnPri, opacity: salvando ? 0.6 : 1 }}
-                  onClick={salvarPlano} disabled={salvando}>
-                  {salvando ? 'Salvando...' : '💾 Salvar plano'}
+              <div style={{ ...S.footer, gridTemplateColumns: modoVisu ? '1fr 1fr' : '1fr 1fr', marginTop: '8px' }}>
+                <button style={{ ...S.btn, ...S.btnSec }}
+                  onClick={() => { setModoVisu(false); setEtapa('ativo') }}>
+                  {modoVisu ? '+ Criar novo plano' : '← Voltar'}
                 </button>
+                {!modoVisu && (
+                  <button style={{ ...S.btn, ...S.btnPri, opacity: salvando ? 0.6 : 1 }}
+                    onClick={salvarPlano} disabled={salvando}>
+                    {salvando ? 'Salvando...' : '💾 Salvar plano'}
+                  </button>
+                )}
               </div>
             </div>
           )}
