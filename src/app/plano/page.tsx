@@ -385,12 +385,10 @@ function PlanoInner() {
                 </div>
                 <div style={{ ...S.row, ...S.c2 }}>
                   <Field label="WhatsApp">
-                    <input style={S.input} value={
-                      ativoAtual.whatsapp_responsavel.replace(/^(\d{2})(\d{5})(\d{4})$/, '($1) $2-$3')
-                        .replace(/^(\d{2})(\d{4})(\d{4})$/, '($1) $2-$3')
-                    }
+                    <input style={S.input}
+                      value={fmtWpp(ativoAtual.whatsapp_responsavel)}
                       maxLength={15}
-                      onChange={e => atualizarAtivo('whatsapp_responsavel', e.target.value.replace(/\D/g,''))}
+                      onChange={e => atualizarAtivo('whatsapp_responsavel', e.target.value.replace(/\D/g,'').slice(0,11))}
                       placeholder="(27) 99999-9999" />
                   </Field>
                   <Field label="E-mail">
