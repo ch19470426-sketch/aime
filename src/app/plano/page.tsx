@@ -123,6 +123,7 @@ function PlanoInner() {
   const needsTag   = isElevador || isNR12 || isNR13
 
   const [etapa,      setEtapa]      = useState<'ativo' | 'plano'>('ativo')
+  const [irParaPlano, setIrParaPlano] = useState(false)
   const [showForm,   setShowForm]   = useState(false)
   const [carregando, setCarregando] = useState(true)
   const [salvando,   setSalvando]   = useState(false)
@@ -147,6 +148,13 @@ function PlanoInner() {
     setAtivoAtual({ ...ATIVO_VAZIO })
     carregar()
   }, [cnpjoucpf, cpfInspetor])
+
+  useEffect(() => {
+    if (irParaPlano) {
+      setEtapa('plano')
+      setIrParaPlano(false)
+    }
+  }, [irParaPlano, planoInfo])
 
   async function carregar() {
     setCarregando(true)
@@ -191,15 +199,14 @@ function PlanoInner() {
               'Já existe um Plano de Trabalho salvo. Deseja continuar editando ou criar um novo?',
               [
                 { label: 'Continuar editando', acao: () => {
-                  console.log('dadosSalvos:', dadosSalvos)
                   if (dadosSalvos) {
-                    if (dadosSalvos.datas) setDatas(dadosSalvos.datas as {ini:string;fim:string}[])
-                    if (dadosSalvos.docs) setDocs(dadosSalvos.docs as {doc:string;sit:string;res:string}[])
                     if (dadosSalvos.planoInfo) setPlanoInfo(dadosSalvos.planoInfo as typeof planoInfo)
                     if (dadosSalvos.docInfo) setInfoDoc(dadosSalvos.docInfo as typeof infoDoc)
                     if (dadosSalvos.endereco) setEnderecoDoc(dadosSalvos.endereco as string)
+                    if (dadosSalvos.datas) setDatas(dadosSalvos.datas as {ini:string;fim:string}[])
+                    if (dadosSalvos.docs) setDocs(dadosSalvos.docs as {doc:string;sit:string;res:string}[])
+                    setIrParaPlano(true)
                   }
-                  setEtapa('plano')
                   fechar()
                 }, estilo: 'primario' },
                 { label: 'Criar novo', acao: () => fechar(), estilo: 'secundario' },
