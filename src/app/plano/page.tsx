@@ -589,15 +589,11 @@ function PlanoInner() {
                 <div style={S.blockTitle}>{planoInfo.titulo}</div>
                 <div style={{ padding: '10px 14px', fontSize: '8.5pt', fontFamily: 'Arial, sans-serif' }}>
                   {modoVisu && (
-                    <div style={{ overflow: 'auto', background: '#E8EEF7', padding: '12px', borderRadius: '4px' }}>
-                      <div style={{ transform: 'scale(0.75)', transformOrigin: 'top center', width: '210mm', margin: '0 auto' }}>
-                        <iframe
-                          srcDoc={htmlPlano}
-                          style={{ width: '210mm', height: '900px', border: 'none', background: '#fff', display: 'block' }}
-                          title="Plano salvo"
-                        />
-                      </div>
-                    </div>
+                    <iframe
+                      srcDoc={htmlPlano}
+                      style={{ width: '100%', height: '800px', border: 'none', background: '#fff', display: 'block', borderRadius: '4px' }}
+                      title="Plano salvo"
+                    />
                   )}
                   {!modoVisu && (<>
 
