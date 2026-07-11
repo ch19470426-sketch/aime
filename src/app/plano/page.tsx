@@ -539,15 +539,33 @@ function PlanoInner() {
           {etapa === 'plano' && (
             <div>
               <div style={S.block}>
-                <div style={S.blockTitle}>Preview do Plano de Trabalho</div>
+                <div style={S.blockTitle}>Preview do Plano de Trabalho — preencha datas e documentos antes de salvar</div>
                 <div style={{ padding: '8px 10px' }}>
-                  <iframe srcDoc={htmlPlano} style={{ width: '100%', height: '700px', border: '1px solid #c3d4f0', borderRadius: '4px' }} title="Plano" />
+                  <iframe
+                    id="iframePlano"
+                    srcDoc={htmlPlano}
+                    style={{ width: '100%', height: '700px', border: '1px solid #c3d4f0', borderRadius: '4px' }}
+                    title="Plano"
+                  />
                 </div>
               </div>
-              <div style={{ ...S.footer, marginTop: '8px' }}>
-                <button style={{ ...S.btn, ...S.btnSec }} onClick={() => setEtapa('ativo')}>← Voltar</button>
-                <button style={{ ...S.btn, ...S.btnPri, opacity: salvando ? 0.6 : 1 }} onClick={salvarPlano} disabled={salvando}>
-                  {salvando ? 'Salvando...' : '💾 Salvar plano'}
+              <div style={{ ...S.footer, gridTemplateColumns: '1fr 1fr 1fr', marginTop: '8px' }}>
+                <button style={{ ...S.btn, ...S.btnSec }} onClick={() => {
+                  const iframe = document.getElementById('iframePlano') as HTMLIFrameElement
+                  if (iframe?.contentDocument) setHtmlPlano(iframe.contentDocument.documentElement.outerHTML)
+                  setEtapa('ativo')
+                }}>← Voltar</button>
+                <button style={{ ...S.btn, ...S.btnSec, opacity: salvando ? 0.6 : 1 }} onClick={() => {
+                  const iframe = document.getElementById('iframePlano') as HTMLIFrameElement
+                  if (iframe?.contentDocument) setHtmlPlano(iframe.contentDocument.documentElement.outerHTML)
+                  informa('Rascunho salvo', 'Os dados do plano foram preservados. Continue editando ou salve o documento.')
+                }}>💾 Salvar rascunho</button>
+                <button style={{ ...S.btn, ...S.btnPri, opacity: salvando ? 0.6 : 1 }} onClick={() => {
+                  const iframe = document.getElementById('iframePlano') as HTMLIFrameElement
+                  if (iframe?.contentDocument) setHtmlPlano(iframe.contentDocument.documentElement.outerHTML)
+                  salvarPlano()
+                }} disabled={salvando}>
+                  {salvando ? 'Salvando...' : '✅ Salvar plano'}
                 </button>
               </div>
             </div>
