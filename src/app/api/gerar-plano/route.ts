@@ -599,7 +599,7 @@ export async function POST(request: NextRequest) {
     partes.push('</body></html>')
 
     const html = partes.join('\n')
-    return NextResponse.json({ html })
+    return NextResponse.json({ html, planoInfo: { titulo: plano.titulo, parceiro: plano.parceiro, atividades, documentos } })
   } catch (err) {
     return NextResponse.json({ erro: String(err) }, { status: 500 })
   }
