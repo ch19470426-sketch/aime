@@ -4,7 +4,6 @@
 'use client'
 
 import { Suspense, useEffect, useState } from 'react'
-import { flushSync } from 'react-dom'
 import { useSearchParams } from 'next/navigation'
 import Image from 'next/image'
 import Banner from '@/components/Banner'
@@ -134,6 +133,7 @@ function PlanoInner() {
   const [planoInfo,  setPlanoInfo]  = useState<{titulo:string;parceiro:string;atividades:{horas:number;dias:number;descricao:string}[];documentos:string[]}>({titulo:'',parceiro:'',atividades:[],documentos:[]})
   const [datas,      setDatas]      = useState<{ini:string;fim:string}[]>([])
   const [docs,       setDocs]       = useState<{doc:string;sit:string;res:string}[]>([])
+  const [dadosExist, setDadosExist] = useState<Record<string,unknown> | null>(null)
   const [infoDoc,    setInfoDoc]    = useState<{nome:string;titulo:string;cabecalho:string;rodape:string;conselho:string;inscricao:string}>({nome:'',titulo:'',cabecalho:'',rodape:'',conselho:'',inscricao:''})
   const [enderecoDoc,setEnderecoDoc]= useState('')
 
@@ -189,23 +189,12 @@ function PlanoInner() {
                 try { dadosSalvos = JSON.parse(jsonData.html) } catch {}
               }
             }
+            setDadosExist(dadosSalvos)
             solicita(
               'Plano existente encontrado',
               'Já existe um Plano de Trabalho salvo. Deseja continuar editando ou criar um novo?',
               [
-                { label: 'Continuar editando', acao: () => {
-                  if (dadosSalvos) {
-                    flushSync(() => {
-                      if (dadosSalvos.planoInfo) setPlanoInfo(dadosSalvos.planoInfo as typeof planoInfo)
-                      if (dadosSalvos.docInfo) setInfoDoc(dadosSalvos.docInfo as typeof infoDoc)
-                      if (dadosSalvos.endereco) setEnderecoDoc(dadosSalvos.endereco as string)
-                      if (dadosSalvos.datas) setDatas(dadosSalvos.datas as {ini:string;fim:string}[])
-                      if (dadosSalvos.docs) setDocs(dadosSalvos.docs as {doc:string;sit:string;res:string}[])
-                    })
-                    setEtapa('plano')
-                  }
-                  fechar()
-                }, estilo: 'primario' },
+                { label: 'Continuar editando', acao: () => abrirExistente(), estilo: 'primario' },
                 { label: 'Criar novo', acao: () => fechar(), estilo: 'secundario' },
               ]
             )
@@ -291,6 +280,17 @@ function PlanoInner() {
     } finally {
       setSalvando(false)
     }
+  }
+
+  function abrirExistente() {
+    fechar()
+    if (!dadosExist) return
+    if (dadosExist.planoInfo) setPlanoInfo(dadosExist.planoInfo as typeof planoInfo)
+    if (dadosExist.docInfo) setInfoDoc(dadosExist.docInfo as typeof infoDoc)
+    if (dadosExist.endereco) setEnderecoDoc(dadosExist.endereco as string)
+    if (dadosExist.datas) setDatas(dadosExist.datas as {ini:string;fim:string}[])
+    if (dadosExist.docs) setDocs(dadosExist.docs as {doc:string;sit:string;res:string}[])
+    setTimeout(() => setEtapa('plano'), 100)
   }
 
   async function gerarPlano() {
