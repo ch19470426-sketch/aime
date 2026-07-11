@@ -168,6 +168,28 @@ function PlanoInner() {
         setAtivos(ativoData)
         setShowForm(ativoData.length === 0)
       }
+
+      // Verificar se já existe plano salvo
+      const nomeExist = chaveInspetor + '_plano_' + tipoServico + '_' + cnpjoucpf + '.html'
+      try {
+        const SUPA_SRV = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://asgorarunzhiojqioxzq.supabase.co'
+        const resArq = await fetch(
+          SUPA_SRV + '/storage/v1/object/documentos_inspetor/' + encodeURIComponent(nomeExist),
+          { headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY } }
+        )
+        if (resArq.ok) {
+          const htmlExist = await resArq.text()
+          solicita(
+            'Plano existente encontrado',
+            'Já existe um Plano de Trabalho salvo. Deseja abrir o existente ou criar um novo?',
+            [
+              { label: 'Abrir existente', acao: () => { setHtmlPlano(htmlExist); setEtapa('plano'); fechar() }, estilo: 'primario' },
+              { label: 'Criar novo', acao: () => fechar(), estilo: 'secundario' },
+            ]
+          )
+        }
+      } catch {}
+
     } catch {
       informa('Erro', 'Não foi possível carregar os dados.')
     } finally {
