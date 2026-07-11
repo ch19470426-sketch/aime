@@ -129,6 +129,9 @@ function PlanoInner() {
   const [ativos,     setAtivos]     = useState<Ativo[]>([])
   const [ativoAtual, setAtivoAtual] = useState<Ativo>({ ...ATIVO_VAZIO })
   const [htmlPlano,  setHtmlPlano]  = useState('')
+  const [datas,      setDatas]      = useState<{ini: string; fim: string}[]>([])
+  const [docs,       setDocs]       = useState<{doc: string; sit: string; res: string}[]>([])
+  const [planoInfo,  setPlanoInfo]  = useState<{titulo: string; parceiro: string; atividades: {horas:number;dias:number;descricao:string}[]; documentos: string[]}>({titulo:'',parceiro:'',atividades:[],documentos:[]})
 
   async function query(table: string, qparams: string) {
     const res = await fetch(`${SUPA_URL}/rest/v1/${table}?${qparams}`, {
@@ -241,30 +244,7 @@ function PlanoInner() {
     }
   }
 
-  function coletarEAtualizar() {
-    // Coletar valores dos inputs/selects do container e serializar como atributos
-    const container = document.getElementById('planoContainer')
-    if (!container) return
-    // Inputs de data
-    container.querySelectorAll('input[type="date"]').forEach((el) => {
-      const input = el as HTMLInputElement
-      if (input.value) input.setAttribute('value', input.value)
-    })
-    // Selects
-    container.querySelectorAll('select').forEach((el) => {
-      const sel = el as HTMLSelectElement
-      Array.from(sel.options).forEach((opt, i) => {
-        if (i === sel.selectedIndex) opt.setAttribute('selected', 'selected')
-        else opt.removeAttribute('selected')
-      })
-    })
-    // Inputs de texto
-    container.querySelectorAll('input[type="text"], input:not([type])').forEach((el) => {
-      const input = el as HTMLInputElement
-      input.setAttribute('value', input.value)
-    })
-    setHtmlPlano(container.innerHTML)
-  }
+
 
 
 
@@ -281,7 +261,15 @@ function PlanoInner() {
         body: JSON.stringify({ tipoServico, cpfInspetor, cnpjoucpf, ativos })
       })
       const data = await res.json()
-      if (data.html) { setHtmlPlano(data.html); setEtapa('plano') }
+      if (data.html) {
+        setHtmlPlano(data.html)
+        if (data.planoInfo) {
+          setPlanoInfo(data.planoInfo)
+          setDatas(data.planoInfo.atividades.map(() => ({ ini: '', fim: '' })))
+          setDocs(data.planoInfo.documentos.map((d: string) => ({ doc: d, sit: '', res: '' })))
+        }
+        setEtapa('plano')
+      }
       else informa('Erro', data.erro ?? 'Não foi possível gerar o plano.')
     } finally {
       setSalvando(false)
@@ -562,19 +550,83 @@ function PlanoInner() {
             </div>
           )}
 
-          {/* ── ETAPA 2: PREVIEW ── */}
+          {/* ── ETAPA 2: PLANO ── */}
           {etapa === 'plano' && (
             <div>
-              <div style={S.block}>
-                <div style={S.blockTitle}>Preview do Plano de Trabalho — preencha datas e documentos antes de salvar</div>
-                <div id="planoContainer" style={{ padding: '8px 10px', maxHeight: '700px', overflowY: 'auto', border: '1px solid #c3d4f0', borderRadius: '4px', background: '#fff' }}
-                  dangerouslySetInnerHTML={{ __html: htmlPlano }} />
+              {/* 1.1 Agenda */}
+              <div style={{ ...S.block, marginBottom: '8px' }}>
+                <div style={S.blockTitle}>1.1.- Plano de Trabalho — {planoInfo.parceiro}</div>
+                <div style={S.blockBody}>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '4px', marginBottom: '4px' }}>
+                    <span style={{ fontSize: '7pt', fontWeight: 700, color: '#1E3A8A' }}>Atividade</span>
+                    <span style={{ fontSize: '7pt', fontWeight: 700, color: '#1E3A8A' }}>Dt. Início</span>
+                    <span style={{ fontSize: '7pt', fontWeight: 700, color: '#1E3A8A' }}>Dt. Fim</span>
+                  </div>
+                  {planoInfo.atividades.map((a, i) => (
+                    <div key={i} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '4px', borderBottom: '1px solid #e2e8f0', paddingBottom: '4px' }}>
+                      <span style={{ fontSize: '7.5pt', paddingTop: '4px' }}>{a.descricao}</span>
+                      <input style={S.input} type="date" value={datas[i]?.ini ?? ''}
+                        onChange={e => {
+                          const v = e.target.value
+                          if (i > 0 && datas[i-1]?.ini && v < datas[i-1].ini) {
+                            informa('Data inválida', 'A data início não pode ser anterior à atividade anterior.')
+                            return
+                          }
+                          setDatas(prev => prev.map((d, j) => j === i ? { ...d, ini: v } : d))
+                        }} />
+                      <input style={S.input} type="date" value={datas[i]?.fim ?? ''}
+                        onChange={e => {
+                          const v = e.target.value
+                          if (datas[i]?.ini && v < datas[i].ini) {
+                            informa('Data inválida', 'A data fim não pode ser anterior à data início.')
+                            return
+                          }
+                          setDatas(prev => prev.map((d, j) => j === i ? { ...d, fim: v } : d))
+                        }} />
+                    </div>
+                  ))}
+                </div>
               </div>
-              <div style={{ ...S.footer, gridTemplateColumns: '1fr 1fr 1fr', marginTop: '8px' }}>
-                <button style={{ ...S.btn, ...S.btnSec }} onClick={() => { coletarEAtualizar(); setEtapa('ativo') }}>← Voltar</button>
-                <button style={{ ...S.btn, ...S.btnSec }} onClick={() => { coletarEAtualizar(); informa('Rascunho preservado', 'Dados preservados. Continue editando.') }}>💾 Rascunho</button>
+
+              {/* 1.2 Documentos */}
+              <div style={{ ...S.block, marginBottom: '8px' }}>
+                <div style={S.blockTitle}>1.2.- Relação de Documentos Solicitados</div>
+                <div style={S.blockBody}>
+                  <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr auto', gap: '4px', marginBottom: '4px' }}>
+                    <span style={{ fontSize: '7pt', fontWeight: 700, color: '#1E3A8A' }}>Documento</span>
+                    <span style={{ fontSize: '7pt', fontWeight: 700, color: '#1E3A8A' }}>Situação</span>
+                    <span style={{ fontSize: '7pt', fontWeight: 700, color: '#1E3A8A' }}>Resultado</span>
+                    <span></span>
+                  </div>
+                  {docs.map((d, i) => (
+                    <div key={i} style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr auto', gap: '4px', borderBottom: '1px solid #e2e8f0', paddingBottom: '4px', alignItems: 'center' }}>
+                      <input style={S.input} value={d.doc}
+                        onChange={e => setDocs(prev => prev.map((x, j) => j === i ? { ...x, doc: e.target.value } : x))} />
+                      <select style={S.input} value={d.sit}
+                        onChange={e => setDocs(prev => prev.map((x, j) => j === i ? { ...x, sit: e.target.value } : x))}>
+                        <option value="">—</option>
+                        <option>Entregue</option><option>Pendente</option><option>Desnecessário</option>
+                      </select>
+                      <select style={S.input} value={d.res}
+                        onChange={e => setDocs(prev => prev.map((x, j) => j === i ? { ...x, res: e.target.value } : x))}>
+                        <option value="">—</option>
+                        <option>Conforme</option><option>Não conforme</option><option>Não se aplica</option>
+                      </select>
+                      <button onClick={() => setDocs(prev => prev.filter((_, j) => j !== i))}
+                        style={{ background: '#DC2626', color: '#fff', border: 'none', borderRadius: '4px', padding: '2px 8px', cursor: 'pointer', fontSize: '8pt' }}>✕</button>
+                    </div>
+                  ))}
+                  <button onClick={() => setDocs(prev => [...prev, { doc: '', sit: '', res: '' }])}
+                    style={{ ...S.btn, ...S.btnSec, fontSize: '7.5pt', padding: '4px 12px', borderRadius: '4px', marginTop: '4px', width: 'fit-content' }}>
+                    + Adicionar documento
+                  </button>
+                </div>
+              </div>
+
+              <div style={{ ...S.footer, gridTemplateColumns: '1fr 1fr', marginTop: '8px' }}>
+                <button style={{ ...S.btn, ...S.btnSec }} onClick={() => setEtapa('ativo')}>← Voltar</button>
                 <button style={{ ...S.btn, ...S.btnPri, opacity: salvando ? 0.6 : 1 }}
-                  onClick={() => { coletarEAtualizar(); salvarPlano() }} disabled={salvando}>
+                  onClick={salvarPlano} disabled={salvando}>
                   {salvando ? 'Salvando...' : '✅ Salvar plano'}
                 </button>
               </div>
