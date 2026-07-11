@@ -296,7 +296,6 @@ function PlanoInner() {
         body: JSON.stringify({ nomeArquivo: nomeArq, pasta: 'documentos_inspetor', payload: htmlData.html, contentType: 'application/json' })
       })
       const data = await res.json()
-      console.log('SALVAR resultado:', JSON.stringify(data))
       if (data.sucesso) {
         agradece('Plano salvo!', 'Salvo em Documentos do Inspetor.', () => window.location.href = '/dashboard')
       } else {
