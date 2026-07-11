@@ -322,7 +322,7 @@ function PlanoInner() {
                 <div style={S.blockTitle}>Ativos cadastrados ({ativos.length})</div>
                 <div style={S.blockBody}>
                   {ativos.map((a, i) => (
-                    <div key={i} style={{ fontSize: '7.5pt', padding: '3px 0', borderBottom: '1px solid #f1f5f9', color: '#374151', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div key={i} style={{ fontSize: '7.5pt', padding: '3px 0', borderBottom: '1px solid #f1f5f9', color: '#374151' }}>
                       <b>{i+1}. {a.tipo_ativo}</b>
                       {needsTag ? ` — TAG: ${a.tag_ativo_nr_serie}` : ''}
                       {' — '}{a.nome_responsavel} ({a.funcao_responsavel})
