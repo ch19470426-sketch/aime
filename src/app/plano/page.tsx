@@ -190,14 +190,6 @@ function PlanoInner() {
               }
             }
             setDadosExist(dadosSalvos)
-            solicita(
-              'Plano existente encontrado',
-              'Já existe um Plano de Trabalho salvo. Deseja continuar editando ou criar um novo?',
-              [
-                { label: 'Continuar editando', acao: () => abrirExistente(), estilo: 'primario' },
-                { label: 'Criar novo', acao: () => fechar(), estilo: 'secundario' },
-              ]
-            )
           }
         }
       } catch {}
@@ -280,17 +272,6 @@ function PlanoInner() {
     } finally {
       setSalvando(false)
     }
-  }
-
-  function abrirExistente() {
-    if (!dadosExist) { fechar(); return }
-    if (dadosExist.planoInfo) setPlanoInfo(dadosExist.planoInfo as typeof planoInfo)
-    if (dadosExist.docInfo) setInfoDoc(dadosExist.docInfo as typeof infoDoc)
-    if (dadosExist.endereco) setEnderecoDoc(dadosExist.endereco as string)
-    if (dadosExist.datas) setDatas(dadosExist.datas as {ini:string;fim:string}[])
-    if (dadosExist.docs) setDocs(dadosExist.docs as {doc:string;sit:string;res:string}[])
-    setEtapa('plano')
-    fechar()
   }
 
   async function gerarPlano() {
@@ -595,6 +576,32 @@ function PlanoInner() {
                         {salvando ? 'Salvando...' : 'Cadastrar + ativo'}
                       </button>
                     </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Plano existente */}
+              {dadosExist && (
+                <div style={{ background: '#EFF6FF', border: '1px solid #3B82F6', borderRadius: '6px', padding: '10px 14px', marginBottom: '8px' }}>
+                  <p style={{ fontSize: '8pt', fontWeight: 700, color: '#1E3A8A', marginBottom: '6px' }}>📄 Plano de Trabalho existente encontrado</p>
+                  <p style={{ fontSize: '7.5pt', color: '#374151', marginBottom: '8px' }}>Deseja continuar editando o plano salvo ou criar um novo?</p>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                    <button style={{ ...S.btn, ...S.btnSec }}
+                      onClick={() => setDadosExist(null)}>
+                      Criar novo
+                    </button>
+                    <button style={{ ...S.btn, ...S.btnPri }}
+                      onClick={() => {
+                        if (dadosExist.planoInfo) setPlanoInfo(dadosExist.planoInfo as typeof planoInfo)
+                        if (dadosExist.docInfo) setInfoDoc(dadosExist.docInfo as typeof infoDoc)
+                        if (dadosExist.endereco) setEnderecoDoc(dadosExist.endereco as string)
+                        if (dadosExist.datas) setDatas(dadosExist.datas as {ini:string;fim:string}[])
+                        if (dadosExist.docs) setDocs(dadosExist.docs as {doc:string;sit:string;res:string}[])
+                        setDadosExist(null)
+                        setEtapa('plano')
+                      }}>
+                      Continuar editando →
+                    </button>
                   </div>
                 </div>
               )}
