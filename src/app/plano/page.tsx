@@ -123,7 +123,7 @@ function PlanoInner() {
   const needsTag   = isElevador || isNR12 || isNR13
 
   const [etapa,      setEtapa]      = useState<'ativo' | 'plano'>('ativo')
-  const [showForm,   setShowForm]   = useState(true)
+  const [showForm,   setShowForm]   = useState(false)
   const [carregando, setCarregando] = useState(true)
   const [salvando,   setSalvando]   = useState(false)
   const [est,        setEst]        = useState<{razao_social_nome:string}|null>(null)
@@ -166,7 +166,7 @@ function PlanoInner() {
         `cpf_inspetor=eq.${cpfInspetor}&cnpjoucpf=eq.${cnpjoucpf}&tipo_servico=eq.${encodeURIComponent(tsVistoria)}&select=*&order=data_cadastro`)
       if (Array.isArray(ativoData)) {
         setAtivos(ativoData)
-        setShowForm(true)
+        setShowForm(ativoData.length === 0)
       }
     } catch {
       informa('Erro', 'Não foi possível carregar os dados.')
@@ -197,7 +197,7 @@ function PlanoInner() {
     return null
   }
 
-  async function salvarAtivo(manterAberto = false) {
+  async function salvarAtivo() {
     const erro = validarAtivo()
     if (erro) { informa('Atenção', erro); return }
     setSalvando(true)
@@ -238,84 +238,13 @@ function PlanoInner() {
         const novos = [...ativos, { ...ativoAtual, tag_ativo_nr_serie: tag }]
         setAtivos(novos)
         setAtivoAtual({ ...ATIVO_VAZIO })
-        if (!manterAberto) setShowForm(false)
+        setShowForm(false)
         informa('Ativo cadastrado', `${ativoAtual.tipo_ativo} cadastrado com sucesso.`)
       } else {
         informa('Erro', 'Não foi possível cadastrar o ativo.')
       }
     } finally {
       setSalvando(false)
-    }
-  }
-
-  async function salvarEGerar() {
-    const erro = validarAtivo()
-    if (erro) { informa('Atenção', erro); return }
-    setSalvando(true)
-    try {
-      const tag = needsTag ? ativoAtual.tag_ativo_nr_serie : '1'
-      const payload = {
-        cpf_inspetor: cpfInspetor, cnpjoucpf, tipo_servico: tsVistoria,
-        data_cadastro: new Date().toISOString(),
-        tipo_ativo: ativoAtual.tipo_ativo, tag_ativo_nr_serie: tag,
-        cpf_responsavel: ativoAtual.cpf_responsavel || null,
-        nome_responsavel: ativoAtual.nome_responsavel,
-        funcao_responsavel: ativoAtual.funcao_responsavel,
-        whatsapp_responsavel: ativoAtual.whatsapp_responsavel.replace(/\D/g, '') || null,
-        email_responsavel: ativoAtual.email_responsavel || null,
-        finalidade_vistoria: ativoAtual.finalidade_vistoria,
-        data_inicio_operacao: ativoAtual.data_inicio_operacao || null,
-        uso_ativo: ativoAtual.uso_ativo,
-        numero_pavimentos: ativoAtual.numero_pavimentos ? parseInt(ativoAtual.numero_pavimentos) : null,
-        numero_unidades_salas: ativoAtual.numero_unidades_salas ? parseInt(ativoAtual.numero_unidades_salas) : null,
-        area_terreno: ativoAtual.area_terreno ? parseFloat(ativoAtual.area_terreno) : null,
-        area_construida: ativoAtual.area_construida ? parseFloat(ativoAtual.area_construida) : null,
-        numero_fachadas: ativoAtual.numero_fachadas ? parseInt(ativoAtual.numero_fachadas) : null,
-        perimetro_fachadas: ativoAtual.perimetro_fachadas ? parseInt(ativoAtual.perimetro_fachadas) : null,
-        fabricante_marca: ativoAtual.fabricante_marca || null,
-        subtipo: ativoAtual.subtipo || null,
-        tensao_pressao_kv_kpa: ativoAtual.tensao_pressao_kv_kpa ? parseFloat(ativoAtual.tensao_pressao_kv_kpa) : null,
-        capacidade_potencia: ativoAtual.capacidade_potencia ? parseFloat(ativoAtual.capacidade_potencia) : null,
-        fluido_classe_fluido: ativoAtual.fluido_classe_fluido || null,
-        volume_interno_m3: ativoAtual.volume_interno_m3 ? parseFloat(ativoAtual.volume_interno_m3) : null,
-      }
-      const res = await fetch(`${SUPA_URL}/rest/v1/ativos_a_vistoriar`, {
-        method: 'POST',
-        headers: { 'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}`, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
-        body: JSON.stringify(payload)
-      })
-      if (res.ok) {
-        const novos = [...ativos, { ...ativoAtual, tag_ativo_nr_serie: tag }]
-        setAtivos(novos)
-        setAtivoAtual({ ...ATIVO_VAZIO })
-        await gerarPlanoComAtivos(novos)
-      } else {
-        informa('Erro', 'Não foi possível cadastrar o ativo.')
-      }
-    } finally {
-      setSalvando(false)
-    }
-  }
-
-  async function gerarPlanoComAtivos(lista: Ativo[]) {
-    const res = await fetch('/api/gerar-plano', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ tipoServico, cpfInspetor, cnpjoucpf, ativos: lista })
-    })
-    const data = await res.json()
-    if (data.html) {
-      setHtmlPlano(data.html)
-      if (data.planoInfo) {
-        setPlanoInfo(data.planoInfo)
-        setDatas(data.planoInfo.atividades.map(() => ({ ini: '', fim: '' })))
-        setDocs(data.planoInfo.documentos.map((d: string) => ({ doc: d, sit: '', res: '' })))
-      }
-      if (data.docInfo) setInfoDoc(data.docInfo)
-      if (data.endereco) setEnderecoDoc(data.endereco)
-      setEtapa('plano')
-    } else {
-      informa('Erro', data.erro ?? 'Não foi possível gerar o plano.')
     }
   }
 
@@ -599,26 +528,35 @@ function PlanoInner() {
                       </div>
                     )}
 
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px', marginTop: '8px' }}>
+                    <div style={{ ...S.footer, marginTop: '8px' }}>
                       <button style={{ ...S.btn, ...S.btnSec }}
-                        onClick={() => window.location.href = '/dashboard'}>
-                        Retornar
-                      </button>
-                      <button style={{ ...S.btn, ...S.btnSec, opacity: salvando ? 0.6 : 1 }}
-                        onClick={() => { if (!salvando) { salvarAtivo(true); } }}
-                        disabled={salvando}>
-                        {salvando ? 'Salvando...' : 'Cadastrar + ativo'}
+                        onClick={() => { setShowForm(false); setAtivoAtual({ ...ATIVO_VAZIO }) }}>
+                        Cancelar
                       </button>
                       <button style={{ ...S.btn, ...S.btnPri, opacity: salvando ? 0.6 : 1 }}
-                        onClick={salvarEGerar} disabled={salvando}>
-                        {salvando ? 'Salvando...' : 'Salvar ativo'}
+                        onClick={salvarAtivo} disabled={salvando}>
+                        {salvando ? 'Salvando...' : 'Cadastrar + ativo'}
                       </button>
                     </div>
                   </div>
                 </div>
               )}
 
-
+              {/* Botões principais */}
+              <div style={{ ...S.footer, gridTemplateColumns: '1fr 1fr 1fr' }}>
+                <button style={{ ...S.btn, background: '#DC2626', color: '#fff', border: 'none' }}
+                  onClick={() => window.location.href = '/dashboard'}>
+                  Cancelar
+                </button>
+                <button style={{ ...S.btn, ...S.btnSec }}
+                  onClick={() => { setShowForm(true); setAtivoAtual({ ...ATIVO_VAZIO }) }}>
+                  Cadastrar + ativo
+                </button>
+                <button style={{ ...S.btn, ...S.btnPri, opacity: (ativos.length === 0 || salvando) ? 0.5 : 1 }}
+                  onClick={gerarPlano} disabled={ativos.length === 0 || salvando}>
+                  {ativos.length === 0 ? 'Cadastre um ativo' : `Gerar plano (${ativos.length}) →`}
+                </button>
+              </div>
             </div>
           )}
 
@@ -643,37 +581,6 @@ function PlanoInner() {
                     <span><b>CNPJ/CPF:</b> {fmtCNPJ(cnpjoucpf)}</span>
                   </div>
                   {enderecoDoc && <div style={{ marginBottom: '8px' }}><b>Endereço:</b> {enderecoDoc}</div>}
-
-                  {/* Ativos a Vistoriar */}
-                  <div style={{ fontWeight: 700, color: '#1E3A8A', borderBottom: '1px solid #1E3A8A', marginBottom: '4px', marginTop: '10px' }}>
-                    Ativos a Vistoriar
-                  </div>
-                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '8pt', marginBottom: '10px' }}>
-                    <thead>
-                      <tr style={{ background: '#1E3A8A', color: '#fff' }}>
-                        <th style={{ padding: '3px 6px' }}>#</th>
-                        <th style={{ padding: '3px 6px', textAlign: 'left' }}>Tipo</th>
-                        <th style={{ padding: '3px 6px', textAlign: 'left' }}>TAG/Série</th>
-                        <th style={{ padding: '3px 6px', textAlign: 'left' }}>Responsável</th>
-                        <th style={{ padding: '3px 6px', textAlign: 'left' }}>Função</th>
-                        <th style={{ padding: '3px 6px', textAlign: 'left' }}>WhatsApp</th>
-                        <th style={{ padding: '3px 6px', textAlign: 'left' }}>Uso</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {ativos.map((a, i) => (
-                        <tr key={i} style={{ background: i%2===0?'#f8fafc':'#fff', borderBottom: '1px solid #e2e8f0' }}>
-                          <td style={{ padding: '3px 6px', textAlign: 'center' }}>{i+1}</td>
-                          <td style={{ padding: '3px 6px' }}>{a.tipo_ativo}</td>
-                          <td style={{ padding: '3px 6px' }}>{a.tag_ativo_nr_serie}</td>
-                          <td style={{ padding: '3px 6px' }}>{a.nome_responsavel}</td>
-                          <td style={{ padding: '3px 6px' }}>{a.funcao_responsavel}</td>
-                          <td style={{ padding: '3px 6px' }}>{fmtWpp(a.whatsapp_responsavel ?? '')}</td>
-                          <td style={{ padding: '3px 6px' }}>{a.uso_ativo}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
 
                   {/* 1.1 Agenda */}
                   <div style={{ fontWeight: 700, color: '#1E3A8A', borderBottom: '1px solid #1E3A8A', marginBottom: '4px', marginTop: '10px' }}>
