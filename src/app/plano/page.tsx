@@ -197,7 +197,7 @@ function PlanoInner() {
     return null
   }
 
-  async function salvarAtivo() {
+  async function salvarAtivo(manterAberto = false) {
     const erro = validarAtivo()
     if (erro) { informa('Atenção', erro); return }
     setSalvando(true)
@@ -238,8 +238,8 @@ function PlanoInner() {
         const novos = [...ativos, { ...ativoAtual, tag_ativo_nr_serie: tag }]
         setAtivos(novos)
         setAtivoAtual({ ...ATIVO_VAZIO })
-        setShowForm(false)
-        informa('Ativo cadastrado', `${ativoAtual.tipo_ativo} cadastrado com sucesso. Cadastre mais ativos ou clique em Gerar plano.`)
+        if (!manterAberto) setShowForm(false)
+        informa('Ativo cadastrado', `${ativoAtual.tipo_ativo} cadastrado com sucesso.`)
       } else {
         informa('Erro', 'Não foi possível cadastrar o ativo.')
       }
@@ -605,7 +605,7 @@ function PlanoInner() {
                         Retornar
                       </button>
                       <button style={{ ...S.btn, ...S.btnSec, opacity: salvando ? 0.6 : 1 }}
-                        onClick={() => { if (!salvando) { salvarAtivo(); } }}
+                        onClick={() => { if (!salvando) { salvarAtivo(true); } }}
                         disabled={salvando}>
                         {salvando ? 'Salvando...' : 'Cadastrar + ativo'}
                       </button>
