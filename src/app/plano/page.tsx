@@ -125,6 +125,7 @@ function PlanoInner() {
   const needsTag   = isElevador || isNR12 || isNR13
 
   const [etapa,      setEtapa]      = useState<'ativo' | 'plano'>('ativo')
+  const [showForm,   setShowForm]   = useState(false)
   const [carregando, setCarregando] = useState(true)
   const [salvando,   setSalvando]   = useState(false)
   const [ativos,     setAtivos]     = useState<Ativo[]>([])
@@ -171,7 +172,10 @@ function PlanoInner() {
       // Buscar ativos já cadastrados
       const ativoData = await query('ativos_a_vistoriar',
         `cpf_inspetor=eq.${cpfInspetor}&cnpjoucpf=eq.${cnpjoucpf}&tipo_servico=eq.${encodeURIComponent(tsVistoria)}&select=*&order=data_cadastro`)
-      if (Array.isArray(ativoData)) setAtivos(ativoData)
+      if (Array.isArray(ativoData)) {
+        setAtivos(ativoData)
+        setShowForm(ativoData.length === 0)
+      }
 
     } catch(e) {
       informa('Erro', 'Não foi possível carregar os dados.')
@@ -243,6 +247,7 @@ function PlanoInner() {
         const novos = [...ativos, { ...ativoAtual, tag_ativo_nr_serie: tag }]
         setAtivos(novos)
         setAtivoAtual({ ...ATIVO_VAZIO })
+        setShowForm(false)
         informa('Ativo cadastrado', `${ativoAtual.tipo_ativo} cadastrado com sucesso. Deseja cadastrar outro ativo?`)
       } else {
         informa('Erro', 'Não foi possível cadastrar o ativo.')
@@ -320,12 +325,31 @@ function PlanoInner() {
             {ativos.length > 0 && (
               <div style={S.block}>
                 <div style={S.blockTitle}>Ativos cadastrados ({ativos.length})</div>
-                <div style={S.blockBody}>
+                <div style={{ padding: '4px 10px' }}>
                   {ativos.map((a, i) => (
-                    <div key={i} style={{ fontSize: '7.5pt', padding: '3px 0', borderBottom: '1px solid #f1f5f9', color: '#374151' }}>
-                      <b>{i+1}. {a.tipo_ativo}</b>
-                      {needsTag ? ` — TAG: ${a.tag_ativo_nr_serie}` : ''}
-                      {a.finalidade_vistoria ? ` — ${a.finalidade_vistoria}` : ''}
+                    <div key={i} style={{ borderBottom: '1px solid #e2e8f0', padding: '5px 0' }}>
+                      <div style={{ ...S.row, ...S.c3 }}>
+                        <Field label="Tipo de ativo">
+                          <input style={S.inputRO} value={a.tipo_ativo ?? ''} readOnly />
+                        </Field>
+                        <Field label="TAG / Nº Série">
+                          <input style={S.inputRO} value={a.tag_ativo_nr_serie ?? ''} readOnly />
+                        </Field>
+                        <Field label="Finalidade">
+                          <input style={S.inputRO} value={a.finalidade_vistoria ?? ''} readOnly />
+                        </Field>
+                      </div>
+                      <div style={{ ...S.row, ...S.c3 }}>
+                        <Field label="Responsável">
+                          <input style={S.inputRO} value={a.nome_responsavel ?? ''} readOnly />
+                        </Field>
+                        <Field label="Função">
+                          <input style={S.inputRO} value={a.funcao_responsavel ?? ''} readOnly />
+                        </Field>
+                        <Field label="WhatsApp">
+                          <input style={S.inputRO} value={fmtWpp(a.whatsapp_responsavel ?? '')} readOnly />
+                        </Field>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -333,7 +357,7 @@ function PlanoInner() {
             )}
 
             {/* Formulário novo ativo */}
-            <div style={S.block}>
+            {showForm && <div style={S.block}>
               <div style={S.blockTitle}>Dados do ativo a vistoriar</div>
               <div style={S.blockBody}>
 
@@ -507,18 +531,31 @@ function PlanoInner() {
                   </div>
                 )}
 
-                <div style={{ ...S.footer, gridTemplateColumns: '1fr 1fr 1fr', marginTop: '8px' }}>
-                  <button style={{ ...S.btn, background: '#DC2626', color: '#fff', border: 'none' }}
-                    onClick={() => window.location.href = '/dashboard'}>Cancelar</button>
-                  <button style={{ ...S.btn, ...S.btnSec, opacity: salvando ? 0.6 : 1 }}
+                <div style={{ ...S.footer, gridTemplateColumns: '1fr 1fr', marginTop: '8px' }}>
+                  <button style={{ ...S.btn, ...S.btnSec }}
+                    onClick={() => { setShowForm(false); setAtivoAtual({ ...ATIVO_VAZIO }) }}>
+                    Cancelar
+                  </button>
+                  <button style={{ ...S.btn, ...S.btnPri, opacity: salvando ? 0.6 : 1 }}
                     onClick={salvarAtivo} disabled={salvando}>
                     {salvando ? 'Salvando...' : 'Cadastrar + ativo'}
                   </button>
-                  <button style={{ ...S.btn, ...S.btnPri }}
-                    onClick={gerarPlano} disabled={ativos.length === 0 || salvando}>
-                    {ativos.length === 0 ? 'Cadastre um ativo' : `Gerar plano (${ativos.length} ativo${ativos.length > 1 ? 's' : ''}) →`}
-                  </button>
                 </div>
+              </div>}
+
+            {/* Botões principais */}
+            <div style={{ ...S.footer, gridTemplateColumns: '1fr 1fr 1fr' }}>
+              <button style={{ ...S.btn, background: '#DC2626', color: '#fff', border: 'none' }}
+                onClick={() => window.location.href = '/dashboard'}>Cancelar</button>
+              <button style={{ ...S.btn, ...S.btnSec }}
+                onClick={() => { setShowForm(true); setAtivoAtual({ ...ATIVO_VAZIO }) }}>
+                Cadastrar + ativo
+              </button>
+              <button style={{ ...S.btn, ...S.btnPri }}
+                onClick={gerarPlano} disabled={ativos.length === 0 || salvando}>
+                {ativos.length === 0 ? 'Cadastre um ativo' : `Gerar plano (${ativos.length}) →`}
+              </button>
+            </div>
               </div>
             </div>
           </>)}
