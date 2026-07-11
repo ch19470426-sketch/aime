@@ -14,6 +14,13 @@ function fmtCNPJ(v: string): string {
   if (v.length === 11) return v.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4')
   return v
 }
+function fmtWpp(v: string): string {
+  const d = String(v).replace(/\D/g,'')
+  if (d.length === 11) return d.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3')
+  if (d.length === 10) return d.replace(/(\d{2})(\d{4})(\d{4})/, '($1) $2-$3')
+  if (d.length === 9)  return d.replace(/(\d{1})(\d{4})(\d{4})/, '$1 $2-$3')
+  return v
+}
 
 const SUPA_URL = 'https://asgorarunzhiojqioxzq.supabase.co'
 const SUPA_KEY = 'sb_publishable_dH85HYKGxv3X0te627VfOw_OGaPoNMF'
@@ -319,9 +326,7 @@ function PlanoInner() {
                       <b>{i+1}. {a.tipo_ativo}</b>
                       {needsTag ? ` — TAG: ${a.tag_ativo_nr_serie}` : ''}
                       {' — '}{a.nome_responsavel} ({a.funcao_responsavel})
-                      {a.whatsapp_responsavel ? ` — ${
-                        String(a.whatsapp_responsavel).replace(/\D/g,'').replace(/(\d{2})(\d{5})(\d{4})/,'($1) $2-$3')
-                      }` : ''}
+                      {a.whatsapp_responsavel ? ` — ${fmtWpp(a.whatsapp_responsavel)}` : ''}
                     </div>
                   ))}
                 </div>
