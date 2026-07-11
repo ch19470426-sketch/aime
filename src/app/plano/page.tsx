@@ -264,7 +264,7 @@ function PlanoInner() {
   async function salvarPlano() {
     setSalvando(true)
     try {
-      const nomeArq = `${chaveInspetor}_plano_${tipoServico}_${cnpjoucpf}.html`
+      const nomeArq = chaveInspetor + '_plano_' + tipoServico + '_' + cnpjoucpf + '.html'
       const res = await fetch('/api/salvar-vistoria', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -272,7 +272,7 @@ function PlanoInner() {
       })
       const data = await res.json()
       if (data.sucesso) {
-        agradece('Plano salvo!', `Salvo como ${nomeArq}.`, () => window.location.href = '/dashboard')
+        agradece('Plano salvo!', 'Plano de Trabalho salvo em Documentos do Inspetor.', () => window.location.href = '/dashboard')
       } else {
         informa('Erro', data.erro ?? 'Não foi possível salvar.')
       }
@@ -543,6 +543,9 @@ function PlanoInner() {
                 <div style={{ padding: '8px 10px' }}>
                   <iframe srcDoc={htmlPlano} style={{ width: '100%', height: '700px', border: '1px solid #c3d4f0', borderRadius: '4px' }} title="Plano" />
                 </div>
+              </div>
+              <div style={{ background: '#EFF6FF', border: '1px solid #3B82F6', borderRadius: '6px', padding: '8px 12px', fontSize: '7.5pt', color: '#1E3A8A' }}>
+                ℹ️ Revise o documento. Para editar datas ou documentos, salve e edite após download no módulo de Homologação.
               </div>
               <div style={{ ...S.footer, marginTop: '8px' }}>
                 <button style={{ ...S.btn, ...S.btnSec }} onClick={() => setEtapa('ativo')}>← Voltar</button>
