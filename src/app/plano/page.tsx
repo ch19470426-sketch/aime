@@ -282,6 +282,7 @@ function PlanoInner() {
     setSalvando(true)
     try {
       // Gerar HTML final com datas e docs preenchidos
+      console.log('SALVAR datas:', JSON.stringify(datas), 'docs:', docs.length)
       const resHtml = await fetch('/api/gerar-plano', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
