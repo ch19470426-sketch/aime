@@ -288,7 +288,6 @@ function PlanoInner() {
         body: JSON.stringify({ tipoServico, cpfInspetor, cnpjoucpf, ativos, datas, docs })
       })
       const htmlData = await resHtml.json()
-      console.log('HTML gerado, tem 2026:', htmlData.html?.includes('2026'))
       if (!htmlData.html) { informa('Erro', 'Não foi possível gerar o plano.'); return }
       const nomeArq = chaveInspetor + '_plano_' + tipoServico + '_' + cnpjoucpf + '.html'
       const res = await fetch('/api/salvar-vistoria', {
@@ -297,6 +296,7 @@ function PlanoInner() {
         body: JSON.stringify({ nomeArquivo: nomeArq, pasta: 'documentos_inspetor', payload: htmlData.html, contentType: 'application/json' })
       })
       const data = await res.json()
+      console.log('SALVAR resultado:', JSON.stringify(data))
       if (data.sucesso) {
         agradece('Plano salvo!', 'Salvo em Documentos do Inspetor.', () => window.location.href = '/dashboard')
       } else {
