@@ -199,6 +199,7 @@ function PlanoInner() {
                   fechar()
                   if (raw) {
                     const d = JSON.parse(raw)
+                    console.log('DADOS:', Object.keys(d), 'planoInfo titulo:', d.planoInfo?.titulo, 'datas:', d.datas?.length, 'docs:', d.docs?.length)
                     if (d.planoInfo) setPlanoInfo(d.planoInfo)
                     if (d.docInfo) setInfoDoc(d.docInfo)
                     if (d.endereco) setEnderecoDoc(d.endereco)
