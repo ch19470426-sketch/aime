@@ -241,6 +241,53 @@ function PlanoInner() {
     }
   }
 
+  function capturarHtml(): string {
+    try {
+      const iframe = document.getElementById('iframePlano') as HTMLIFrameElement
+      if (iframe?.contentDocument) return iframe.contentDocument.documentElement.outerHTML
+    } catch {}
+    return htmlPlano
+  }
+
+  function capturarEVoltar(destino: 'ativo') {
+    const html = capturarHtml()
+    setHtmlPlano(html)
+    setEtapa(destino)
+  }
+
+  function capturarERascunho() {
+    const html = capturarHtml()
+    setHtmlPlano(html)
+    informa('Rascunho preservado', 'Os dados foram preservados. Você pode continuar editando.')
+  }
+
+  function capturarESalvar() {
+    const html = capturarHtml()
+    setHtmlPlano(html)
+    // salvarPlano usa htmlPlano mas como setState é async, passar direto
+    salvarPlanoComHtml(html)
+  }
+
+  async function salvarPlanoComHtml(html: string) {
+    setSalvando(true)
+    try {
+      const nomeArq = chaveInspetor + '_plano_' + tipoServico + '_' + cnpjoucpf + '.html'
+      const res = await fetch('/api/salvar-vistoria', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nomeArquivo: nomeArq, pasta: 'documentos_inspetor', payload: html, contentType: 'application/json' })
+      })
+      const data = await res.json()
+      if (data.sucesso) {
+        agradece('Plano salvo!', 'Salvo em Documentos do Inspetor.', () => window.location.href = '/dashboard')
+      } else {
+        informa('Erro', data.erro ?? 'Não foi possível salvar.')
+      }
+    } finally {
+      setSalvando(false)
+    }
+  }
+
   async function gerarPlano() {
     setSalvando(true)
     solicita('Atenção — Plano de Trabalho',
@@ -546,25 +593,26 @@ function PlanoInner() {
                     srcDoc={htmlPlano}
                     style={{ width: '100%', height: '700px', border: '1px solid #c3d4f0', borderRadius: '4px' }}
                     title="Plano"
+                    onLoad={e => {
+                      const iframe = e.currentTarget
+                      // Injetar listener postMessage no iframe
+                      try {
+                        const doc = iframe.contentDocument
+                        if (doc) {
+                          const s = doc.createElement('script')
+                          s.textContent = 'window.addEventListener("message",function(e){if(e.data==="getHtml")e.source.postMessage({type:"html",html:document.documentElement.outerHTML},e.origin);})'
+                          doc.head.appendChild(s)
+                        }
+                      } catch {}
+                    }}
                   />
                 </div>
               </div>
               <div style={{ ...S.footer, gridTemplateColumns: '1fr 1fr 1fr', marginTop: '8px' }}>
-                <button style={{ ...S.btn, ...S.btnSec }} onClick={() => {
-                  const iframe = document.getElementById('iframePlano') as HTMLIFrameElement
-                  if (iframe?.contentDocument) setHtmlPlano(iframe.contentDocument.documentElement.outerHTML)
-                  setEtapa('ativo')
-                }}>← Voltar</button>
-                <button style={{ ...S.btn, ...S.btnSec, opacity: salvando ? 0.6 : 1 }} onClick={() => {
-                  const iframe = document.getElementById('iframePlano') as HTMLIFrameElement
-                  if (iframe?.contentDocument) setHtmlPlano(iframe.contentDocument.documentElement.outerHTML)
-                  informa('Rascunho salvo', 'Os dados do plano foram preservados. Continue editando ou salve o documento.')
-                }}>💾 Salvar rascunho</button>
-                <button style={{ ...S.btn, ...S.btnPri, opacity: salvando ? 0.6 : 1 }} onClick={() => {
-                  const iframe = document.getElementById('iframePlano') as HTMLIFrameElement
-                  if (iframe?.contentDocument) setHtmlPlano(iframe.contentDocument.documentElement.outerHTML)
-                  salvarPlano()
-                }} disabled={salvando}>
+                <button style={{ ...S.btn, ...S.btnSec }} onClick={() => capturarEVoltar('ativo')}>← Voltar</button>
+                <button style={{ ...S.btn, ...S.btnSec }} onClick={() => capturarERascunho()}>💾 Rascunho</button>
+                <button style={{ ...S.btn, ...S.btnPri, opacity: salvando ? 0.6 : 1 }}
+                  onClick={() => capturarESalvar()} disabled={salvando}>
                   {salvando ? 'Salvando...' : '✅ Salvar plano'}
                 </button>
               </div>
