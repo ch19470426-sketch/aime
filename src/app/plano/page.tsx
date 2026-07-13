@@ -365,6 +365,12 @@ function PlanoInner() {
                             <input style={S.inputRO} value={fmtWpp(a.whatsapp_responsavel ?? '')} readOnly />
                           </Field>
                         </div>
+                        <div style={{ textAlign: 'right', marginTop: '4px' }}>
+                          <button onClick={() => excluirAtivo(i)}
+                            style={{ background: '#DC2626', color: '#fff', border: 'none', borderRadius: '4px', padding: '3px 10px', cursor: 'pointer', fontSize: '7.5pt' }}>
+                            Excluir ativo
+                          </button>
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -633,9 +639,34 @@ function PlanoInner() {
                   </div>
                   {enderecoDoc && <div style={{ marginBottom: '8px' }}><b>Endereço:</b> {enderecoDoc}</div>}
 
-                  {/* 1.1 Agenda */}
+                  {/* 1.1 Ativos a Vistoriar */}
                   <div style={{ fontWeight: 700, color: '#1E3A8A', borderBottom: '1px solid #1E3A8A', marginBottom: '4px', marginTop: '10px' }}>
-                    1.1.- Plano de Trabalho — {planoInfo.parceiro}
+                    1.1.- Ativos a Vistoriar
+                  </div>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '8pt', marginBottom: '10px' }}>
+                    <thead>
+                      <tr style={{ background: '#1E3A8A', color: '#fff' }}>
+                        <th style={{ padding: '3px 6px', textAlign: 'left' }}>Tipo de ativo</th>
+                        <th style={{ padding: '3px 6px', textAlign: 'left' }}>TAG / Nº Série</th>
+                        <th style={{ padding: '3px 6px', textAlign: 'left' }}>Finalidade</th>
+                        <th style={{ padding: '3px 6px', textAlign: 'left' }}>Responsável</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {ativos.map((a, i) => (
+                        <tr key={i} style={{ background: i%2===0?'#f8fafc':'#fff', borderBottom: '1px solid #e2e8f0' }}>
+                          <td style={{ padding: '3px 6px' }}>{a.tipo_ativo}</td>
+                          <td style={{ padding: '3px 6px' }}>{a.tag_ativo_nr_serie}</td>
+                          <td style={{ padding: '3px 6px' }}>{a.finalidade_vistoria}</td>
+                          <td style={{ padding: '3px 6px' }}>{a.nome_responsavel}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+
+                  {/* 1.2 Agenda */}
+                  <div style={{ fontWeight: 700, color: '#1E3A8A', borderBottom: '1px solid #1E3A8A', marginBottom: '4px', marginTop: '10px' }}>
+                    1.2.- Plano de Trabalho — {planoInfo.parceiro}
                   </div>
                   <div style={{ background: '#FFF9E6', border: '1px solid #F59E0B', borderRadius: '4px', padding: '4px 8px', marginBottom: '6px', fontSize: '7.5pt', color: '#92400E' }}>
                     ⚠️ Preencha as datas de início e fim de cada atividade.
@@ -681,9 +712,9 @@ function PlanoInner() {
                     </tbody>
                   </table>
 
-                  {/* 1.2 Documentos */}
+                  {/* 1.3 Documentos */}
                   <div style={{ fontWeight: 700, color: '#1E3A8A', borderBottom: '1px solid #1E3A8A', marginBottom: '4px' }}>
-                    1.2.- Relação de Documentos Solicitados
+                    1.3.- Relação de Documentos Solicitados
                   </div>
                   <div style={{ background: '#FFF9E6', border: '1px solid #F59E0B', borderRadius: '4px', padding: '4px 8px', marginBottom: '6px', fontSize: '7.5pt', color: '#92400E' }}>
                     ⚠️ Verifique e ajuste a relação de documentos abaixo.
