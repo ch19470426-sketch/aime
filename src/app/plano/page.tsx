@@ -251,10 +251,16 @@ function PlanoInner() {
   async function excluirAtivo(idx: number) {
     const a = ativos[idx]
     if (!a.data_cadastro) { setAtivos(prev => prev.filter((_,i) => i !== idx)); return }
-    const res = await fetch(
-      `${SUPA_URL}/rest/v1/ativos_a_vistoriar?cpf_inspetor=eq.${cpfInspetor}&cnpjoucpf=eq.${cnpjoucpf}&tipo_servico=eq.${encodeURIComponent(tsVistoria)}&data_cadastro=eq.${encodeURIComponent(a.data_cadastro)}`,
-      { method: 'DELETE', headers: { 'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}` } }
-    )
+    const res = await fetch('/api/excluir-ativo', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        cpf_inspetor: cpfInspetor,
+        cnpjoucpf,
+        tipo_servico: tsVistoria,
+        data_cadastro: a.data_cadastro,
+      }),
+    })
     if (res.ok) setAtivos(prev => prev.filter((_,i) => i !== idx))
     else informa('Erro', 'Não foi possível excluir o ativo.')
   }
