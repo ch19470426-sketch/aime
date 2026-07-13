@@ -545,9 +545,20 @@ function PlanoInner() {
                       </div>
                     )}
 
-                    <div style={{ ...S.footer, marginTop: '8px' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px', marginTop: '8px' }}>
                       <button style={{ ...S.btn, ...S.btnSec }}
-                  </div>
+                        onClick={() => setEtapa('lista')}>
+                        Voltar
+                      </button>
+                      <button style={{ ...S.btn, ...S.btnSec, opacity: salvando ? 0.6 : 1 }}
+                        onClick={() => salvarAtivo(true)} disabled={salvando}>
+                        {salvando ? 'Salvando...' : 'Cadastrar + ativo'}
+                      </button>
+                      <button style={{ ...S.btn, ...S.btnPri, opacity: salvando ? 0.6 : 1 }}
+                        onClick={() => salvarAtivo(false)} disabled={salvando}>
+                        {salvando ? 'Salvando...' : 'Concluir cadastro'}
+                      </button>
+                    </div>
                 </div>
               )}
 
