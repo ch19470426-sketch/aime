@@ -200,11 +200,15 @@ export default function Dashboard() {
   const itemSelecionado = menuGrupos.flatMap((g) => g.itens).find((i) => i.codigo === tipoServico)
   const ehVistoria = tipoServico !== null && CODIGOS_VISTORIA.includes(Number(tipoServico))
   const coletaCpf  = tipoServico !== null && CODIGOS_CPF.includes(Number(tipoServico))
+  // Código 40 (Homologar) não sabe de antemão se a vistoria é de CPF ou CNPJ: aceita os dois formatos
+  const aceitaAmbos = tipoServico === 40
 
   // Formata CNPJ (00.000.000/0000-00) ou CPF (000.000.000-00) conforme o tipo de serviço
   function formatarDocumento(valor: string): string {
     const nums = valor.replace(/\D/g, "")
-    if (coletaCpf) {
+    // Código 40: formata como CPF enquanto tiver até 11 dígitos, e como CNPJ a partir do 12º
+    const usarMascaraCpf = coletaCpf || (aceitaAmbos && nums.length <= 11)
+    if (usarMascaraCpf) {
       return nums.slice(0, 11)
         .replace(/(\d{3})(\d)/, "$1.$2")
         .replace(/(\d{3})(\d)/, "$1.$2")
@@ -231,10 +235,17 @@ export default function Dashboard() {
 
   async function handleIniciarVistoria() {
     const docLimpo = documentoSemMascara(documento)
-    const tamanhoEsperado = coletaCpf ? 11 : 14
-    if (docLimpo.length < tamanhoEsperado) {
-      setMsgErro(`${coletaCpf ? "CPF" : "CNPJ"} incompleto (${docLimpo.length}/${tamanhoEsperado} dígitos)`)
-      return
+    if (aceitaAmbos) {
+      if (docLimpo.length !== 11 && docLimpo.length !== 14) {
+        setMsgErro(`CNPJ ou CPF incompleto (${docLimpo.length} dígitos — informe 11 para CPF ou 14 para CNPJ)`)
+        return
+      }
+    } else {
+      const tamanhoEsperado = coletaCpf ? 11 : 14
+      if (docLimpo.length < tamanhoEsperado) {
+        setMsgErro(`${coletaCpf ? "CPF" : "CNPJ"} incompleto (${docLimpo.length}/${tamanhoEsperado} dígitos)`)
+        return
+      }
     }
     // Códigos 21-29: Planos de Trabalho
     if (Number(tipoServico) >= 21 && Number(tipoServico) <= 29) {
@@ -380,7 +391,7 @@ export default function Dashboard() {
                     {/* Zona esquerda: bloco CNPJ/CPF — altura reduzida em 60% */}
                     <div style={{ border: "1px solid #E2E8F0", borderRadius: "8px", padding: "8px 10px", background: "#F8FAFF" }}>
                       <label style={{ display: "block", fontSize: "10px", fontWeight: 600, color: "#475569", textTransform: "uppercase", marginBottom: "3px" }}>
-                        {coletaCpf ? "CPF" : "CNPJ"} *
+                        {aceitaAmbos ? "CNPJ ou CPF" : coletaCpf ? "CPF" : "CNPJ"} *
                       </label>
                       <input
                         type="text"
@@ -389,7 +400,7 @@ export default function Dashboard() {
                           setDocumento(formatarDocumento(e.target.value))
                           setEstadoDoc("aguardando")
                         }}
-                        placeholder={coletaCpf ? "000.000.000-00" : "00.000.000/0000-00"}
+                        placeholder={aceitaAmbos ? "CPF ou CNPJ" : coletaCpf ? "000.000.000-00" : "00.000.000/0000-00"}
                         style={{ width: "100%", padding: "8px 10px", borderRadius: "6px", border: "1px solid #CBD5E1", fontSize: "14px", outline: "none", boxSizing: "border-box", marginBottom: "8px" }}
                         onKeyDown={(e) => e.key === "Enter" && handleIniciarVistoria()}
                       />
