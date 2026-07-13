@@ -270,6 +270,8 @@ function PropostaInner() {
   async function gerarProposta() {
     if (!valor) { informa('Atenção', 'Informe o valor do serviço.'); return }
     if (!prazo) { informa('Atenção', 'Informe o prazo de execução.'); return }
+    if (!razaoSocial) { informa('Atenção', 'Nome/Razão social do estabelecimento não encontrado. Complete o cadastro do estabelecimento antes de gerar a proposta.'); return }
+    if (!endereco || !municipioUF) { informa('Atenção', 'Endereço do estabelecimento incompleto. Verifique se o CEP cadastrado é válido (edite o estabelecimento e informe/confirme o CEP) e tente novamente.'); return }
 
     setSalvando(true)
     try {
