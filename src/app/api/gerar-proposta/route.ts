@@ -432,6 +432,17 @@ ${insp.rodape_documentos ? `<div class="rod">${insp.rodape_documentos}</div>` : 
 </body>
 </html>`
 
+    // Grava histórico de valor/prazo (para futura análise de médias por tipo de serviço)
+    const ufEstabelecimento = municipioUF.split('/')[1]?.trim() ?? ''
+    const { error: erroHistorico } = await supabase.from('historico_valores').insert({
+      tipo_servico: tipoServico,
+      cnpjoucpf,
+      valor_servico: valorNum,
+      prazo_execucao: prazoNum,
+      uf_estabelecimento: ufEstabelecimento,
+    })
+    if (erroHistorico) console.error('Erro ao gravar historico_valores:', erroHistorico.message)
+
     return NextResponse.json({ html })
   } catch (err) {
     return NextResponse.json({ erro: String(err) }, { status: 500 })
