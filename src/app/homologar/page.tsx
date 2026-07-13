@@ -124,7 +124,7 @@ function Tela40Inner() {
   const cpfInspetor   = params.get('cpf_inspetor')   ?? ''
   const cnpjoucpf     = params.get('cnpjoucpf')      ?? ''
 
-  const { bannerProps, informa, agradece, solicita, fechar } = useBanner()
+  const { bannerProps, informa, orienta, agradece, solicita, fechar } = useBanner()
 
   // Lista de formulários
   const [formularios,  setFormularios]  = useState<Formulario[]>([])
@@ -134,6 +134,14 @@ function Tela40Inner() {
   const [gerandoIA,    setGerandoIA]    = useState(false)
   const [feedbackIA,   setFeedbackIA]   = useState('')
   const [fotoBase64,    setFotoBase64]    = useState('')
+
+  // Etapa de introdução (gate): confirma vistorias, mostra documentos do plano e valida ativos
+  const [etapa,             setEtapa]             = useState<'gate' | 'form'>('gate')
+  const [planoTipoServico,  setPlanoTipoServico]  = useState('')
+  const [planoAtivos,       setPlanoAtivos]       = useState<Record<string,string>[]>([])
+  const [planoDocs,         setPlanoDocs]         = useState<{doc:string;situacao:string;resultado:string}[]>([])
+  const [planoEncontrado,   setPlanoEncontrado]   = useState(false)
+  const [verificando,       setVerificando]       = useState(false)
 
   // Listas de validação (carregadas do banco)
   const [sistemas,     setSistemas]     = useState<ItemSistema[]>([])
@@ -244,11 +252,86 @@ function Tela40Inner() {
         return
       }
       setFormularios(data.formularios)
-      await carregarFormularioCompleto(data.formularios[0].nome, data.formularios, 0)
+      await prepararGate(data.formularios)
     } catch(e) {
       informa('Erro', 'Não foi possível carregar as vistorias.')
       setCarregando(false)
     }
+  }
+
+  // Extrai a seção "1.3.- Relação de Documentos Solicitados" do HTML do plano salvo
+  function extrairSecaoDocs(html: string): {doc:string; situacao:string; resultado:string}[] {
+    const marcador = '<h2>1.3.- Relação de Documentos Solicitados</h2>'
+    const inicio = html.indexOf(marcador)
+    if (inicio === -1) return []
+    const resto = html.slice(inicio)
+    const fimTabela = resto.indexOf('</table>')
+    if (fimTabela === -1) return []
+    const bloco = resto.slice(0, fimTabela)
+    const linhas = [...bloco.matchAll(/<tr>([\s\S]*?)<\/tr>/g)]
+    return linhas.map(m => {
+      const tds = [...m[1].matchAll(/<td[^>]*>([\s\S]*?)<\/td>/g)].map(t => t[1])
+      const doc = (tds[0] ?? '').replace(/<[^>]+>/g, '').trim()
+      const sitM = (tds[1] ?? '').match(/<option[^>]*selected[^>]*>([^<]*)<\/option>/)
+      const resM = (tds[2] ?? '').match(/<option[^>]*selected[^>]*>([^<]*)<\/option>/)
+      return { doc, situacao: sitM?.[1]?.trim() || '—', resultado: resM?.[1]?.trim() || '—' }
+    }).filter(l => l.doc)
+  }
+
+  // Prepara a etapa de introdução: busca ativos do plano e o bloco 1.3 de documentos
+  async function prepararGate(listaFormularios: Formulario[]) {
+    const tsVistoria = listaFormularios[0]?.tipoServico ?? ''
+    const tipoPlano = String(Number(tsVistoria) - 10)
+    setPlanoTipoServico(tipoPlano)
+
+    try {
+      const ativosRes = await query('ativos_a_vistoriar',
+        `cpf_inspetor=eq.${cpfInspetor}&cnpjoucpf=eq.${cnpjoucpf}&tipo_servico=eq.${encodeURIComponent(tipoPlano)}&select=*`)
+      setPlanoAtivos(Array.isArray(ativosRes) ? ativosRes : [])
+    } catch {
+      setPlanoAtivos([])
+    }
+
+    try {
+      const nomeArq = `${chaveInspetor}_plano_${tipoPlano}_${cnpjoucpf}.html`
+      const docRes = await fetch(`/api/ler-documento?nome=${encodeURIComponent(nomeArq)}&pasta=documentos_inspetor`)
+      const docData = await docRes.json()
+      if (docData.existe) {
+        setPlanoDocs(extrairSecaoDocs(docData.html))
+        setPlanoEncontrado(true)
+      } else {
+        setPlanoEncontrado(false)
+      }
+    } catch {
+      setPlanoEncontrado(false)
+    }
+
+    setEtapa('gate')
+    setCarregando(false)
+    orienta('Homologação de Documentos e Vistoria',
+      'Neste processo de homologação vamos efetuar o registro da situação e do resultado dos documentos recebidos para a inspeção e a seguir a homologação da vistoria efetuada.'
+    )
+  }
+
+  // Botão "Homologar vistoria": valida se todos os ativos do plano foram vistoriados
+  async function acionarHomologarVistoria() {
+    setVerificando(true)
+    const faltando = planoAtivos.filter(a =>
+      !formularios.some(f => f.tipoAtivo === a.tipo_ativo && f.tagNrSerie === a.tag_ativo_nr_serie)
+    )
+    if (faltando.length > 0) {
+      const nomes = faltando.map(a => `${a.tipo_ativo} (${a.tag_ativo_nr_serie})`).join(', ')
+      informa('Vistoria incompleta',
+        `Os seguintes ativos cadastrados no plano de trabalho ainda não foram vistoriados: ${nomes}. Providencie a vistoria desses ativos antes de homologar. O processo será suspenso.`,
+        () => window.location.href = '/dashboard'
+      )
+      setVerificando(false)
+      return
+    }
+    setEtapa('form')
+    setVerificando(false)
+    setCarregando(true)
+    await carregarFormularioCompleto(formularios[0].nome, formularios, 0)
   }
 
   async function carregarFormularioCompleto(nome: string, lista: Formulario[], idx: number) {
@@ -446,6 +529,66 @@ function Tela40Inner() {
       <HeaderBar subtitulo={ts ? `Homologação do Resultado - ${TITULO_TIPO[ts] ?? ts}` : 'Carregando...'} />
       <div style={S.divider} />
       <p style={{ padding: '40px', textAlign: 'center', color: '#4a6480', fontSize: '9pt' }}>Carregando formulários...</p>
+      <Banner {...bannerProps} />
+    </div></div>
+  )
+
+  if (etapa === 'gate') return (
+    <div style={S.body}><div style={S.page}>
+      <HeaderBar subtitulo="Homologar Documentos e Vistoria" />
+      <div style={S.divider} />
+      <div style={S.formBody}>
+
+        <div style={S.block}>
+          <div style={S.blockTitle}>1.3.- Relação de Documentos Solicitados</div>
+          <div style={{ padding: '8px 10px' }}>
+            {!planoEncontrado && (
+              <p style={{ fontSize: '8pt', color: '#9a3412' }}>
+                Nenhum plano de trabalho salvo foi encontrado para este estabelecimento. A relação de documentos não pôde ser recuperada.
+              </p>
+            )}
+            {planoEncontrado && planoDocs.length === 0 && (
+              <p style={{ fontSize: '8pt', color: '#4a6480' }}>Nenhum documento cadastrado no plano de trabalho.</p>
+            )}
+            {planoDocs.length > 0 && (
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '8pt' }}>
+                <thead>
+                  <tr style={{ background: '#1E3A8A', color: '#fff' }}>
+                    <th style={{ padding: '3px 6px', textAlign: 'left' }}>Documento</th>
+                    <th style={{ padding: '3px 6px', textAlign: 'left' }}>Situação</th>
+                    <th style={{ padding: '3px 6px', textAlign: 'left' }}>Resultado</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {planoDocs.map((d, i) => (
+                    <tr key={i} style={{ background: i%2===0?'#f8fafc':'#fff', borderBottom: '1px solid #e2e8f0' }}>
+                      <td style={{ padding: '3px 6px' }}>{d.doc}</td>
+                      <td style={{ padding: '3px 6px' }}>{d.situacao}</td>
+                      <td style={{ padding: '3px 6px' }}>{d.resultado}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+            {planoAtivos.length === 0 && (
+              <p style={{ fontSize: '8pt', color: '#9a3412', marginTop: '8px' }}>
+                Nenhum ativo cadastrado no plano de trabalho foi encontrado para verificação de vistoria.
+              </p>
+            )}
+          </div>
+        </div>
+
+        <div style={S.footer}>
+          <button style={{ ...S.btn, ...S.btnSec }} onClick={() => window.location.href = '/dashboard'}>
+            Voltar
+          </button>
+          <button style={{ ...S.btn, ...S.btnPri, opacity: verificando ? 0.6 : 1 }}
+            onClick={acionarHomologarVistoria} disabled={verificando}>
+            {verificando ? 'Verificando...' : 'Homologar vistoria'}
+          </button>
+        </div>
+
+      </div>
       <Banner {...bannerProps} />
     </div></div>
   )
