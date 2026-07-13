@@ -553,21 +553,23 @@ function PlanoInner() {
                 </div>
               )}
 
-              {/* Botões principais */}
-              <div style={{ ...S.footer, gridTemplateColumns: '1fr 1fr 1fr' }}>
-                <button style={{ ...S.btn, ...S.btnSec }}
-                  onClick={() => window.location.href = '/dashboard'}>
-                  Voltar
-                </button>
-                <button style={{ ...S.btn, ...S.btnSec }}
-                  onClick={() => { setShowForm(true); setAtivoAtual({ ...ATIVO_VAZIO }) }}>
-                  Cadastrar + ativo
-                </button>
-                <button style={{ ...S.btn, ...S.btnPri, opacity: ativos.length === 0 ? 0.5 : 1 }}
-                  onClick={() => setEtapa('lista')} disabled={ativos.length === 0}>
-                  {ativos.length === 0 ? 'Cadastre um ativo' : 'Concluir cadastro'}
-                </button>
-              </div>
+              {/* Botões principais — só aparecem com o formulário de ativo fechado, para não duplicar com os botões do formulário */}
+              {!showForm && (
+                <div style={{ ...S.footer, gridTemplateColumns: '1fr 1fr 1fr' }}>
+                  <button style={{ ...S.btn, ...S.btnSec }}
+                    onClick={() => window.location.href = '/dashboard'}>
+                    Voltar
+                  </button>
+                  <button style={{ ...S.btn, ...S.btnSec }}
+                    onClick={() => { setShowForm(true); setAtivoAtual({ ...ATIVO_VAZIO }) }}>
+                    Cadastrar + ativo
+                  </button>
+                  <button style={{ ...S.btn, ...S.btnPri, opacity: ativos.length === 0 ? 0.5 : 1 }}
+                    onClick={() => setEtapa('lista')} disabled={ativos.length === 0}>
+                    {ativos.length === 0 ? 'Cadastre um ativo' : 'Concluir cadastro'}
+                  </button>
+                </div>
+              )}
             </div>
           )}
 
