@@ -278,6 +278,33 @@ function Tela40Inner() {
     }).filter(l => l.doc)
   }
 
+  // Gera as linhas <tr> da tabela de documentos (mesmo layout usado em /api/gerar-plano)
+  function gerarLinhasDocsHtml(docs: {doc:string; situacao:string; resultado:string}[]): string {
+    const stSel = 'width:100%;border:none;border-bottom:1px solid #1E3A8A;font-size:8pt;font-family:Arial'
+    return docs.map(item => {
+      const sit = item.situacao === '—' ? '' : item.situacao
+      const res = item.resultado === '—' ? '' : item.resultado
+      return [
+        '<tr>',
+        '<td>' + item.doc + '</td>',
+        '<td><select style="' + stSel + '"><option value="">—</option><option' + (sit==="Entregue"?" selected":"") + '>Entregue</option><option' + (sit==="Pendente"?" selected":"") + '>Pendente</option><option' + (sit==="Desnecessário"?" selected":"") + '>Desnecessário</option></select></td>',
+        '<td><select style="' + stSel + '"><option value="">—</option><option' + (res==="Conforme"?" selected":"") + '>Conforme</option><option' + (res==="Não conforme"?" selected":"") + '>Não conforme</option><option' + (res==="Não se aplica"?" selected":"") + '>Não se aplica</option></select></td>',
+        '<td style="text-align:center"><button onclick="remDoc(this)" style="background:#DC2626;color:#fff;border:none;border-radius:4px;padding:2px 8px;cursor:pointer;font-size:8pt">✕</button></td>',
+        '</tr>'
+      ].join('')
+    }).join('')
+  }
+
+  // Substitui o conteúdo de <tbody id="tbDocs"> no HTML do plano, preservando o restante do documento
+  function substituirSecaoDocs(html: string, docs: {doc:string; situacao:string; resultado:string}[]): string {
+    const marcador = '<tbody id="tbDocs">'
+    const inicio = html.indexOf(marcador)
+    if (inicio === -1) return html
+    const fim = html.indexOf('</tbody>', inicio)
+    if (fim === -1) return html
+    return html.slice(0, inicio + marcador.length) + gerarLinhasDocsHtml(docs) + html.slice(fim)
+  }
+
   // Prepara a etapa de introdução: busca ativos do plano e o bloco 1.3 de documentos
   async function prepararGate(listaFormularios: Formulario[]) {
     const tsVistoria = listaFormularios[0]?.tipoServico ?? ''
@@ -328,6 +355,25 @@ function Tela40Inner() {
       setVerificando(false)
       return
     }
+    // Grava no plano de trabalho o bloco de documentos preenchido pelo inspetor, substituindo o existente
+    if (planoEncontrado) {
+      try {
+        const nomeArq = `${chaveInspetor}_plano_${planoTipoServico}_${cnpjoucpf}.html`
+        const docRes = await fetch(`/api/ler-documento?nome=${encodeURIComponent(nomeArq)}&pasta=documentos_inspetor`)
+        const docData = await docRes.json()
+        if (docData.existe) {
+          const htmlAtualizado = substituirSecaoDocs(docData.html, planoDocs)
+          await fetch('/api/salvar-vistoria', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ nomeArquivo: nomeArq, pasta: 'documentos_inspetor', payload: htmlAtualizado, contentType: 'text/html' })
+          })
+        }
+      } catch (e) {
+        console.error('Erro ao atualizar documentos do plano:', e)
+      }
+    }
+
     setEtapa('form')
     setVerificando(false)
     setCarregando(true)
@@ -551,24 +597,45 @@ function Tela40Inner() {
               <p style={{ fontSize: '8pt', color: '#4a6480' }}>Nenhum documento cadastrado no plano de trabalho.</p>
             )}
             {planoDocs.length > 0 && (
-              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '8pt' }}>
-                <thead>
-                  <tr style={{ background: '#1E3A8A', color: '#fff' }}>
-                    <th style={{ padding: '3px 6px', textAlign: 'left' }}>Documento</th>
-                    <th style={{ padding: '3px 6px', textAlign: 'left' }}>Situação</th>
-                    <th style={{ padding: '3px 6px', textAlign: 'left' }}>Resultado</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {planoDocs.map((d, i) => (
-                    <tr key={i} style={{ background: i%2===0?'#f8fafc':'#fff', borderBottom: '1px solid #e2e8f0' }}>
-                      <td style={{ padding: '3px 6px' }}>{d.doc}</td>
-                      <td style={{ padding: '3px 6px' }}>{d.situacao}</td>
-                      <td style={{ padding: '3px 6px' }}>{d.resultado}</td>
+              <>
+                <p style={{ fontSize: '7.5pt', color: '#4a6480', marginBottom: '6px' }}>
+                  Registre a situação e o resultado de cada documento recebido para a inspeção.
+                </p>
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '8pt' }}>
+                  <thead>
+                    <tr style={{ background: '#1E3A8A', color: '#fff' }}>
+                      <th style={{ padding: '3px 6px', textAlign: 'left' }}>Documento</th>
+                      <th style={{ padding: '3px 6px', textAlign: 'left' }}>Situação</th>
+                      <th style={{ padding: '3px 6px', textAlign: 'left' }}>Resultado</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {planoDocs.map((d, i) => (
+                      <tr key={i} style={{ background: i%2===0?'#f8fafc':'#fff', borderBottom: '1px solid #e2e8f0' }}>
+                        <td style={{ padding: '3px 6px' }}>{d.doc}</td>
+                        <td style={{ padding: '3px 6px' }}>
+                          <select style={{ width: '100%', fontSize: '8pt' }} value={d.situacao === '—' ? '' : d.situacao}
+                            onChange={e => setPlanoDocs(prev => prev.map((x,j) => j===i ? {...x, situacao: e.target.value || '—'} : x))}>
+                            <option value="">—</option>
+                            <option>Entregue</option>
+                            <option>Pendente</option>
+                            <option>Desnecessário</option>
+                          </select>
+                        </td>
+                        <td style={{ padding: '3px 6px' }}>
+                          <select style={{ width: '100%', fontSize: '8pt' }} value={d.resultado === '—' ? '' : d.resultado}
+                            onChange={e => setPlanoDocs(prev => prev.map((x,j) => j===i ? {...x, resultado: e.target.value || '—'} : x))}>
+                            <option value="">—</option>
+                            <option>Conforme</option>
+                            <option>Não conforme</option>
+                            <option>Não se aplica</option>
+                          </select>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </>
             )}
             {planoAtivos.length === 0 && (
               <p style={{ fontSize: '8pt', color: '#9a3412', marginTop: '8px' }}>
