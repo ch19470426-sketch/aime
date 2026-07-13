@@ -63,7 +63,7 @@ const menuGrupos = [
     { codigo: 38, label: "Vistoria NR-13" },
   ]},
   { grupo: "Laudos", itens: [
-    { codigo: 40, label: "Homologar Vistoria" },
+    { codigo: 40, label: "Homologar Documentos e Vistoria" },
     { codigo: 41, label: "Laudo Autovistoria" },
     { codigo: 42, label: "Laudo Inspeção" },
     { codigo: 43, label: "Laudo Imóvel Novo" },
@@ -74,7 +74,7 @@ const menuGrupos = [
     { codigo: 48, label: "Laudo NR-13" },
     { codigo: 49, label: "Plano Manutenção Edificação" },
   ]},
-  { grupo: "Outros", itens: [
+  { grupo: "Consultas e Relatórios", itens: [
     { codigo: 61, label: "Baixar Documentos" },
     { codigo: 62, label: "Situação do Contrato" },
     { codigo: 99, label: "Sair do Aplicativo" },
