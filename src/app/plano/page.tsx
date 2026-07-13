@@ -559,21 +559,7 @@ function PlanoInner() {
                 </div>
               )}
 
-              {/* Botões principais */}
-              <div style={{ ...S.footer, gridTemplateColumns: '1fr 1fr 1fr' }}>
-                <button style={{ ...S.btn, background: '#DC2626', color: '#fff', border: 'none' }}
-                  onClick={() => window.location.href = '/dashboard'}>
-                  Cancelar
-                </button>
-                <button style={{ ...S.btn, ...S.btnSec }}
-                  onClick={() => { setShowForm(true); setAtivoAtual({ ...ATIVO_VAZIO }) }}>
-                  Cadastrar + ativo
-                </button>
-                <button style={{ ...S.btn, ...S.btnPri, opacity: (ativos.length === 0 || salvando) ? 0.5 : 1 }}
-                  onClick={gerarPlano} disabled={ativos.length === 0 || salvando}>
-                  {ativos.length === 0 ? 'Cadastre um ativo' : `Gerar plano (${ativos.length}) →`}
-                </button>
-              </div>
+
             </div>
           )}
 
