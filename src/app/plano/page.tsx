@@ -122,7 +122,7 @@ function PlanoInner() {
   const isNR       = isNR10 || isNR12 || isNR13
   const needsTag   = isElevador || isNR12 || isNR13
 
-  const [etapa,      setEtapa]      = useState<'ativo' | 'plano'>('ativo')
+  const [etapa,      setEtapa]      = useState<'ativo' | 'lista' | 'plano'>('ativo')
   const [showForm,   setShowForm]   = useState(false)
   const [carregando, setCarregando] = useState(true)
   const [salvando,   setSalvando]   = useState(false)
@@ -239,13 +239,24 @@ function PlanoInner() {
         setAtivos(novos)
         setAtivoAtual({ ...ATIVO_VAZIO })
         setShowForm(false)
-        informa('Ativo cadastrado', `${ativoAtual.tipo_ativo} cadastrado com sucesso.`)
+        setEtapa('lista')
       } else {
         informa('Erro', 'Não foi possível cadastrar o ativo.')
       }
     } finally {
       setSalvando(false)
     }
+  }
+
+  async function excluirAtivo(idx: number) {
+    const a = ativos[idx]
+    if (!a.data_cadastro) { setAtivos(prev => prev.filter((_,i) => i !== idx)); return }
+    const res = await fetch(
+      `${SUPA_URL}/rest/v1/ativos_a_vistoriar?cpf_inspetor=eq.${cpfInspetor}&cnpjoucpf=eq.${cnpjoucpf}&tipo_servico=eq.${encodeURIComponent(tsVistoria)}&data_cadastro=eq.${encodeURIComponent(a.data_cadastro)}`,
+      { method: 'DELETE', headers: { 'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}` } }
+    )
+    if (res.ok) setAtivos(prev => prev.filter((_,i) => i !== idx))
+    else informa('Erro', 'Não foi possível excluir o ativo.')
   }
 
   async function gerarPlano() {
@@ -318,7 +329,7 @@ function PlanoInner() {
     <div style={S.body}>
       <div style={S.page}>
         <HeaderBar titulo={titulo}
-          subtitulo={etapa === 'ativo' ? 'Cadastrar ativos a vistoriar' : 'Revisar e salvar plano de trabalho'} />
+          subtitulo={etapa === 'ativo' ? 'Cadastrar ativos a vistoriar' : etapa === 'lista' ? 'Ativos cadastrados' : 'Revisar e salvar plano de trabalho'} />
         <div style={S.divider} />
         <div style={S.formBody}>
 
@@ -560,6 +571,44 @@ function PlanoInner() {
             </div>
           )}
 
+          {/* ── ETAPA LISTA: ATIVOS CADASTRADOS ── */}
+          {etapa === 'lista' && (
+            <div>
+              <div style={S.block}>
+                <div style={S.blockTitle}>Ativos cadastrados — {fmtCNPJ(cnpjoucpf)} ({ativos.length})</div>
+                <div style={{ padding: '4px 10px' }}>
+                  {ativos.map((a, i) => (
+                    <div key={i} style={{ borderBottom: '1px solid #e2e8f0', padding: '6px 0' }}>
+                      <div style={{ ...S.row, ...S.c3 }}>
+                        <Field label="Tipo de ativo"><input style={S.inputRO} value={a.tipo_ativo ?? ''} readOnly /></Field>
+                        <Field label="TAG / Nº Série"><input style={S.inputRO} value={a.tag_ativo_nr_serie ?? ''} readOnly /></Field>
+                        <Field label="Finalidade"><input style={S.inputRO} value={a.finalidade_vistoria ?? ''} readOnly /></Field>
+                      </div>
+                      <div style={{ ...S.row, ...S.c3 }}>
+                        <Field label="Responsável"><input style={S.inputRO} value={a.nome_responsavel ?? ''} readOnly /></Field>
+                        <Field label="Função"><input style={S.inputRO} value={a.funcao_responsavel ?? ''} readOnly /></Field>
+                        <Field label="WhatsApp"><input style={S.inputRO} value={fmtWpp(a.whatsapp_responsavel ?? '')} readOnly /></Field>
+                      </div>
+                      <div style={{ textAlign: 'right', marginTop: '4px' }}>
+                        <button onClick={() => excluirAtivo(i)}
+                          style={{ background: '#DC2626', color: '#fff', border: 'none', borderRadius: '4px', padding: '3px 10px', cursor: 'pointer', fontSize: '7.5pt' }}>
+                          Excluir ativo
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div style={{ ...S.footer, marginTop: '8px' }}>
+                <button style={{ ...S.btn, ...S.btnSec }} onClick={() => { setShowForm(true); setEtapa('ativo') }}>Voltar</button>
+                <button style={{ ...S.btn, ...S.btnPri, opacity: (ativos.length === 0 || salvando) ? 0.5 : 1 }}
+                  onClick={gerarPlano} disabled={ativos.length === 0 || salvando}>
+                  {salvando ? 'Gerando...' : `Gerar plano (${ativos.length}) →`}
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* ── ETAPA 2: PLANO REACT ── */}
           {etapa === 'plano' && (
             <div>
@@ -701,7 +750,7 @@ function PlanoInner() {
               </div>
 
               <div style={{ ...S.footer, marginTop: '8px' }}>
-                <button style={{ ...S.btn, ...S.btnSec }} onClick={() => setEtapa('ativo')}>← Voltar</button>
+                <button style={{ ...S.btn, ...S.btnSec }} onClick={() => setEtapa('lista')}>Voltar</button>
                 <button style={{ ...S.btn, ...S.btnPri, opacity: salvando ? 0.6 : 1 }}
                   onClick={salvarPlano} disabled={salvando}>
                   {salvando ? 'Salvando...' : '💾 Salvar plano'}
