@@ -563,8 +563,6 @@ function PlanoInner() {
               )}
 
 
-            </div>
-          )}
 
           {/* ── ETAPA LISTA: ATIVOS CADASTRADOS ── */}
           {etapa === 'lista' && (
