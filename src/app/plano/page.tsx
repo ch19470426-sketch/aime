@@ -235,7 +235,7 @@ function PlanoInner() {
         body: JSON.stringify(payload)
       })
       if (res.ok) {
-        const novos = [...ativos, { ...ativoAtual, tag_ativo_nr_serie: tag }]
+        const novos = [...ativos, { ...ativoAtual, tag_ativo_nr_serie: tag, data_cadastro: payload.data_cadastro }]
         setAtivos(novos)
         setAtivoAtual({ ...ATIVO_VAZIO })
         setShowForm(false)
@@ -552,7 +552,7 @@ function PlanoInner() {
                       </button>
                       <button style={{ ...S.btn, ...S.btnPri, opacity: salvando ? 0.6 : 1 }}
                         onClick={salvarAtivo} disabled={salvando}>
-                        {salvando ? 'Salvando...' : 'Cadastrar + ativo'}
+                        {salvando ? 'Salvando...' : 'Salvar ativo'}
                       </button>
                     </div>
                   </div>
