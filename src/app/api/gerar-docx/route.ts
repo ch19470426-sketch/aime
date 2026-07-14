@@ -18,8 +18,8 @@ export async function POST(request: NextRequest) {
 
     const buffer = await HTMLtoDOCX(html, undefined, {
       table: { row: { cantSplit: true } },
-      footer: false,
-      pageNumber: false,
+      footer: true,
+      pageNumber: true,
       margins: {
         top: Math.round(2 * CM),
         bottom: Math.round(2 * CM),
