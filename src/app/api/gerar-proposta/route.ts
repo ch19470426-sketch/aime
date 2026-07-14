@@ -377,14 +377,11 @@ i { font-style: italic; }
 
 ${(insp.cabecalho_documentos || TITULO_TIPO[tipoServico]) ? `<div class="cab">${insp.cabecalho_documentos || TITULO_TIPO[tipoServico]}</div>` : ''}
 
-<div class="dest">
-${municipio}, ${dataHoje}<br>
-<br>
-${ao}<br>
-${razaoSocial}<br>
-${labelDoc} ${docFmt}<br>
-${municipioUF}
-</div>
+<p style="text-align:right;line-height:1;margin:2pt 0">${municipio}, ${dataHoje}</p>
+<p style="text-align:right;line-height:1;margin:14pt 0 2pt">${ao}</p>
+<p style="text-align:right;line-height:1;margin:2pt 0">${razaoSocial}</p>
+<p style="text-align:right;line-height:1;margin:2pt 0">${labelDoc} ${docFmt}</p>
+<p style="text-align:right;line-height:1;margin:2pt 0 14pt">${municipioUF}</p>
 
 <div class="ref"><b>${c.ref}</b></div>
 
@@ -397,19 +394,19 @@ e customização dos ambientes na busca de maior conforto e modernidade".</i>
 
 <p style="text-align:justify;margin:6pt 0">O serviço será executado para o(a) <b>${razaoSocial}</b>, localizado no <b>${endereco}</b>.</p>
 
-<h2>1.- Objetivo.</h2>
+<h2 style="font-size:10pt;font-weight:bold">1.- Objetivo.</h2>
 ${md2html(cp.objetivo)}
 
-<h2>2.- Metodologia.</h2>
+<h2 style="font-size:10pt;font-weight:bold">2.- Metodologia.</h2>
 ${md2html(cp.metodologia)}
 
-<h2>3.- Documentação.</h2>
+<h2 style="font-size:10pt;font-weight:bold">3.- Documentação.</h2>
 ${md2html(cp.documentacao)}
 
-<h2>4.- Equipe de Trabalho e produtos que serão entregues.</h2>
+<h2 style="font-size:10pt;font-weight:bold">4.- Equipe de Trabalho e produtos que serão entregues.</h2>
 ${md2html(cp.equipe)}
 
-<h2>5.- Honorários e Forma de Pagamento.</h2>
+<h2 style="font-size:10pt;font-weight:bold">5.- Honorários e Forma de Pagamento.</h2>
 <p style="text-align:justify;margin:6pt 0">O preço dos serviços, com base na estimativa de horas trabalhadas, conforme tabela do IBAPE — Instituto Brasileiro de Avaliações e Perícias, e válido para 30 (trinta) dias, a partir desta data, é o seguinte:</p>
 <ul>
 <li style="text-align:justify;text-align-last:left">O valor pela prestação do serviço é de <b>R$ ${valorFmt} (${valorEx} reais)</b>.</li>
@@ -421,24 +418,24 @@ ${md2html(cp.equipe)}
 <li style="text-align:justify;text-align-last:left">50% (cinquenta por cento) para pagamento na entrega do Laudo.</li>
 </ul>
 
-<h2>6.- Prazos.</h2>
+<h2 style="font-size:10pt;font-weight:bold">6.- Prazos.</h2>
 <p style="text-align:justify;margin:6pt 0">O laudo será entregue no prazo máximo de até <b>${prazoNum} (${prazoEx}) dias úteis</b>, contados a partir da data de recebimento da documentação solicitada em reunião com o síndico.</p>
 <p style="text-align:justify;margin:6pt 0">Também deverá haver comprometimento mútuo para execução dos trabalhos segundo agenda de trabalho, a ser definida de comum acordo entre o Inspetor e o síndico na reunião inicial.</p>
 
-<h2>7.- Rescisão e outras avenças.</h2>
+<h2 style="font-size:10pt;font-weight:bold">7.- Rescisão e outras avenças.</h2>
 ${md2html(cp.rescisao)}
 
 <p style="text-align:justify;margin:6pt 0">Certos de que prestaremos à V.S. um serviço de alto padrão de qualidade, permanecemos à inteira disposição, para quaisquer esclarecimentos que se fizerem necessários.</p>
 <p style="text-align:justify;margin:6pt 0">Atenciosamente,</p>
 
 <div class="ass">
-<p style="text-align:justify;margin:6pt 0;font-size:8pt">[Assinatura digital]</p>
-<p style="text-align:justify;margin:6pt 0"><b>${insp.nome_inspetor}</b></p>
-<p style="text-align:justify;margin:6pt 0">${tituloLimpo(insp.titulo_profissional)} — ${conselho(insp.titulo_profissional)} ${numLimpo(insp.inscricao_crea_cau)}</p>
-${insp.especializacao ? `<p style="text-align:justify;margin:6pt 0">Especialista ${insp.especializacao}</p>` : ''}
+<p style="text-align:justify;margin:6pt 0;line-height:1;font-size:8pt">[Assinatura digital]</p>
+<p style="text-align:justify;margin:6pt 0;line-height:1"><b>${insp.nome_inspetor}</b></p>
+<p style="text-align:justify;margin:6pt 0;line-height:1">${tituloLimpo(insp.titulo_profissional)} — ${conselho(insp.titulo_profissional)} ${numLimpo(insp.inscricao_crea_cau)}</p>
+${insp.especializacao ? `<p style="text-align:justify;margin:6pt 0;line-height:1">Especialista ${insp.especializacao}</p>` : ''}
 </div>
 
-<p style="margin-top:24pt">De acordo: _____________________ CPF: _______________ Data: ___/___/______</p>
+<p style="margin-top:48pt;line-height:1">De acordo: _____________________ CPF: _______________ Data: ___/___/______</p>
 <p style="text-align:justify;margin:6pt 0">Síndico/Preposto</p>
 
 ${`<div class="rod">${insp.rodape_documentos || 'Mapeamento Inteligente de Edificações e Equipamentos'}</div>`}
