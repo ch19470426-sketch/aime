@@ -36,15 +36,16 @@ async function corrigirDocx(buffer: Buffer): Promise<Buffer> {
     }
 
     // A biblioteca não converte "border" do CSS em parágrafos — inserimos a borda
-    // (linha delimitadora entre cabeçalho/rodapé e o texto) direto no XML.
+    // (linha delimitadora entre cabeçalho/rodapé e o texto) direto no XML, com
+    // namespace autocontida (mesma convenção usada pelo Word de verdade).
     if (caminho === 'word/header1.xml') {
       let xml = conteudo.toString('utf-8')
-      xml = xml.replace('<pPr>', '<pPr><pBdr><bottom val="single" sz="12" space="4" color="1E3A8A"/></pBdr>')
+      xml = xml.replace('<pPr>', '<pPr><w:pBdr xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:bottom w:val="single" w:sz="12" w:space="4" w:color="1E3A8A"/></w:pBdr>')
       conteudo = Buffer.from(xml, 'utf-8')
     }
     if (caminho === 'word/footer1.xml') {
       let xml = conteudo.toString('utf-8')
-      xml = xml.replace('<pPr>', '<pPr><pBdr><top val="single" sz="8" space="4" color="999999"/></pBdr>')
+      xml = xml.replace('<pPr>', '<pPr><w:pBdr xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:top w:val="single" w:sz="8" w:space="4" w:color="999999"/></w:pBdr>')
       conteudo = Buffer.from(xml, 'utf-8')
     }
 
@@ -62,11 +63,9 @@ export async function POST(request: NextRequest) {
     }
 
     const headerHTML = cabecalho ? `<p style="text-align:center;font-size:12pt;font-weight:bold">${cabecalho}</p>` : undefined
-    // Primeiro parágrafo (alinhado à direita) recebe o campo de número de página automático
-    // do Word; o texto do rodapé vai num segundo parágrafo, centralizado, abaixo dele.
-    const footerHTML =
-      `<p style="text-align:right;font-size:10pt">Pág. </p>` +
-      (rodape ? `<p style="text-align:center;font-size:10pt">${rodape}</p>` : '')
+    // Parágrafo único: texto do rodapé seguido do rótulo da página — o campo de
+    // número automático do Word é anexado pela biblioteca ao final deste parágrafo.
+    const footerHTML = `<p style="text-align:center;font-size:10pt">${rodape ? rodape + ' — ' : ''}Pág. </p>`
 
     const bufferBruto = await HTMLtoDOCX(html, headerHTML, {
       table: { row: { cantSplit: true } },
@@ -77,7 +76,7 @@ export async function POST(request: NextRequest) {
       fontSize: 22, // 22 HIP = 11pt
       lang: 'pt-BR',
       margins: {
-        top: Math.round(2 * CM),
+        top: Math.round(2.5 * CM),
         bottom: Math.round(2 * CM),
         left: Math.round(2.5 * CM),
         right: Math.round(2 * CM),
