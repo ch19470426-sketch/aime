@@ -315,7 +315,7 @@ body {
   margin-bottom: 10pt;
   padding-bottom: 4pt;
   border-bottom: 2px solid #1E3A8A;
-  font-size: 10pt;
+  font-size: 12pt;
   color: #374151;
   white-space: pre-line;
 }
