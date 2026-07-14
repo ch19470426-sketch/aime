@@ -59,6 +59,32 @@ function HomologarProdutoInner() {
   const numServico = Number(tipoServico)
   const grupo4x    = numServico >= 41 && numServico <= 49
 
+  // Monta o nome amigável do arquivo baixado: <cnpjoucpf>_<tipo_documento>[_<categoria>]
+  function nomeAmigavel(extensao: string): string {
+    const familia = Math.floor(numServico / 10)   // 1=proposta 2=plano 4=laudo
+    const categoria = numServico % 10              // 1..9
+
+    const CATEGORIAS: Record<number, string> = {
+      1: 'autovistoria', 2: 'inspecao', 3: 'imovel_novo', 4: 'fachada',
+      5: 'elevador', 6: 'nr10', 7: 'nr12', 8: 'nr13',
+    }
+
+    let base = ''
+    if (categoria === 9) {
+      base = 'plano_manutencao'
+    } else if (familia === 1) {
+      base = `proposta_${CATEGORIAS[categoria] ?? categoria}`
+    } else if (familia === 2) {
+      base = `plano_trabalho_${CATEGORIAS[categoria] ?? categoria}`
+    } else if (familia === 4) {
+      base = `laudo_${CATEGORIAS[categoria] ?? categoria}`
+    } else {
+      base = 'documento'
+    }
+
+    return `${cnpjoucpf}_${base}.${extensao}`
+  }
+
   useEffect(() => {
     if (!nomeArquivo) { setErroCarregar(true); setCarregando(false); return }
     carregarDocumento()
@@ -151,7 +177,7 @@ function HomologarProdutoInner() {
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = nomeArquivo
+    a.download = nomeAmigavel('html')
     a.click()
     URL.revokeObjectURL(url)
   }
@@ -169,7 +195,7 @@ function HomologarProdutoInner() {
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
-      a.download = nomeArquivo.replace(/\.html$/i, '.pdf')
+      a.download = nomeAmigavel('pdf')
       a.click()
       URL.revokeObjectURL(url)
       informa('Download realizado',
