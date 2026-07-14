@@ -10,16 +10,16 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.106.0",
-    "@sparticuz/chromium": "^149.0.0",
     "@supabase/ssr": "^0.12.0",
     "@supabase/supabase-js": "^2.108.2",
+    "html-to-docx": "^1.8.0",
     "next": "16.2.9",
-    "puppeteer-core": "^25.3.0",
     "react": "19.2.4",
     "react-dom": "19.2.4"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
+    "@types/html-to-docx": "^1.8.1",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
