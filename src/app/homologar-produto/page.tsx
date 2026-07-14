@@ -5,7 +5,7 @@
 
 'use client'
 
-import React, { Suspense, useEffect, useState } from 'react'
+import React, { Suspense, useEffect, useRef, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Image from 'next/image'
 import Banner from '@/components/Banner'
@@ -55,6 +55,7 @@ function HomologarProdutoInner() {
   const [gerandoDocx, setGerandoDocx] = useState(false)
   const [enviando,    setEnviando]    = useState(false)
   const [arquivoPdf,  setArquivoPdf]  = useState<File | null>(null)
+  const inputPdfRef = useRef<HTMLInputElement>(null)
 
   const numServico = Number(tipoServico)
   const grupo4x    = numServico >= 41 && numServico <= 49
@@ -196,6 +197,24 @@ function HomologarProdutoInner() {
   }
 
   function imprimirPdf() {
+    const nomeBase = nomeAmigavel('pdf').replace(/\.pdf$/i, '')
+    let htmlParaImprimir = html
+
+    // Título do documento — é o nome que o navegador sugere na caixa "Salvar como PDF"
+    if (/<title>[\s\S]*?<\/title>/i.test(htmlParaImprimir)) {
+      htmlParaImprimir = htmlParaImprimir.replace(/<title>[\s\S]*?<\/title>/i, `<title>${nomeBase}</title>`)
+    } else if (/<head[^>]*>/i.test(htmlParaImprimir)) {
+      htmlParaImprimir = htmlParaImprimir.replace(/<head([^>]*)>/i, `<head$1><title>${nomeBase}</title>`)
+    } else {
+      htmlParaImprimir = `<head><title>${nomeBase}</title></head>` + htmlParaImprimir
+    }
+
+    // Margens do PDF impresso: 2,5cm à esquerda, 2cm à direita (sobrepõe qualquer @page anterior)
+    const estiloMargem = '<style>@page { margin-left: 2.5cm; margin-right: 2cm; }</style>'
+    htmlParaImprimir = /<\/head>/i.test(htmlParaImprimir)
+      ? htmlParaImprimir.replace('</head>', estiloMargem + '</head>')
+      : estiloMargem + htmlParaImprimir
+
     const iframe = document.createElement('iframe')
     iframe.style.position = 'fixed'
     iframe.style.right = '0'
@@ -207,13 +226,33 @@ function HomologarProdutoInner() {
     const doc = iframe.contentWindow?.document
     if (!doc) { document.body.removeChild(iframe); return }
     doc.open()
-    doc.write(html)
+    doc.write(htmlParaImprimir)
     doc.close()
-    setTimeout(() => {
+
+    let jaImprimiu = false
+    function dispararImpressao() {
+      if (jaImprimiu) return
+      jaImprimiu = true
       iframe.contentWindow?.focus()
       iframe.contentWindow?.print()
       setTimeout(() => document.body.removeChild(iframe), 1000)
-    }, 300)
+    }
+
+    // Aguarda imagens (cabeçalho/logo) carregarem antes de imprimir, com prazo máximo de 4s
+    const imagens = Array.from(doc.images)
+    const pendentes = imagens.filter(img => !img.complete)
+    if (pendentes.length === 0) {
+      setTimeout(dispararImpressao, 300)
+    } else {
+      let restantes = pendentes.length
+      pendentes.forEach(img => {
+        const finalizar = () => { restantes--; if (restantes === 0) setTimeout(dispararImpressao, 200) }
+        img.addEventListener('load', finalizar)
+        img.addEventListener('error', finalizar)
+      })
+      setTimeout(dispararImpressao, 4000)
+    }
+
     informa('Gerar PDF',
       'Na janela de impressão que abriu, escolha "Salvar como PDF" (ou impressora PDF) e confirme o local de salvamento. Recomendamos guardar os arquivos baixados para eventuais necessidades futuras, pois na base de dados do AIMÊ o PDF ficará armazenado por um ano. Se surgir alguma demanda específica do cliente, o arquivo editável (Word) será a base para ajustes.'
     )
@@ -315,21 +354,28 @@ function HomologarProdutoInner() {
           <div style={S.blockTitle}>2.- Assinatura digital</div>
           <div style={{ padding: '10px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
             <p style={{ fontSize: '7pt', color: '#4a6480' }}>
-              Acesse o Gov.br e assine digitalmente o PDF baixado. Em seguida, envie aqui o arquivo assinado.
+              Acesse o Gov.br e assine digitalmente o PDF baixado. Em seguida, escolha o arquivo assinado abaixo.
             </p>
-            <input type="file" accept="application/pdf"
-              onChange={e => setArquivoPdf(e.target.files?.[0] ?? null)}
-              style={{ fontSize: '7pt' }} />
+            {arquivoPdf && (
+              <p style={{ fontSize: '7.5pt', color: '#1E3A8A', fontWeight: 700 }}>
+                Selecionado: {arquivoPdf.name}
+              </p>
+            )}
+            <input ref={inputPdfRef} type="file" accept="application/pdf" style={{ display: 'none' }}
+              onChange={e => setArquivoPdf(e.target.files?.[0] ?? null)} />
           </div>
         </div>
 
-        <div style={S.footer}>
+        <div style={{ ...S.footer, gridTemplateColumns: '1fr 1fr 1fr' }}>
           <button style={{ ...S.btn, ...S.btnSec }} onClick={() => window.location.href = '/dashboard'}>
             Voltar
           </button>
+          <button style={{ ...S.btn, ...S.btnSec }} onClick={() => inputPdfRef.current?.click()}>
+            Escolha PDF assinado
+          </button>
           <button style={{ ...S.btn, ...S.btnPri, opacity: (enviando || !arquivoPdf) ? 0.6 : 1 }}
             onClick={enviarPdfAssinado} disabled={enviando || !arquivoPdf}>
-            {enviando ? 'Enviando...' : 'Homologar e Guardar'}
+            {enviando ? 'Enviando...' : 'Salvar PDF no AIMÊ'}
           </button>
         </div>
 
