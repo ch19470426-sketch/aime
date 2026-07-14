@@ -11,25 +11,29 @@ const CM = 566.929
 
 export async function POST(request: NextRequest) {
   try {
-    const { html } = await request.json()
+    const { html, cabecalho, rodape } = await request.json()
     if (!html) {
       return NextResponse.json({ erro: 'html é obrigatório' }, { status: 400 })
     }
 
-    const buffer = await HTMLtoDOCX(html, undefined, {
+    const headerHTML = cabecalho ? `<p style="text-align:center;font-size:10pt">${cabecalho}</p>` : undefined
+    const footerHTML = rodape ? `<p style="text-align:center;font-size:10pt">${rodape}</p>` : undefined
+
+    const buffer = await HTMLtoDOCX(html, headerHTML, {
       table: { row: { cantSplit: true } },
-      footer: true,
-      pageNumber: true,
+      header: !!headerHTML,
+      footer: !!footerHTML,
+      pageNumber: false,
       margins: {
         top: Math.round(2 * CM),
         bottom: Math.round(2 * CM),
         left: Math.round(2.5 * CM),
         right: Math.round(2 * CM),
-        header: 720,
-        footer: 720,
+        header: 480,
+        footer: 480,
         gutter: 0,
       },
-    })
+    }, footerHTML)
 
     // Cópia explícita do buffer: Buffer do Node pode referenciar um bloco de
     // memória maior (pool) do que o conteúdo real — sem copiar, o arquivo
