@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
     // Primeiro parágrafo (alinhado à direita) recebe o campo de número de página automático
     // do Word; o texto do rodapé vai num segundo parágrafo, centralizado, abaixo dele.
     const footerHTML =
-      `<p style="text-align:right;font-size:9pt">Pág. </p>` +
+      `<p style="text-align:right;font-size:10pt">Pág. </p>` +
       (rodape ? `<p style="text-align:center;font-size:10pt">${rodape}</p>` : '')
 
     const buffer = await HTMLtoDOCX(html, headerHTML, {
