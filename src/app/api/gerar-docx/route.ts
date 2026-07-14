@@ -10,25 +10,35 @@ export const runtime = 'nodejs'
 // 1 cm ≈ 566.929 twips (unidade usada pelo Word para margens)
 const CM = 566.929
 
-// O html-to-docx, para alguns conteúdos, gera o word/document.xml com o elemento
-// <w:sectPr> logo no início do <w:body> — o que é inválido no formato Word (sectPr
-// só pode ser o ÚLTIMO elemento de body) e faz o Word recusar o arquivo como
-// "conteúdo ilegível". Aqui corrigimos isso reescrevendo o .docx: movemos o sectPr
-// para o final do documento antes de devolver o arquivo.
-async function corrigirPosicaoSectPr(buffer: Buffer): Promise<Buffer> {
-  const zip = await JSZip.loadAsync(buffer)
-  const arquivo = zip.file('word/document.xml')
-  if (!arquivo) return buffer
+// O html-to-docx gera arquivos com dois problemas que fazem o Word (de verdade,
+// não o LibreOffice) recusar o arquivo:
+// 1) O word/document.xml às vezes traz <w:sectPr> logo no início do <w:body> —
+//    inválido no formato Word (sectPr só pode ser o ÚLTIMO elemento de body).
+// 2) O zip inclui entradas de diretório explícitas (ex: "word/", "word/theme/"),
+//    o que arquivos .docx genuínos do Word nunca têm — só as partes de arquivo.
+// Aqui reescrevemos o pacote inteiro corrigindo os dois pontos.
+async function corrigirDocx(buffer: Buffer): Promise<Buffer> {
+  const zipOrigem = await JSZip.loadAsync(buffer)
+  const zipNovo = new JSZip()
 
-  let docXml = await arquivo.async('string')
-  const m = docXml.match(/(<w:body>)(\s*<w:sectPr>[\s\S]*?<\/w:sectPr>)/)
-  if (m) {
-    docXml = docXml.replace(m[0], m[1])
-    docXml = docXml.replace('</w:body>', m[2].trim() + '</w:body>')
-    zip.file('word/document.xml', docXml)
-    return zip.generateAsync({ type: 'nodebuffer' })
+  for (const [caminho, entrada] of Object.entries(zipOrigem.files)) {
+    if (entrada.dir) continue // não recria entradas de diretório
+    let conteudo = await entrada.async('nodebuffer')
+
+    if (caminho === 'word/document.xml') {
+      let docXml = conteudo.toString('utf-8')
+      const m = docXml.match(/(<w:body>)(\s*<w:sectPr>[\s\S]*?<\/w:sectPr>)/)
+      if (m) {
+        docXml = docXml.replace(m[0], m[1])
+        docXml = docXml.replace('</w:body>', m[2].trim() + '</w:body>')
+        conteudo = Buffer.from(docXml, 'utf-8')
+      }
+    }
+
+    zipNovo.file(caminho, conteudo, { createFolders: false })
   }
-  return buffer
+
+  return zipNovo.generateAsync({ type: 'nodebuffer' })
 }
 
 export async function POST(request: NextRequest) {
@@ -61,7 +71,7 @@ export async function POST(request: NextRequest) {
       },
     }, footerHTML)
 
-    const bufferCorrigido = await corrigirPosicaoSectPr(bufferBruto as Buffer)
+    const bufferCorrigido = await corrigirDocx(bufferBruto as Buffer)
 
     // Cópia explícita do buffer: Buffer do Node pode referenciar um bloco de
     // memória maior (pool) do que o conteúdo real — sem copiar, o arquivo
