@@ -239,12 +239,11 @@ function HomologarProdutoInner() {
 
     // Cabeçalho e rodapé fixos: em Chrome, elementos position:fixed se repetem em
     // todas as páginas impressas — é assim que garantimos que apareçam em todas elas.
-    const alturaFaixa = '1.4cm'
     const estiloFixo = `
-      @page { margin: ${alturaFaixa} 2cm ${alturaFaixa} 2.5cm !important; }
-      #cab-fixo, #rod-fixo { position: fixed; left: 0; right: 0; text-align: center; font-size: 10pt; color: #374151; background: #fff; }
-      #cab-fixo { top: 0; padding-bottom: 4pt; border-bottom: 2px solid #1E3A8A; }
-      #rod-fixo { bottom: 0; padding-top: 4pt; border-top: 1px solid #ccc; }
+      @page { margin: 2.2cm 2cm 1.8cm 2.5cm !important; }
+      #cab-fixo, #rod-fixo { position: fixed; left: 0; right: 0; text-align: center; color: #374151; background: #fff; }
+      #cab-fixo { top: 0; font-size: 12pt; padding-bottom: 4pt; border-bottom: 2px solid #1E3A8A; }
+      #rod-fixo { bottom: 0; font-size: 10pt; padding-top: 4pt; border-top: 1px solid #ccc; }
     `
     htmlParaImprimir = comMargemPadrao(htmlParaImprimir, estiloFixo)
     const blocosFixos =
@@ -268,13 +267,21 @@ function HomologarProdutoInner() {
     doc.write(htmlParaImprimir)
     doc.close()
 
+    // A caixa "Salvar como PDF" do navegador sugere o nome com base no título
+    // da página principal (não do iframe) — por isso trocamos temporariamente aqui.
+    const tituloOriginalPagina = document.title
+    document.title = nomeBase
+
     let jaImprimiu = false
     function dispararImpressao() {
       if (jaImprimiu) return
       jaImprimiu = true
       iframe.contentWindow?.focus()
       iframe.contentWindow?.print()
-      setTimeout(() => document.body.removeChild(iframe), 1000)
+      setTimeout(() => {
+        document.body.removeChild(iframe)
+        document.title = tituloOriginalPagina
+      }, 1000)
     }
 
     // Aguarda imagens (cabeçalho/logo) carregarem antes de imprimir, com prazo máximo de 4s
