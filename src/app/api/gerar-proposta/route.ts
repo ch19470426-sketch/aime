@@ -305,17 +305,17 @@ export async function POST(request: NextRequest) {
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body {
   font-family: Arial, sans-serif;
-  font-size: 11pt;
+  font-size: 10pt;
   line-height: 1.6;
   color: #000;
   padding: 2cm 2cm 2cm 2.5cm;
 }
 .cab {
   text-align: center;
-  margin-bottom: 20pt;
-  padding-bottom: 8pt;
+  margin-bottom: 10pt;
+  padding-bottom: 4pt;
   border-bottom: 2px solid #1E3A8A;
-  font-size: 9pt;
+  font-size: 10pt;
   color: #374151;
   white-space: pre-line;
 }
@@ -361,13 +361,13 @@ i { font-style: italic; }
 .ass {
   margin-top: 30pt;
   padding-top: 10pt;
-  line-height: 1.8;
+  line-height: 1;
 }
 .rod {
-  margin-top: 20pt;
-  padding-top: 8pt;
+  margin-top: 10pt;
+  padding-top: 4pt;
   border-top: 1px solid #ccc;
-  font-size: 9pt;
+  font-size: 10pt;
   text-align: center;
   white-space: pre-line;
 }
@@ -432,7 +432,7 @@ ${md2html(cp.rescisao)}
 <p style="text-align:justify;margin:6pt 0">Atenciosamente,</p>
 
 <div class="ass">
-<p style="text-align:justify;margin:6pt 0">[Assinatura digital via Gov.br]</p>
+<p style="text-align:justify;margin:6pt 0;font-size:8pt">[Assinatura digital]</p>
 <p style="text-align:justify;margin:6pt 0"><b>${insp.nome_inspetor}</b></p>
 <p style="text-align:justify;margin:6pt 0">${tituloLimpo(insp.titulo_profissional)} — ${conselho(insp.titulo_profissional)} ${numLimpo(insp.inscricao_crea_cau)}</p>
 ${insp.especializacao ? `<p style="text-align:justify;margin:6pt 0">Especialista ${insp.especializacao}</p>` : ''}
