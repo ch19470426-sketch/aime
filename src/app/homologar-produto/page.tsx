@@ -182,14 +182,31 @@ function HomologarProdutoInner() {
       : estilo + htmlOriginal
   }
 
+  // Extrai o conteúdo dos blocos de cabeçalho (.cab) e rodapé (.rod) do documento e devolve
+  // também o HTML sem esses blocos, para que sejam tratados à parte como cabeçalho/rodapé
+  // de página de verdade (repetindo em todas as páginas), em vez de texto fixo no corpo.
+  function extrairCabRod(htmlOriginal: string): { cabecalho: string; rodape: string; htmlSemCabRod: string } {
+    const mCab = htmlOriginal.match(/<div class="cab"[^>]*>([\s\S]*?)<\/div>/)
+    const mRod = htmlOriginal.match(/<div class="rod"[^>]*>([\s\S]*?)<\/div>/)
+    let htmlSemCabRod = htmlOriginal
+    if (mCab) htmlSemCabRod = htmlSemCabRod.replace(mCab[0], '')
+    if (mRod) htmlSemCabRod = htmlSemCabRod.replace(mRod[0], '')
+    return {
+      cabecalho: mCab?.[1]?.trim() ?? '',
+      rodape: mRod?.[1]?.trim() ?? '',
+      htmlSemCabRod,
+    }
+  }
+
   async function baixarEditavel() {
     setGerandoDocx(true)
     try {
-      const htmlSemPadding = comMargemPadrao(html, '')
+      const { cabecalho, rodape, htmlSemCabRod } = extrairCabRod(html)
+      const htmlSemPadding = comMargemPadrao(htmlSemCabRod, '')
       const res = await fetch('/api/gerar-docx', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ html: htmlSemPadding })
+        body: JSON.stringify({ html: htmlSemPadding, cabecalho, rodape })
       })
       if (!res.ok) throw new Error('Falha ao gerar o documento Word')
       const blob = await res.blob()
@@ -208,7 +225,8 @@ function HomologarProdutoInner() {
 
   function imprimirPdf() {
     const nomeBase = nomeAmigavel('pdf').replace(/\.pdf$/i, '')
-    let htmlParaImprimir = html
+    const { cabecalho, rodape, htmlSemCabRod } = extrairCabRod(html)
+    let htmlParaImprimir = htmlSemCabRod
 
     // Título do documento — é o nome que o navegador sugere na caixa "Salvar como PDF"
     if (/<title>[\s\S]*?<\/title>/i.test(htmlParaImprimir)) {
@@ -219,9 +237,22 @@ function HomologarProdutoInner() {
       htmlParaImprimir = `<head><title>${nomeBase}</title></head>` + htmlParaImprimir
     }
 
-    // Margens do PDF impresso: 2,5cm à esquerda, 2cm à direita — controladas só pelo @page,
-    // com o padding do body neutralizado (comMargemPadrao), para não somar as duas margens.
-    htmlParaImprimir = comMargemPadrao(htmlParaImprimir, '@page { margin: 2cm 2cm 2cm 2.5cm !important; }')
+    // Cabeçalho e rodapé fixos: em Chrome, elementos position:fixed se repetem em
+    // todas as páginas impressas — é assim que garantimos que apareçam em todas elas.
+    const alturaFaixa = '1.4cm'
+    const estiloFixo = `
+      @page { margin: ${alturaFaixa} 2cm ${alturaFaixa} 2.5cm !important; }
+      #cab-fixo, #rod-fixo { position: fixed; left: 0; right: 0; text-align: center; font-size: 10pt; color: #374151; background: #fff; }
+      #cab-fixo { top: 0; padding-bottom: 4pt; border-bottom: 2px solid #1E3A8A; }
+      #rod-fixo { bottom: 0; padding-top: 4pt; border-top: 1px solid #ccc; }
+    `
+    htmlParaImprimir = comMargemPadrao(htmlParaImprimir, estiloFixo)
+    const blocosFixos =
+      (cabecalho ? `<div id="cab-fixo">${cabecalho}</div>` : '') +
+      (rodape ? `<div id="rod-fixo">${rodape}</div>` : '')
+    htmlParaImprimir = /<body[^>]*>/i.test(htmlParaImprimir)
+      ? htmlParaImprimir.replace(/(<body[^>]*>)/i, `$1${blocosFixos}`)
+      : blocosFixos + htmlParaImprimir
 
     const iframe = document.createElement('iframe')
     iframe.style.position = 'fixed'
