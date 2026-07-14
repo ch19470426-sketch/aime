@@ -107,7 +107,7 @@ function PlanoInner() {
   const cnpjoucpf     = params.get('cnpjoucpf')      ?? ''
   const tipoServico   = params.get('tipo_servico')   ?? '21'
 
-  const { bannerProps, informa, agradece, solicita, fechar } = useBanner()
+  const { bannerProps, informa, solicita, fechar } = useBanner()
 
   const tsVistoria = TIPO_VISTORIA[tipoServico] ?? '31 Autovistoria'
   const tsNum      = tsVistoria.split(' ')[0]
@@ -314,7 +314,8 @@ function PlanoInner() {
       })
       const data = await res.json()
       if (data.sucesso) {
-        agradece('Plano salvo!', 'Salvo em Documentos do Inspetor.', () => window.location.href = '/dashboard')
+        const tituloPlano = htmlData.planoInfo?.titulo ?? 'Plano de Trabalho'
+        window.location.href = `/homologar-produto?cpf_inspetor=${cpfInspetor}&chave_inspetor=${chaveInspetor}&cnpjoucpf=${cnpjoucpf}&tipo_servico=${tipoServico}&nome_arquivo=${encodeURIComponent(nomeArq)}&titulo=${encodeURIComponent(tituloPlano)}`
       } else {
         informa('Erro', data.erro ?? 'Não foi possível salvar.')
       }
