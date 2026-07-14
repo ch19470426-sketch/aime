@@ -582,7 +582,7 @@ export async function POST(request: NextRequest) {
     partes.push(gerarScriptDatas(atividades.length))
     partes.push('</head><body>')
     partes.push('<div id="msgBanner" style="display:none;position:fixed;top:16px;left:50%;transform:translateX(-50%);background:#1E3A8A;color:#fff;padding:10px 24px;border-radius:8px;font-size:10pt;font-family:Arial;z-index:999;box-shadow:0 4px 12px rgba(0,0,0,0.3)"></div>')
-    if (insp.cabecalho_documentos) partes.push('<div class="cab">' + insp.cabecalho_documentos + '</div>')
+    partes.push('<div class="cab">' + (insp.cabecalho_documentos || plano.titulo) + '</div>')
     partes.push('<h1>' + plano.titulo + '</h1>')
     partes.push('<p style="text-align:center;color:#374151;margin-bottom:10pt">' + municipio + ', ' + dataHoje + '</p>')
     partes.push('<div class="row"><span><strong>Estabelecimento:</strong> ' + est.razao_social_nome + '</span><span><strong>CNPJ/CPF:</strong> ' + fmtCNPJ(cnpjoucpf) + '</span></div>')
@@ -606,7 +606,7 @@ export async function POST(request: NextRequest) {
     partes.push('<p style="margin-top:20pt">De acordo: _____________________ CPF: _______________ Data: ___/___/______</p>')
     partes.push('<p>' + (String(plano.parceiro ?? '')).replace('Inspetor e ','') + '</p>')
     partes.push('</div>')
-    if (insp.rodape_documentos) partes.push('<div class="rod">' + insp.rodape_documentos + '</div>')
+    partes.push('<div class="rod">' + (insp.rodape_documentos || 'Mapeamento Inteligente de Edificações e Equipamentos') + '</div>')
     partes.push('</body></html>')
 
     const html = partes.join('\n')
