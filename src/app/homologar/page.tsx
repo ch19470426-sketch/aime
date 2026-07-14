@@ -10,6 +10,17 @@ import Image from 'next/image'
 import Banner from '@/components/Banner'
 import { useBanner } from '@/hooks/useBanner'
 
+// Mesmo mapeamento usado em src/app/plano/page.tsx — necessário porque o campo tipo_servico
+// salvo em ativos_a_vistoriar é a string completa da vistoria (ex: "33 Vistoria imóvel novo"),
+// não apenas o código do plano.
+const TIPO_VISTORIA: Record<string, string> = {
+  '21': '31 Autovistoria', '22': '32 Vistoria inspeção',
+  '23': '33 Vistoria imóvel novo', '24': '34 Vistoria fachada',
+  '25': '35 Vistoria elevador', '26': '36 Vistoria nr-10',
+  '27': '37 Vistoria nr-12', '28': '38 Vistoria nr-13',
+  '29': '32 Vistoria inspeção',
+}
+
 // ─── Tipos ───────────────────────────────────────────────────────────────────
 interface ItemSistema    { sistema: string }
 interface ItemSubsistema { sistema: string; subsistema: string }
@@ -312,8 +323,9 @@ function Tela40Inner() {
     setPlanoTipoServico(tipoPlano)
 
     try {
+      const tipoServicoAtivos = TIPO_VISTORIA[tipoPlano] ?? ''
       const ativosRes = await query('ativos_a_vistoriar',
-        `cpf_inspetor=eq.${cpfInspetor}&cnpjoucpf=eq.${cnpjoucpf}&tipo_servico=eq.${encodeURIComponent(tipoPlano)}&select=*`)
+        `cpf_inspetor=eq.${cpfInspetor}&cnpjoucpf=eq.${cnpjoucpf}&tipo_servico=eq.${encodeURIComponent(tipoServicoAtivos)}&select=*`)
       setPlanoAtivos(Array.isArray(ativosRes) ? ativosRes : [])
     } catch {
       setPlanoAtivos([])
@@ -605,16 +617,16 @@ function Tela40Inner() {
                   <thead>
                     <tr style={{ background: '#1E3A8A', color: '#fff' }}>
                       <th style={{ padding: '3px 6px', textAlign: 'left' }}>Documento</th>
-                      <th style={{ padding: '3px 6px', textAlign: 'left' }}>Situação</th>
-                      <th style={{ padding: '3px 6px', textAlign: 'left' }}>Resultado</th>
+                      <th style={{ padding: '3px 6px', textAlign: 'center' }}>Situação</th>
+                      <th style={{ padding: '3px 6px', textAlign: 'center' }}>Resultado</th>
                     </tr>
                   </thead>
                   <tbody>
                     {planoDocs.map((d, i) => (
                       <tr key={i} style={{ background: i%2===0?'#f8fafc':'#fff', borderBottom: '1px solid #e2e8f0' }}>
                         <td style={{ padding: '3px 6px' }}>{d.doc}</td>
-                        <td style={{ padding: '3px 6px' }}>
-                          <select style={{ width: '100%', fontSize: '8pt' }} value={d.situacao === '—' ? '' : d.situacao}
+                        <td style={{ padding: '3px 6px', textAlign: 'center' }}>
+                          <select style={{ width: '100%', fontSize: '8pt', textAlign: 'center' }} value={d.situacao === '—' ? '' : d.situacao}
                             onChange={e => setPlanoDocs(prev => prev.map((x,j) => j===i ? {...x, situacao: e.target.value || '—'} : x))}>
                             <option value="">—</option>
                             <option>Entregue</option>
@@ -622,8 +634,8 @@ function Tela40Inner() {
                             <option>Desnecessário</option>
                           </select>
                         </td>
-                        <td style={{ padding: '3px 6px' }}>
-                          <select style={{ width: '100%', fontSize: '8pt' }} value={d.resultado === '—' ? '' : d.resultado}
+                        <td style={{ padding: '3px 6px', textAlign: 'center' }}>
+                          <select style={{ width: '100%', fontSize: '8pt', textAlign: 'center' }} value={d.resultado === '—' ? '' : d.resultado}
                             onChange={e => setPlanoDocs(prev => prev.map((x,j) => j===i ? {...x, resultado: e.target.value || '—'} : x))}>
                             <option value="">—</option>
                             <option>Conforme</option>
@@ -639,7 +651,7 @@ function Tela40Inner() {
             )}
             {planoAtivos.length === 0 && (
               <p style={{ fontSize: '8pt', color: '#9a3412', marginTop: '8px' }}>
-                Nenhum ativo cadastrado no plano de trabalho foi encontrado para verificação de vistoria.
+                Nenhum ativo cadastrado para ser homologado. Necessário cadastrar ativos para este serviço.
               </p>
             )}
           </div>
