@@ -383,14 +383,12 @@ ${(insp.cabecalho_documentos || TITULO_TIPO[tipoServico]) ? `<div class="cab">${
 <p style="text-align:right;line-height:1;margin:2pt 0">${labelDoc} ${docFmt}</p>
 <p style="text-align:right;line-height:1;margin:2pt 0 14pt">${municipioUF}</p>
 
-<div class="ref"><b>${c.ref}</b></div>
+<p style="margin:48pt 0;line-height:1"><b>${c.ref}</b></p>
 
-<p style="text-align:justify;margin:6pt 0">${c.apresentacao.replace(/\*\*([^*]+)\*\*/g,'<b>$1</b>').replace(/\*([^*]+)\*/g,'<i>$1</i>').replace(/^#+\s*/gm,'').trim()}</p>
+<p style="text-align:justify;margin:48pt 0 6pt">${c.apresentacao.replace(/\*\*([^*]+)\*\*/g,'<b>$1</b>').replace(/\*([^*]+)\*/g,'<i>$1</i>').replace(/^#+\s*/gm,'').trim()}</p>
 
-<div class="lema">
-<i>"Segurança e valorização do imóvel é resultado da adequada manutenção<br>
-e customização dos ambientes na busca de maior conforto e modernidade".</i>
-</div>
+<p style="text-align:center;margin:14pt 0 0;line-height:1"><i>"Segurança e valorização do imóvel é resultado da adequada manutenção</i></p>
+<p style="text-align:center;margin:0 0 14pt;line-height:1"><i>e customização dos ambientes na busca de maior conforto e modernidade".</i></p>
 
 <p style="text-align:justify;margin:6pt 0">O serviço será executado para o(a) <b>${razaoSocial}</b>, localizado no <b>${endereco}</b>.</p>
 
