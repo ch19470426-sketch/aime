@@ -35,6 +35,19 @@ async function corrigirDocx(buffer: Buffer): Promise<Buffer> {
       }
     }
 
+    // A biblioteca não converte "border" do CSS em parágrafos — inserimos a borda
+    // (linha delimitadora entre cabeçalho/rodapé e o texto) direto no XML.
+    if (caminho === 'word/header1.xml') {
+      let xml = conteudo.toString('utf-8')
+      xml = xml.replace('<pPr>', '<pPr><pBdr><bottom val="single" sz="12" space="4" color="1E3A8A"/></pBdr>')
+      conteudo = Buffer.from(xml, 'utf-8')
+    }
+    if (caminho === 'word/footer1.xml') {
+      let xml = conteudo.toString('utf-8')
+      xml = xml.replace('<pPr>', '<pPr><pBdr><top val="single" sz="8" space="4" color="999999"/></pBdr>')
+      conteudo = Buffer.from(xml, 'utf-8')
+    }
+
     zipNovo.file(caminho, conteudo, { createFolders: false })
   }
 
@@ -60,6 +73,9 @@ export async function POST(request: NextRequest) {
       header: !!headerHTML,
       footer: true,
       pageNumber: true,
+      font: 'Calibri Light',
+      fontSize: 22, // 22 HIP = 11pt
+      lang: 'pt-BR',
       margins: {
         top: Math.round(2 * CM),
         bottom: Math.round(2 * CM),
