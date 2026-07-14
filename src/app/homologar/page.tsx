@@ -255,10 +255,30 @@ function Tela40Inner() {
       const res = await fetch(`/api/vistorias?chave_inspetor=${chaveInspetor}&cnpjoucpf=${cnpjoucpf}`)
       const data = await res.json()
       if (!data.formularios || data.formularios.length === 0) {
-        informa('Nenhuma vistoria encontrada',
-          'Para que seja efetuada a homologação é necessário que exista uma vistoria concluída para a edificação/instituição. Nada encontrado, o processo será suspenso.',
-          () => window.location.href = '/dashboard'
-        )
+        // Verifica se já existe homologação registrada para este estabelecimento
+        // (diferencia "nunca houve vistoria" de "vistoria já foi homologada")
+        let jaHomologada = false
+        let dataUltima = ''
+        try {
+          const jaFeitas = await query('dados_vistoria',
+            `cpf_inspetor=eq.${cpfInspetor}&cnpjoucpf=eq.${cnpjoucpf}&select=data_homologacao&order=data_homologacao.desc&limit=1`)
+          if (Array.isArray(jaFeitas) && jaFeitas.length > 0) {
+            jaHomologada = true
+            dataUltima = jaFeitas[0].data_homologacao ?? ''
+          }
+        } catch {}
+
+        if (jaHomologada) {
+          informa('Vistoria já homologada',
+            `Não há vistoria pendente de homologação para este estabelecimento — a última já foi homologada${dataUltima ? ' em ' + dataUltima : ''}. Se precisar homologar um novo ativo ou serviço, é necessário registrar uma nova vistoria antes.`,
+            () => window.location.href = '/dashboard'
+          )
+        } else {
+          informa('Nenhuma vistoria encontrada',
+            'Para que seja efetuada a homologação é necessário que exista uma vistoria concluída para a edificação/instituição. Nada encontrado, o processo será suspenso.',
+            () => window.location.href = '/dashboard'
+          )
+        }
         setCarregando(false)
         return
       }
