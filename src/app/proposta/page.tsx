@@ -325,7 +325,7 @@ function PropostaInner() {
 
   if (carregando) return (
     <div style={S.body}><div style={S.page}>
-      <HeaderBar titulo={etapa === 'cadastro' ? 'Cadastrar Estabelecimento' : titulo} subtitulo={etapa === 'cadastro' ? 'Cadastrar novo estabelecimento ou alterar seus dados' : 'Proposta técnica e comercial'} />
+      <HeaderBar titulo={etapa === 'cadastro' ? 'Manter Dados do Estabelecimento' : titulo} subtitulo={etapa === 'cadastro' ? 'Cadastrar novo estabelecimento ou alterar seus dados' : 'Proposta técnica e comercial'} />
       <div style={S.divider} />
       <p style={{ padding: '40px', textAlign: 'center', color: '#4a6480', fontSize: '9pt' }}>Carregando...</p>
       <Banner {...bannerProps} />
@@ -335,7 +335,7 @@ function PropostaInner() {
   return (
     <div style={S.body}>
       <div style={S.page}>
-        <HeaderBar titulo={etapa === 'cadastro' ? 'Cadastrar Estabelecimento' : titulo} subtitulo={etapa === 'cadastro' ? 'Cadastrar novo estabelecimento ou alterar seus dados' : 'Proposta técnica e comercial'} />
+        <HeaderBar titulo={etapa === 'cadastro' ? 'Manter Dados do Estabelecimento' : titulo} subtitulo={etapa === 'cadastro' ? 'Cadastrar novo estabelecimento ou alterar seus dados' : 'Proposta técnica e comercial'} />
         <div style={S.divider} />
         <div style={S.formBody}>
 
@@ -474,7 +474,7 @@ function PropostaInner() {
                   ← Ajustar valor/prazo
                 </button>
                 <button style={{ ...S.btn, ...S.btnPri, opacity: salvando ? 0.6 : 1 }} onClick={salvarProposta} disabled={salvando}>
-                  {salvando ? 'Salvando...' : '💾 Salvar proposta'}
+                  {salvando ? 'Salvando...' : 'Continuar'}
                 </button>
               </div>
             </>
