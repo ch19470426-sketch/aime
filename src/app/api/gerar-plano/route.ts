@@ -560,7 +560,7 @@ export async function POST(request: NextRequest) {
     const css = [
       '* { box-sizing: border-box; margin: 0; padding: 0; }',
       'body { font-family: Arial, sans-serif; font-size: 10pt; line-height: 1.5; color: #000; padding: 16px 24px; max-width: 100%; }' ,
-      '.cab { text-align: center; margin-bottom: 10pt; padding-bottom: 4pt; border-bottom: 2px solid #1E3A8A; font-size: 10pt; color: #374151; white-space: pre-line; }',
+      '.cab { text-align: center; margin-bottom: 10pt; padding-bottom: 4pt; border-bottom: 2px solid #1E3A8A; font-size: 12pt; color: #374151; white-space: pre-line; }',
       'h1 { font-size: 13pt; font-weight: bold; color: #1E3A8A; text-align: center; margin: 12pt 0 4pt; }',
       'h2 { font-size: 11pt; font-weight: bold; color: #1E3A8A; margin: 14pt 0 6pt; }',
       'p { margin: 4pt 0; text-align: justify; }',
