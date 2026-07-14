@@ -560,7 +560,7 @@ export async function POST(request: NextRequest) {
     const css = [
       '* { box-sizing: border-box; margin: 0; padding: 0; }',
       'body { font-family: Arial, sans-serif; font-size: 10pt; line-height: 1.5; color: #000; padding: 16px 24px; max-width: 100%; }' ,
-      '.cab { text-align: center; margin-bottom: 1.2cm; padding-bottom: 6pt; border-bottom: 2px solid #1E3A8A; font-size: 9pt; color: #374151; white-space: pre-line; }',
+      '.cab { text-align: center; margin-bottom: 10pt; padding-bottom: 4pt; border-bottom: 2px solid #1E3A8A; font-size: 10pt; color: #374151; white-space: pre-line; }',
       'h1 { font-size: 13pt; font-weight: bold; color: #1E3A8A; text-align: center; margin: 12pt 0 4pt; }',
       'h2 { font-size: 11pt; font-weight: bold; color: #1E3A8A; margin: 14pt 0 6pt; }',
       'p { margin: 4pt 0; text-align: justify; }',
@@ -570,8 +570,8 @@ export async function POST(request: NextRequest) {
       'td { border: 1px solid #c3d4f0; padding: 3pt 6pt; vertical-align: middle; }',
       'tr:nth-child(even) { background: #f8fafc; }',
       '.info { background: #FFF9E6; border: 1px solid #F59E0B; border-radius: 4px; padding: 6pt 10pt; margin: 8pt 0; font-size: 8.5pt; color: #92400E; }',
-      '.ass { margin-top: 30pt; padding-top: 10pt; border-top: 1px solid #ccc; line-height: 1.8; }',
-      '.rod { margin-top: 1.2cm; padding-top: 6pt; border-top: 1px solid #ccc; font-size: 8pt; text-align: center; white-space: pre-line; color: #374151; }',
+      '.ass { margin-top: 30pt; padding-top: 10pt; border-top: 1px solid #ccc; line-height: 1; }',
+      '.rod { margin-top: 10pt; padding-top: 4pt; border-top: 1px solid #ccc; font-size: 10pt; text-align: center; white-space: pre-line; color: #374151; }',
       'button.add { margin-top: 6pt; background: #1E3A8A; color: #fff; border: none; border-radius: 4px; padding: 4px 12px; cursor: pointer; font-size: 8pt; }',
     ].join('\n')
 
@@ -600,6 +600,7 @@ export async function POST(request: NextRequest) {
     partes.push('<tbody id="tbDocs">' + linhasDocs + '</tbody></table>')
     partes.push('<button class="add" onclick="addDoc()">+ Adicionar documento</button>')
     partes.push('<div class="ass">')
+    partes.push('<p style="font-size:8pt">[Assinatura digital]</p>')
     partes.push('<p><strong>' + insp.nome_inspetor + '</strong></p>')
     partes.push('<p>' + tituloLimpo(insp.titulo_profissional) + ' — ' + siglaConselho + ' ' + numLimpo(insp.inscricao_crea_cau) + '</p>')
     if (insp.especializacao) partes.push('<p>Especialista ' + insp.especializacao + '</p>')
