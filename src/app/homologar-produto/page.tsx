@@ -237,21 +237,25 @@ function HomologarProdutoInner() {
       htmlParaImprimir = `<head><title>${nomeBase}</title></head>` + htmlParaImprimir
     }
 
-    // Cabeçalho e rodapé fixos: em Chrome, elementos position:fixed se repetem em
-    // todas as páginas impressas — é assim que garantimos que apareçam em todas elas.
-    const estiloFixo = `
-      @page { margin: 2.2cm 2cm 1.8cm 2.5cm !important; }
-      #cab-fixo, #rod-fixo { position: fixed; left: 0; right: 0; text-align: center; color: #374151; background: #fff; }
-      #cab-fixo { top: 0; font-size: 12pt; padding-bottom: 4pt; border-bottom: 2px solid #1E3A8A; }
-      #rod-fixo { bottom: 0; font-size: 10pt; padding-top: 4pt; border-top: 1px solid #ccc; }
-    `
-    htmlParaImprimir = comMargemPadrao(htmlParaImprimir, estiloFixo)
-    const blocosFixos =
-      (cabecalho ? `<div id="cab-fixo">${cabecalho}</div>` : '') +
-      (rodape ? `<div id="rod-fixo">${rodape}</div>` : '')
+    // Cabeçalho e rodapé: mantidos no fluxo normal do documento (aparecem uma vez, no
+    // início e no fim), já que "position:fixed" combinado com margens de página se
+    // mostrou instável entre páginas (sobrepondo texto). A repetição em todas as
+    // páginas fica garantida de forma confiável na versão Word.
+    const estiloMargem = `<style>@page { margin: 2cm 2cm 2cm 2.5cm !important; }</style>`
+    htmlParaImprimir = /<\/head>/i.test(htmlParaImprimir)
+      ? htmlParaImprimir.replace('</head>', estiloMargem + '</head>')
+      : estiloMargem + htmlParaImprimir
+    htmlParaImprimir = comMargemPadrao(htmlParaImprimir, '')
+    const blocosDocumento = cabecalho ? `<div style="text-align:center;font-size:12pt;color:#374151;padding-bottom:4pt;border-bottom:2px solid #1E3A8A;margin-bottom:10pt">${cabecalho}</div>` : ''
     htmlParaImprimir = /<body[^>]*>/i.test(htmlParaImprimir)
-      ? htmlParaImprimir.replace(/(<body[^>]*>)/i, `$1${blocosFixos}`)
-      : blocosFixos + htmlParaImprimir
+      ? htmlParaImprimir.replace(/(<body[^>]*>)/i, `$1${blocosDocumento}`)
+      : blocosDocumento + htmlParaImprimir
+    if (rodape) {
+      const blocoRodape = `<div style="text-align:center;font-size:10pt;color:#374151;padding-top:4pt;border-top:1px solid #ccc;margin-top:10pt">${rodape}</div>`
+      htmlParaImprimir = /<\/body>/i.test(htmlParaImprimir)
+        ? htmlParaImprimir.replace('</body>', blocoRodape + '</body>')
+        : htmlParaImprimir + blocoRodape
+    }
 
     const iframe = document.createElement('iframe')
     iframe.style.position = 'fixed'
