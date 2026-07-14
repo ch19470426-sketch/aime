@@ -7,6 +7,20 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
 
+// Título legível (sem o código numérico) usado como cabeçalho padrão quando o
+// inspetor não configurou um cabeçalho próprio em seu cadastro.
+const TITULO_TIPO: Record<string, string> = {
+  '11': 'Proposta — Autovistoria',
+  '12': 'Proposta — Inspeção Predial',
+  '13': 'Proposta — Vistoria Imóvel Novo',
+  '14': 'Proposta — Inspeção de Fachada',
+  '15': 'Proposta — Inspeção de Elevadores',
+  '16': 'Proposta — Inspeção NR-10',
+  '17': 'Proposta — Inspeção NR-12',
+  '18': 'Proposta — Inspeção NR-13',
+  '19': 'Proposta — Plano de Manutenção',
+}
+
 const C: Record<string, Record<string, string>> = {
   "11": {
     "ao": "AO",
@@ -361,7 +375,7 @@ i { font-style: italic; }
 </head>
 <body>
 
-${insp.cabecalho_documentos ? `<div class="cab">${insp.cabecalho_documentos}</div>` : ''}
+${(insp.cabecalho_documentos || TITULO_TIPO[tipoServico]) ? `<div class="cab">${insp.cabecalho_documentos || TITULO_TIPO[tipoServico]}</div>` : ''}
 
 <div class="dest">
 ${municipio}, ${dataHoje}<br>
@@ -427,7 +441,7 @@ ${insp.especializacao ? `<p style="text-align:justify;margin:6pt 0">Especialista
 <p style="margin-top:24pt">De acordo: _____________________ CPF: _______________ Data: ___/___/______</p>
 <p style="text-align:justify;margin:6pt 0">Síndico/Preposto</p>
 
-${insp.rodape_documentos ? `<div class="rod">${insp.rodape_documentos}</div>` : ''}
+${`<div class="rod">${insp.rodape_documentos || 'Mapeamento Inteligente de Edificações e Equipamentos'}</div>`}
 
 </body>
 </html>`
