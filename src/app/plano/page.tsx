@@ -793,7 +793,7 @@ function PlanoInner() {
                 <button style={{ ...S.btn, ...S.btnSec }} onClick={() => setEtapa('lista')}>Voltar</button>
                 <button style={{ ...S.btn, ...S.btnPri, opacity: salvando ? 0.6 : 1 }}
                   onClick={salvarPlano} disabled={salvando}>
-                  {salvando ? 'Salvando...' : '💾 Salvar plano'}
+                  {salvando ? 'Salvando...' : 'Continuar'}
                 </button>
               </div>
             </div>
