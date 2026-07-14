@@ -38,7 +38,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ erro: 'html é obrigatório' }, { status: 400 })
     }
 
-    const headerHTML = cabecalho ? `<p style="text-align:center;font-size:12pt">${cabecalho}</p>` : undefined
+    const headerHTML = cabecalho ? `<p style="text-align:center;font-size:12pt;font-weight:bold">${cabecalho}</p>` : undefined
     // Primeiro parágrafo (alinhado à direita) recebe o campo de número de página automático
     // do Word; o texto do rodapé vai num segundo parágrafo, centralizado, abaixo dele.
     const footerHTML =
@@ -55,8 +55,8 @@ export async function POST(request: NextRequest) {
         bottom: Math.round(2 * CM),
         left: Math.round(2.5 * CM),
         right: Math.round(2 * CM),
-        header: 480,
-        footer: 480,
+        header: 200,
+        footer: 200,
         gutter: 0,
       },
     }, footerHTML)
