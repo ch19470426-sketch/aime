@@ -224,6 +224,13 @@ function HomologarProdutoInner() {
   }
 
   function imprimirPdf() {
+    informa('Gerar PDF',
+      'Na janela de impressão que vai abrir: 1) marque a opção "Cabeçalhos e rodapés" (em "Mais definições") para que o PDF saia com numeração de página — isso também adiciona título e data automaticamente, sem opção de remover só isso; 2) escolha "Salvar como PDF" e confirme o local de salvamento. Recomendamos guardar os arquivos baixados para eventuais necessidades futuras, pois na base de dados do AIMÊ o PDF ficará armazenado por um ano. Se surgir alguma demanda específica do cliente, o arquivo editável (Word) será a base para ajustes.',
+      prosseguirComImpressao
+    )
+  }
+
+  function prosseguirComImpressao() {
     const nomeBase = nomeAmigavel('pdf').replace(/\.pdf$/i, '')
     const { cabecalho, rodape, htmlSemCabRod } = extrairCabRod(html)
     let htmlParaImprimir = htmlSemCabRod
@@ -302,10 +309,6 @@ function HomologarProdutoInner() {
       })
       setTimeout(dispararImpressao, 4000)
     }
-
-    informa('Gerar PDF',
-      'Na janela de impressão que abriu, escolha "Salvar como PDF" (ou impressora PDF) e confirme o local de salvamento. Recomendamos guardar os arquivos baixados para eventuais necessidades futuras, pois na base de dados do AIMÊ o PDF ficará armazenado por um ano. Se surgir alguma demanda específica do cliente, o arquivo editável (Word) será a base para ajustes.'
-    )
   }
 
   async function enviarPdfAssinado() {
