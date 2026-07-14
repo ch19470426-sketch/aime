@@ -110,7 +110,7 @@ function PropostaInner() {
   const cnpjoucpf    = params.get('cnpjoucpf')       ?? ''
   const tipoServico  = params.get('tipo_servico')    ?? '11'
 
-  const { bannerProps, informa, agradece, solicita, fechar } = useBanner()
+  const { bannerProps, informa, solicita, fechar } = useBanner()
 
   const [est,         setEst]         = useState<Estabelecimento | null>(null)
   const [insp,        setInsp]        = useState<Inspetor | null>(null)
@@ -314,10 +314,7 @@ function PropostaInner() {
       })
       const data = await res.json()
       if (data.sucesso) {
-        agradece('Proposta salva!',
-          `A proposta foi salva em "Documentos inspetor" como ${nomeArq}. Após homologação e assinatura digital pelo Gov.br, entregue ao cliente.`,
-          () => window.location.href = '/dashboard'
-        )
+        window.location.href = `/homologar-produto?cpf_inspetor=${cpfInspetor}&chave_inspetor=${chaveInspetor}&cnpjoucpf=${cnpjoucpf}&tipo_servico=${tipoServico}&nome_arquivo=${encodeURIComponent(nomeArq)}&titulo=${encodeURIComponent(titulo)}`
       } else {
         informa('Erro', data.erro ?? 'Não foi possível salvar.')
       }
