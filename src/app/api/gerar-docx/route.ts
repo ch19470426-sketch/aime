@@ -16,14 +16,18 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ erro: 'html é obrigatório' }, { status: 400 })
     }
 
-    const headerHTML = cabecalho ? `<p style="text-align:center;font-size:10pt">${cabecalho}</p>` : undefined
-    const footerHTML = rodape ? `<p style="text-align:center;font-size:10pt">${rodape}</p>` : undefined
+    const headerHTML = cabecalho ? `<p style="text-align:center;font-size:12pt">${cabecalho}</p>` : undefined
+    // Primeiro parágrafo (alinhado à direita) recebe o campo de número de página automático
+    // do Word; o texto do rodapé vai num segundo parágrafo, centralizado, abaixo dele.
+    const footerHTML =
+      `<p style="text-align:right;font-size:9pt">Pág. </p>` +
+      (rodape ? `<p style="text-align:center;font-size:10pt">${rodape}</p>` : '')
 
     const buffer = await HTMLtoDOCX(html, headerHTML, {
       table: { row: { cantSplit: true } },
       header: !!headerHTML,
-      footer: !!footerHTML,
-      pageNumber: false,
+      footer: true,
+      pageNumber: true,
       margins: {
         top: Math.round(2 * CM),
         bottom: Math.round(2 * CM),
@@ -45,7 +49,6 @@ export async function POST(request: NextRequest) {
       headers: {
         'Content-Type': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
         'Content-Disposition': 'attachment; filename="documento.docx"',
-        'Content-Length': String(bytes.byteLength),
       },
     })
   } catch (err) {
