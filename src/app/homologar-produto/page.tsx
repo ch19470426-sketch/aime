@@ -173,13 +173,23 @@ function HomologarProdutoInner() {
     }
   }
 
+  // Neutraliza qualquer padding/margem que o documento de origem já tenha no <body>,
+  // para que a margem seja controlada só por aqui, de forma igual em todos os tipos de documento.
+  function comMargemPadrao(htmlOriginal: string, estiloExtra: string): string {
+    const estilo = `<style>body { padding: 0 !important; margin: 0 !important; } ${estiloExtra}</style>`
+    return /<\/head>/i.test(htmlOriginal)
+      ? htmlOriginal.replace('</head>', estilo + '</head>')
+      : estilo + htmlOriginal
+  }
+
   async function baixarEditavel() {
     setGerandoDocx(true)
     try {
+      const htmlSemPadding = comMargemPadrao(html, '')
       const res = await fetch('/api/gerar-docx', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ html })
+        body: JSON.stringify({ html: htmlSemPadding })
       })
       if (!res.ok) throw new Error('Falha ao gerar o documento Word')
       const blob = await res.blob()
@@ -209,11 +219,9 @@ function HomologarProdutoInner() {
       htmlParaImprimir = `<head><title>${nomeBase}</title></head>` + htmlParaImprimir
     }
 
-    // Margens do PDF impresso: 2,5cm à esquerda, 2cm à direita (sobrepõe qualquer @page anterior)
-    const estiloMargem = '<style>@page { margin-left: 2.5cm; margin-right: 2cm; }</style>'
-    htmlParaImprimir = /<\/head>/i.test(htmlParaImprimir)
-      ? htmlParaImprimir.replace('</head>', estiloMargem + '</head>')
-      : estiloMargem + htmlParaImprimir
+    // Margens do PDF impresso: 2,5cm à esquerda, 2cm à direita — controladas só pelo @page,
+    // com o padding do body neutralizado (comMargemPadrao), para não somar as duas margens.
+    htmlParaImprimir = comMargemPadrao(htmlParaImprimir, '@page { margin: 2cm 2cm 2cm 2.5cm !important; }')
 
     const iframe = document.createElement('iframe')
     iframe.style.position = 'fixed'
@@ -260,7 +268,7 @@ function HomologarProdutoInner() {
 
   async function enviarPdfAssinado() {
     if (!arquivoPdf) {
-      informa('Atenção', 'Selecione o arquivo PDF assinado no Gov.br antes de enviar.')
+      informa('Atenção', 'Selecione o arquivo PDF assinado antes de enviar.')
       return
     }
     setEnviando(true)
