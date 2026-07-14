@@ -52,7 +52,7 @@ function HomologarProdutoInner() {
   const [carregando,  setCarregando]  = useState(true)
   const [html,        setHtml]        = useState('')
   const [erroCarregar, setErroCarregar] = useState(false)
-  const [gerandoPdf,  setGerandoPdf]  = useState(false)
+  const [gerandoDocx, setGerandoDocx] = useState(false)
   const [enviando,    setEnviando]    = useState(false)
   const [arquivoPdf,  setArquivoPdf]  = useState<File | null>(null)
 
@@ -172,40 +172,51 @@ function HomologarProdutoInner() {
     }
   }
 
-  function baixarEditavel() {
-    const blob = new Blob([html], { type: 'text/html' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = nomeAmigavel('html')
-    a.click()
-    URL.revokeObjectURL(url)
-  }
-
-  async function gerarEBaixarPdf() {
-    setGerandoPdf(true)
+  async function baixarEditavel() {
+    setGerandoDocx(true)
     try {
-      const res = await fetch('/api/gerar-pdf', {
+      const res = await fetch('/api/gerar-docx', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ html, nomeArquivo: nomeArquivo.replace(/\.html$/i, '') })
+        body: JSON.stringify({ html })
       })
-      if (!res.ok) throw new Error('Falha ao gerar PDF')
+      if (!res.ok) throw new Error('Falha ao gerar o documento Word')
       const blob = await res.blob()
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
-      a.download = nomeAmigavel('pdf')
+      a.download = nomeAmigavel('docx')
       a.click()
       URL.revokeObjectURL(url)
-      informa('Download realizado',
-        'Recomendamos que os arquivos baixados sejam guardados para eventuais necessidades futuras, pois na base de dados do AIMÊ o PDF ficará armazenado por um ano. Destacamos que, caso surja alguma demanda específica de seu cliente, o arquivo editável será a base para ajustes, complementações ou personalizações técnicas necessárias. Atenciosamente, Equipe AIMÊ'
-      )
     } catch {
-      informa('Erro', 'Não foi possível gerar o PDF. Tente novamente.')
+      informa('Erro', 'Não foi possível gerar o documento editável. Tente novamente.')
     } finally {
-      setGerandoPdf(false)
+      setGerandoDocx(false)
     }
+  }
+
+  function imprimirPdf() {
+    const iframe = document.createElement('iframe')
+    iframe.style.position = 'fixed'
+    iframe.style.right = '0'
+    iframe.style.bottom = '0'
+    iframe.style.width = '0'
+    iframe.style.height = '0'
+    iframe.style.border = '0'
+    document.body.appendChild(iframe)
+    const doc = iframe.contentWindow?.document
+    if (!doc) { document.body.removeChild(iframe); return }
+    doc.open()
+    doc.write(html)
+    doc.close()
+    setTimeout(() => {
+      iframe.contentWindow?.focus()
+      iframe.contentWindow?.print()
+      setTimeout(() => document.body.removeChild(iframe), 1000)
+    }, 300)
+    informa('Gerar PDF',
+      'Na janela de impressão que abriu, escolha "Salvar como PDF" (ou impressora PDF) e confirme o local de salvamento. Recomendamos guardar os arquivos baixados para eventuais necessidades futuras, pois na base de dados do AIMÊ o PDF ficará armazenado por um ano. Se surgir alguma demanda específica do cliente, o arquivo editável (Word) será a base para ajustes.'
+    )
   }
 
   async function enviarPdfAssinado() {
@@ -290,12 +301,11 @@ function HomologarProdutoInner() {
               Revise o conteúdo do documento e baixe as duas versões antes de prosseguir.
             </p>
             <div style={S.footer}>
-              <button style={{ ...S.btn, ...S.btnSec }} onClick={baixarEditavel}>
-                Baixar documento editável
+              <button style={{ ...S.btn, ...S.btnSec, opacity: gerandoDocx ? 0.6 : 1 }} onClick={baixarEditavel} disabled={gerandoDocx}>
+                {gerandoDocx ? 'Gerando Word...' : 'Baixar documento editável (Word)'}
               </button>
-              <button style={{ ...S.btn, ...S.btnPri, opacity: gerandoPdf ? 0.6 : 1, gridColumn: 'span 2' }}
-                onClick={gerarEBaixarPdf} disabled={gerandoPdf}>
-                {gerandoPdf ? 'Gerando PDF...' : 'Gerar e baixar PDF'}
+              <button style={{ ...S.btn, ...S.btnPri, gridColumn: 'span 2' }} onClick={imprimirPdf}>
+                Imprimir / Salvar como PDF
               </button>
             </div>
           </div>
@@ -304,12 +314,12 @@ function HomologarProdutoInner() {
         <div style={S.block}>
           <div style={S.blockTitle}>2.- Assinatura digital</div>
           <div style={{ padding: '10px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
-            <p style={{ fontSize: '8pt', color: '#4a6480' }}>
-              Acesse o <b>Gov.br</b> e assine digitalmente o PDF baixado. Em seguida, envie aqui o arquivo assinado.
+            <p style={{ fontSize: '7pt', color: '#4a6480' }}>
+              Acesse o Gov.br e assine digitalmente o PDF baixado. Em seguida, envie aqui o arquivo assinado.
             </p>
             <input type="file" accept="application/pdf"
               onChange={e => setArquivoPdf(e.target.files?.[0] ?? null)}
-              style={{ fontSize: '8pt' }} />
+              style={{ fontSize: '7pt' }} />
           </div>
         </div>
 
