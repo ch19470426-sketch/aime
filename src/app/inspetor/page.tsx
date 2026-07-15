@@ -54,35 +54,40 @@ function CadastroInspetor() {
   }
 
   useEffect(() => {
+    const timeoutSeg = setTimeout(() => setCarregando(false), 8000)
     async function carregarInicial() {
-      if (cpfUrl) setForm(prev => ({ ...prev, cpf: formatarCPF(cpfUrl) }))
-      if (cpfUrl && !ehNovo) {
-        try {
-          const res = await fetch(`${SUPA_URL}/rest/v1/inspetor?cpf_inspetor=eq.${cpfUrl}&select=*`, {
-            headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` }
-          })
-          const dados = await res.json()
-          if (Array.isArray(dados) && dados.length > 0) {
-            const d = dados[0]
-            setForm(prev => ({
-              ...prev,
-              cpf: formatarCPF(cpfUrl),
-              nome: d.nome_inspetor ?? "",
-              titulo: d.titulo_profissional ?? "",
-              especializacao: d.especializacao ?? "",
-              inscricao_crea_cau: d.inscricao_crea_cau ?? "",
-              whatsapp: d.inspetor_whatsapp ?? "",
-              email: d.inspetor_email ?? "",
-              cep: d.cep_inspetor ?? "",
-              nr_imovel: d.nr_imovel ?? "",
-              complemento: d.nr_ap_sala ?? "",
-              cabecalho: d.cabecalho_documentos ?? "",
-              rodape: d.rodape_documentos ?? "",
-            }))
-          }
-        } catch { /* segue com o formulário vazio se não conseguir carregar */ }
+      try {
+        if (cpfUrl) setForm(prev => ({ ...prev, cpf: formatarCPF(cpfUrl) }))
+        if (cpfUrl && !ehNovo) {
+          try {
+            const res = await fetch(`${SUPA_URL}/rest/v1/inspetor?cpf_inspetor=eq.${cpfUrl}&select=*`, {
+              headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` }
+            })
+            const dados = await res.json()
+            if (Array.isArray(dados) && dados.length > 0) {
+              const d = dados[0]
+              setForm(prev => ({
+                ...prev,
+                cpf: formatarCPF(cpfUrl),
+                nome: d.nome_inspetor ?? "",
+                titulo: d.titulo_profissional ?? "",
+                especializacao: d.especializacao ?? "",
+                inscricao_crea_cau: d.inscricao_crea_cau ?? "",
+                whatsapp: d.inspetor_whatsapp ?? "",
+                email: d.inspetor_email ?? "",
+                cep: d.cep_inspetor ?? "",
+                nr_imovel: d.nr_imovel ?? "",
+                complemento: d.nr_ap_sala ?? "",
+                cabecalho: d.cabecalho_documentos ?? "",
+                rodape: d.rodape_documentos ?? "",
+              }))
+            }
+          } catch { /* segue com o formulário vazio se não conseguir carregar */ }
+        }
+      } finally {
+        clearTimeout(timeoutSeg)
+        setCarregando(false)
       }
-      setCarregando(false)
     }
     carregarInicial()
     // eslint-disable-next-line react-hooks/exhaustive-deps
