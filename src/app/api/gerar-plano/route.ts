@@ -525,6 +525,10 @@ export async function POST(request: NextRequest) {
     ].join('')).join('')
 
     // Linhas de atividades
+    const fmtDataBR = (iso: string) => {
+      const partes = iso.split('-')
+      return partes.length === 3 ? partes[2] + '/' + partes[1] + '/' + partes[0] : iso
+    }
     const linhasAtiv = atividades.map((a, i) => {
       const ini = datasAtiv[i]?.ini ?? ''
       const fim = datasAtiv[i]?.fim ?? ''
@@ -532,8 +536,8 @@ export async function POST(request: NextRequest) {
       return [
         '<tr>',
         '<td style="text-align:justify">' + a.descricao + '</td>',
-        ini ? '<td style="text-align:center">' + ini + '</td>' : '<td style="text-align:center"><input type="date" id="ini_' + i + '" style="' + stInp + '"></td>',
-        fim ? '<td style="text-align:center">' + fim + '</td>' : '<td style="text-align:center"><input type="date" id="fim_' + i + '" style="' + stInp + '"></td>',
+        ini ? '<td style="text-align:center">' + fmtDataBR(ini) + '</td>' : '<td style="text-align:center"><input type="date" id="ini_' + i + '" style="' + stInp + '"></td>',
+        fim ? '<td style="text-align:center">' + fmtDataBR(fim) + '</td>' : '<td style="text-align:center"><input type="date" id="fim_' + i + '" style="' + stInp + '"></td>',
         '</tr>'
       ].join('')
     }).join('')
@@ -552,7 +556,6 @@ export async function POST(request: NextRequest) {
       '<td>' + doc + '</td>',
       '<td><select style="' + stSel + '"><option value="">—</option><option' + (sit==="Entregue"?" selected":"") + '>Entregue</option><option' + (sit==="Pendente"?" selected":"") + '>Pendente</option><option' + (sit==="Desnecessário"?" selected":"") + '>Desnecessário</option></select></td>',
       '<td><select style="' + stSel + '"><option value="">—</option><option' + (res==="Conforme"?" selected":"") + '>Conforme</option><option' + (res==="Não conforme"?" selected":"") + '>Não conforme</option><option' + (res==="Não se aplica"?" selected":"") + '>Não se aplica</option></select></td>',
-      '<td style="text-align:center"><button onclick="remDoc(this)" style="background:#DC2626;color:#fff;border:none;border-radius:4px;padding:2px 8px;cursor:pointer;font-size:8pt">✕</button></td>',
       '</tr>'
     ].join('')
     }).join('')
@@ -584,20 +587,28 @@ export async function POST(request: NextRequest) {
     partes.push('<div id="msgBanner" style="display:none;position:fixed;top:16px;left:50%;transform:translateX(-50%);background:#1E3A8A;color:#fff;padding:10px 24px;border-radius:8px;font-size:10pt;font-family:Arial;z-index:999;box-shadow:0 4px 12px rgba(0,0,0,0.3)"></div>')
     partes.push('<div class="cab">' + (insp.cabecalho_documentos || plano.titulo) + '</div>')
     partes.push('<p style="text-align:right;margin:0;line-height:1">' + municipio + ', ' + dataHoje + '</p>')
-    partes.push('<p style="font-size:11pt;font-weight:bold;margin:6pt 0">' + plano.titulo + '</p>')
-    partes.push('<table style="width:600px"><tr><td style="border:none;padding:0"><strong>Estabelecimento:</strong> ' + est.razao_social_nome + '</td><td style="border:none;padding:0;text-align:right"><strong>CNPJ/CPF:</strong> ' + fmtCNPJ(cnpjoucpf) + '</td></tr></table>')
-    partes.push('<p><strong>Endereço:</strong> ' + endereco + '</p>')
+    partes.push('<p>&nbsp;</p>')
+    partes.push('<p>&nbsp;</p>')
+    partes.push('<p style="text-align:center;font-size:11pt;font-weight:bold;margin:0;line-height:1">' + plano.titulo + '</p>')
+    partes.push('<p>&nbsp;</p>')
+    partes.push('<p>&nbsp;</p>')
+    partes.push('<p>&nbsp;</p>')
+    partes.push('<table style="width:640px"><tr><td style="border:none;padding:0"><strong>Estabelecimento:</strong> ' + est.razao_social_nome + '</td><td style="border:none;padding:0;text-align:right"><strong>CNPJ/CPF:</strong> ' + fmtCNPJ(cnpjoucpf) + '</td></tr></table>')
+    partes.push('<p style="margin:0;line-height:1"><strong>Endereço:</strong> ' + endereco + '</p>')
+    partes.push('<p>&nbsp;</p>')
+    partes.push('<p>&nbsp;</p>')
+    partes.push('<p>&nbsp;</p>')
     partes.push('<h2 style="font-size:10pt;font-weight:bold">1.1.- Ativos a Vistoriar</h2>')
-    partes.push('<table style="width:600px"><thead><tr><th style="width:30px">#</th><th style="width:80px">Tipo</th><th style="width:70px">TAG/Série</th><th style="width:140px">Responsável</th><th style="width:90px">Função</th><th style="width:100px">WhatsApp</th><th style="width:90px">Uso</th></tr></thead>')
+    partes.push('<table style="width:640px"><thead><tr><th style="width:30px">#</th><th style="width:80px">Tipo</th><th style="width:70px">TAG/Série</th><th style="width:130px">Responsável</th><th style="width:80px">Função</th><th style="width:140px">WhatsApp</th><th style="width:110px">Uso</th></tr></thead>')
     partes.push('<tbody>' + linhasAtivos + '</tbody></table>')
-    partes.push('<h2 style="font-size:10pt;font-weight:bold">1.2.- Plano de Trabalho — ' + plano.parceiro + '</h2>')
-    partes.push('<div class="info">⚠️ Favor preencher as datas de início e fim de cada atividade.</div>')
-    partes.push('<table style="width:600px"><thead><tr><th style="width:400px">Atividades</th><th style="width:100px;text-align:center">Dt. Início</th><th style="width:100px;text-align:center">Dt. Fim</th></tr></thead>')
+    partes.push('<h2 style="font-size:10pt;font-weight:bold">1.2.- Agenda de Trabalho — ' + plano.parceiro + '</h2>')
+    partes.push('<table style="width:640px"><thead><tr><th style="width:370px">Atividades</th><th style="width:135px;text-align:center">Dt. Início</th><th style="width:135px;text-align:center">Dt. Fim</th></tr></thead>')
     partes.push('<tbody>' + linhasAtiv + '</tbody></table>')
     partes.push('<h2 style="font-size:10pt;font-weight:bold">1.3.- Relação de Documentos Solicitados</h2>')
-    partes.push('<div class="info">⚠️ Favor verificar e ajustar a relação de documentos.</div>')
-    partes.push('<table style="width:600px"><thead><tr><th style="width:330px">Documento</th><th style="width:108px">Situação</th><th style="width:108px">Resultado</th><th style="width:54px">Ação</th></tr></thead>')
+    partes.push('<table style="width:640px"><thead><tr><th style="width:380px">Documento</th><th style="width:130px">Situação</th><th style="width:130px">Resultado</th></tr></thead>')
     partes.push('<tbody id="tbDocs">' + linhasDocs + '</tbody></table>')
+    partes.push('<p>&nbsp;</p>')
+    partes.push('<p>&nbsp;</p>')
     partes.push('<p style="font-size:8pt;line-height:1;margin:0">[Assinatura digital]</p>')
     partes.push('<p style="line-height:1;margin:0"><strong>' + insp.nome_inspetor + '</strong></p>')
     partes.push('<p style="line-height:1;margin:0">' + tituloLimpo(insp.titulo_profissional) + ' — ' + siglaConselho + ' ' + numLimpo(insp.inscricao_crea_cau) + '</p>')
