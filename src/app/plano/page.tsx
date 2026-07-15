@@ -336,7 +336,7 @@ function PlanoInner() {
     <div style={S.body}>
       <div style={S.page}>
         <HeaderBar titulo={titulo}
-          subtitulo={etapa === 'ativo' ? 'Cadastrar ativos a vistoriar' : etapa === 'lista' ? 'Ativos cadastrados' : 'Revisar e salvar plano de trabalho'} />
+          subtitulo={etapa === 'ativo' ? 'Cadastrar ativos a vistoriar' : etapa === 'lista' ? 'Ativos cadastrados' : 'Construir e salvar plano de trabalho'} />
         <div style={S.divider} />
         <div style={S.formBody}>
 
