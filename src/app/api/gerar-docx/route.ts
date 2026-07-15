@@ -41,14 +41,14 @@ function montarFooterXml(rodape: string, larguraUtilTwips: number): string {
     </w:tblGrid>
     <w:tr>
       <w:tc>
-        <w:tcPr><w:tcW w:w="${larguraCol1}" w:type="dxa"/><w:tcBorders><w:top w:val="nil"/></w:tcBorders></w:tcPr>
+        <w:tcPr><w:tcW w:w="${larguraCol1}" w:type="dxa"/></w:tcPr>
         <w:p>
           <w:pPr><w:jc w:val="center"/><w:spacing w:before="60" w:after="0" w:lineRule="auto"/></w:pPr>
           <w:r><w:rPr><w:sz w:val="20"/></w:rPr><w:t xml:space="preserve">${textoEscapado}</w:t></w:r>
         </w:p>
       </w:tc>
       <w:tc>
-        <w:tcPr><w:tcW w:w="${larguraCol2}" w:type="dxa"/><w:tcBorders><w:top w:val="nil"/></w:tcBorders></w:tcPr>
+        <w:tcPr><w:tcW w:w="${larguraCol2}" w:type="dxa"/></w:tcPr>
         <w:p>
           <w:pPr><w:jc w:val="right"/><w:spacing w:before="60" w:after="0" w:lineRule="auto"/></w:pPr>
           <w:r><w:rPr><w:sz w:val="20"/></w:rPr><w:t xml:space="preserve">Pág. </w:t></w:r>
