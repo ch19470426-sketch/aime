@@ -204,7 +204,11 @@ function HomologarProdutoInner() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ html: htmlSemPadding, cabecalho, rodape })
       })
-      if (!res.ok) throw new Error('Falha ao gerar o documento Word')
+      if (!res.ok) {
+        let detalhe = ''
+        try { detalhe = (await res.json())?.erro ?? '' } catch { /* resposta sem JSON */ }
+        throw new Error(`Falha ao gerar o documento Word (${res.status}). ${detalhe}`)
+      }
       const blob = await res.blob()
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
@@ -212,8 +216,9 @@ function HomologarProdutoInner() {
       a.download = nomeAmigavel('docx')
       a.click()
       URL.revokeObjectURL(url)
-    } catch {
-      informa('Erro', 'Não foi possível gerar o documento editável. Tente novamente.')
+    } catch (erro) {
+      console.error('Erro ao gerar documento Word:', erro)
+      informa('Erro', erro instanceof Error ? erro.message : 'Não foi possível gerar o documento editável. Tente novamente.')
     } finally {
       setGerandoDocx(false)
     }
