@@ -84,7 +84,7 @@ export default function LoginPage() {
           <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
             <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
               <label style={{ fontSize: "14px", fontWeight: "500", color: "#374151" }}>CPF</label>
-              <input type="text" required value={cpf} onChange={(e) => setCpf(formatarCPF(e.target.value))} placeholder="000.000.000-00" inputMode="numeric"
+              <input type="text" required value={cpf} onChange={(e) => setCpf(formatarCPF(e.target.value))} placeholder="000.000.000-00" inputMode="numeric" autoComplete="off" name="cpf-inspetor"
                 style={{ border: "1px solid #D1D5DB", borderRadius: "8px", padding: "10px 12px", fontSize: "14px", outline: "none" }} />
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
