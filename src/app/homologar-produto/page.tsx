@@ -46,6 +46,8 @@ function HomologarProdutoInner() {
   const tipoServico    = params.get('tipo_servico')    ?? ''
   const nomeArquivo    = params.get('nome_arquivo')    ?? ''
   const titulo         = params.get('titulo')          ?? 'Documento'
+  // URL para onde voltar ao terminar (ou desistir). Se não informado, vai para o dashboard.
+  const retorno        = params.get('retorno')          ?? '/dashboard'
 
   const { bannerProps, informa, agradece } = useBanner()
 
@@ -272,7 +274,7 @@ function HomologarProdutoInner() {
       setEnviando(false)
       agradece('Homologação concluída',
         'O documento foi guardado com sucesso em Documentos inspetor.',
-        () => window.location.href = '/dashboard'
+        () => window.location.href = retorno
       )
     } catch (erro) {
       console.error('Erro ao enviar PDF assinado:', erro)
@@ -298,7 +300,7 @@ function HomologarProdutoInner() {
           Não foi possível localizar o documento a ser homologado.
         </p>
         <div style={S.footer}>
-          <button style={{ ...S.btn, ...S.btnPri, gridColumn: '1 / -1' }} onClick={() => window.location.href = '/dashboard'}>
+          <button style={{ ...S.btn, ...S.btnPri, gridColumn: '1 / -1' }} onClick={() => window.location.href = retorno}>
             Voltar ao Dashboard
           </button>
         </div>
@@ -325,7 +327,7 @@ function HomologarProdutoInner() {
           onChange={onArquivoPdfEscolhido} />
 
         <div style={{ ...S.footer, gridTemplateColumns: '1fr 1fr 1fr' }}>
-          <button style={{ ...S.btn, ...S.btnSec }} onClick={() => window.location.href = '/dashboard'}>
+          <button style={{ ...S.btn, ...S.btnSec }} onClick={() => window.location.href = retorno}>
             Voltar
           </button>
           <button style={{ ...S.btn, ...S.btnSec, opacity: gerandoDocx ? 0.6 : 1 }} onClick={baixarEditavel} disabled={gerandoDocx}>
