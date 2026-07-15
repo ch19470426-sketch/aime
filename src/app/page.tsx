@@ -34,7 +34,7 @@ export default function LoginPage() {
     setLoading(true)
     try {
       const supabase = createClient(SUPA_URL, SUPA_KEY)
-      const emailTecnico = `${cpfLimpo}@aime.internal`
+      const emailTecnico = `${cpfLimpo}@aime-app.com.br`
 
       // Verifica se já existe cadastro de inspetor para este CPF
       const res = await fetch(`${SUPA_URL}/rest/v1/inspetor?cpf_inspetor=eq.${cpfLimpo}&select=cpf_inspetor`, {
@@ -48,6 +48,7 @@ export default function LoginPage() {
         const { error } = await supabase.auth.signInWithPassword({ email: emailTecnico, password })
         setLoading(false)
         if (error) {
+          console.error("Erro signIn Supabase:", error)
           setErro("CPF ou senha incorretos.")
           return
         }
@@ -57,7 +58,8 @@ export default function LoginPage() {
         const { error } = await supabase.auth.signUp({ email: emailTecnico, password })
         setLoading(false)
         if (error) {
-          setErro(error.message.includes("Password") ? "A senha deve ter pelo menos 6 caracteres." : "Não foi possível criar sua conta. Tente novamente.")
+          console.error("Erro signUp Supabase:", error)
+          setErro(error.message.includes("Password") ? "A senha deve ter pelo menos 6 caracteres." : `Não foi possível criar sua conta: ${error.message}`)
           return
         }
         router.push(`/inspetor?cpf=${cpfLimpo}&novo=1`)
