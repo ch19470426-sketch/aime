@@ -394,7 +394,7 @@ ${(insp.cabecalho_documentos || TITULO_TIPO[tipoServico]) ? `<div class="cab">${
 <p style="text-align:center;margin:0;line-height:1"><i>"Segurança e valorização do imóvel é resultado da adequada manutenção</i></p>
 <p style="text-align:center;margin:0;line-height:1"><i>e customização dos ambientes na busca de maior conforto e modernidade".</i></p>
 
-<p style="text-align:justify;margin:6pt 0">O serviço será executado para o(a) <b>${razaoSocial}</b>, localizado no <b>${endereco}</b>.</p>
+<p style="text-align:justify;margin:6pt 0">O serviço será executado para o(a) <b>${razaoSocial}</b>, localizado na(o) <b>${endereco}</b>.</p>
 
 <h2 style="font-size:10pt;font-weight:bold">1.- Objetivo.</h2>
 ${md2html(cp.objetivo)}
