@@ -225,10 +225,19 @@ function HomologarProdutoInner() {
     if (!arquivo) return
     setEnviando(true)
     try {
+      if (arquivo.size > 4 * 1024 * 1024) {
+        throw new Error(`Arquivo muito grande (${(arquivo.size / 1024 / 1024).toFixed(1)}MB). O limite é 4MB.`)
+      }
+
       const base64 = await new Promise<string>((resolve, reject) => {
         const reader = new FileReader()
-        reader.onload = () => resolve((reader.result as string).split(',')[1])
-        reader.onerror = reject
+        reader.onload = () => {
+          const resultado = reader.result as string
+          const partes = resultado.split(',')
+          if (partes.length < 2) { reject(new Error('Não foi possível ler o arquivo selecionado.')); return }
+          resolve(partes[1])
+        }
+        reader.onerror = () => reject(new Error('Erro ao ler o arquivo selecionado.'))
         reader.readAsDataURL(arquivo)
       })
 
@@ -238,7 +247,11 @@ function HomologarProdutoInner() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ nomeArquivo: nomePdf, base64 })
       })
-      if (!res.ok) throw new Error('Falha ao enviar o PDF')
+      if (!res.ok) {
+        let detalhe = ''
+        try { detalhe = (await res.json())?.erro ?? '' } catch { /* resposta sem JSON */ }
+        throw new Error(`Falha ao enviar o PDF (${res.status}). ${detalhe}`)
+      }
 
       // Item (h): grupo 4x — soma 1 em qtd_servicos_exec e ajusta saldo do contrato
       if (grupo4x && cpfInspetor) {
@@ -256,9 +269,10 @@ function HomologarProdutoInner() {
         'O documento foi guardado com sucesso em Documentos inspetor.',
         () => window.location.href = '/dashboard'
       )
-    } catch {
+    } catch (erro) {
+      console.error('Erro ao enviar PDF assinado:', erro)
       setEnviando(false)
-      informa('Erro', 'Não foi possível enviar o PDF. Tente novamente.')
+      informa('Erro', erro instanceof Error ? erro.message : 'Não foi possível enviar o PDF. Tente novamente.')
     }
   }
 
@@ -301,7 +315,8 @@ function HomologarProdutoInner() {
           </div>
         </div>
 
-        <input ref={inputPdfRef} type="file" accept="application/pdf" style={{ display: 'none' }}
+        <input ref={inputPdfRef} type="file" accept="application/pdf"
+          style={{ position: 'absolute', width: 1, height: 1, opacity: 0, overflow: 'hidden', pointerEvents: 'none' }}
           onChange={onArquivoPdfEscolhido} />
 
         <div style={{ ...S.footer, gridTemplateColumns: '1fr 1fr 1fr' }}>
