@@ -119,7 +119,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ erro: 'html é obrigatório' }, { status: 400 })
     }
 
-    const headerHTML = cabecalho ? `<p style="text-align:center;font-size:12pt;font-weight:bold">${cabecalho}</p>` : undefined
+    // Escapa < > & do cabeçalho antes de embutir no HTML — sem isso, um texto
+    // livre digitado pelo inspetor (ex: algo como "<email@dominio>") pode ser
+    // interpretado como uma tag inválida pelo analisador de HTML da biblioteca,
+    // derrubando a geração do documento.
+    const cabecalhoEscapado = (cabecalho ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    const headerHTML = cabecalho ? `<p style="text-align:center;font-size:12pt;font-weight:bold">${cabecalhoEscapado}</p>` : undefined
     // O rodapé (texto + numeração) é montado à parte, direto em XML — ver montarFooterXml.
     const footerHTML = '<p></p>'
 
