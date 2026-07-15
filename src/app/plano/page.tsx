@@ -322,7 +322,7 @@ function PlanoInner() {
       const data = await res.json()
       if (data.sucesso) {
         agradece('Plano de Trabalho salvo',
-          'O plano foi salvo em "Documentos inspetor". A homologação (assinatura e guarda do PDF) será feita mais adiante, no módulo de Homologar Documentos e Vistoria, após a confirmação da relação de documentos.',
+          'O plano foi salvo em "Documentos inspetor". O Plano de Trabalho deverá ser homologado ao final da homologação da vistoria, quando as colunas Situação e Resultado estiverem registrados no bloco 1.3.- Relação de Documentos Solicitados.',
           () => window.location.href = '/dashboard'
         )
       } else {
