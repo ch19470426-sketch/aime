@@ -132,26 +132,36 @@ export async function POST(request: NextRequest) {
     const margemDireita = Math.round(2 * CM)
     const larguraUtilTwips = 12240 - margemEsquerda - margemDireita // Letter, em twips
 
-    const bufferBruto = await HTMLtoDOCX(html, headerHTML, {
-      table: { row: { cantSplit: true } },
-      header: !!headerHTML,
-      footer: true,
-      pageNumber: false,
-      font: 'Calibri Light',
-      fontSize: 22, // 22 HIP = 11pt
-      lang: 'pt-BR',
-      margins: {
-        top: Math.round(2.5 * CM),
-        bottom: Math.round(2 * CM),
-        left: margemEsquerda,
-        right: margemDireita,
-        header: Math.round(1.2 * CM),
-        footer: Math.round(1.2 * CM),
-        gutter: 0,
-      },
-    }, footerHTML)
+    let bufferBruto
+    try {
+      bufferBruto = await HTMLtoDOCX(html, headerHTML, {
+        table: { row: { cantSplit: true } },
+        header: !!headerHTML,
+        footer: true,
+        pageNumber: false,
+        font: 'Calibri Light',
+        fontSize: 22, // 22 HIP = 11pt
+        lang: 'pt-BR',
+        margins: {
+          top: Math.round(2.5 * CM),
+          bottom: Math.round(2 * CM),
+          left: margemEsquerda,
+          right: margemDireita,
+          header: Math.round(1.2 * CM),
+          footer: Math.round(1.2 * CM),
+          gutter: 0,
+        },
+      }, footerHTML)
+    } catch (errGeracao) {
+      return NextResponse.json({ erro: `[etapa: geracao-inicial] ${String(errGeracao)}` }, { status: 500 })
+    }
 
-    const bufferCorrigido = await corrigirDocx(bufferBruto as Buffer, rodape ?? '', larguraUtilTwips)
+    let bufferCorrigido
+    try {
+      bufferCorrigido = await corrigirDocx(bufferBruto as Buffer, rodape ?? '', larguraUtilTwips)
+    } catch (errCorrecao) {
+      return NextResponse.json({ erro: `[etapa: pos-processamento] ${String(errCorrecao)}` }, { status: 500 })
+    }
 
     // Cópia explícita do buffer: Buffer do Node pode referenciar um bloco de
     // memória maior (pool) do que o conteúdo real — sem copiar, o arquivo
