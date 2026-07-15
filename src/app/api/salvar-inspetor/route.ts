@@ -49,16 +49,25 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ ok: true, chave: existente.chave_inspetor })
     }
 
-    // Novo cadastro: gera a chave sequencial
-    const chaveRes = await fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL ? '' : ''}${request.nextUrl.origin}/api/gerar-chave-inspetor`, { method: 'POST' })
-    const chaveData = await chaveRes.json()
-    if (!chaveRes.ok || !chaveData.chave) {
-      return NextResponse.json({ erro: 'Não foi possível gerar a chave do inspetor' }, { status: 500 })
+    // Novo cadastro: gera a chave sequencial (direto, sem chamar outra rota via HTTP —
+    // fazer uma rota chamar a outra por fetch pode travar/pendurar na Vercel)
+    const { data: ultimo } = await supabase
+      .from('inspetor')
+      .select('chave_inspetor')
+      .not('chave_inspetor', 'is', null)
+      .order('chave_inspetor', { ascending: false })
+      .limit(1)
+
+    let proximoNumero = 1
+    if (ultimo && ultimo.length > 0 && ultimo[0].chave_inspetor) {
+      const match = String(ultimo[0].chave_inspetor).match(/(\d+)$/)
+      if (match) proximoNumero = parseInt(match[1], 10) + 1
     }
+    const chave = 'INS-' + String(proximoNumero).padStart(3, '0')
 
     const { error: errInsert } = await supabase.from('inspetor').insert({
       cpf_inspetor: cpf,
-      chave_inspetor: chaveData.chave,
+      chave_inspetor: chave,
       situacao_aplicativo: 'Ativo',
       qtd_servicos_exec: 0,
       data_cadastro: new Date().toISOString().slice(0, 10),
@@ -66,7 +75,7 @@ export async function POST(request: NextRequest) {
     })
     if (errInsert) return NextResponse.json({ erro: errInsert.message }, { status: 500 })
 
-    return NextResponse.json({ ok: true, chave: chaveData.chave })
+    return NextResponse.json({ ok: true, chave })
   } catch (err) {
     return NextResponse.json({ erro: String(err) }, { status: 500 })
   }
