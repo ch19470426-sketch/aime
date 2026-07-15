@@ -83,6 +83,12 @@ async function corrigirDocx(buffer: Buffer, rodape: string, larguraUtilTwips: nu
       // "colados", como destinatário, assinatura e lema), forçamos também before/after
       // zero direto no XML, senão o espaçamento padrão do Word aparece mesmo assim.
       docXml = docXml.replace(/<w:spacing w:line="240" w:lineRule="auto"\/>/g, '<w:spacing w:before="0" w:after="0" w:line="240" w:lineRule="auto"/>')
+      // Exceção: a última linha do "lema" (frase em itálico) precisa de 6pt de
+      // espaço depois, separando do parágrafo seguinte — não fica em zero como o resto.
+      docXml = docXml.replace(
+        /(<w:jc w:val="center"\/>\s*<w:spacing w:before="0" w:after=")0(" w:line="240" w:lineRule="auto"\/>\s*<\/w:pPr>\s*<w:r>\s*<w:rPr>\s*<w:i\/>\s*<\/w:rPr>\s*<w:t[^>]*>e customização)/,
+        '$1120$2'
+      )
       conteudo = Buffer.from(docXml, 'utf-8')
     }
 
