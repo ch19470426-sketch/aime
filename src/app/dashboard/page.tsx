@@ -8,17 +8,15 @@
 
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Banner from "@/components/Banner"
 import { useBanner } from "@/hooks/useBanner"
 import { useRouter } from "next/navigation"
 import Image from "next/image"
 import { createClient } from "@/utils/supabase/client"
 
-// TODO: buscar cpf_inspetor e titulo_profissional do perfil logado via Supabase auth
-const cpfInspetor   = "12345678900"
-const chaveInspetor = "INS-001"
-const titulo        = "Eng Civil"
+const SUPA_URL = 'https://asgorarunzhiojqioxzq.supabase.co'
+const SUPA_KEY = 'sb_publishable_dH85HYKGxv3X0te627VfOw_OGaPoNMF'
 
 const permissoes: Record<string, number[]> = {
   "Arquiteto":          [11,12,13,19,21,22,23,29,31,32,33,40,41,42,43,49,61,62,99],
@@ -196,6 +194,43 @@ export default function Dashboard() {
   const [estadoDoc, setEstadoDoc] = useState<"aguardando" | "verificando" | "nao_cadastrado" | "erro">("aguardando")
   const [msgErro, setMsgErro] = useState("")
 
+  // Sessão do inspetor logado (autenticação real via Supabase Auth, identidade por CPF)
+  const [carregandoSessao, setCarregandoSessao] = useState(true)
+  const [cpfInspetor, setCpfInspetor] = useState("")
+  const [chaveInspetor, setChaveInspetor] = useState("")
+  const [titulo, setTitulo] = useState("")
+
+  useEffect(() => {
+    async function carregarSessao() {
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user || !user.email) {
+        window.location.href = "/"
+        return
+      }
+      const cpf = user.email.split("@")[0]
+      try {
+        const res = await fetch(`${SUPA_URL}/rest/v1/inspetor?cpf_inspetor=eq.${cpf}&select=cpf_inspetor,chave_inspetor,titulo_profissional`, {
+          headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` }
+        })
+        const dados = await res.json()
+        if (!Array.isArray(dados) || dados.length === 0) {
+          // Login existe mas cadastro do inspetor não foi completado
+          window.location.href = `/inspetor?cpf=${cpf}&novo=1`
+          return
+        }
+        setCpfInspetor(dados[0].cpf_inspetor)
+        setChaveInspetor(dados[0].chave_inspetor ?? "")
+        setTitulo(dados[0].titulo_profissional ?? "")
+      } catch {
+        window.location.href = "/"
+        return
+      }
+      setCarregandoSessao(false)
+    }
+    carregarSessao()
+  }, [])
+
   const permitidos = permissoes[titulo] || []
   const itemSelecionado = menuGrupos.flatMap((g) => g.itens).find((i) => i.codigo === tipoServico)
   const ehVistoria = tipoServico !== null && CODIGOS_VISTORIA.includes(Number(tipoServico))
@@ -227,7 +262,10 @@ export default function Dashboard() {
 
   function handleSelecionar(codigo: number) {
     if (!permitidos.includes(codigo)) return
-    if (codigo === 99) { window.location.href = "/"; return }
+    if (codigo === 99) {
+      createClient().auth.signOut().then(() => { window.location.href = "/" })
+      return
+    }
     setTipoServico(codigo)
     setDocumento("")
     setEstadoDoc("aguardando")
@@ -264,6 +302,14 @@ export default function Dashboard() {
     }
     const url = `/vistoria/tela${tipoServico}?cpf_inspetor=${cpfInspetor}&chave_inspetor=${chaveInspetor}&cnpjoucpf=${docLimpo}&tipo_servico=${tipoServico}`
     window.location.href = url
+  }
+
+  if (carregandoSessao) {
+    return (
+      <div style={{ backgroundColor: "#E8EEF7", minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <p style={{ color: "#4a6480", fontSize: "14px" }}>Carregando...</p>
+      </div>
+    )
   }
 
   return (
