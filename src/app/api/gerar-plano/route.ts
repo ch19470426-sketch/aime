@@ -592,7 +592,6 @@ export async function POST(request: NextRequest) {
     partes.push('<p style="text-align:center;font-size:11pt;font-weight:bold;margin:0;line-height:1">' + plano.titulo + '</p>')
     partes.push('<p>&nbsp;</p>')
     partes.push('<p>&nbsp;</p>')
-    partes.push('<p>&nbsp;</p>')
     partes.push('<table style="width:640px"><tr><td style="border:none;padding:0"><strong>Estabelecimento:</strong> ' + est.razao_social_nome + '</td><td style="border:none;padding:0;text-align:right"><strong>CNPJ/CPF:</strong> ' + fmtCNPJ(cnpjoucpf) + '</td></tr><tr><td colspan="2" style="border:none;padding:0"><strong>Endereço:</strong> ' + endereco + '</td></tr></table>')
     partes.push('<p>&nbsp;</p>')
     partes.push('<p>&nbsp;</p>')
