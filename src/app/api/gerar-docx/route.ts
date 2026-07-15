@@ -78,6 +78,11 @@ async function corrigirDocx(buffer: Buffer, rodape: string, larguraUtilTwips: nu
       // A biblioteca ignora "text-align" em itens de lista (<li>) — força
       // justificado em todo parágrafo com numeração (marcador/número de lista).
       docXml = docXml.replace(/<w:pPr>(\s*<w:numPr>)/g, '<w:pPr><w:jc w:val="both"/>$1')
+      // A biblioteca ignora "margin"/"margin-top"/"margin-bottom" do CSS por completo —
+      // só line-height é respeitado. Onde usamos line-height:1 (blocos que devem ficar
+      // "colados", como destinatário, assinatura e lema), forçamos também before/after
+      // zero direto no XML, senão o espaçamento padrão do Word aparece mesmo assim.
+      docXml = docXml.replace(/<w:spacing w:line="240" w:lineRule="auto"\/>/g, '<w:spacing w:before="0" w:after="0" w:line="240" w:lineRule="auto"/>')
       conteudo = Buffer.from(docXml, 'utf-8')
     }
 
