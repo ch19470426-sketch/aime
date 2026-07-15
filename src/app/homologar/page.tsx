@@ -134,8 +134,6 @@ function Tela40Inner() {
   const chaveInspetor = params.get('chave_inspetor') ?? 'INS-001'
   const cpfInspetor   = params.get('cpf_inspetor')   ?? ''
   const cnpjoucpf     = params.get('cnpjoucpf')      ?? ''
-  // Indica que já voltamos do módulo 2.10 (Plano já homologado) — evita reenviar para lá de novo
-  const planoHomologado = params.get('planoHomologado') === '1'
 
   const { bannerProps, informa, orienta, agradece, solicita, fechar } = useBanner()
 
@@ -390,10 +388,9 @@ function Tela40Inner() {
       return
     }
     // Grava no plano de trabalho o bloco de documentos preenchido pelo inspetor, substituindo o existente
-    let nomeArqPlano = ''
     if (planoEncontrado) {
       try {
-        nomeArqPlano = `${chaveInspetor}_plano_${planoTipoServico}_${cnpjoucpf}.html`
+        const nomeArqPlano = `${chaveInspetor}_plano_${planoTipoServico}_${cnpjoucpf}.html`
         const docRes = await fetch(`/api/ler-documento?nome=${encodeURIComponent(nomeArqPlano)}&pasta=documentos_inspetor`)
         const docData = await docRes.json()
         if (docData.existe) {
@@ -407,18 +404,6 @@ function Tela40Inner() {
       } catch (e) {
         console.error('Erro ao atualizar documentos do plano:', e)
       }
-    }
-
-    // A homologação da vistoria só continua depois que o Plano de Trabalho, já
-    // complementado com a tabela de documentos, for homologado no módulo 2.10.
-    if (planoEncontrado && !planoHomologado) {
-      const urlAtual = `/homologar?cpf_inspetor=${cpfInspetor}&chave_inspetor=${chaveInspetor}&cnpjoucpf=${cnpjoucpf}&planoHomologado=1`
-      const urlHomologar2_10 =
-        `/homologar-produto?cpf_inspetor=${cpfInspetor}&chave_inspetor=${chaveInspetor}&cnpjoucpf=${cnpjoucpf}` +
-        `&tipo_servico=${planoTipoServico}&nome_arquivo=${encodeURIComponent(nomeArqPlano)}` +
-        `&titulo=${encodeURIComponent('Plano de Trabalho')}&retorno=${encodeURIComponent(urlAtual)}`
-      window.location.href = urlHomologar2_10
-      return
     }
 
     setEtapa('form')
@@ -569,8 +554,8 @@ function Tela40Inner() {
       
       if (novaLista.length === 0) {
         agradece('Homologação concluída!',
-          'Todos os registros foram revisados e homologados com sucesso.',
-          () => window.location.href = '/dashboard'
+          'Todos os registros foram revisados e homologados com sucesso. A seguir, vamos homologar o Plano de Trabalho.',
+          irParaHomologarPlano
         )
         return
       }
@@ -583,6 +568,21 @@ function Tela40Inner() {
     } finally {
       setSalvando(false)
     }
+  }
+
+  // Ao final de todo o processo do módulo 40 (todos os registros homologados/descartados),
+  // segue para o módulo 2.10 e homologa o Plano de Trabalho (já com a tabela de documentos
+  // confirmada). Se não havia plano encontrado, vai direto para o dashboard.
+  function irParaHomologarPlano() {
+    if (!planoEncontrado) {
+      window.location.href = '/dashboard'
+      return
+    }
+    const nomeArqPlano = `${chaveInspetor}_plano_${planoTipoServico}_${cnpjoucpf}.html`
+    window.location.href =
+      `/homologar-produto?cpf_inspetor=${cpfInspetor}&chave_inspetor=${chaveInspetor}&cnpjoucpf=${cnpjoucpf}` +
+      `&tipo_servico=${planoTipoServico}&nome_arquivo=${encodeURIComponent(nomeArqPlano)}` +
+      `&titulo=${encodeURIComponent('Plano de Trabalho')}`
   }
 
   async function voltarAnterior() {
@@ -601,7 +601,7 @@ function Tela40Inner() {
             await fetch(`/api/vistorias?nome=${form?.nome}`, { method: 'DELETE' })
             const novaLista = formularios.filter((_, i) => i !== indice)
             if (novaLista.length === 0) {
-              agradece('Pronto', 'Todos os registros foram processados.', () => window.location.href = '/dashboard')
+              agradece('Pronto', 'Todos os registros foram processados. A seguir, vamos homologar o Plano de Trabalho.', irParaHomologarPlano)
             } else {
               const novoIdx = Math.min(indice, novaLista.length - 1)
               setFormularios(novaLista)
