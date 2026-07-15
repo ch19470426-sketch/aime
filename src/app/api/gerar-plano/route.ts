@@ -532,8 +532,8 @@ export async function POST(request: NextRequest) {
       return [
         '<tr>',
         '<td style="text-align:justify">' + a.descricao + '</td>',
-        ini ? '<td>' + ini + '</td>' : '<td><input type="date" id="ini_' + i + '" style="' + stInp + '"></td>',
-        fim ? '<td>' + fim + '</td>' : '<td><input type="date" id="fim_' + i + '" style="' + stInp + '"></td>',
+        ini ? '<td style="text-align:center">' + ini + '</td>' : '<td style="text-align:center"><input type="date" id="ini_' + i + '" style="' + stInp + '"></td>',
+        fim ? '<td style="text-align:center">' + fim + '</td>' : '<td style="text-align:center"><input type="date" id="fim_' + i + '" style="' + stInp + '"></td>',
         '</tr>'
       ].join('')
     }).join('')
@@ -583,22 +583,21 @@ export async function POST(request: NextRequest) {
     partes.push('</head><body>')
     partes.push('<div id="msgBanner" style="display:none;position:fixed;top:16px;left:50%;transform:translateX(-50%);background:#1E3A8A;color:#fff;padding:10px 24px;border-radius:8px;font-size:10pt;font-family:Arial;z-index:999;box-shadow:0 4px 12px rgba(0,0,0,0.3)"></div>')
     partes.push('<div class="cab">' + (insp.cabecalho_documentos || plano.titulo) + '</div>')
-    partes.push('<h1>' + plano.titulo + '</h1>')
-    partes.push('<p style="text-align:center;color:#374151;margin-bottom:10pt">' + municipio + ', ' + dataHoje + '</p>')
-    partes.push('<div class="row"><span><strong>Estabelecimento:</strong> ' + est.razao_social_nome + '</span><span><strong>CNPJ/CPF:</strong> ' + fmtCNPJ(cnpjoucpf) + '</span></div>')
+    partes.push('<p style="text-align:right;margin:0;line-height:1">' + municipio + ', ' + dataHoje + '</p>')
+    partes.push('<p style="font-size:11pt;font-weight:bold;margin:6pt 0">' + plano.titulo + '</p>')
+    partes.push('<table style="width:600px"><tr><td style="border:none;padding:0"><strong>Estabelecimento:</strong> ' + est.razao_social_nome + '</td><td style="border:none;padding:0;text-align:right"><strong>CNPJ/CPF:</strong> ' + fmtCNPJ(cnpjoucpf) + '</td></tr></table>')
     partes.push('<p><strong>Endereço:</strong> ' + endereco + '</p>')
     partes.push('<h2 style="font-size:10pt;font-weight:bold">1.1.- Ativos a Vistoriar</h2>')
-    partes.push('<table><thead><tr><th>#</th><th>Tipo</th><th>TAG/Série</th><th>Responsável</th><th>Função</th><th>WhatsApp</th><th>Uso</th></tr></thead>')
+    partes.push('<table style="width:600px"><thead><tr><th style="width:30px">#</th><th style="width:80px">Tipo</th><th style="width:70px">TAG/Série</th><th style="width:140px">Responsável</th><th style="width:90px">Função</th><th style="width:100px">WhatsApp</th><th style="width:90px">Uso</th></tr></thead>')
     partes.push('<tbody>' + linhasAtivos + '</tbody></table>')
     partes.push('<h2 style="font-size:10pt;font-weight:bold">1.2.- Plano de Trabalho — ' + plano.parceiro + '</h2>')
     partes.push('<div class="info">⚠️ Favor preencher as datas de início e fim de cada atividade.</div>')
-    partes.push('<table><thead><tr><th style="width:360px">Atividades</th><th style="width:120px">Dt. Início</th><th style="width:120px">Dt. Fim</th></tr></thead>')
+    partes.push('<table style="width:600px"><thead><tr><th style="width:400px">Atividades</th><th style="width:100px;text-align:center">Dt. Início</th><th style="width:100px;text-align:center">Dt. Fim</th></tr></thead>')
     partes.push('<tbody>' + linhasAtiv + '</tbody></table>')
     partes.push('<h2 style="font-size:10pt;font-weight:bold">1.3.- Relação de Documentos Solicitados</h2>')
     partes.push('<div class="info">⚠️ Favor verificar e ajustar a relação de documentos.</div>')
-    partes.push('<table><thead><tr><th style="width:330px">Documento</th><th style="width:108px">Situação</th><th style="width:108px">Resultado</th><th style="width:54px">Ação</th></tr></thead>')
+    partes.push('<table style="width:600px"><thead><tr><th style="width:330px">Documento</th><th style="width:108px">Situação</th><th style="width:108px">Resultado</th><th style="width:54px">Ação</th></tr></thead>')
     partes.push('<tbody id="tbDocs">' + linhasDocs + '</tbody></table>')
-    partes.push('<button class="add" onclick="addDoc()">+ Adicionar documento</button>')
     partes.push('<p style="font-size:8pt;line-height:1;margin:0">[Assinatura digital]</p>')
     partes.push('<p style="line-height:1;margin:0"><strong>' + insp.nome_inspetor + '</strong></p>')
     partes.push('<p style="line-height:1;margin:0">' + tituloLimpo(insp.titulo_profissional) + ' — ' + siglaConselho + ' ' + numLimpo(insp.inscricao_crea_cau) + '</p>')
