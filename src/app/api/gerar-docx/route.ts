@@ -89,6 +89,12 @@ async function corrigirDocx(buffer: Buffer, rodape: string, larguraUtilTwips: nu
         /(<w:jc w:val="center"\/>\s*<w:spacing w:before="0" w:after=")0(" w:line="240" w:lineRule="auto"\/>\s*<\/w:pPr>\s*<w:r>\s*<w:rPr>\s*<w:i\/>\s*<\/w:rPr>\s*<w:t[^>]*>e customização)/,
         '$1120$2'
       )
+      // Reduz o espaçamento e a altura das linhas dentro de tabelas: dentro de cada
+      // célula (<w:tc>...</w:tc>), força before/after zero nos parágrafos que ainda
+      // usam o espaçamento padrão do Word (sem afetar o texto corrido fora de tabelas).
+      docXml = docXml.replace(/<w:tc>[\s\S]*?<\/w:tc>/g, (celula) =>
+        celula.replace(/<w:spacing w:lineRule="auto"\/>/g, '<w:spacing w:before="0" w:after="0" w:line="240" w:lineRule="auto"/>')
+      )
       conteudo = Buffer.from(docXml, 'utf-8')
     }
 
