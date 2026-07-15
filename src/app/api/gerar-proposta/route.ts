@@ -377,18 +377,22 @@ i { font-style: italic; }
 
 ${(insp.cabecalho_documentos || TITULO_TIPO[tipoServico]) ? `<div class="cab">${insp.cabecalho_documentos || TITULO_TIPO[tipoServico]}</div>` : ''}
 
-<p style="text-align:right;line-height:1;margin:2pt 0">${municipio}, ${dataHoje}</p>
-<p style="text-align:right;line-height:1;margin:96pt 0 2pt">${ao}</p>
-<p style="text-align:right;line-height:1;margin:2pt 0">${razaoSocial}</p>
-<p style="text-align:right;line-height:1;margin:2pt 0">${labelDoc} ${docFmt}</p>
-<p style="text-align:right;line-height:1;margin:2pt 0 96pt">${municipioUF}</p>
-
-<p style="margin:0 0 96pt;line-height:1"><b>${c.ref}</b></p>
-
+<p style="text-align:right;margin:0;line-height:1">${municipio}, ${dataHoje}</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p style="text-align:right;margin:0;line-height:1">${ao}</p>
+<p style="text-align:right;margin:0;line-height:1">${razaoSocial}</p>
+<p style="text-align:right;margin:0;line-height:1">${labelDoc} ${docFmt}</p>
+<p style="text-align:right;margin:0;line-height:1">${municipioUF}</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p style="margin:0;line-height:1"><b>${c.ref}</b></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
 <p style="text-align:justify;margin:6pt 0">${c.apresentacao.replace(/\*\*([^*]+)\*\*/g,'<b>$1</b>').replace(/\*([^*]+)\*/g,'<i>$1</i>').replace(/^#+\s*/gm,'').trim()}</p>
 
-<p style="text-align:center;margin:36pt 0 0;line-height:1"><i>"Segurança e valorização do imóvel é resultado da adequada manutenção</i></p>
-<p style="text-align:center;margin:0 0 36pt;line-height:1"><i>e customização dos ambientes na busca de maior conforto e modernidade".</i></p>
+<p style="text-align:center;margin:0;line-height:1"><i>"Segurança e valorização do imóvel é resultado da adequada manutenção</i></p>
+<p style="text-align:center;margin:0;line-height:1"><i>e customização dos ambientes na busca de maior conforto e modernidade".</i></p>
 
 <p style="text-align:justify;margin:6pt 0">O serviço será executado para o(a) <b>${razaoSocial}</b>, localizado no <b>${endereco}</b>.</p>
 
@@ -425,15 +429,14 @@ ${md2html(cp.rescisao)}
 
 <p style="text-align:justify;margin:6pt 0">Certos de que prestaremos à V.S. um serviço de alto padrão de qualidade, permanecemos à inteira disposição, para quaisquer esclarecimentos que se fizerem necessários.</p>
 <p style="text-align:justify;margin:6pt 0">Atenciosamente,</p>
-
-<div class="ass">
-<p style="text-align:justify;margin:6pt 0;line-height:1;font-size:8pt">[Assinatura digital]</p>
-<p style="text-align:justify;margin:6pt 0;line-height:1"><b>${insp.nome_inspetor}</b></p>
-<p style="text-align:justify;margin:6pt 0;line-height:1">${tituloLimpo(insp.titulo_profissional)} — ${conselho(insp.titulo_profissional)} ${numLimpo(insp.inscricao_crea_cau)}</p>
-${insp.especializacao ? `<p style="text-align:justify;margin:6pt 0;line-height:1">Especialista ${insp.especializacao}</p>` : ''}
-</div>
-
-<p style="margin-top:48pt;line-height:1">De acordo: _____________________ CPF: _______________ Data: ___/___/______</p>
+<p>&nbsp;</p>
+<p style="margin:0;line-height:1;font-size:8pt">[Assinatura digital]</p>
+<p style="margin:0;line-height:1"><b>${insp.nome_inspetor}</b></p>
+<p style="margin:0;line-height:1">${tituloLimpo(insp.titulo_profissional)} — ${conselho(insp.titulo_profissional)} ${numLimpo(insp.inscricao_crea_cau)}</p>
+${insp.especializacao ? `<p style="margin:0;line-height:1">Especialista ${insp.especializacao}</p>` : ''}
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p style="margin:0;line-height:1">De acordo: _____________________ CPF: _______________ Data: ___/___/______</p>
 <p style="text-align:justify;margin:6pt 0">Síndico/Preposto</p>
 
 ${`<div class="rod">${insp.rodape_documentos || 'Mapeamento Inteligente de Edificações e Equipamentos'}</div>`}
