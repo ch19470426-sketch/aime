@@ -1,9 +1,25 @@
 "use client"
 export const dynamic = 'force-dynamic'
-import { useState } from "react"
+import { useState, useEffect, Suspense } from "react"
+import { useSearchParams } from "next/navigation"
 import Image from "next/image"
 
-export default function CadastroInspetor() {
+const SUPA_URL = 'https://asgorarunzhiojqioxzq.supabase.co'
+const SUPA_KEY = 'sb_publishable_dH85HYKGxv3X0te627VfOw_OGaPoNMF'
+
+export default function CadastroInspetorPage() {
+  return (
+    <Suspense fallback={<div style={{backgroundColor:"#E8EEF7",minHeight:"100vh"}} />}>
+      <CadastroInspetor />
+    </Suspense>
+  )
+}
+
+function CadastroInspetor() {
+  const params = useSearchParams()
+  const cpfUrl = params.get('cpf') ?? ''
+  const ehNovo = params.get('novo') === '1'
+
   const [form, setForm] = useState({
     cpf: "",
     nome: "",
@@ -24,6 +40,8 @@ export default function CadastroInspetor() {
   })
   const [erro, setErro] = useState("")
   const [sucesso, setSucesso] = useState(false)
+  const [salvando, setSalvando] = useState(false)
+  const [carregando, setCarregando] = useState(true)
   const [buscandoCep, setBuscandoCep] = useState(false)
 
   const formatarCPF = (valor: string) => {
@@ -34,6 +52,41 @@ export default function CadastroInspetor() {
       .replace(/(\d{3})(\d)/, "$1.$2")
       .replace(/(\d{3})(\d{1,2})$/, "$1-$2")
   }
+
+  useEffect(() => {
+    async function carregarInicial() {
+      if (cpfUrl) setForm(prev => ({ ...prev, cpf: formatarCPF(cpfUrl) }))
+      if (cpfUrl && !ehNovo) {
+        try {
+          const res = await fetch(`${SUPA_URL}/rest/v1/inspetor?cpf_inspetor=eq.${cpfUrl}&select=*`, {
+            headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` }
+          })
+          const dados = await res.json()
+          if (Array.isArray(dados) && dados.length > 0) {
+            const d = dados[0]
+            setForm(prev => ({
+              ...prev,
+              cpf: formatarCPF(cpfUrl),
+              nome: d.nome_inspetor ?? "",
+              titulo: d.titulo_profissional ?? "",
+              especializacao: d.especializacao ?? "",
+              inscricao_crea_cau: d.inscricao_crea_cau ?? "",
+              whatsapp: d.inspetor_whatsapp ?? "",
+              email: d.inspetor_email ?? "",
+              cep: d.cep_inspetor ?? "",
+              nr_imovel: d.nr_imovel ?? "",
+              complemento: d.nr_ap_sala ?? "",
+              cabecalho: d.cabecalho_documentos ?? "",
+              rodape: d.rodape_documentos ?? "",
+            }))
+          }
+        } catch { /* segue com o formulário vazio se não conseguir carregar */ }
+      }
+      setCarregando(false)
+    }
+    carregarInicial()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cpfUrl])
 
   const formatarWhatsApp = (valor: string) => {
     return valor
@@ -85,10 +138,41 @@ export default function CadastroInspetor() {
     setBuscandoCep(false)
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setErro("")
-    setSucesso(true)
+    setSalvando(true)
+    try {
+      const res = await fetch('/api/salvar-inspetor', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          cpf: form.cpf.replace(/\D/g, ""),
+          nome: form.nome,
+          titulo: form.titulo,
+          especializacao: form.especializacao,
+          inscricao_crea_cau: form.inscricao_crea_cau,
+          whatsapp: form.whatsapp,
+          email: form.email,
+          cep: form.cep,
+          nr_imovel: form.nr_imovel,
+          complemento: form.complemento,
+          cabecalho: form.cabecalho,
+          rodape: form.rodape,
+        })
+      })
+      const data = await res.json()
+      if (!res.ok || data.erro) {
+        setErro(data.erro ?? 'Não foi possível salvar o cadastro.')
+        setSalvando(false)
+        return
+      }
+      setSucesso(true)
+      setTimeout(() => { window.location.href = "/dashboard" }, 1500)
+    } catch {
+      setErro('Não foi possível conectar. Tente novamente.')
+      setSalvando(false)
+    }
   }
 
   const labelStyle = { fontSize: "13px", fontWeight: "500", color: "#374151", marginBottom: "4px", display: "block" }
@@ -99,6 +183,14 @@ export default function CadastroInspetor() {
   const blocoBodyStyle = { padding: "16px" }
   const grid2 = { display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }
   const grid3 = { display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "12px" }
+
+  if (carregando) {
+    return (
+      <div style={{backgroundColor:"#E8EEF7",minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center"}}>
+        <p style={{color:"#4a6480",fontSize:"14px"}}>Carregando...</p>
+      </div>
+    )
+  }
 
   return (
     <div style={{backgroundColor:"#E8EEF7",minHeight:"100vh",display:"flex",alignItems:"flex-start",justifyContent:"center",padding:"16px"}}>
@@ -129,7 +221,8 @@ export default function CadastroInspetor() {
                   <div style={grid3}>
                     <div>
                       <label style={labelStyle}>CPF *</label>
-                      <input name="cpf" value={form.cpf} onChange={handleChange} placeholder="000.000.000-00" required style={inputStyle} />
+                      <input name="cpf" value={form.cpf} placeholder="000.000.000-00" required readOnly
+                        style={{...inputStyle, backgroundColor: "#F3F4F6", color: "#6B7280"}} />
                     </div>
                     <div style={{gridColumn:"span 2"}}>
                       <label style={labelStyle}>Nome Completo *</label>
@@ -238,9 +331,9 @@ export default function CadastroInspetor() {
                   style={{padding:"10px 24px",borderRadius:"50px",border:"1px solid #1E3A8A",backgroundColor:"white",color:"#1E3A8A",fontWeight:"600",fontSize:"13px",cursor:"pointer"}}>
                   Cancelar
                 </button>
-                <button type="submit"
-                  style={{padding:"10px 24px",borderRadius:"50px",border:"none",backgroundColor:"#1E3A8A",color:"white",fontWeight:"600",fontSize:"13px",cursor:"pointer"}}>
-                  Salvar Cadastro
+                <button type="submit" disabled={salvando}
+                  style={{padding:"10px 24px",borderRadius:"50px",border:"none",backgroundColor:"#1E3A8A",color:"white",fontWeight:"600",fontSize:"13px",cursor:"pointer",opacity:salvando?0.7:1}}>
+                  {salvando ? "Salvando..." : "Salvar Cadastro"}
                 </button>
               </div>
 
