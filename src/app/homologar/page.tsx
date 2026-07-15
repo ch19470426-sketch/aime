@@ -134,6 +134,8 @@ function Tela40Inner() {
   const chaveInspetor = params.get('chave_inspetor') ?? 'INS-001'
   const cpfInspetor   = params.get('cpf_inspetor')   ?? ''
   const cnpjoucpf     = params.get('cnpjoucpf')      ?? ''
+  // Indica que já voltamos do módulo 2.10 (Plano já homologado) — evita reenviar para lá de novo
+  const planoHomologado = params.get('planoHomologado') === '1'
 
   const { bannerProps, informa, orienta, agradece, solicita, fechar } = useBanner()
 
@@ -388,22 +390,35 @@ function Tela40Inner() {
       return
     }
     // Grava no plano de trabalho o bloco de documentos preenchido pelo inspetor, substituindo o existente
+    let nomeArqPlano = ''
     if (planoEncontrado) {
       try {
-        const nomeArq = `${chaveInspetor}_plano_${planoTipoServico}_${cnpjoucpf}.html`
-        const docRes = await fetch(`/api/ler-documento?nome=${encodeURIComponent(nomeArq)}&pasta=documentos_inspetor`)
+        nomeArqPlano = `${chaveInspetor}_plano_${planoTipoServico}_${cnpjoucpf}.html`
+        const docRes = await fetch(`/api/ler-documento?nome=${encodeURIComponent(nomeArqPlano)}&pasta=documentos_inspetor`)
         const docData = await docRes.json()
         if (docData.existe) {
           const htmlAtualizado = substituirSecaoDocs(docData.html, planoDocs)
           await fetch('/api/salvar-vistoria', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ nomeArquivo: nomeArq, pasta: 'documentos_inspetor', payload: htmlAtualizado, contentType: 'text/html' })
+            body: JSON.stringify({ nomeArquivo: nomeArqPlano, pasta: 'documentos_inspetor', payload: htmlAtualizado, contentType: 'text/html' })
           })
         }
       } catch (e) {
         console.error('Erro ao atualizar documentos do plano:', e)
       }
+    }
+
+    // A homologação da vistoria só continua depois que o Plano de Trabalho, já
+    // complementado com a tabela de documentos, for homologado no módulo 2.10.
+    if (planoEncontrado && !planoHomologado) {
+      const urlAtual = `/homologar?cpf_inspetor=${cpfInspetor}&chave_inspetor=${chaveInspetor}&cnpjoucpf=${cnpjoucpf}&planoHomologado=1`
+      const urlHomologar2_10 =
+        `/homologar-produto?cpf_inspetor=${cpfInspetor}&chave_inspetor=${chaveInspetor}&cnpjoucpf=${cnpjoucpf}` +
+        `&tipo_servico=${planoTipoServico}&nome_arquivo=${encodeURIComponent(nomeArqPlano)}` +
+        `&titulo=${encodeURIComponent('Plano de Trabalho')}&retorno=${encodeURIComponent(urlAtual)}`
+      window.location.href = urlHomologar2_10
+      return
     }
 
     setEtapa('form')
