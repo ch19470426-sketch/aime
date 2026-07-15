@@ -143,9 +143,12 @@ function CadastroInspetor() {
     setErro("")
     setSalvando(true)
     try {
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 15000)
       const res = await fetch('/api/salvar-inspetor', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        signal: controller.signal,
         body: JSON.stringify({
           cpf: form.cpf.replace(/\D/g, ""),
           nome: form.nome,
@@ -161,6 +164,7 @@ function CadastroInspetor() {
           rodape: form.rodape,
         })
       })
+      clearTimeout(timeoutId)
       const data = await res.json()
       if (!res.ok || data.erro) {
         setErro(data.erro ?? 'Não foi possível salvar o cadastro.')
@@ -169,20 +173,25 @@ function CadastroInspetor() {
       }
       setSucesso(true)
       setTimeout(() => { window.location.href = "/dashboard" }, 1500)
-    } catch {
+    } catch (erro) {
+      if (erro instanceof Error && erro.name === 'AbortError') {
+        setErro('O servidor demorou demais para responder. Tente novamente.')
+        setSalvando(false)
+        return
+      }
       setErro('Não foi possível conectar. Tente novamente.')
       setSalvando(false)
     }
   }
 
-  const labelStyle = { fontSize: "13px", fontWeight: "500", color: "#374151", marginBottom: "4px", display: "block" }
-  const inputStyle = { border: "1px solid #D1D5DB", borderRadius: "8px", padding: "8px 12px", fontSize: "13px", width: "100%", outline: "none", boxSizing: "border-box" as const }
-  const blocoStyle = { backgroundColor: "white", borderRadius: "10px", overflow: "hidden", border: "1px solid #E2E8F0", marginBottom: "16px" }
-  const blocoHeaderStyle = { backgroundColor: "#1E3A8A", padding: "8px 16px" }
+  const labelStyle = { fontSize: "12px", fontWeight: "500", color: "#374151", marginBottom: "3px", display: "block" }
+  const inputStyle = { border: "1px solid #D1D5DB", borderRadius: "6px", padding: "5px 10px", fontSize: "12px", width: "100%", outline: "none", boxSizing: "border-box" as const }
+  const blocoStyle = { backgroundColor: "white", borderRadius: "8px", overflow: "hidden", border: "1px solid #E2E8F0", marginBottom: "8px" }
+  const blocoHeaderStyle = { backgroundColor: "#1E3A8A", padding: "4px 12px" }
   const blocoTituloStyle = { color: "white", fontWeight: "bold", fontSize: "12px" }
-  const blocoBodyStyle = { padding: "16px" }
-  const grid2 = { display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }
-  const grid3 = { display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "12px" }
+  const blocoBodyStyle = { padding: "8px 12px" }
+  const grid2 = { display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" }
+  const grid3 = { display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "8px" }
 
   if (carregando) {
     return (
@@ -204,7 +213,7 @@ function CadastroInspetor() {
         </div>
         <div style={{height:"2px",backgroundColor:"#1E3A8A"}} />
 
-        <div style={{padding:"16px"}}>
+        <div style={{padding:"10px"}}>
           {sucesso ? (
             <div style={{textAlign:"center",padding:"32px",color:"#1E3A8A",fontSize:"16px",fontWeight:"bold"}}>
               Cadastro realizado com sucesso!
@@ -229,7 +238,7 @@ function CadastroInspetor() {
                       <input name="nome" value={form.nome} onChange={handleChange} placeholder="Nome completo" required style={inputStyle} />
                     </div>
                   </div>
-                  <div style={{...grid3, marginTop:"12px"}}>
+                  <div style={{...grid3, marginTop:"6px"}}>
                     <div>
                       <label style={labelStyle}>Titulo Profissional *</label>
                       <select name="titulo" value={form.titulo} onChange={handleChange} required style={inputStyle}>
@@ -270,7 +279,7 @@ function CadastroInspetor() {
                       <input name="logradouro" value={form.logradouro} onChange={handleChange} placeholder="Rua, Avenida..." required style={inputStyle} />
                     </div>
                   </div>
-                  <div style={{...grid3, marginTop:"12px"}}>
+                  <div style={{...grid3, marginTop:"6px"}}>
                     <div>
                       <label style={labelStyle}>Numero *</label>
                       <input name="nr_imovel" value={form.nr_imovel} onChange={handleChange} placeholder="123" required style={inputStyle} />
@@ -284,7 +293,7 @@ function CadastroInspetor() {
                       <input name="bairro" value={form.bairro} onChange={handleChange} placeholder="Bairro" required style={inputStyle} />
                     </div>
                   </div>
-                  <div style={{...grid3, marginTop:"12px"}}>
+                  <div style={{...grid3, marginTop:"6px"}}>
                     <div style={{gridColumn:"span 2"}}>
                       <label style={labelStyle}>Cidade *</label>
                       <input name="cidade" value={form.cidade} onChange={handleChange} placeholder="Cidade" required style={inputStyle} />
@@ -294,7 +303,7 @@ function CadastroInspetor() {
                       <input name="uf" value={form.uf} onChange={handleChange} placeholder="ES" maxLength={2} required style={inputStyle} />
                     </div>
                   </div>
-                  <div style={{...grid2, marginTop:"12px"}}>
+                  <div style={{...grid2, marginTop:"6px"}}>
                     <div>
                       <label style={labelStyle}>WhatsApp *</label>
                       <input name="whatsapp" value={form.whatsapp} onChange={handleChange} placeholder="(00) 00000-0000" required style={inputStyle} />
