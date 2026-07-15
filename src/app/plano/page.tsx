@@ -111,6 +111,8 @@ function PlanoInner() {
 
   const tsVistoria = TIPO_VISTORIA[tipoServico] ?? '31 Autovistoria'
   const tsNum      = tsVistoria.split(' ')[0]
+  // Tipos de serviço com vistoria única: aceitam apenas 1 ativo cadastrado por chave.
+  const TIPOS_UM_ATIVO = ['31', '32', '33', '34', '36']
   const titulo     = TITULO_TIPO[tipoServico] ?? 'Plano de Trabalho'
 
   const isPredial  = ['31','32','33'].includes(tsNum)
@@ -128,6 +130,7 @@ function PlanoInner() {
   const [salvando,   setSalvando]   = useState(false)
   const [est,        setEst]        = useState<{razao_social_nome:string}|null>(null)
   const [ativos,     setAtivos]     = useState<Ativo[]>([])
+  const limiteUmAtivoAtingido = TIPOS_UM_ATIVO.includes(tsNum) && ativos.length >= 1
   const [ativoAtual, setAtivoAtual] = useState<Ativo>({ ...ATIVO_VAZIO })
   const [htmlPlano,  setHtmlPlano]  = useState('')
   const [planoInfo,  setPlanoInfo]  = useState<{titulo:string;parceiro:string;atividades:{horas:number;dias:number;descricao:string}[];documentos:string[]}>({titulo:'',parceiro:'',atividades:[],documentos:[]})
@@ -200,6 +203,10 @@ function PlanoInner() {
   async function salvarAtivo() {
     const erro = validarAtivo()
     if (erro) { informa('Atenção', erro); return }
+    if (limiteUmAtivoAtingido) {
+      informa('Atenção', 'Este tipo de serviço permite apenas um ativo cadastrado por chave. Para vistoriar outro ativo, é necessário um novo cadastro de plano de trabalho.')
+      return
+    }
     setSalvando(true)
     try {
       const tag = needsTag ? ativoAtual.tag_ativo_nr_serie : '1'
@@ -573,8 +580,9 @@ function PlanoInner() {
                     onClick={() => window.location.href = '/dashboard'}>
                     Voltar
                   </button>
-                  <button style={{ ...S.btn, ...S.btnSec }}
-                    onClick={() => { setShowForm(true); setAtivoAtual({ ...ATIVO_VAZIO }) }}>
+                  <button style={{ ...S.btn, ...S.btnSec, opacity: limiteUmAtivoAtingido ? 0.5 : 1 }}
+                    onClick={() => { if (!limiteUmAtivoAtingido) { setShowForm(true); setAtivoAtual({ ...ATIVO_VAZIO }) } }}
+                    disabled={limiteUmAtivoAtingido}>
                     Cadastrar + ativo
                   </button>
                   <button style={{ ...S.btn, ...S.btnPri, opacity: (ativos.length === 0 || salvando) ? 0.5 : 1 }}
