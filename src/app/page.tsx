@@ -54,12 +54,25 @@ export default function LoginPage() {
         }
         router.push("/dashboard")
       } else {
-        // Primeiro acesso: cria a conta e envia para completar o cadastro
-        const { error } = await supabase.auth.signUp({ email: emailTecnico, password })
+        // Primeiro acesso: cria a conta (via rota administrativa, sem e-mail de
+        // confirmação) e já faz login, enviando para completar o cadastro
+        const criarRes = await fetch('/api/auth-criar-conta', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: emailTecnico, password })
+        })
+        const criarData = await criarRes.json()
+        if (!criarRes.ok || criarData.erro) {
+          setLoading(false)
+          console.error("Erro ao criar conta:", criarData.erro)
+          setErro(String(criarData.erro ?? '').includes("Password") ? "A senha deve ter pelo menos 6 caracteres." : `Não foi possível criar sua conta: ${criarData.erro}`)
+          return
+        }
+        const { error } = await supabase.auth.signInWithPassword({ email: emailTecnico, password })
         setLoading(false)
         if (error) {
-          console.error("Erro signUp Supabase:", error)
-          setErro(error.message.includes("Password") ? "A senha deve ter pelo menos 6 caracteres." : `Não foi possível criar sua conta: ${error.message}`)
+          console.error("Erro ao logar apos criar conta:", error)
+          setErro("Conta criada, mas não foi possível entrar automaticamente. Tente fazer login novamente.")
           return
         }
         router.push(`/inspetor?cpf=${cpfLimpo}&novo=1`)
