@@ -1,30 +1,73 @@
-﻿"use client"
+"use client"
 import { useState } from "react"
 import Image from "next/image"
 import { createClient } from "@supabase/supabase-js"
 import { useRouter } from "next/navigation"
+
+const SUPA_URL = 'https://asgorarunzhiojqioxzq.supabase.co'
+const SUPA_KEY = 'sb_publishable_dH85HYKGxv3X0te627VfOw_OGaPoNMF'
+
 export default function LoginPage() {
-  const [email, setEmail] = useState("")
+  const [cpf, setCpf] = useState("")
   const [password, setPassword] = useState("")
   const [erro, setErro] = useState("")
   const [loading, setLoading] = useState(false)
   const router = useRouter()
+
+  const formatarCPF = (valor: string) => {
+    return valor
+      .replace(/\D/g, "")
+      .slice(0, 11)
+      .replace(/(\d{3})(\d)/, "$1.$2")
+      .replace(/(\d{3})(\d)/, "$1.$2")
+      .replace(/(\d{3})(\d{1,2})$/, "$1-$2")
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setErro("")
+    const cpfLimpo = cpf.replace(/\D/g, "")
+    if (cpfLimpo.length !== 11) {
+      setErro("Informe um CPF válido (11 dígitos).")
+      return
+    }
     setLoading(true)
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    )
-    const { error } = await supabase.auth.signInWithPassword({ email, password })
-    setLoading(false)
-    if (error) {
-      setErro("E-mail ou senha incorretos.")
-    } else {
-      router.push("/dashboard")
+    try {
+      const supabase = createClient(SUPA_URL, SUPA_KEY)
+      const emailTecnico = `${cpfLimpo}@aime.internal`
+
+      // Verifica se já existe cadastro de inspetor para este CPF
+      const res = await fetch(`${SUPA_URL}/rest/v1/inspetor?cpf_inspetor=eq.${cpfLimpo}&select=cpf_inspetor`, {
+        headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` }
+      })
+      const existentes = await res.json()
+      const jaCadastrado = Array.isArray(existentes) && existentes.length > 0
+
+      if (jaCadastrado) {
+        // Login normal
+        const { error } = await supabase.auth.signInWithPassword({ email: emailTecnico, password })
+        setLoading(false)
+        if (error) {
+          setErro("CPF ou senha incorretos.")
+          return
+        }
+        router.push("/dashboard")
+      } else {
+        // Primeiro acesso: cria a conta e envia para completar o cadastro
+        const { error } = await supabase.auth.signUp({ email: emailTecnico, password })
+        setLoading(false)
+        if (error) {
+          setErro(error.message.includes("Password") ? "A senha deve ter pelo menos 6 caracteres." : "Não foi possível criar sua conta. Tente novamente.")
+          return
+        }
+        router.push(`/inspetor?cpf=${cpfLimpo}&novo=1`)
+      }
+    } catch {
+      setLoading(false)
+      setErro("Não foi possível conectar. Tente novamente.")
     }
   }
+
   return (
     <div style={{ backgroundColor: "#E8EEF7", minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", padding: "16px" }}>
       <div style={{ backgroundColor: "white", borderRadius: "16px", boxShadow: "0 25px 50px rgba(0,0,0,0.15)", width: "100%", maxWidth: "448px", overflow: "hidden" }}>
@@ -38,14 +81,15 @@ export default function LoginPage() {
         <div style={{ padding: "24px" }}>
           <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
             <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-              <label style={{ fontSize: "14px", fontWeight: "500", color: "#374151" }}>E-mail</label>
-              <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="seu@email.com"
+              <label style={{ fontSize: "14px", fontWeight: "500", color: "#374151" }}>CPF</label>
+              <input type="text" required value={cpf} onChange={(e) => setCpf(formatarCPF(e.target.value))} placeholder="000.000.000-00" inputMode="numeric"
                 style={{ border: "1px solid #D1D5DB", borderRadius: "8px", padding: "10px 12px", fontSize: "14px", outline: "none" }} />
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
               <label style={{ fontSize: "14px", fontWeight: "500", color: "#374151" }}>Senha</label>
               <input type="password" required value={password} onChange={(e) => setPassword(e.target.value)} placeholder="********"
                 style={{ border: "1px solid #D1D5DB", borderRadius: "8px", padding: "10px 12px", fontSize: "14px", outline: "none" }} />
+              <p style={{ fontSize: "11px", color: "#6B7280" }}>Primeiro acesso? Digite seu CPF e crie uma senha — sua conta será criada automaticamente.</p>
             </div>
             {erro && <p style={{ color: "#DC2626", fontSize: "13px", textAlign: "center" }}>{erro}</p>}
             <button type="submit" disabled={loading}
