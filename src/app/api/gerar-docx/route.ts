@@ -17,7 +17,35 @@ const CM = 566.929
 // 2) O zip inclui entradas de diretório explícitas (ex: "word/", "word/theme/"),
 //    o que arquivos .docx genuínos do Word nunca têm — só as partes de arquivo.
 // Aqui reescrevemos o pacote inteiro corrigindo os dois pontos.
-async function corrigirDocx(buffer: Buffer): Promise<Buffer> {
+// Constrói o rodapé com tabulações do Word: texto centralizado e número de
+// página alinhado à direita, na mesma linha — a biblioteca não suporta isso
+// via HTML/CSS, então montamos o XML do rodapé diretamente.
+function montarFooterXml(rodape: string, margemEsquerdaTwips: number, margemDireitaTwips: number): string {
+  const larguraPagina = 12240 // Letter, em twips
+  const larguraUtil = larguraPagina - margemEsquerdaTwips - margemDireitaTwips
+  const tabCentro = Math.round(larguraUtil / 2)
+  const tabDireita = larguraUtil
+  const textoEscapado = (rodape ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+
+  return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<w:ftr xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
+  <w:p>
+    <w:pPr>
+      <w:pBdr><w:top w:val="single" w:sz="8" w:space="4" w:color="999999"/></w:pBdr>
+      <w:tabs>
+        <w:tab w:val="center" w:pos="${tabCentro}"/>
+        <w:tab w:val="right" w:pos="${tabDireita}"/>
+      </w:tabs>
+      <w:spacing w:lineRule="auto"/>
+    </w:pPr>
+    <w:r><w:rPr><w:sz w:val="20"/></w:rPr><w:tab/><w:t xml:space="preserve">${textoEscapado}</w:t><w:tab/></w:r>
+    <w:r><w:rPr><w:sz w:val="20"/></w:rPr><w:t xml:space="preserve">Pág. </w:t></w:r>
+    <w:fldSimple w:instr="PAGE"><w:r/></w:fldSimple>
+  </w:p>
+</w:ftr>`
+}
+
+async function corrigirDocx(buffer: Buffer, rodape: string, margemEsquerdaTwips: number, margemDireitaTwips: number): Promise<Buffer> {
   const zipOrigem = await JSZip.loadAsync(buffer)
   const zipNovo = new JSZip()
 
@@ -36,17 +64,17 @@ async function corrigirDocx(buffer: Buffer): Promise<Buffer> {
     }
 
     // A biblioteca não converte "border" do CSS em parágrafos — inserimos a borda
-    // (linha delimitadora entre cabeçalho/rodapé e o texto) direto no XML, com
+    // (linha delimitadora entre cabeçalho e o texto) direto no XML, com
     // namespace autocontida (mesma convenção usada pelo Word de verdade).
     if (caminho === 'word/header1.xml') {
       let xml = conteudo.toString('utf-8')
       xml = xml.replace('<pPr>', '<pPr><w:pBdr xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:bottom w:val="single" w:sz="12" w:space="4" w:color="1E3A8A"/></w:pBdr>')
       conteudo = Buffer.from(xml, 'utf-8')
     }
+    // Rodapé: substituído por completo por um XML com tabulações (texto
+    // centralizado + número de página à direita, mesma linha).
     if (caminho === 'word/footer1.xml') {
-      let xml = conteudo.toString('utf-8')
-      xml = xml.replace('<pPr>', '<pPr><w:pBdr xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:top w:val="single" w:sz="8" w:space="4" w:color="999999"/></w:pBdr>')
-      conteudo = Buffer.from(xml, 'utf-8')
+      conteudo = Buffer.from(montarFooterXml(rodape, margemEsquerdaTwips, margemDireitaTwips), 'utf-8')
     }
 
     zipNovo.file(caminho, conteudo, { createFolders: false })
@@ -63,30 +91,32 @@ export async function POST(request: NextRequest) {
     }
 
     const headerHTML = cabecalho ? `<p style="text-align:center;font-size:12pt;font-weight:bold">${cabecalho}</p>` : undefined
-    // Parágrafo único: texto do rodapé seguido do rótulo da página — o campo de
-    // número automático do Word é anexado pela biblioteca ao final deste parágrafo.
-    const footerHTML = `<p style="text-align:center;font-size:10pt">${rodape ? rodape + ' — ' : ''}Pág. </p>`
+    // O rodapé (texto + numeração) é montado à parte, direto em XML — ver montarFooterXml.
+    const footerHTML = '<p></p>'
+
+    const margemEsquerda = Math.round(2.5 * CM)
+    const margemDireita = Math.round(2 * CM)
 
     const bufferBruto = await HTMLtoDOCX(html, headerHTML, {
       table: { row: { cantSplit: true } },
       header: !!headerHTML,
       footer: true,
-      pageNumber: true,
+      pageNumber: false,
       font: 'Calibri Light',
       fontSize: 22, // 22 HIP = 11pt
       lang: 'pt-BR',
       margins: {
         top: Math.round(2.5 * CM),
         bottom: Math.round(2 * CM),
-        left: Math.round(2.5 * CM),
-        right: Math.round(2 * CM),
-        header: 200,
-        footer: 200,
+        left: margemEsquerda,
+        right: margemDireita,
+        header: Math.round(1.2 * CM),
+        footer: Math.round(1.2 * CM),
         gutter: 0,
       },
     }, footerHTML)
 
-    const bufferCorrigido = await corrigirDocx(bufferBruto as Buffer)
+    const bufferCorrigido = await corrigirDocx(bufferBruto as Buffer, rodape ?? '', margemEsquerda, margemDireita)
 
     // Cópia explícita do buffer: Buffer do Node pode referenciar um bloco de
     // memória maior (pool) do que o conteúdo real — sem copiar, o arquivo
