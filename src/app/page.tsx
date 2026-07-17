@@ -44,15 +44,36 @@ export default function LoginPage() {
       const jaCadastrado = Array.isArray(existentes) && existentes.length > 0
 
       if (jaCadastrado) {
-        // Login normal
+        // Login normal — tenta autenticar com a senha fornecida
         const { error } = await supabase.auth.signInWithPassword({ email: emailTecnico, password })
-        setLoading(false)
-        if (error) {
-          console.error("Erro signIn Supabase:", error)
-          setErro("CPF ou senha incorretos.")
+        if (!error) {
+          setLoading(false)
+          router.push("/dashboard")
           return
         }
-        router.push("/dashboard")
+        // Se o erro for de credenciais inválidas, pode ser que a conta no Auth
+        // tenha sido deletada mas o registro na tabela inspetor ainda existe
+        // (ex: usuário deletado manualmente no painel do Supabase). Tenta recriar.
+        if (error.message.includes("Invalid login") || error.message.includes("Email not confirmed") || error.message.includes("invalid_credentials")) {
+          const criarRes = await fetch('/api/auth-criar-conta', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: emailTecnico, password })
+          })
+          const criarData = await criarRes.json()
+          if (!criarRes.ok || criarData.erro) {
+            setLoading(false)
+            setErro("CPF ou senha incorretos.")
+            return
+          }
+          const { error: errLogin } = await supabase.auth.signInWithPassword({ email: emailTecnico, password })
+          setLoading(false)
+          if (errLogin) { setErro("CPF ou senha incorretos."); return }
+          router.push("/dashboard")
+          return
+        }
+        setLoading(false)
+        setErro("CPF ou senha incorretos.")
       } else {
         // Primeiro acesso: cria a conta (via rota administrativa, sem e-mail de
         // confirmação) e já faz login, enviando para completar o cadastro
