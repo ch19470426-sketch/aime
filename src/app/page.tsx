@@ -1,5 +1,5 @@
 "use client"
-import { useState } from "react"
+import { useState, useEffect, useRef } from "react"
 import Image from "next/image"
 import { createClient } from "@supabase/supabase-js"
 import { useRouter } from "next/navigation"
@@ -12,6 +12,17 @@ export default function LoginPage() {
   const [password, setPassword] = useState("")
   const [erro, setErro] = useState("")
   const [loading, setLoading] = useState(false)
+  const cpfRef = useRef<HTMLInputElement>(null)
+
+  // O Edge preenche o campo CPF com o valor anterior mesmo com autoComplete="off".
+  // Limpamos programaticamente após a montagem do componente.
+  useEffect(() => {
+    const t = setTimeout(() => {
+      if (cpfRef.current) cpfRef.current.value = ""
+      setCpf("")
+    }, 100)
+    return () => clearTimeout(t)
+  }, [])
   const router = useRouter()
 
   const formatarCPF = (valor: string) => {
@@ -118,7 +129,7 @@ export default function LoginPage() {
           <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
             <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
               <label style={{ fontSize: "14px", fontWeight: "500", color: "#374151" }}>CPF</label>
-              <input type="text" required value={cpf} onChange={(e) => setCpf(formatarCPF(e.target.value))}
+              <input ref={cpfRef} type="text" required value={cpf} onChange={(e) => setCpf(formatarCPF(e.target.value))}
                 placeholder="000.000.000-00" inputMode="numeric"
                 autoComplete="new-password" name="cpf-inspetor"
                 style={{ border: "1px solid #D1D5DB", borderRadius: "8px", padding: "10px 12px", fontSize: "14px", outline: "none" }} />
