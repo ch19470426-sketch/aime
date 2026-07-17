@@ -176,8 +176,16 @@ function CadastroInspetor() {
         setSalvando(false)
         return
       }
+      const chaveGerada = data.chave ?? ''
       setSucesso(true)
-      setTimeout(() => { window.location.href = "/dashboard" }, 1500)
+      setTimeout(() => {
+        const cpfLimpo = form.cpf.replace(/\D/g, '')
+        if (ehNovo) {
+          window.location.href = `/termo-aceite?cpf=${cpfLimpo}&chave=${encodeURIComponent(chaveGerada)}&proximo=/dashboard`
+        } else {
+          window.location.href = "/dashboard"
+        }
+      }, 800)
     } catch (erro) {
       if (erro instanceof Error && erro.name === 'AbortError') {
         setErro('O servidor demorou demais para responder. Tente novamente.')
