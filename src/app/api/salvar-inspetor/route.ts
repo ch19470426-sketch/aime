@@ -12,6 +12,19 @@ const supabase = createClient(
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
+
+    // Caso especial: só atualizar a chave_inspetor (chamado pelo dashboard
+    // quando detecta um registro antigo sem chave)
+    if (body.soAtualizarChave && body.cpf && body.chave) {
+      const { error } = await supabase
+        .from('inspetor')
+        .update({ chave_inspetor: body.chave })
+        .eq('cpf_inspetor', body.cpf)
+        .is('chave_inspetor', null)
+      if (error) return NextResponse.json({ erro: error.message }, { status: 500 })
+      return NextResponse.json({ ok: true })
+    }
+
     const {
       cpf, nome, titulo, especializacao, inscricao_crea_cau,
       whatsapp, email, cep, nr_imovel, complemento,
