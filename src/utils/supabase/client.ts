@@ -1,12 +1,14 @@
 import { createBrowserClient } from "@supabase/ssr"
 
+// Singleton para evitar "Multiple GoTrueClient instances" no mesmo contexto
+let clientInstance: ReturnType<typeof createBrowserClient> | null = null
+
 export function createClient() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
+  if (clientInstance) return clientInstance
 
-  if (!url || !key) {
-    throw new Error("Supabase URL and PUBLISHABLE KEY are required")
-  }
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL!
+  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 
-  return createBrowserClient(url, key)
+  clientInstance = createBrowserClient(url, key)
+  return clientInstance
 }
