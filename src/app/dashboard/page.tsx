@@ -377,7 +377,7 @@ export default function Dashboard() {
         </div>
         <div style={{ height: "2px", backgroundColor: "#1E3A8A" }} />
 
-        <div style={{ display: "flex", minHeight: "500px" }}>
+        <div style={{ display: "flex", minHeight: "500px", overflow: "hidden" }}>
 
           {/* ── Menu lateral ── */}
           <div style={{ width: "220px", borderRight: "2px solid #1E3A8A", backgroundColor: "white", flexShrink: 0 }}>
@@ -415,7 +415,7 @@ export default function Dashboard() {
           </div>
 
           {/* ── Área de conteúdo ── */}
-          <div style={{ flex: 1, padding: "16px", backgroundColor: "#F8FAFC" }}>
+          <div style={{ flex: 1, minWidth: 0, padding: "16px", backgroundColor: "#F8FAFC" }}>
 
             {/* Nenhum serviço selecionado - mostrar Macro Fluxo */}
             {!tipoServico && (
