@@ -126,7 +126,20 @@ function BaixarDocumentos() {
           {/* Identificação do estabelecimento */}
           <div style={{ backgroundColor: "#F8FAFC", border: "1px solid #E2E8F0", borderRadius: "8px", padding: "10px 14px", marginBottom: "20px", fontSize: "13px", color: "#374151", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <span style={{ fontWeight: 600 }}>{razaoSocial || "Estabelecimento"}</span>
-            <span style={{ color: "#6B7280", fontSize: "12px" }}>{cnpjoucpf || "—"}</span>
+            <span style={{ color: "#6B7280", fontSize: "12px" }}>
+              {(() => {
+                const limpo = cnpjoucpf.replace(/\D/g, '')
+                if (limpo.length === 14) {
+                  const m = limpo.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5')
+                  return `CNPJ: ${m}`
+                }
+                if (limpo.length === 11) {
+                  const m = limpo.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4')
+                  return `CPF: ${m}`
+                }
+                return cnpjoucpf || "—"
+              })()}
+            </span>
           </div>
           {buscando && <p style={{ fontSize: "13px", color: "#6B7280", marginBottom: "16px" }}>Buscando documentos...</p>}
 
