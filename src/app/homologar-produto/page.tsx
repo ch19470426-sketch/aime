@@ -232,8 +232,8 @@ function HomologarProdutoInner() {
     if (!arquivo) return
     setEnviando(true)
     try {
-      if (arquivo.size > 4 * 1024 * 1024) {
-        throw new Error(`Arquivo muito grande (${(arquivo.size / 1024 / 1024).toFixed(1)}MB). O limite é 4MB.`)
+      if (arquivo.size > 20 * 1024 * 1024) {
+        throw new Error(`Arquivo muito grande (${(arquivo.size / 1024 / 1024).toFixed(1)}MB). O limite é 20MB.`)
       }
 
       const base64 = await new Promise<string>((resolve, reject) => {
