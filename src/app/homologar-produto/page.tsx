@@ -248,7 +248,7 @@ function HomologarProdutoInner() {
         reader.readAsDataURL(arquivo)
       })
 
-      const nomePdf = nomeArquivo.replace(/\.html$/i, '.pdf')
+      const nomePdf = nomeArquivo.replace(/\.html$/i, '_assinado.pdf')
       const res = await fetch('/api/upload-pdf-assinado', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
