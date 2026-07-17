@@ -206,6 +206,7 @@ export default function Dashboard() {
       try {
         const supabase = createClient()
         const { data: { session } } = await supabase.auth.getSession()
+        console.log('[AIME] session:', session?.user?.email ?? 'nula')
         if (!session?.user?.email) {
           deveRedirecionar = true
           window.location.href = "/"
@@ -218,21 +219,20 @@ export default function Dashboard() {
             headers: { apikey: SUPA_KEY, Authorization: `Bearer ${accessToken}` }
           })
           const dados = await res.json()
+          console.log('[AIME] dados inspetor:', JSON.stringify(dados))
           if (!Array.isArray(dados) || dados.length === 0) {
             deveRedirecionar = true
             window.location.href = `/inspetor?cpf=${cpf}&novo=1`
             return
           }
           let chave = dados[0].chave_inspetor ?? ""
-          // Se a chave for null (registro antigo criado antes dessa coluna existir),
-          // salva via rota de servidor (service role, sem problema de RLS)
+          console.log('[AIME] chave:', chave, '| titulo:', dados[0].titulo_profissional)
           if (!chave) {
             try {
               const chaveRes = await fetch('/api/gerar-chave-inspetor', { method: 'POST' })
               const chaveData = await chaveRes.json()
               if (chaveData.chave) {
                 chave = chaveData.chave
-                // salva via rota intermediaria que usa service role
                 await fetch('/api/salvar-inspetor', {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
@@ -245,24 +245,26 @@ export default function Dashboard() {
           setChaveInspetor(chave)
           setTitulo(dados[0].titulo_profissional ?? "")
 
-          // Verifica se o termo de aceite já foi assinado
           if (chave) {
             const nomeTermoEsperado = `${chave}_${cpf}_termo_de_aceite.html`
+            console.log('[AIME] verificando termo:', nomeTermoEsperado)
             const termoRes = await fetch(`/api/ler-documento?nome=${encodeURIComponent(nomeTermoEsperado)}&pasta=documentos_inspetor`)
             const termoData = await termoRes.json()
+            console.log('[AIME] termo existe:', termoData.existe)
             if (!termoData.existe) {
               deveRedirecionar = true
               window.location.href = `/termo-aceite?cpf=${cpf}&chave=${encodeURIComponent(chave)}&proximo=/dashboard`
               return
             }
           }
-        } catch {
+        } catch (e) {
+          console.error('[AIME] erro no carregamento:', e)
           deveRedirecionar = true
           window.location.href = "/"
           return
         }
       } finally {
-        // Só mostra o dashboard se não estiver redirecionando para outra tela
+        console.log('[AIME] deveRedirecionar:', deveRedirecionar)
         if (!deveRedirecionar) setCarregandoSessao(false)
       }
     }
