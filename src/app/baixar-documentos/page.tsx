@@ -24,15 +24,27 @@ function BaixarDocumentos() {
   const chaveInspetor = params.get('chave_inspetor')  ?? ''
   const cnpjoucpfUrl  = params.get('cnpjoucpf')       ?? ''
 
+  const SUPA_URL = 'https://asgorarunzhiojqioxzq.supabase.co'
+  const SUPA_KEY = 'sb_publishable_dH85HYKGxv3X0te627VfOw_OGaPoNMF'
+
   const [cnpjoucpf, setCnpjoucpf]   = useState(cnpjoucpfUrl)
   const [docs, setDocs]             = useState<Doc[]>([])
   const [buscando, setBuscando]     = useState(false)
   const [erro, setErro]             = useState("")
   const [buscou, setBuscou]         = useState(false)
+  const [razaoSocial, setRazaoSocial] = useState("")
 
-  // Busca automaticamente se o CNPJ/CPF já vier pela URL (passado pelo dashboard)
   useEffect(() => {
-    if (cnpjoucpfUrl) buscar()
+    if (cnpjoucpfUrl) {
+      // Busca razão social/nome do estabelecimento
+      const limpo = cnpjoucpfUrl.replace(/\D/g, '')
+      fetch(`${SUPA_URL}/rest/v1/estabelecimento?cnpjoucpf=eq.${limpo}&select=razao_social_nome`, {
+        headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` }
+      }).then(r => r.json()).then(d => {
+        if (Array.isArray(d) && d.length > 0) setRazaoSocial(d[0].razao_social_nome ?? '')
+      }).catch(() => {})
+      buscar()
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
@@ -102,8 +114,11 @@ function BaixarDocumentos() {
 
           {/* Identificação do estabelecimento */}
           <div style={{ backgroundColor: "#F8FAFC", border: "1px solid #E2E8F0", borderRadius: "8px", padding: "10px 14px", marginBottom: "20px", fontSize: "13px", color: "#374151" }}>
-            <span style={{ fontWeight: 600 }}>Estabelecimento: </span>
-            {cnpjoucpf || <span style={{ color: "#94A3B8" }}>Não informado</span>}
+            {razaoSocial && <div style={{ fontWeight: 600, marginBottom: "2px" }}>{razaoSocial}</div>}
+            <div style={{ color: "#6B7280", fontSize: "12px" }}>
+              <span style={{ fontWeight: 600 }}>CNPJ/CPF: </span>
+              {cnpjoucpf || <span style={{ color: "#94A3B8" }}>Não informado</span>}
+            </div>
           </div>
           {buscando && <p style={{ fontSize: "13px", color: "#6B7280", marginBottom: "16px" }}>Buscando documentos...</p>}
 
