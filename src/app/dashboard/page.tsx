@@ -417,11 +417,10 @@ export default function Dashboard() {
           {/* ── Área de conteúdo ── */}
           <div style={{ flex: 1, minWidth: 0, padding: "16px", backgroundColor: "#F8FAFC" }}>
 
-            {/* Nenhum serviço selecionado - mostrar Macro Fluxo */}
+            {/* Nenhum serviço selecionado */}
             {!tipoServico && (
-              <div style={{ width: "calc(100% - 16px)", maxWidth: "860px" }}>
-                <img src="/fluxo-aime.png" alt="Macro Fluxo no AIMÊ"
-                  style={{ width: "100%", height: "auto", display: "block", borderRadius: "8px" }} />
+              <div style={{ color: "#94A3B8", fontSize: "13px", textAlign: "center", padding: "40px 16px" }}>
+                Selecione um serviço no menu ao lado para iniciar
               </div>
             )}
 
@@ -524,9 +523,10 @@ export default function Dashboard() {
                     </div>
                   </div>
 
-                  {/* ── Área reservada: descrição do procedimento (implementação futura) ── */}
-                  <div style={{ marginTop: "16px", padding: "20px", border: "1px dashed #CBD5E1", borderRadius: "8px", minHeight: "180px", color: "#94A3B8", fontSize: "13px", textAlign: "center" }}>
-                    [Reservado para descrição do procedimento de execução do serviço]
+                  {/* ── Imagem Macro Fluxo do Processo ── */}
+                  <div style={{ marginTop: "16px" }}>
+                    <img src="/fluxo-aime.png" alt="Macro Fluxo no AIMÊ"
+                      style={{ width: "100%", height: "auto", display: "block", borderRadius: "8px" }} />
                   </div>
 
                 </div>
