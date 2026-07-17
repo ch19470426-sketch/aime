@@ -85,7 +85,7 @@ const menuGrupos = [
 ]
 
 // Tipos de serviço que são vistorias (abre tela de CNPJ/CPF)
-const CODIGOS_VISTORIA = [11,12,13,14,15,16,17,18,19,21,22,23,24,25,26,27,28,29,31,32,33,34,35,36,37,38,40]
+const CODIGOS_VISTORIA = [11,12,13,14,15,16,17,18,19,21,22,23,24,25,26,27,28,29,31,32,33,34,35,36,37,38,40,61]
 
 // Tipos de serviço que coletam CPF (pessoa física) em vez de CNPJ
 const CODIGOS_CPF = [13, 23, 33, 43]
@@ -315,11 +315,6 @@ export default function Dashboard() {
     if (!permitidos.includes(codigo)) return
     if (codigo === 99) {
       createClient().auth.signOut().then(() => { window.location.href = "/" })
-      return
-    }
-    // Código 61: vai direto para a tela de baixar documentos (CNPJ é informado lá)
-    if (codigo === 61) {
-      window.location.href = `/baixar-documentos?cpf_inspetor=${cpfInspetor}&chave_inspetor=${chaveInspetor}`
       return
     }
     setTipoServico(codigo)
