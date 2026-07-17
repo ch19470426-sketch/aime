@@ -24,7 +24,18 @@ export async function POST(request: NextRequest) {
       email_confirm: true, // já nasce confirmada, sem precisar de link por e-mail
     })
 
-    if (error) return NextResponse.json({ erro: error.message }, { status: 400 })
+    if (error) {
+      if (error.message.includes('already been registered') || error.message.includes('already exists')) {
+        const { data: listData } = await supabase.auth.admin.listUsers()
+        const existente = listData?.users?.find((u: { email?: string }) => u.email === email)
+        if (existente) {
+          const { error: errUpdate } = await supabase.auth.admin.updateUserById(existente.id, { password })
+          if (errUpdate) return NextResponse.json({ erro: errUpdate.message }, { status: 400 })
+          return NextResponse.json({ ok: true, id: existente.id })
+        }
+      }
+      return NextResponse.json({ erro: error.message }, { status: 400 })
+    }
 
     return NextResponse.json({ ok: true, id: data.user?.id })
   } catch (err) {
