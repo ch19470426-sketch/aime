@@ -113,12 +113,9 @@ function BaixarDocumentos() {
         <div style={S.body2}>
 
           {/* Identificação do estabelecimento */}
-          <div style={{ backgroundColor: "#F8FAFC", border: "1px solid #E2E8F0", borderRadius: "8px", padding: "10px 14px", marginBottom: "20px", fontSize: "13px", color: "#374151" }}>
-            {razaoSocial && <div style={{ fontWeight: 600, marginBottom: "2px" }}>{razaoSocial}</div>}
-            <div style={{ color: "#6B7280", fontSize: "12px" }}>
-              <span style={{ fontWeight: 600 }}>CNPJ/CPF: </span>
-              {cnpjoucpf || <span style={{ color: "#94A3B8" }}>Não informado</span>}
-            </div>
+          <div style={{ backgroundColor: "#F8FAFC", border: "1px solid #E2E8F0", borderRadius: "8px", padding: "10px 14px", marginBottom: "20px", fontSize: "13px", color: "#374151", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <span style={{ fontWeight: 600 }}>{razaoSocial || "Estabelecimento"}</span>
+            <span style={{ color: "#6B7280", fontSize: "12px" }}>{cnpjoucpf || "—"}</span>
           </div>
           {buscando && <p style={{ fontSize: "13px", color: "#6B7280", marginBottom: "16px" }}>Buscando documentos...</p>}
 
