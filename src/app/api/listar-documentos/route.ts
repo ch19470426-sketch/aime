@@ -30,14 +30,13 @@ export async function GET(request: NextRequest) {
     const arquivos = (data ?? [])
       .filter(f => {
         const nome = f.name
-        // Log para diagnóstico
         console.log('[AIME-61] arquivo:', nome, '| chave match:', nome.startsWith(chaveInspetor), '| cnpj match:', nome.includes(cnpjoucpf))
         if (!nome.startsWith(chaveInspetor)) return false
         if (!nome.includes(cnpjoucpf)) return false
-        const ehPdfAssinado = nome.endsWith('_assinado.pdf')
-        const ehPdf         = nome.endsWith('.pdf')
-        const ehTermo       = nome.includes('termo_de_aceite')
-        return ehPdfAssinado || ehPdf || ehTermo
+        // Aceita PDFs assinados, PDFs, HTMLs de documentos e termo de aceite
+        const ehPdf   = nome.endsWith('.pdf')
+        const ehHtml  = nome.endsWith('.html')
+        return ehPdf || ehHtml
       })
 
     console.log('[AIME-61] total arquivos storage:', data?.length, '| filtrados:', arquivos.length, '| chave:', chaveInspetor, '| cnpj:', cnpjoucpf)
@@ -52,15 +51,16 @@ export async function GET(request: NextRequest) {
 
         // Rótulo amigável para exibição
         let label = nome
-          .replace(`${chaveInspetor}_${cnpjoucpf}_`, '')
-          .replace(`${chaveInspetor}_`, '')
-          .replace(/_assinado\.pdf$/i, ' — PDF assinado')
-          .replace(/\.pdf$/i, ' — PDF')
+          .replace(chaveInspetor + '_', '')
+          .replace(cnpjoucpf, '')
+          .replace(/_+/g, ' ')
+          .replace(/\.pdf$/i, '')
           .replace(/\.html$/i, '')
-          .replace(/_/g, ' ')
+          .replace(/\bassinado\b/i, '— PDF assinado')
           .trim()
 
         if (nome.includes('termo_de_aceite')) label = 'Termo de Aceite dos Serviços'
+        if (nome.endsWith('_assinado.pdf'))   label = label.replace('— PDF assinado', '') + ' — PDF assinado'
 
         // Capitalizar primeira letra
         label = label.charAt(0).toUpperCase() + label.slice(1)
