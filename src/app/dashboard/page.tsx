@@ -220,7 +220,23 @@ export default function Dashboard() {
             window.location.href = `/inspetor?cpf=${cpf}&novo=1`
             return
           }
-          const chave = dados[0].chave_inspetor ?? ""
+          let chave = dados[0].chave_inspetor ?? ""
+          // Se a chave for null (registro antigo criado antes dessa coluna existir),
+          // gera e salva uma nova chave automaticamente
+          if (!chave) {
+            try {
+              const chaveRes = await fetch('/api/gerar-chave-inspetor', { method: 'POST' })
+              const chaveData = await chaveRes.json()
+              if (chaveData.chave) {
+                chave = chaveData.chave
+                await fetch(`${SUPA_URL}/rest/v1/inspetor?cpf_inspetor=eq.${cpf}`, {
+                  method: 'PATCH',
+                  headers: { apikey: SUPA_KEY, Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ chave_inspetor: chave })
+                })
+              }
+            } catch { /* segue sem chave se falhar */ }
+          }
           setCpfInspetor(dados[0].cpf_inspetor)
           setChaveInspetor(chave)
           setTitulo(dados[0].titulo_profissional ?? "")
