@@ -47,6 +47,19 @@ function TermoAceite() {
     }
   }
 
+  const S = {
+    body: { backgroundColor: "#E8EEF7", minHeight: "100vh", display: "flex", alignItems: "flex-start", justifyContent: "center", padding: "16px" },
+    page: { backgroundColor: "white", borderRadius: "16px", boxShadow: "0 4px 24px rgba(0,0,0,0.12)", width: "100%", maxWidth: "780px", overflow: "hidden" },
+    header: { backgroundColor: "#1E3A8A", padding: "8px 16px", display: "flex", alignItems: "center", gap: "12px" },
+    divider: { height: "2px", backgroundColor: "#1E3A8A" },
+    body2: { padding: "20px 24px" },
+    titulo: { textAlign: "center" as const, fontWeight: "bold" as const, fontSize: "12pt", marginBottom: "12pt" },
+    texto: { fontSize: "9pt", lineHeight: 1.6, color: "#1a1a1a", textAlign: "justify" as const, marginBottom: "6pt" },
+    h2: { fontSize: "9pt", fontWeight: "bold" as const, marginTop: "10pt", marginBottom: "3pt" },
+    rodape: { borderTop: "1px solid #ccc", marginTop: "16pt", paddingTop: "8pt", display: "flex", justifyContent: "space-between", alignItems: "center", gap: "12px" },
+    btnAceitar: { backgroundColor: "#1E3A8A", color: "white", fontWeight: "600" as const, padding: "10px 28px", borderRadius: "50px", border: "none", cursor: "pointer", fontSize: "13px" },
+  }
+
   if (mostrarDiagrama) {
     return (
       <div style={S.body}>
@@ -75,18 +88,6 @@ function TermoAceite() {
     )
   }
 
-  const S = {
-    body: { backgroundColor: "#E8EEF7", minHeight: "100vh", display: "flex", alignItems: "flex-start", justifyContent: "center", padding: "16px" },
-    page: { backgroundColor: "white", borderRadius: "16px", boxShadow: "0 4px 24px rgba(0,0,0,0.12)", width: "100%", maxWidth: "780px", overflow: "hidden" },
-    header: { backgroundColor: "#1E3A8A", padding: "8px 16px", display: "flex", alignItems: "center", gap: "12px" },
-    divider: { height: "2px", backgroundColor: "#1E3A8A" },
-    body2: { padding: "20px 24px" },
-    titulo: { textAlign: "center" as const, fontWeight: "bold" as const, fontSize: "12pt", marginBottom: "12pt" },
-    texto: { fontSize: "9pt", lineHeight: 1.6, color: "#1a1a1a", textAlign: "justify" as const, marginBottom: "6pt" },
-    h2: { fontSize: "9pt", fontWeight: "bold" as const, marginTop: "10pt", marginBottom: "3pt" },
-    rodape: { borderTop: "1px solid #ccc", marginTop: "16pt", paddingTop: "8pt", display: "flex", justifyContent: "space-between", alignItems: "center", gap: "12px" },
-    btnAceitar: { backgroundColor: "#1E3A8A", color: "white", fontWeight: "600" as const, padding: "10px 28px", borderRadius: "50px", border: "none", cursor: "pointer", fontSize: "13px" },
-  }
 
   return (
     <div style={S.body}>
