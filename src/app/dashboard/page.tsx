@@ -419,8 +419,9 @@ export default function Dashboard() {
 
             {/* Nenhum serviço selecionado - mostrar Macro Fluxo */}
             {!tipoServico && (
-              <div style={{ padding: "8px 4px" }}>
-                <img src="/fluxo-aime.png" alt="Macro Fluxo no AIMÊ" style={{ width: "100%", borderRadius: "8px" }} />
+              <div style={{ padding: "8px", overflow: "hidden" }}>
+                <img src="/fluxo-aime.png" alt="Macro Fluxo no AIMÊ"
+                  style={{ width: "100%", maxWidth: "100%", height: "auto", display: "block", borderRadius: "8px" }} />
               </div>
             )}
 
