@@ -202,31 +202,34 @@ export default function Dashboard() {
 
   useEffect(() => {
     async function carregarSessao() {
-      const supabase = createClient()
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user || !user.email) {
-        window.location.href = "/"
-        return
-      }
-      const cpf = user.email.split("@")[0]
       try {
-        const res = await fetch(`${SUPA_URL}/rest/v1/inspetor?cpf_inspetor=eq.${cpf}&select=cpf_inspetor,chave_inspetor,titulo_profissional`, {
-          headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` }
-        })
-        const dados = await res.json()
-        if (!Array.isArray(dados) || dados.length === 0) {
-          // Login existe mas cadastro do inspetor não foi completado
-          window.location.href = `/inspetor?cpf=${cpf}&novo=1`
+        const supabase = createClient()
+        const { data: { session } } = await supabase.auth.getSession()
+        if (!session?.user?.email) {
+          window.location.href = "/"
           return
         }
-        setCpfInspetor(dados[0].cpf_inspetor)
-        setChaveInspetor(dados[0].chave_inspetor ?? "")
-        setTitulo(dados[0].titulo_profissional ?? "")
-      } catch {
-        window.location.href = "/"
-        return
+        const cpf = session.user.email.split("@")[0]
+        const accessToken = session.access_token
+        try {
+          const res = await fetch(`${SUPA_URL}/rest/v1/inspetor?cpf_inspetor=eq.${cpf}&select=cpf_inspetor,chave_inspetor,titulo_profissional`, {
+            headers: { apikey: SUPA_KEY, Authorization: `Bearer ${accessToken}` }
+          })
+          const dados = await res.json()
+          if (!Array.isArray(dados) || dados.length === 0) {
+            window.location.href = `/inspetor?cpf=${cpf}&novo=1`
+            return
+          }
+          setCpfInspetor(dados[0].cpf_inspetor)
+          setChaveInspetor(dados[0].chave_inspetor ?? "")
+          setTitulo(dados[0].titulo_profissional ?? "")
+        } catch {
+          window.location.href = "/"
+          return
+        }
+      } finally {
+        setCarregandoSessao(false)
       }
-      setCarregandoSessao(false)
     }
     carregarSessao()
   }, [])
