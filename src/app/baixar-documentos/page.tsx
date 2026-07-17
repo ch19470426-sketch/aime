@@ -80,12 +80,23 @@ function BaixarDocumentos() {
     }
   }
 
-  function baixar(doc: Doc) {
-    const a = document.createElement('a')
-    a.href = doc.url
-    a.download = doc.nome
-    a.target = '_blank'
-    a.click()
+  async function baixar(doc: Doc) {
+    try {
+      // Fetch do arquivo e força download via blob — evita o navegador abrir HTMLs
+      const res = await fetch(doc.url)
+      const blob = await res.blob()
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = doc.nome
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      URL.revokeObjectURL(url)
+    } catch {
+      // Fallback: abre em nova aba
+      window.open(doc.url, '_blank')
+    }
   }
 
   const S = {
