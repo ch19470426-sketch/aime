@@ -336,6 +336,11 @@ export default function Dashboard() {
         return
       }
     }
+    // Código 61: Baixar Documentos — passa o CNPJ/CPF já preenchido
+    if (Number(tipoServico) === 61) {
+      window.location.href = `/baixar-documentos?cpf_inspetor=${cpfInspetor}&chave_inspetor=${chaveInspetor}&cnpjoucpf=${docLimpo}`
+      return
+    }
     // Códigos 21-29: Planos de Trabalho
     if (Number(tipoServico) >= 21 && Number(tipoServico) <= 29) {
       window.location.href = `/plano?cpf_inspetor=${cpfInspetor}&chave_inspetor=${chaveInspetor}&cnpjoucpf=${docLimpo}&tipo_servico=${tipoServico}`
