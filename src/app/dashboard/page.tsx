@@ -1,3 +1,5 @@
+"use client"
+export const dynamic = 'force-dynamic'
 // src/app/dashboard/page.tsx
 // AIMÊ — Dashboard com sub-tela reorganizada conforme spec
 //   - Bloco CNPJ/CPF compacto (altura -60%) no canto superior esquerdo
@@ -5,9 +7,6 @@
 //   - Título "Procedimento para Execução do Serviço" centralizado entre os dois
 //   - Área reservada abaixo para descrição do procedimento (implementação futura)
 //   - CPF coletado para tipos 13, 23, 33, 43 / CNPJ para os demais
-
-"use client"
-export const dynamic = 'force-dynamic'
 
 import { useState, useEffect } from "react"
 import Banner from "@/components/Banner"
