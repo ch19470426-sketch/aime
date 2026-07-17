@@ -366,7 +366,7 @@ export default function Dashboard() {
   return (
     <>
     <div style={{ backgroundColor: "#E8EEF7", minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", padding: "16px" }}>
-      <div style={{ backgroundColor: "white", borderRadius: "16px", boxShadow: "0 4px 24px rgba(0,0,0,0.12)", width: "100%", maxWidth: "1100px", overflow: "hidden" }}>
+      <div style={{ backgroundColor: "white", borderRadius: "16px", boxShadow: "0 4px 24px rgba(0,0,0,0.12)", width: "100%", maxWidth: "1100px", overflow: "hidden", minWidth: 0 }}>
 
         {/* ── Header ── */}
         <div style={{ backgroundColor: "#1E3A8A", padding: "8px 16px", display: "flex", alignItems: "center", gap: "12px" }}>
@@ -419,9 +419,9 @@ export default function Dashboard() {
 
             {/* Nenhum serviço selecionado - mostrar Macro Fluxo */}
             {!tipoServico && (
-              <div style={{ padding: "8px", overflow: "hidden" }}>
+              <div style={{ width: "calc(100% - 16px)", maxWidth: "860px" }}>
                 <img src="/fluxo-aime.png" alt="Macro Fluxo no AIMÊ"
-                  style={{ width: "100%", maxWidth: "100%", height: "auto", display: "block", borderRadius: "8px" }} />
+                  style={{ width: "100%", height: "auto", display: "block", borderRadius: "8px" }} />
               </div>
             )}
 
