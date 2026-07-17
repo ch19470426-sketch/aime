@@ -220,9 +220,22 @@ export default function Dashboard() {
             window.location.href = `/inspetor?cpf=${cpf}&novo=1`
             return
           }
+          const chave = dados[0].chave_inspetor ?? ""
           setCpfInspetor(dados[0].cpf_inspetor)
-          setChaveInspetor(dados[0].chave_inspetor ?? "")
+          setChaveInspetor(chave)
           setTitulo(dados[0].titulo_profissional ?? "")
+
+          // Verifica se o termo de aceite já foi assinado — se não,
+          // apresenta o termo antes de entrar no dashboard
+          if (chave) {
+            const nomeTermoEsperado = `${chave}_${cpf}_termo_de_aceite.html`
+            const termoRes = await fetch(`/api/ler-documento?nome=${encodeURIComponent(nomeTermoEsperado)}&pasta=documentos_inspetor`)
+            const termoData = await termoRes.json()
+            if (!termoData.existe) {
+              window.location.href = `/termo-aceite?cpf=${cpf}&chave=${encodeURIComponent(chave)}&proximo=/dashboard`
+              return
+            }
+          }
         } catch {
           window.location.href = "/"
           return
