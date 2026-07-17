@@ -202,10 +202,12 @@ export default function Dashboard() {
 
   useEffect(() => {
     async function carregarSessao() {
+      let deveRedirecionar = false
       try {
         const supabase = createClient()
         const { data: { session } } = await supabase.auth.getSession()
         if (!session?.user?.email) {
+          deveRedirecionar = true
           window.location.href = "/"
           return
         }
@@ -217,47 +219,51 @@ export default function Dashboard() {
           })
           const dados = await res.json()
           if (!Array.isArray(dados) || dados.length === 0) {
+            deveRedirecionar = true
             window.location.href = `/inspetor?cpf=${cpf}&novo=1`
             return
           }
           let chave = dados[0].chave_inspetor ?? ""
           // Se a chave for null (registro antigo criado antes dessa coluna existir),
-          // gera e salva uma nova chave automaticamente
+          // salva via rota de servidor (service role, sem problema de RLS)
           if (!chave) {
             try {
               const chaveRes = await fetch('/api/gerar-chave-inspetor', { method: 'POST' })
               const chaveData = await chaveRes.json()
               if (chaveData.chave) {
                 chave = chaveData.chave
-                await fetch(`${SUPA_URL}/rest/v1/inspetor?cpf_inspetor=eq.${cpf}`, {
-                  method: 'PATCH',
-                  headers: { apikey: SUPA_KEY, Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ chave_inspetor: chave })
+                // salva via rota intermediaria que usa service role
+                await fetch('/api/salvar-inspetor', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ cpf, soAtualizarChave: true, chave })
                 })
               }
-            } catch { /* segue sem chave se falhar */ }
+            } catch { /* segue com chave vazia se falhar */ }
           }
           setCpfInspetor(dados[0].cpf_inspetor)
           setChaveInspetor(chave)
           setTitulo(dados[0].titulo_profissional ?? "")
 
-          // Verifica se o termo de aceite já foi assinado — se não,
-          // apresenta o termo antes de entrar no dashboard
+          // Verifica se o termo de aceite já foi assinado
           if (chave) {
             const nomeTermoEsperado = `${chave}_${cpf}_termo_de_aceite.html`
             const termoRes = await fetch(`/api/ler-documento?nome=${encodeURIComponent(nomeTermoEsperado)}&pasta=documentos_inspetor`)
             const termoData = await termoRes.json()
             if (!termoData.existe) {
+              deveRedirecionar = true
               window.location.href = `/termo-aceite?cpf=${cpf}&chave=${encodeURIComponent(chave)}&proximo=/dashboard`
               return
             }
           }
         } catch {
+          deveRedirecionar = true
           window.location.href = "/"
           return
         }
       } finally {
-        setCarregandoSessao(false)
+        // Só mostra o dashboard se não estiver redirecionando para outra tela
+        if (!deveRedirecionar) setCarregandoSessao(false)
       }
     }
     carregarSessao()
