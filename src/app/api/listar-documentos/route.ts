@@ -34,9 +34,10 @@ export async function GET(request: NextRequest) {
         const nome = f.name
         if (!nome.startsWith(chaveInspetor)) return false
         if (!nome.includes(cnpjoucpf)) return false
-        const ehPdf   = nome.endsWith('.pdf')
-        const ehTermo = nome.includes('termo_de_aceite')
-        return ehPdf || ehTermo
+        const ehPdfAssinado = nome.endsWith('_assinado.pdf')
+        const ehPdf         = nome.endsWith('.pdf')
+        const ehTermo       = nome.includes('termo_de_aceite')
+        return ehPdfAssinado || ehPdf || ehTermo
       })
       .map(f => {
         const nome = f.name
@@ -55,10 +56,13 @@ export async function GET(request: NextRequest) {
         let label = nome
           .replace(`${chaveInspetor}_${cnpjoucpf}_`, '')
           .replace(`${chaveInspetor}_`, '')
+          .replace(/_assinado\.pdf$/i, ' — PDF assinado')
+          .replace(/\.pdf$/i, ' — PDF')
+          .replace(/\.html$/i, '')
           .replace(/_/g, ' ')
-          .replace('.pdf', ' (PDF)')
-          .replace('.html', ' (HTML)')
           .trim()
+
+        if (nome.includes('termo_de_aceite')) label = 'Termo de Aceite dos Serviços'
 
         // Capitalizar primeira letra
         label = label.charAt(0).toUpperCase() + label.slice(1)
