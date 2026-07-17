@@ -27,21 +27,20 @@ export async function GET(request: NextRequest) {
     if (error) return NextResponse.json({ erro: error.message }, { status: 500 })
 
     // Filtrar: arquivo deve conter chaveInspetor E cnpjoucpf no nome
+    // Exclui fotos de vistoria (nome termina com _foto_NNN.jpg ou _NNN.jpg)
     const arquivos = (data ?? [])
       .filter(f => {
         const nome = f.name
-        console.log('[AIME-61] arquivo:', nome, '| chave match:', nome.startsWith(chaveInspetor), '| cnpj match:', nome.includes(cnpjoucpf))
         if (!nome.startsWith(chaveInspetor)) return false
         if (!nome.includes(cnpjoucpf)) return false
-        // Aceita PDFs assinados, PDFs, HTMLs de documentos e termo de aceite
-        const ehPdf   = nome.endsWith('.pdf')
-        const ehHtml  = nome.endsWith('.html')
+        // Excluir fotos de vistoria (terminam com número antes da extensão)
+        if (/\d+\.(jpg|jpeg|png|webp)$/i.test(nome)) return false
+        const ehPdf  = nome.endsWith('.pdf')
+        const ehHtml = nome.endsWith('.html')
         return ehPdf || ehHtml
       })
 
-    console.log('[AIME-61] total arquivos storage:', data?.length, '| filtrados:', arquivos.length, '| chave:', chaveInspetor, '| cnpj:', cnpjoucpf)
-
-    // Gerar URLs assinadas para cada arquivo encontrado
+    // Gerar URLs assinadas e rótulos para cada arquivo
     const docs = await Promise.all(
       arquivos.map(async (f) => {
         const nome = f.name
@@ -49,23 +48,22 @@ export async function GET(request: NextRequest) {
           .from('aime')
           .createSignedUrl(`documentos_inspetor/${nome}`, 3600)
 
-        // Rótulo amigável para exibição
+        // Rótulo amigável
         let label = nome
-          .replace(chaveInspetor + '_', '')
-          .replace(cnpjoucpf, '')
-          .replace(/_+/g, ' ')
+          .replace(new RegExp('^' + chaveInspetor + '_'), '')
+          .replace(new RegExp('_?' + cnpjoucpf + '_?'), '_')
+          .replace(/^_|_$/g, '')
+          .replace(/_/g, ' ')
           .replace(/\.pdf$/i, '')
           .replace(/\.html$/i, '')
-          .replace(/\bassinado\b/i, '— PDF assinado')
           .trim()
 
-        if (nome.includes('termo_de_aceite')) label = 'Termo de Aceite dos Serviços'
-        if (nome.endsWith('_assinado.pdf'))   label = label.replace('— PDF assinado', '') + ' — PDF assinado'
+        // Casos especiais
+        if (nome.includes('termo_de_aceite'))    label = 'Termo de Aceite dos Serviços'
+        else if (nome.endsWith('_assinado.pdf')) label = label.replace(/\s*assinado\s*/i, '').trim() + ' — PDF assinado'
+        else if (nome.endsWith('.pdf'))          label = label + ' — PDF'
 
-        // Capitalizar primeira letra
-        label = label.charAt(0).toUpperCase() + label.slice(1)
-
-        return { nome, label, url: urlData?.signedUrl ?? null }
+        return { nome, label: label.charAt(0).toUpperCase() + label.slice(1), url: urlData?.signedUrl ?? null }
       })
     )
 
