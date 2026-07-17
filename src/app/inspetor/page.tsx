@@ -258,9 +258,10 @@ function CadastroInspetor() {
                         <option value="">Selecione...</option>
                         <option value="Arquiteto">Arquiteto</option>
                         <option value="Eng Civil">Eng Civil</option>
-                        <option value="Eng Eletrico">Eng Eletrico</option>
-                        <option value="Eng Mecanico">Eng Mecanico</option>
-                        <option value="Tecnico Edificacao">Tecnico Edificacao</option>
+                        <option value="Eng Elétrico">Eng Elétrico</option>
+                        <option value="Eng Mecânico">Eng Mecânico</option>
+                        <option value="Técnico Edificação">Técnico Edificação</option>
+                        <option value="Corretor Imóvel">Corretor Imóvel</option>
                       </select>
                     </div>
                     <div>
