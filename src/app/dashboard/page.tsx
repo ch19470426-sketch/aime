@@ -317,6 +317,11 @@ export default function Dashboard() {
       createClient().auth.signOut().then(() => { window.location.href = "/" })
       return
     }
+    // Código 61: vai direto para a tela de baixar documentos (CNPJ é informado lá)
+    if (codigo === 61) {
+      window.location.href = `/baixar-documentos?cpf_inspetor=${cpfInspetor}&chave_inspetor=${chaveInspetor}`
+      return
+    }
     setTipoServico(codigo)
     setDocumento("")
     setEstadoDoc("aguardando")
