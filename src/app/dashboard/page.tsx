@@ -1,7 +1,7 @@
 "use client"
 export const dynamic = 'force-dynamic'
 // src/app/dashboard/page.tsx
-// AIMÊ — Dashboard com sub-tela reorganizada conforme spec
+// AIMÊ — Dashboard
 //   - Bloco CNPJ/CPF compacto (altura -60%) no canto superior esquerdo
 //   - Avatar mie_orienta no canto superior direito
 //   - Título "Procedimento para Execução do Serviço" centralizado entre os dois
@@ -17,6 +17,11 @@ import { createClient } from "@/utils/supabase/client"
 
 const SUPA_URL = 'https://asgorarunzhiojqioxzq.supabase.co'
 const SUPA_KEY = 'sb_publishable_dH85HYKGxv3X0te627VfOw_OGaPoNMF'
+
+// Log síncrono no nível do módulo — aparece SEMPRE se o JS rodar no cliente
+if (typeof window !== 'undefined') {
+  console.log('[AIME-MODULE] Dashboard.tsx carregado no cliente')
+}
 
 const permissoes: Record<string, number[]> = {
   "Arquiteto":          [11,12,13,19,21,22,23,29,31,32,33,40,41,42,43,49,61,62,99],
