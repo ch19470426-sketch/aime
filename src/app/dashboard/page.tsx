@@ -7,6 +7,7 @@
 //   - CPF coletado para tipos 13, 23, 33, 43 / CNPJ para os demais
 
 "use client"
+export const dynamic = 'force-dynamic'
 
 import { useState, useEffect } from "react"
 import Banner from "@/components/Banner"
@@ -201,6 +202,7 @@ export default function Dashboard() {
   const [titulo, setTitulo] = useState("")
 
   useEffect(() => {
+    console.log('[AIME] Dashboard montado, iniciando carregarSessao...')
     async function carregarSessao() {
       let deveRedirecionar = false
       try {
