@@ -27,11 +27,11 @@ export async function GET(request: NextRequest) {
     if (error) return NextResponse.json({ erro: error.message }, { status: 500 })
 
     // Filtrar: arquivo deve conter chaveInspetor E cnpjoucpf no nome
-    // e ser PDF assinado ou termo de aceite
-    const prefixo = `${chaveInspetor}_${cnpjoucpf}`
     const arquivos = (data ?? [])
       .filter(f => {
         const nome = f.name
+        // Log para diagnóstico
+        console.log('[AIME-61] arquivo:', nome, '| chave match:', nome.startsWith(chaveInspetor), '| cnpj match:', nome.includes(cnpjoucpf))
         if (!nome.startsWith(chaveInspetor)) return false
         if (!nome.includes(cnpjoucpf)) return false
         const ehPdfAssinado = nome.endsWith('_assinado.pdf')
@@ -39,15 +39,13 @@ export async function GET(request: NextRequest) {
         const ehTermo       = nome.includes('termo_de_aceite')
         return ehPdfAssinado || ehPdf || ehTermo
       })
-      .map(f => {
-        const nome = f.name
-        // Gera URL pública assinada (válida por 1 hora)
-        return { nome, prefixo }
-      })
+
+    console.log('[AIME-61] total arquivos storage:', data?.length, '| filtrados:', arquivos.length, '| chave:', chaveInspetor, '| cnpj:', cnpjoucpf)
 
     // Gerar URLs assinadas para cada arquivo encontrado
     const docs = await Promise.all(
-      arquivos.map(async ({ nome }) => {
+      arquivos.map(async (f) => {
+        const nome = f.name
         const { data: urlData } = await supabase.storage
           .from('aime')
           .createSignedUrl(`documentos_inspetor/${nome}`, 3600)
