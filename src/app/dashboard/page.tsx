@@ -210,7 +210,9 @@ export default function Dashboard() {
     async function carregarSessao() {
       let deveRedirecionar = false
       try {
+        console.log('[AIME] iniciando createClient...')
         const supabase = createClient()
+        console.log('[AIME] getSession...')
         const { data: { session } } = await supabase.auth.getSession()
         console.log('[AIME] session:', session?.user?.email ?? 'nula')
         if (!session?.user?.email) {
@@ -269,6 +271,9 @@ export default function Dashboard() {
           window.location.href = "/"
           return
         }
+      } catch (eExterno) {
+        console.error('[AIME] erro EXTERNO (createClient/getSession):', eExterno)
+        deveRedirecionar = false // mostra dashboard vazio em vez de redirecionar
       } finally {
         console.log('[AIME] deveRedirecionar:', deveRedirecionar)
         if (!deveRedirecionar) setCarregandoSessao(false)
