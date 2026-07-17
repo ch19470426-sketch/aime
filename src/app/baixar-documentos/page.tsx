@@ -1,6 +1,6 @@
 "use client"
 export const dynamic = 'force-dynamic'
-import { useState, Suspense } from "react"
+import { useState, useEffect, Suspense } from "react"
 import { useSearchParams } from "next/navigation"
 import Image from "next/image"
 
@@ -29,6 +29,12 @@ function BaixarDocumentos() {
   const [buscando, setBuscando]     = useState(false)
   const [erro, setErro]             = useState("")
   const [buscou, setBuscou]         = useState(false)
+
+  // Busca automaticamente se o CNPJ/CPF já vier pela URL (passado pelo dashboard)
+  useEffect(() => {
+    if (cnpjoucpfUrl) buscar()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const formatarDoc = (v: string) => {
     const nums = v.replace(/\D/g, '').slice(0, 14)
@@ -94,21 +100,12 @@ function BaixarDocumentos() {
         <div style={S.divider} />
         <div style={S.body2}>
 
-          {/* Bloco de busca */}
-          <div style={{ display: "flex", gap: "8px", alignItems: "flex-end", marginBottom: "20px" }}>
-            <div style={{ flex: 1 }}>
-              <label style={S.label}>CNPJ ou CPF do estabelecimento</label>
-              <input style={S.input} value={cnpjoucpf}
-                onChange={e => { setCnpjoucpf(formatarDoc(e.target.value)); setBuscou(false); setDocs([]) }}
-                onKeyDown={e => e.key === 'Enter' && buscar()}
-                placeholder="00.000.000/0000-00 ou 000.000.000-00"
-                inputMode="numeric" />
-            </div>
-            <button style={{ ...S.btn, opacity: buscando ? 0.7 : 1 }}
-              onClick={buscar} disabled={buscando}>
-              {buscando ? "Buscando..." : "Buscar"}
-            </button>
+          {/* Identificação do estabelecimento */}
+          <div style={{ backgroundColor: "#F8FAFC", border: "1px solid #E2E8F0", borderRadius: "8px", padding: "10px 14px", marginBottom: "20px", fontSize: "13px", color: "#374151" }}>
+            <span style={{ fontWeight: 600 }}>Estabelecimento: </span>
+            {cnpjoucpf || <span style={{ color: "#94A3B8" }}>Não informado</span>}
           </div>
+          {buscando && <p style={{ fontSize: "13px", color: "#6B7280", marginBottom: "16px" }}>Buscando documentos...</p>}
 
           {erro && <p style={{ color: "#DC2626", fontSize: "13px", marginBottom: "16px" }}>{erro}</p>}
 
