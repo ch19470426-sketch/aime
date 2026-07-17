@@ -189,59 +189,6 @@ function ProcedimentoGrupo({ codigo, grupo }: { codigo: number; grupo: string })
   )
 }
 
-function MacroFluxoDash() {
-  const F="Arial,sans-serif"
-  const az50="#E6F1FB",az6="#185FA5",az8="#0C447C"
-  const tl50="#E1F5EE",tl6="#0F6E56",tl8="#085041"
-  const am50="#FAEEDA",am6="#854F0B",am8="#633806"
-  const gr50="#EAF3DE",gr6="#3B6D11",gr8="#27500A"
-  const pu50="#EEEDFE",pu6="#534AB7",pu8="#3C3489"
-  const co50="#FAECE7",co6="#993C1D",co8="#712B13"
-  const gy50="#F1EFE8",gy6="#5F5E5A",gy8="#444441"
-  const B=(x:number,y:number,w:number,h:number,f:string,s:string)=><rect x={x} y={y} width={w} height={h} rx={7} fill={f} stroke={s} strokeWidth={0.5}/>
-  const L=(x:number,y:number,t:string,c:string,sz=10)=><text x={x} y={y} textAnchor="middle" dominantBaseline="central" fill={c} fontSize={sz} fontWeight={500} fontFamily={F}>{t}</text>
-  const S=(x:number,y:number,t:string,c:string)=><text x={x} y={y} textAnchor="middle" dominantBaseline="central" fill={c} fontSize={8} fontFamily={F}>{t}</text>
-  const a={fill:"none",stroke:"#aaa",strokeWidth:0.8,markerEnd:"url(#aD)"}
-  return (
-    <svg width="100%" viewBox="0 0 660 310" role="img">
-      <title>Macro Fluxo no AIMÊ</title>
-      <defs><marker id="aD" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="4" markerHeight="4" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="#aaa" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></marker></defs>
-      <text x="330" y="18" textAnchor="middle" fill="#1E3A8A" fontSize={11} fontWeight={700} fontFamily={F}>Macro Fluxo no AIMÊ</text>
-      {B(10,32,66,48,az50,az6)}{L(43,48,"1",az8,8)}{L(43,60,"Login",az8)}{S(43,72,"Acesso",az6)}
-      <line x1={76} y1={56} x2={86} y2={56} {...a}/>
-      {B(86,32,66,48,az50,az6)}{L(119,48,"2",az8,8)}{L(119,60,"Cadastro",az8)}{S(119,72,"Profissional",az6)}
-      <line x1={152} y1={56} x2={162} y2={56} {...a}/>
-      {B(162,32,66,48,az50,az6)}{L(195,48,"3",az8,8)}{L(195,60,"Assinatura",az8)}{S(195,72,"Contrato",az6)}
-      <line x1={228} y1={56} x2={238} y2={56} {...a}/>
-      {B(238,32,66,48,az50,az6)}{L(271,48,"4",az8,8)}{L(271,60,"Serviço",az8)}{S(271,72,"Seleção",az6)}
-      <line x1={304} y1={56} x2={314} y2={56} {...a}/>
-      {B(314,32,80,48,tl50,tl6)}{L(354,48,"5",tl8,8)}{L(354,60,"Estabelec.",tl8)}{S(354,72,"Dados",tl6)}
-      <line x1={394} y1={56} x2={404} y2={56} {...a}/>
-      {B(404,32,72,48,tl50,tl6)}{L(440,48,"6",tl8,8)}{L(440,60,"Proposta",tl8)}{S(440,72,"Template",tl6)}
-      <line x1={476} y1={56} x2={486} y2={56} {...a}/>
-      {B(486,32,160,48,tl50,tl6)}{L(566,48,"7",tl8,8)}{L(566,60,"Plano de Trabalho",tl8)}{S(566,72,"Template",tl6)}
-      <path d="M566 80 L566 110 L43 110 L43 136" fill="none" stroke="#aaa" strokeWidth={0.8} markerEnd="url(#aD)"/>
-      {B(10,136,88,68,am50,am6)}{L(54,150,"8",am8,8)}{L(54,164,"Vistoria",am8)}{S(54,178,"Form+fotos+IA",am6)}
-      <line x1={98} y1={170} x2={108} y2={170} {...a}/>
-      {B(108,136,96,68,gr50,gr6)}{L(156,150,"9",gr8,8)}{L(156,164,"Homologar",gr8)}{S(156,178,"Vistoria",gr6)}
-      <line x1={204} y1={170} x2={214} y2={170} {...a}/>
-      {B(214,136,96,68,pu50,pu6)}{L(262,150,"10",pu8,8)}{L(262,164,"Laudo",pu8)}{S(262,178,"Templ+IA",pu6)}
-      <line x1={310} y1={170} x2={320} y2={170} {...a}/>
-      {B(320,136,96,68,co50,co6)}{L(368,150,"11",co8,8)}{L(368,164,"Plano Manut.",co8)}{S(368,178,"Templ+IA",co6)}
-      <line x1={416} y1={170} x2={426} y2={170} {...a}/>
-      {B(426,136,224,68,gy50,gy6)}{L(538,150,"12",gy8,8)}{L(538,164,"Homologar · Assinar",gy8)}{S(538,178,"Armazenar · Download",gy6)}
-      <rect x={10} y={232} width={640} height={48} rx={7} fill="none" stroke="#E2E8F0" strokeWidth={0.5}/>
-      <text x={330} y={246} textAnchor="middle" fill="#6B7280" fontSize={8} fontFamily={F}>Legenda</text>
-      <rect x={25} y={258} width={9} height={9} rx={2} fill={az50} stroke={az6} strokeWidth={0.5}/><text x={38} y={266} fill={az8} fontSize={8} fontFamily={F}>Acesso</text>
-      <rect x={90} y={258} width={9} height={9} rx={2} fill={tl50} stroke={tl6} strokeWidth={0.5}/><text x={103} y={266} fill={tl8} fontSize={8} fontFamily={F}>Doc. inicial</text>
-      <rect x={180} y={258} width={9} height={9} rx={2} fill={am50} stroke={am6} strokeWidth={0.5}/><text x={193} y={266} fill={am8} fontSize={8} fontFamily={F}>Campo</text>
-      <rect x={245} y={258} width={9} height={9} rx={2} fill={pu50} stroke={pu6} strokeWidth={0.5}/><text x={258} y={266} fill={pu8} fontSize={8} fontFamily={F}>Laudo/Manut.</text>
-      <rect x={350} y={258} width={9} height={9} rx={2} fill={gy50} stroke={gy6} strokeWidth={0.5}/><text x={363} y={266} fill={gy8} fontSize={8} fontFamily={F}>Conclusão</text>
-      <text x={330} y={286} textAnchor="middle" fill="#CBD5E1" fontSize={8} fontFamily={F}>Selecione um serviço no menu ao lado para iniciar</text>
-    </svg>
-  )
-}
-
 export default function Dashboard() {
   const router = useRouter()
 
@@ -473,7 +420,7 @@ export default function Dashboard() {
             {/* Nenhum serviço selecionado - mostrar Macro Fluxo */}
             {!tipoServico && (
               <div style={{ padding: "8px 4px" }}>
-                <MacroFluxoDash />
+                <img src="/fluxo-aime.png" alt="Macro Fluxo no AIMÊ" style={{ width: "100%", borderRadius: "8px" }} />
               </div>
             )}
 
