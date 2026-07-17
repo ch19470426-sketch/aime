@@ -1,10 +1,10 @@
 "use client"
 import { useState, useEffect, useRef } from "react"
 import Image from "next/image"
-import { createClient } from "@supabase/supabase-js"
+import { createClient } from "@/utils/supabase/client"
 import { useRouter } from "next/navigation"
 
-const SUPA_URL = 'https://asgorarunzhiojqioxzq.supabase.co'
+const SUPA_URL = 'https://asgorarunzhiojqioxzq.supabase.co' // ainda usado para busca REST direta
 const SUPA_KEY = 'sb_publishable_dH85HYKGxv3X0te627VfOw_OGaPoNMF'
 
 export default function LoginPage() {
@@ -44,7 +44,7 @@ export default function LoginPage() {
     }
     setLoading(true)
     try {
-      const supabase = createClient(SUPA_URL, SUPA_KEY)
+      const supabase = createClient()
       const emailTecnico = `${cpfLimpo}@aime-app.com.br`
 
       // Verifica se já existe cadastro de inspetor para este CPF
