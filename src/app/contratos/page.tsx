@@ -1,240 +1,302 @@
 "use client"
 export const dynamic = 'force-dynamic'
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import Image from "next/image"
 
-const planos: Record<string, any> = {
-  "PLANO MENSAL": {
-    base: "mes", quantidades: [3, 6, 12], nr_laudos: 4, pct: 0.06,
-    descontos: { 3: 0, 6: 0.05, 12: 0.10 },
-  },
-  "PLANO SERVICO": {
-    base: "laudo", quantidades: [3, 6, 12], nr_laudos: 99, pct: 0.03,
-    descontos: { 3: 0, 6: 0.05, 12: 0.10 },
-  },
-  "PLANO ESCRITORIO": {
-    base: "mes", quantidades: [3, 6, 12], nr_laudos: 12, pct: 0.15,
-    descontos: { 3: 0, 6: 0.05, 12: 0.10 },
-  },
-  "PLANO CORTESIA": {
-    base: "contrato", quantidades: [1], nr_laudos: 2, pct: 0,
-    descontos: { 1: 0 },
-  },
-}
-
+// ─── Regras dos planos ────────────────────────────────────────────────────────
+// SM atual usado como base de cálculo
 const SM = 1518.00
 
-const formInicial = {
-  cpf_inspetor: "",
-  tipo_assinatura: "",
-  qde_contratada: "",
-  data_inicio_contrato: "",
-  data_fim_contrato: "",
-  valor_pago: "",
-  saldo_quantidade: "",
+const PLANOS = {
+  "PLANO MENSAL": {
+    descricao: "6,5% do SM/mês · até 4 laudos/mês · válido até cancelamento",
+    pct: 0.065,
+    nr_laudos_mes: 4,
+    prazo_fixo: false,       // sem prazo definido — válido até cancelar
+    prazo_dias: null,
+    desconto_promocao: 0.10, // 10% de desconto na promoção
+    base_valor: "mes",
+  },
+  "PLANO SERVIÇO": {
+    descricao: "2,5% do SM/laudo · desconto 10% para mais de 5 laudos contratados",
+    pct: 0.025,
+    nr_laudos_mes: null,     // sem limite mensal
+    prazo_fixo: false,
+    prazo_dias: null,
+    desconto_qtd: { minimo: 5, desconto: 0.10 },
+    base_valor: "laudo",
+  },
+  "PLANO ESCRITÓRIO": {
+    descricao: "17% do SM/mês · até 12 laudos/mês · válido até cancelamento",
+    pct: 0.17,
+    nr_laudos_mes: 12,
+    prazo_fixo: false,
+    prazo_dias: null,
+    desconto_promocao: 0.10,
+    base_valor: "mes",
+  },
+  "PLANO CORTESIA": {
+    descricao: "Gratuito · máximo 2 laudos · prazo de 15 dias",
+    pct: 0,
+    nr_laudos_mes: null,
+    nr_laudos_total: 2,
+    prazo_fixo: true,
+    prazo_dias: 15,
+    desconto_promocao: 0,
+    base_valor: "contrato",
+  },
 }
 
+const NOMES_PAGOS = ["PLANO MENSAL", "PLANO SERVIÇO", "PLANO ESCRITÓRIO"]
+
+// ─── Utilitários ─────────────────────────────────────────────────────────────
+const maskCPF = (v: string) =>
+  v.replace(/\D/g,"").slice(0,11)
+   .replace(/(\d{3})(\d)/,"$1.$2")
+   .replace(/(\d{3})(\d)/,"$1.$2")
+   .replace(/(\d{3})(\d{1,2})$/,"$1-$2")
+
+const hoje = () => {
+  const d = new Date()
+  return `${String(d.getDate()).padStart(2,"0")}/${String(d.getMonth()+1).padStart(2,"0")}/${d.getFullYear()}`
+}
+
+const addDias = (dataStr: string, dias: number) => {
+  const [d,m,a] = dataStr.split("/").map(Number)
+  const dt = new Date(a, m-1, d)
+  dt.setDate(dt.getDate() + dias)
+  return `${String(dt.getDate()).padStart(2,"0")}/${String(dt.getMonth()+1).padStart(2,"0")}/${dt.getFullYear()}`
+}
+
+const brToIso = (br: string) => {
+  const [d,m,a] = br.split("/")
+  return `${a}-${m}-${d}`
+}
+
+// ─── Componente ──────────────────────────────────────────────────────────────
 export default function ContratosInspetor() {
-  const [form, setForm] = useState({ ...formInicial })
-  const [erro, setErro] = useState("")
-  const [sucesso, setSucesso] = useState(false)
+  const [cpf, setCpf]                     = useState("")
+  const [tipoPlano, setTipoPlano]         = useState("")
+  const [emPromocao, setEmPromocao]       = useState(false)
+  const [qtdLaudos, setQtdLaudos]         = useState("")  // só para PLANO SERVIÇO
+  const [salvando, setSalvando]           = useState(false)
+  const [erro, setErro]                   = useState("")
+  const [sucesso, setSucesso]             = useState(false)
 
-  const hoje = new Date().toLocaleDateString("pt-BR")
+  const plano = PLANOS[tipoPlano as keyof typeof PLANOS]
 
-  const maskCPF = (v: string) => v.replace(/\D/g,"").slice(0,11).replace(/(\d{3})(\d)/,"$1.$2").replace(/(\d{3})(\d)/,"$1.$2").replace(/(\d{3})(\d{1,2})$/,"$1-$2")
-
-  const calcularFim = (inicio: string, qtd: number, base: string) => {
-    if (!inicio || inicio.length !== 10) return ""
-    const [d, m, a] = inicio.split("/").map(Number)
-    if (!d || !m || !a) return ""
-    const data = new Date(a, m - 1, d)
-    if (base === "mes") data.setMonth(data.getMonth() + Number(qtd))
-    else if (base === "contrato") data.setDate(data.getDate() + 15)
-    else data.setMonth(data.getMonth() + 3)
-    return `${String(data.getDate()).padStart(2,"0")}/${String(data.getMonth()+1).padStart(2,"0")}/${data.getFullYear()}`
-  }
-
-  const calcularValor = (tipo: string, qtd: number) => {
-    if (!tipo || !qtd) return ""
-    const p = planos[tipo]
-    if (!p) return ""
-    const desc = p.descontos[Number(qtd)] || 0
-    const valor = SM * p.pct * Number(qtd) * (1 - desc)
-    return valor.toFixed(2)
-  }
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target
-    let novoForm = { ...form }
-
-    if (name === "cpf_inspetor") {
-      novoForm.cpf_inspetor = maskCPF(value)
-    } else if (name === "tipo_assinatura") {
-      const p = planos[value]
-      const qtd = p?.quantidades[0] || 1
-      const inicio = hoje
-      const fim = calcularFim(inicio, qtd, p?.base)
-      const valor = calcularValor(value, qtd)
-      const saldo = p?.nr_laudos === 99 ? "Ilimitado" : String(p?.nr_laudos * qtd)
-      novoForm = {
-        ...formInicial,
-        cpf_inspetor: form.cpf_inspetor,
-        tipo_assinatura: value,
-        qde_contratada: String(qtd),
-        data_inicio_contrato: inicio,
-        data_fim_contrato: fim,
-        valor_pago: valor,
-        saldo_quantidade: saldo,
-      }
-    } else if (name === "qde_contratada") {
-      const tipo = form.tipo_assinatura
-      const p = planos[tipo]
-      const fim = calcularFim(form.data_inicio_contrato, Number(value), p?.base)
-      const valor = calcularValor(tipo, Number(value))
-      const saldo = p?.nr_laudos === 99 ? "Ilimitado" : String(p?.nr_laudos * Number(value))
-      novoForm = { ...form, qde_contratada: value, data_fim_contrato: fim, valor_pago: valor, saldo_quantidade: saldo }
-    } else {
-      novoForm[name as keyof typeof novoForm] = value
+  // Calcular valor
+  const calcValor = () => {
+    if (!plano || plano.pct === 0) return "Gratuito"
+    if (tipoPlano === "PLANO SERVIÇO") {
+      const qtd = Number(qtdLaudos) || 1
+      const desc = (plano as any).desconto_qtd?.minimo <= qtd ? (plano as any).desconto_qtd?.desconto : 0
+      const valor = SM * plano.pct * qtd * (1 - desc)
+      return `R$ ${valor.toFixed(2).replace(".", ",")}${desc > 0 ? ` (${(desc*100).toFixed(0)}% desc.)` : ""}`
     }
-
-    setForm(novoForm)
+    const desc = emPromocao ? (plano as any).desconto_promocao ?? 0 : 0
+    const valor = SM * plano.pct * (1 - desc)
+    return `R$ ${valor.toFixed(2).replace(".", ",")}${desc > 0 ? ` (${(desc*100).toFixed(0)}% desc. promoção)` : ""}/mês`
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
+  const calcDataFim = () => {
+    if (!plano) return ""
+    if (!plano.prazo_fixo) return "Válido até cancelamento"
+    return addDias(hoje(), plano.prazo_dias ?? 15)
+  }
+
+  const calcSaldo = () => {
+    if (!plano) return ""
+    if (tipoPlano === "PLANO CORTESIA") return "2 laudos"
+    if (tipoPlano === "PLANO SERVIÇO") return qtdLaudos ? `${qtdLaudos} laudo(s)` : "—"
+    if (tipoPlano === "PLANO MENSAL") return "4 laudos/mês"
+    if (tipoPlano === "PLANO ESCRITÓRIO") return "12 laudos/mês"
+    return ""
+  }
+
+  const handleSalvar = async () => {
     setErro("")
-    setSucesso(true)
+    const cpfLimpo = cpf.replace(/\D/g,"")
+    if (cpfLimpo.length !== 11) { setErro("Informe um CPF válido."); return }
+    if (!tipoPlano) { setErro("Selecione o tipo de plano."); return }
+    if (tipoPlano === "PLANO SERVIÇO" && (!qtdLaudos || Number(qtdLaudos) < 1)) {
+      setErro("Informe a quantidade de laudos contratados.")
+      return
+    }
+    setSalvando(true)
+    try {
+      const dataInicio = hoje()
+      const dataFim = plano.prazo_fixo ? brToIso(calcDataFim()) : null
+      const qtd = tipoPlano === "PLANO SERVIÇO" ? Number(qtdLaudos) : null
+      const descQtd = tipoPlano === "PLANO SERVIÇO" && qtd && qtd > 5 ? 0.10 : 0
+      const descPromo = emPromocao && (plano as any).desconto_promocao ? (plano as any).desconto_promocao : 0
+      const descAplicado = Math.max(descQtd, descPromo)
+      const valorMes = (tipoPlano === "PLANO MENSAL" || tipoPlano === "PLANO ESCRITÓRIO")
+        ? SM * plano.pct * (1 - descAplicado)
+        : null
+      const valorLaudo = tipoPlano === "PLANO SERVIÇO"
+        ? SM * plano.pct * (1 - descAplicado)
+        : null
+
+      const res = await fetch("/api/salvar-contrato", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          cpf_inspetor:          cpfLimpo,
+          tipo_assinatura:       tipoPlano,
+          data_inicio_contrato:  brToIso(dataInicio),
+          data_fim_contrato:     dataFim,
+          nr_laudos_contratados: qtd,
+          valor_mensal:          valorMes ? Number(valorMes.toFixed(2)) : null,
+          valor_por_laudo:       valorLaudo ? Number(valorLaudo.toFixed(2)) : null,
+          desconto_aplicado:     descAplicado,
+          em_promocao:           emPromocao,
+        })
+      })
+      const data = await res.json()
+      if (!res.ok || data.erro) { setErro(data.erro ?? "Não foi possível salvar."); setSalvando(false); return }
+      setSucesso(true)
+    } catch { setErro("Não foi possível conectar. Tente novamente."); setSalvando(false) }
   }
 
-  const handleNovo = () => {
-    setForm({ ...formInicial })
-    setSucesso(false)
-    setErro("")
+  // ── Estilos ──
+  const S = {
+    label:  { fontSize:"12px", fontWeight:"600" as const, color:"#374151", display:"block", marginBottom:"3px" },
+    input:  { border:"1px solid #D1D5DB", borderRadius:"6px", padding:"6px 10px", fontSize:"13px", width:"100%", outline:"none", boxSizing:"border-box" as const },
+    ro:     { border:"1px solid #E2E8F0", borderRadius:"6px", padding:"6px 10px", fontSize:"13px", width:"100%", backgroundColor:"#F8FAFC", color:"#374151", boxSizing:"border-box" as const },
+    bloco:  { border:"1px solid #E2E8F0", borderRadius:"8px", overflow:"hidden", marginBottom:"10px" },
+    bHead:  { backgroundColor:"#1E3A8A", padding:"4px 12px" },
+    bTitle: { color:"white", fontWeight:"bold" as const, fontSize:"11px" },
+    bBody:  { padding:"10px 12px" },
+    g2:     { display:"grid", gridTemplateColumns:"1fr 1fr", gap:"8px" },
+    g3:     { display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:"8px" },
+    btn:    { padding:"10px 24px", borderRadius:"50px", border:"none", backgroundColor:"#1E3A8A", color:"white", fontWeight:"600" as const, fontSize:"13px", cursor:"pointer" },
+    btnSec: { padding:"10px 24px", borderRadius:"50px", border:"2px solid #1E3A8A", backgroundColor:"white", color:"#1E3A8A", fontWeight:"600" as const, fontSize:"13px", cursor:"pointer" },
   }
-
-  const plano = planos[form.tipo_assinatura]
-
-  const labelStyle = { fontSize: "13px", fontWeight: "500", color: "#374151", marginBottom: "4px", display: "block" }
-  const inputStyle = { border: "1px solid #D1D5DB", borderRadius: "8px", padding: "8px 12px", fontSize: "13px", width: "100%", outline: "none", boxSizing: "border-box" as const }
-  const readonlyStyle = { ...inputStyle, backgroundColor: "#F9FAFB", color: "#374151" }
-  const blocoStyle = { backgroundColor: "white", borderRadius: "10px", overflow: "hidden", border: "1px solid #E2E8F0", marginBottom: "16px" }
-  const blocoHeaderStyle = { backgroundColor: "#1E3A8A", padding: "8px 16px" }
-  const blocoTituloStyle = { color: "white", fontWeight: "bold", fontSize: "12px" }
-  const blocoBodyStyle = { padding: "16px" }
-  const grid2 = { display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }
-  const grid3 = { display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "12px" }
 
   return (
     <div style={{backgroundColor:"#E8EEF7",minHeight:"100vh",display:"flex",alignItems:"flex-start",justifyContent:"center",padding:"16px"}}>
-      <div style={{backgroundColor:"white",borderRadius:"16px",boxShadow:"0 4px 24px rgba(0,0,0,0.12)",width:"100%",maxWidth:"800px",overflow:"hidden"}}>
+      <div style={{backgroundColor:"white",borderRadius:"16px",boxShadow:"0 4px 24px rgba(0,0,0,0.12)",width:"100%",maxWidth:"720px",overflow:"hidden"}}>
 
         <div style={{backgroundColor:"#1E3A8A",padding:"8px 16px",display:"flex",alignItems:"center",gap:"12px"}}>
-          <Image src="/logo.png" alt="AIME" width={80} height={32} priority style={{filter:"brightness(0) invert(1)"}} />
-          <span style={{color:"white",fontWeight:"bold",fontSize:"16px",flex:1,textAlign:"center"}}>
-            Contratos do Inspetor
-          </span>
+          <Image src="/logo.png" alt="AIMÊ" width={80} height={32} priority style={{filter:"brightness(0) invert(1)"}} />
+          <span style={{color:"white",fontWeight:"bold",fontSize:"14px",flex:1,textAlign:"center"}}>Contratos do Inspetor</span>
         </div>
         <div style={{height:"2px",backgroundColor:"#1E3A8A"}} />
-
         <div style={{padding:"16px"}}>
+
           {sucesso ? (
             <div style={{textAlign:"center",padding:"32px"}}>
-              <p style={{color:"#1E3A8A",fontSize:"16px",fontWeight:"bold",marginBottom:"16px"}}>
-                Contrato registrado com sucesso!
-              </p>
+              <p style={{color:"#1E3A8A",fontSize:"15px",fontWeight:"bold",marginBottom:"16px"}}>Contrato registrado com sucesso!</p>
               <div style={{display:"flex",gap:"12px",justifyContent:"center"}}>
-                <button onClick={handleNovo}
-                  style={{padding:"10px 24px",borderRadius:"50px",border:"none",backgroundColor:"#1E3A8A",color:"white",fontWeight:"600",fontSize:"13px",cursor:"pointer"}}>
+                <button style={S.btn} onClick={() => { setSucesso(false); setCpf(""); setTipoPlano(""); setEmPromocao(false); setQtdLaudos("") }}>
                   Novo Registro
                 </button>
-                <button onClick={() => window.location.href="/dashboard"}
-                  style={{padding:"10px 24px",borderRadius:"50px",border:"1px solid #1E3A8A",backgroundColor:"white",color:"#1E3A8A",fontWeight:"600",fontSize:"13px",cursor:"pointer"}}>
+                <button style={S.btnSec} onClick={() => window.location.href="/dashboard"}>
                   Voltar ao Menu
                 </button>
               </div>
             </div>
           ) : (
-            <form onSubmit={handleSubmit}>
-
-              <div style={blocoStyle}>
-                <div style={blocoHeaderStyle}><span style={blocoTituloStyle}>Identificacao</span></div>
-                <div style={{height:"2px",backgroundColor:"#1E3A8A"}} />
-                <div style={blocoBodyStyle}>
-                  <div style={grid2}>
+            <>
+              {/* Identificação */}
+              <div style={S.bloco}>
+                <div style={S.bHead}><span style={S.bTitle}>Identificação</span></div>
+                <div style={S.bBody}>
+                  <div style={S.g2}>
                     <div>
-                      <label style={labelStyle}>CPF do Inspetor *</label>
-                      <input name="cpf_inspetor" value={form.cpf_inspetor} onChange={handleChange} placeholder="000.000.000-00" required style={{...inputStyle, textAlign:"center"}} />
+                      <label style={S.label}>CPF do Inspetor *</label>
+                      <input style={{...S.input,textAlign:"center"}} value={cpf}
+                        onChange={e => setCpf(maskCPF(e.target.value))}
+                        placeholder="000.000.000-00" inputMode="numeric" />
                     </div>
                     <div>
-                      <label style={labelStyle}>Tipo de Assinatura *</label>
-                      <select name="tipo_assinatura" value={form.tipo_assinatura} onChange={handleChange} required style={inputStyle}>
-                        <option value="">Selecione...</option>
-                        <option value="PLANO MENSAL">PLANO MENSAL</option>
-                        <option value="PLANO SERVICO">PLANO SERVICO</option>
-                        <option value="PLANO ESCRITORIO">PLANO ESCRITORIO</option>
-                        <option value="PLANO CORTESIA">PLANO CORTESIA</option>
-                      </select>
+                      <label style={S.label}>Data de início</label>
+                      <input style={{...S.ro,textAlign:"center"}} value={hoje()} readOnly />
                     </div>
                   </div>
                 </div>
               </div>
 
-              <div style={blocoStyle}>
-                <div style={blocoHeaderStyle}><span style={blocoTituloStyle}>Condicoes do Contrato</span></div>
-                <div style={{height:"2px",backgroundColor:"#1E3A8A"}} />
-                <div style={blocoBodyStyle}>
-                  <div style={{...grid3, marginBottom:"12px"}}>
-                    <div>
-                      <label style={labelStyle}>Quantidade Contratada</label>
-                      <select name="qde_contratada" value={form.qde_contratada} onChange={handleChange} disabled={!form.tipo_assinatura} style={{...inputStyle, backgroundColor: !form.tipo_assinatura ? "#F9FAFB" : "white"}}>
-                        <option value="">Selecione...</option>
-                        {(plano?.quantidades || []).map((q: number) => (
-                          <option key={q} value={q}>{q} {plano?.base === "contrato" ? "contrato" : "meses/laudos"}</option>
-                        ))}
-                      </select>
-                    </div>
-                    <div>
-                      <label style={labelStyle}>Data Inicio do Contrato</label>
-                      <input value={form.data_inicio_contrato} readOnly style={{...readonlyStyle, textAlign:"center"}} placeholder="Automatico" />
-                    </div>
-                    <div>
-                      <label style={labelStyle}>Data Fim do Contrato</label>
-                      <input value={form.data_fim_contrato} readOnly style={{...readonlyStyle, textAlign:"center"}} placeholder="Automatico" />
-                    </div>
-                  </div>
-                  <div style={grid2}>
-                    <div>
-                      <label style={labelStyle}>Valor Pago (R$)</label>
-                      <input value={form.valor_pago ? `R$ ${form.valor_pago}` : ""} readOnly style={{...readonlyStyle, textAlign:"right"}} placeholder="Automatico" />
-                    </div>
-                    <div>
-                      <label style={labelStyle}>Saldo de Meses/Laudos</label>
-                      <input value={form.saldo_quantidade} readOnly style={{...readonlyStyle, textAlign:"center"}} placeholder="Automatico" />
-                    </div>
+              {/* Tipo de Plano */}
+              <div style={S.bloco}>
+                <div style={S.bHead}><span style={S.bTitle}>Plano Contratado</span></div>
+                <div style={S.bBody}>
+                  <div style={{marginBottom:"8px"}}>
+                    <label style={S.label}>Tipo de Plano *</label>
+                    <select style={S.input} value={tipoPlano}
+                      onChange={e => { setTipoPlano(e.target.value); setEmPromocao(false); setQtdLaudos("") }}>
+                      <option value="">Selecione...</option>
+                      {Object.keys(PLANOS).map(p => <option key={p} value={p}>{p}</option>)}
+                    </select>
                   </div>
 
-                  {form.tipo_assinatura && (
-                    <div style={{marginTop:"12px",padding:"10px 12px",backgroundColor:"#EBF1FF",borderRadius:"8px",fontSize:"12px",color:"#1E3A8A"}}>
-                      <strong>Atencao:</strong> Nao e permitido migrar de PLANO MENSAL, SERVICO ou ESCRITORIO para PLANO CORTESIA.
+                  {plano && (
+                    <div style={{backgroundColor:"#F0F4FF",border:"1px solid #C7D7FF",borderRadius:"6px",padding:"8px 10px",fontSize:"11px",color:"#1E3A8A",marginBottom:"8px"}}>
+                      {plano.descricao}
+                    </div>
+                  )}
+
+                  {/* Quantidade de laudos — só para PLANO SERVIÇO */}
+                  {tipoPlano === "PLANO SERVIÇO" && (
+                    <div style={{marginBottom:"8px"}}>
+                      <label style={S.label}>Quantidade de laudos contratados *</label>
+                      <input style={{...S.input,width:"120px"}} type="number" min="1"
+                        value={qtdLaudos} onChange={e => setQtdLaudos(e.target.value)}
+                        placeholder="Ex: 6" />
+                      {Number(qtdLaudos) > 5 && (
+                        <span style={{marginLeft:"8px",fontSize:"11px",color:"#059669"}}>✓ Desconto de 10% aplicado</span>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Promoção — para MENSAL e ESCRITÓRIO */}
+                  {(tipoPlano === "PLANO MENSAL" || tipoPlano === "PLANO ESCRITÓRIO") && (
+                    <div style={{marginBottom:"8px",display:"flex",alignItems:"center",gap:"8px"}}>
+                      <input type="checkbox" id="promo" checked={emPromocao}
+                        onChange={e => setEmPromocao(e.target.checked)} />
+                      <label htmlFor="promo" style={{...S.label,marginBottom:0,cursor:"pointer"}}>
+                        Aplicar desconto de promoção (10%)
+                      </label>
+                    </div>
+                  )}
+
+                  {/* Resumo calculado */}
+                  {plano && (
+                    <div style={{...S.g3,marginTop:"8px"}}>
+                      <div>
+                        <label style={S.label}>Valor</label>
+                        <div style={{...S.ro,textAlign:"right"}}>{calcValor()}</div>
+                      </div>
+                      <div>
+                        <label style={S.label}>Saldo de laudos</label>
+                        <div style={{...S.ro,textAlign:"center"}}>{calcSaldo()}</div>
+                      </div>
+                      <div>
+                        <label style={S.label}>Vigência</label>
+                        <div style={{...S.ro,textAlign:"center",fontSize:"11px"}}>{calcDataFim()}</div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Aviso migração */}
+                  {tipoPlano === "PLANO CORTESIA" && (
+                    <div style={{marginTop:"8px",padding:"8px 10px",backgroundColor:"#FFF9E6",border:"1px solid #F59E0B",borderRadius:"6px",fontSize:"11px",color:"#92400E"}}>
+                      ⚠️ Não é permitido migrar de PLANO MENSAL, PLANO SERVIÇO ou PLANO ESCRITÓRIO para PLANO CORTESIA.
                     </div>
                   )}
                 </div>
               </div>
 
-              {erro && <p style={{color:"#DC2626",fontSize:"13px",textAlign:"center",marginBottom:"12px"}}>{erro}</p>}
+              {erro && <p style={{color:"#DC2626",fontSize:"12px",textAlign:"center",marginBottom:"10px"}}>{erro}</p>}
 
-              <div style={{display:"flex",gap:"12px",justifyContent:"flex-end"}}>
-                <button type="button" onClick={() => window.location.href="/dashboard"}
-                  style={{padding:"10px 24px",borderRadius:"50px",border:"1px solid #1E3A8A",backgroundColor:"white",color:"#1E3A8A",fontWeight:"600",fontSize:"13px",cursor:"pointer"}}>
-                  Cancelar
-                </button>
-                <button type="submit"
-                  style={{padding:"10px 24px",borderRadius:"50px",border:"none",backgroundColor:"#1E3A8A",color:"white",fontWeight:"600",fontSize:"13px",cursor:"pointer"}}>
-                  Salvar Contrato
+              <div style={{display:"flex",gap:"10px",justifyContent:"flex-end"}}>
+                <button style={S.btnSec} onClick={() => window.location.href="/dashboard"}>Cancelar</button>
+                <button style={{...S.btn,opacity:salvando?0.7:1}} onClick={handleSalvar} disabled={salvando}>
+                  {salvando ? "Salvando..." : "Salvar Contrato"}
                 </button>
               </div>
-
-            </form>
+            </>
           )}
         </div>
       </div>
