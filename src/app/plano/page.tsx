@@ -47,12 +47,12 @@ const SUBTIPOS: Record<string, string[]> = {
   '35': ['Elétrico','Hidráulico','Monta-cargas','Plataforma elevatória'],
   '36': ['Baixa tensão','Média tensão','Alta tensão'],
   '37': ['Prensa mecânica excêntrica','Freio-embreagem','Hidráulica','Pneumática'],
-  '38': ['Cat. A (≥1.960kPa)','Cat. B (<1.960kPa)','Grupo 1–5','Classe A–D'],
+  '38': ['Cat. A ≥1960kPa','Cat. B <1960kPa','Grupo 1-5','Classe A-D'],
 }
 
 const FLUIDOS = ['Classe A','Classe B','Classe C','Classe D','Vapor','Ar comprimido','GLP','Nitrogênio','Outro']
 const USOS = ['Produção/processo','Transporte','Residencial','Comercial','Industrial','Institucional','Misto']
-const FUNCOES = ['Administrador','Síndico','Proprietário']
+const FUNCOES = ['Administrador','Responsável','Síndico','Proprietário']
 
 function fmtCNPJ(v: string): string {
   if (v.length === 14) return v.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5')
@@ -458,6 +458,7 @@ function PlanoInner() {
 
                     <div style={{ ...S.blockTitle, margin: '8px -12px 6px', padding: '3px 12px' }}>Características do ativo</div>
 
+                    {/* Linha 1: Subtipo + Data início + Uso */}
                     <div style={{ ...S.row, ...(isNR ? S.c3 : S.c2) }}>
                       {isNR && (
                         <Field label="Subtipo *">
@@ -481,15 +482,7 @@ function PlanoInner() {
                       </Field>
                     </div>
 
-                    {(isNR10 || isNR13) && (
-                      <div style={{ ...S.row, ...S.c2 }}>
-                        <Field label={isNR10 ? 'Tensão (kV) *' : 'Pressão (kPa) *'}>
-                          <input style={S.input} type="number" step="0.01" value={ativoAtual.tensao_pressao_kv_kpa}
-                            onChange={e => atualizarAtivo('tensao_pressao_kv_kpa', e.target.value)} />
-                        </Field>
-                      </div>
-                    )}
-
+                    {/* Linha 2: campos específicos por tipo */}
                     {isPredial && (
                       <div style={{ ...S.row, ...S.c4 }}>
                         <Field label="Pavimentos *">
@@ -529,7 +522,7 @@ function PlanoInner() {
                     )}
 
                     {(isElevador || isNR) && (
-                      <div style={{ ...S.row, ...(isElevador ? S.c3 : S.c2) }}>
+                      <div style={{ ...S.row, ...S.c3 }}>
                         <Field label="Fabricante/Marca *">
                           <input style={S.input} value={ativoAtual.fabricante_marca}
                             onChange={e => atualizarAtivo('fabricante_marca', e.target.value)} />
@@ -542,11 +535,18 @@ function PlanoInner() {
                         )}
                         <Field label="Capacidade/Potência *">
                           <input style={S.input} type="number" step="0.01" value={ativoAtual.capacidade_potencia}
-                            onChange={e => atualizarAtivo('capacidade_potencia', e.target.value)} placeholder="kW/kVA/kg/h/m³" />
+                            onChange={e => atualizarAtivo('capacidade_potencia', e.target.value)} placeholder="kW/kVA/kg/m³" />
                         </Field>
+                        {(isNR10 || isNR13) && (
+                          <Field label={isNR10 ? 'Tensão (kV) *' : 'Pressão (kPa) *'}>
+                            <input style={S.input} type="number" step="0.01" value={ativoAtual.tensao_pressao_kv_kpa}
+                              onChange={e => atualizarAtivo('tensao_pressao_kv_kpa', e.target.value)} />
+                          </Field>
+                        )}
                       </div>
                     )}
 
+                    {/* Linha 3: NR-13 — fluido e volume */}
                     {isNR13 && (
                       <div style={{ ...S.row, ...S.c2 }}>
                         <Field label="Fluido/Classe *">
