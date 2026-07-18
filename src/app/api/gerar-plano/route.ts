@@ -551,6 +551,10 @@ export async function POST(request: NextRequest) {
       const doc = typeof item === 'string' ? item : item.doc
       const sit = typeof item === 'string' ? '' : item.sit
       const res = typeof item === 'string' ? '' : item.res
+      // Aviso importante: linha com colspan 3 (sem colunas Situação e Resultado)
+      if (doc.startsWith('⚠️')) {
+        return '<tr><td colspan="3" style="font-size:9pt;font-style:italic;color:#92400E;background:#FFFBEB;padding:6pt 8pt;border:1px solid #F59E0B">' + doc + '</td></tr>'
+      }
       return [
       '<tr>',
       '<td style="font-size:10pt">' + doc + '</td>',
