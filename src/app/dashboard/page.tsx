@@ -20,7 +20,6 @@ const SUPA_KEY = 'sb_publishable_dH85HYKGxv3X0te627VfOw_OGaPoNMF'
 
 // Log síncrono no nível do módulo — aparece SEMPRE se o JS rodar no cliente
 if (typeof window !== 'undefined') {
-  console.log('[AIME-MODULE] Dashboard.tsx carregado no cliente')
 }
 
 const permissoes: Record<string, number[]> = {
@@ -206,15 +205,11 @@ export default function Dashboard() {
   const [titulo, setTitulo] = useState("")
 
   useEffect(() => {
-    console.log('[AIME] Dashboard montado, iniciando carregarSessao...')
     async function carregarSessao() {
       let deveRedirecionar = false
       try {
-        console.log('[AIME] iniciando createClient...')
         const supabase = createClient()
-        console.log('[AIME] getSession...')
         const { data: { session } } = await supabase.auth.getSession()
-        console.log('[AIME] session:', session?.user?.email ?? 'nula')
         if (!session?.user?.email) {
           deveRedirecionar = true
           window.location.href = "/"
@@ -227,14 +222,12 @@ export default function Dashboard() {
             headers: { apikey: SUPA_KEY, Authorization: `Bearer ${accessToken}` }
           })
           const dados = await res.json()
-          console.log('[AIME] dados inspetor:', JSON.stringify(dados))
           if (!Array.isArray(dados) || dados.length === 0) {
             deveRedirecionar = true
             window.location.href = `/inspetor?cpf=${cpf}&novo=1`
             return
           }
           let chave = dados[0].chave_inspetor ?? ""
-          console.log('[AIME] chave:', chave, '| titulo:', dados[0].titulo_profissional)
           if (!chave) {
             try {
               const chaveRes = await fetch('/api/gerar-chave-inspetor', { method: 'POST' })
@@ -255,10 +248,8 @@ export default function Dashboard() {
 
           if (chave) {
             const nomeTermoEsperado = `${chave}_${cpf}_termo_de_aceite.html`
-            console.log('[AIME] verificando termo:', nomeTermoEsperado)
             const termoRes = await fetch(`/api/ler-documento?nome=${encodeURIComponent(nomeTermoEsperado)}&pasta=documentos_inspetor`)
             const termoData = await termoRes.json()
-            console.log('[AIME] termo existe:', termoData.existe)
             if (!termoData.existe) {
               deveRedirecionar = true
               window.location.href = `/termo-aceite?cpf=${cpf}&chave=${encodeURIComponent(chave)}&proximo=/dashboard`
@@ -266,16 +257,13 @@ export default function Dashboard() {
             }
           }
         } catch (e) {
-          console.error('[AIME] erro no carregamento:', e)
           deveRedirecionar = true
           window.location.href = "/"
           return
         }
       } catch (eExterno) {
-        console.error('[AIME] erro EXTERNO (createClient/getSession):', eExterno)
         deveRedirecionar = false // mostra dashboard vazio em vez de redirecionar
       } finally {
-        console.log('[AIME] deveRedirecionar:', deveRedirecionar)
         if (!deveRedirecionar) setCarregandoSessao(false)
       }
     }
