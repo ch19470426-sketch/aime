@@ -426,7 +426,7 @@ function PlanoInner() {
                       </Field>
                     )}
 
-                    <div style={S.sectionTitle}>Responsável pelo ativo</div>
+                    <div style={{ ...S.blockTitle, margin: '8px -12px 6px', padding: '3px 12px' }}>Responsável pelo ativo</div>
                     <div style={{ ...S.row, ...S.c3 }}>
                       <Field label="Nome *">
                         <input style={S.input} value={ativoAtual.nome_responsavel}
@@ -456,7 +456,26 @@ function PlanoInner() {
                       </Field>
                     </div>
 
-                    <div style={S.sectionTitle}>Características do ativo</div>
+                    <div style={{ ...S.blockTitle, margin: '8px -12px 6px', padding: '3px 12px' }}>Características do ativo</div>
+
+                    {isNR && (
+                      <div style={{ ...S.row, ...S.c2 }}>
+                        <Field label="Subtipo *">
+                          <select style={S.input} value={ativoAtual.subtipo}
+                            onChange={e => atualizarAtivo('subtipo', e.target.value)}>
+                            <option value="">Selecione...</option>
+                            {(SUBTIPOS[tsNum] ?? []).map(s => <option key={s} value={s}>{s}</option>)}
+                          </select>
+                        </Field>
+                        {(isNR10 || isNR13) && (
+                          <Field label={isNR10 ? 'Tensão (kV) *' : 'Pressão (kPa) *'}>
+                            <input style={S.input} type="number" step="0.01" value={ativoAtual.tensao_pressao_kv_kpa}
+                              onChange={e => atualizarAtivo('tensao_pressao_kv_kpa', e.target.value)} />
+                          </Field>
+                        )}
+                      </div>
+                    )}
+
                     <div style={{ ...S.row, ...S.c2 }}>
                       <Field label="Data de início de operação *">
                         <input style={S.input} type="date" value={ativoAtual.data_inicio_operacao}
@@ -525,24 +544,6 @@ function PlanoInner() {
                           <input style={S.input} type="number" step="0.01" value={ativoAtual.capacidade_potencia}
                             onChange={e => atualizarAtivo('capacidade_potencia', e.target.value)} placeholder="kW/kVA/kg/h/m³" />
                         </Field>
-                      </div>
-                    )}
-
-                    {isNR && (
-                      <div style={{ ...S.row, ...S.c2 }}>
-                        <Field label="Subtipo *">
-                          <select style={S.input} value={ativoAtual.subtipo}
-                            onChange={e => atualizarAtivo('subtipo', e.target.value)}>
-                            <option value="">Selecione...</option>
-                            {(SUBTIPOS[tsNum] ?? []).map(s => <option key={s} value={s}>{s}</option>)}
-                          </select>
-                        </Field>
-                        {(isNR10 || isNR13) && (
-                          <Field label={isNR10 ? 'Tensão (kV) *' : 'Pressão (kPa) *'}>
-                            <input style={S.input} type="number" step="0.01" value={ativoAtual.tensao_pressao_kv_kpa}
-                              onChange={e => atualizarAtivo('tensao_pressao_kv_kpa', e.target.value)} />
-                          </Field>
-                        )}
                       </div>
                     )}
 
