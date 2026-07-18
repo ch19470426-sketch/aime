@@ -95,7 +95,7 @@ export async function POST(request: NextRequest) {
 </body>
 </html>`
 
-    const nomeArquivo = `${chaveInspetor}_${cpfInspetor}_termo_de_aceite.html`
+    const nomeArquivo = `${chaveInspetor}_termo_de_aceite.html`
     const { error } = await supabase.storage
       .from('aime')
       .upload(`documentos_inspetor/${nomeArquivo}`, Buffer.from(html, 'utf-8'), {
