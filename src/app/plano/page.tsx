@@ -44,6 +44,7 @@ const TIPOS_ATIVO: Record<string, string[]> = {
 }
 
 const SUBTIPOS: Record<string, string[]> = {
+  '35': ['Elétrico','Hidráulico','Monta-cargas','Plataforma elevatória'],
   '36': ['Baixa tensão','Média tensão','Alta tensão'],
   '37': ['Prensa mecânica excêntrica','Freio-embreagem','Hidráulica','Pneumática'],
   '38': ['Cat. A (≥1.960kPa)','Cat. B (<1.960kPa)','Grupo 1–5','Classe A–D'],
@@ -121,7 +122,7 @@ function PlanoInner() {
   const isNR10     = tsNum === '36'
   const isNR12     = tsNum === '37'
   const isNR13     = tsNum === '38'
-  const isNR       = isNR10 || isNR12 || isNR13
+  const isNR       = isElevador || isNR10 || isNR12 || isNR13
   const needsTag   = isElevador || isNR12 || isNR13
 
   const [etapa,      setEtapa]      = useState<'ativo' | 'lista' | 'plano'>('ativo')
