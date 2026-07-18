@@ -399,32 +399,24 @@ function PlanoInner() {
                 <div style={{ ...S.block, marginBottom: '8px' }}>
                   <div style={S.blockTitle}>Dados do ativo a vistoriar</div>
                   <div style={S.blockBody}>
-                    <div style={{ ...S.row, ...S.c2 }}>
+                    <div style={{ ...S.row, ...(needsTag ? S.c3 : S.c2) }}>
                       <Field label="Tipo de ativo *">
                         <select style={S.input} value={ativoAtual.tipo_ativo} onChange={e => atualizarAtivo('tipo_ativo', e.target.value)}>
                           <option value="">Selecione...</option>
                           {(TIPOS_ATIVO[tsNum] ?? []).map(t => <option key={t} value={t}>{t}</option>)}
                         </select>
                       </Field>
-                      {needsTag ? (
+                      {needsTag && (
                         <Field label="TAG / Nº Série *">
                           <input style={S.input} value={ativoAtual.tag_ativo_nr_serie}
                             onChange={e => atualizarAtivo('tag_ativo_nr_serie', e.target.value)} placeholder="Ex: ELV-01" />
                         </Field>
-                      ) : (
-                        <Field label="Finalidade da vistoria *">
-                          <input style={S.input} value={ativoAtual.finalidade_vistoria}
-                            onChange={e => atualizarAtivo('finalidade_vistoria', e.target.value)} placeholder="Ex: Inspeção predial periódica" />
-                        </Field>
                       )}
-                    </div>
-
-                    {needsTag && (
                       <Field label="Finalidade da vistoria *">
                         <input style={S.input} value={ativoAtual.finalidade_vistoria}
                           onChange={e => atualizarAtivo('finalidade_vistoria', e.target.value)} placeholder="Ex: Inspeção de segurança" />
                       </Field>
-                    )}
+                    </div>
 
                     <div style={{ ...S.blockTitle, margin: '8px -12px 6px', padding: '3px 12px' }}>Responsável pelo ativo</div>
                     <div style={{ ...S.row, ...S.c3 }}>
