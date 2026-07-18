@@ -87,18 +87,6 @@ const ATIVO_VAZIO: Ativo = {
   volume_interno_m3: '',
 }
 
-const SLUG_TIPO: Record<string, string> = {
-  "11": "proposta_autovistoria",  "12": "proposta_inspecao",
-  "13": "proposta_imovel_novo",   "14": "proposta_fachada",
-  "15": "proposta_elevador",      "16": "proposta_nr10",
-  "17": "proposta_nr12",          "18": "proposta_nr13",
-  "19": "proposta_plano_manutencao",
-  "21": "plano_autovistoria",     "22": "plano_inspecao",
-  "23": "plano_imovel_novo",      "24": "plano_fachada",
-  "25": "plano_elevador",         "26": "plano_nr10",
-  "27": "plano_nr12",             "28": "plano_nr13",
-  "29": "plano_manutencao",
-}
 export default function PlanoPage() {
   return (
     <Suspense fallback={
@@ -260,7 +248,9 @@ function PlanoInner() {
         setShowForm(false)
         setEtapa('lista')
       } else {
-        informa('Erro', 'Não foi possível cadastrar o ativo.')
+        let detalhe = ''
+        try { detalhe = (await res.json())?.message ?? '' } catch { /* sem JSON */ }
+        informa('Erro', `Não foi possível cadastrar o ativo (${res.status}). ${detalhe}`)
       }
     } finally {
       setSalvando(false)
@@ -325,8 +315,7 @@ function PlanoInner() {
       })
       const htmlData = await resHtml.json()
       if (!htmlData.html) { informa('Erro', 'Não foi possível gerar o plano.'); return }
-      const slug = SLUG_TIPO[String(tipoServico)] ?? `tipo_${tipoServico}`
-    const nomeArq = chaveInspetor + '_' + cnpjoucpf + '_' + slug + '.html'
+      const nomeArq = chaveInspetor + '_' + cnpjoucpf + '_' + tipoServico + '.html'
       const res = await fetch('/api/salvar-vistoria', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
