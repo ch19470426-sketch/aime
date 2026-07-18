@@ -247,7 +247,7 @@ export default function Dashboard() {
           setTitulo(dados[0].titulo_profissional ?? "")
 
           if (chave) {
-            const nomeTermoEsperado = `${chave}_${cpf}_termo_de_aceite.html`
+            const nomeTermoEsperado = `${chave}_termo_de_aceite.html`
             const termoRes = await fetch(`/api/ler-documento?nome=${encodeURIComponent(nomeTermoEsperado)}&pasta=documentos_inspetor`)
             const termoData = await termoRes.json()
             if (!termoData.existe) {
