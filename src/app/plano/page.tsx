@@ -747,6 +747,15 @@ function PlanoInner() {
                     </thead>
                     <tbody>
                       {docs.map((d, i) => (
+                        d.doc.startsWith('⚠️')
+                        ? (
+                          <tr key={i} style={{ background: '#FFFBEB', borderBottom: '1px solid #e2e8f0' }}>
+                            <td colSpan={4} style={{ padding: '4px 8px', fontSize: '7.5pt', fontStyle: 'italic', color: '#92400E', border: '1px solid #F59E0B' }}>
+                              {d.doc}
+                            </td>
+                          </tr>
+                        )
+                        : (
                         <tr key={i} style={{ background: i%2===0?'#f8fafc':'#fff', borderBottom: '1px solid #e2e8f0' }}>
                           <td style={{ padding: '2px 4px' }}>
                             <input style={{ ...S.input, fontSize: '7.5pt', padding: '2px 4px' }}
@@ -774,6 +783,7 @@ function PlanoInner() {
                               style={{ background:'#DC2626', color:'#fff', border:'none', borderRadius:'4px', padding:'2px 6px', cursor:'pointer', fontSize:'8pt' }}>✕</button>
                           </td>
                         </tr>
+                        )
                       ))}
                     </tbody>
                   </table>
