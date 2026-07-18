@@ -66,7 +66,7 @@ const menuGrupos = [
     { codigo: 38, label: "Vistoria NR-13" },
   ]},
   { grupo: "Laudos", itens: [
-    { codigo: 40, label: "Homologar vistoria e documentos solicitados" },
+    { codigo: 40, label: "Homologar vistoria" },
     { codigo: 41, label: "Laudo Autovistoria" },
     { codigo: 42, label: "Laudo Inspeção" },
     { codigo: 43, label: "Laudo Imóvel Novo" },
