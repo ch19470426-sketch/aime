@@ -458,8 +458,8 @@ function PlanoInner() {
 
                     <div style={{ ...S.blockTitle, margin: '8px -12px 6px', padding: '3px 12px' }}>Características do ativo</div>
 
-                    {isNR && (
-                      <div style={{ ...S.row, ...S.c2 }}>
+                    <div style={{ ...S.row, ...(isNR ? S.c3 : S.c2) }}>
+                      {isNR && (
                         <Field label="Subtipo *">
                           <select style={S.input} value={ativoAtual.subtipo}
                             onChange={e => atualizarAtivo('subtipo', e.target.value)}>
@@ -467,16 +467,7 @@ function PlanoInner() {
                             {(SUBTIPOS[tsNum] ?? []).map(s => <option key={s} value={s}>{s}</option>)}
                           </select>
                         </Field>
-                        {(isNR10 || isNR13) && (
-                          <Field label={isNR10 ? 'Tensão (kV) *' : 'Pressão (kPa) *'}>
-                            <input style={S.input} type="number" step="0.01" value={ativoAtual.tensao_pressao_kv_kpa}
-                              onChange={e => atualizarAtivo('tensao_pressao_kv_kpa', e.target.value)} />
-                          </Field>
-                        )}
-                      </div>
-                    )}
-
-                    <div style={{ ...S.row, ...S.c2 }}>
+                      )}
                       <Field label="Data de início de operação *">
                         <input style={S.input} type="date" value={ativoAtual.data_inicio_operacao}
                           onChange={e => atualizarAtivo('data_inicio_operacao', e.target.value)} />
@@ -489,6 +480,15 @@ function PlanoInner() {
                         </select>
                       </Field>
                     </div>
+
+                    {(isNR10 || isNR13) && (
+                      <div style={{ ...S.row, ...S.c2 }}>
+                        <Field label={isNR10 ? 'Tensão (kV) *' : 'Pressão (kPa) *'}>
+                          <input style={S.input} type="number" step="0.01" value={ativoAtual.tensao_pressao_kv_kpa}
+                            onChange={e => atualizarAtivo('tensao_pressao_kv_kpa', e.target.value)} />
+                        </Field>
+                      </div>
+                    )}
 
                     {isPredial && (
                       <div style={{ ...S.row, ...S.c4 }}>
@@ -856,10 +856,10 @@ const S: Record<string, React.CSSProperties> = {
   page:        { width: '210mm', maxWidth: '100%', background: '#ffffff', borderRadius: '16px', boxShadow: '0 4px 24px rgba(0,0,0,.15)', overflow: 'hidden', height: 'fit-content' },
   header:      { background: '#1E3A8A', padding: '8px 16px', display: 'flex', alignItems: 'center', gap: '12px' },
   divider:     { height: '2px', background: '#1E3A8A' },
-  formBody:    { padding: '10px 14px', display: 'flex', flexDirection: 'column', gap: '8px' },
+  formBody:    { padding: '6px 10px', display: 'flex', flexDirection: 'column', gap: '4px' },
   block:       { border: '1px solid #c3d4f0', borderRadius: '6px', overflow: 'hidden' },
   blockTitle:  { background: '#1E3A8A', color: '#ffffff', fontSize: '7.5pt', fontWeight: 700, padding: '3px 10px' },
-  blockBody:   { padding: '8px 10px', display: 'flex', flexDirection: 'column', gap: '6px' },
+  blockBody:   { padding: '5px 8px', display: 'flex', flexDirection: 'column', gap: '4px' },
   sectionTitle:{ fontSize: '7pt', fontWeight: 700, color: '#1E3A8A', marginTop: '4px', borderBottom: '1px solid #e2e8f0', paddingBottom: '2px' },
   row:         { display: 'grid', gap: '6px' },
   c2:          { gridTemplateColumns: '1fr 1fr' },
