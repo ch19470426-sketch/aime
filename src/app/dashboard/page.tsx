@@ -247,9 +247,15 @@ export default function Dashboard() {
           setTitulo(dados[0].titulo_profissional ?? "")
 
           if (chave) {
-            const nomeTermoEsperado = `${chave}_termo_de_aceite.html`
-            const termoRes = await fetch(`/api/ler-documento?nome=${encodeURIComponent(nomeTermoEsperado)}&pasta=documentos_inspetor`)
-            const termoData = await termoRes.json()
+            // Verifica o termo no novo padrão (sem CPF) e no antigo (com CPF) para
+            // compatibilidade com arquivos já existentes no storage
+            const nomeTermoNovo   = `${chave}_termo_de_aceite.html`
+            const nomeTermoAntigo = `${chave}_${cpf}_termo_de_aceite.html`
+            const [termoNovo, termoAntigo] = await Promise.all([
+              fetch(`/api/ler-documento?nome=${encodeURIComponent(nomeTermoNovo)}&pasta=documentos_inspetor`).then(r => r.json()),
+              fetch(`/api/ler-documento?nome=${encodeURIComponent(nomeTermoAntigo)}&pasta=documentos_inspetor`).then(r => r.json()),
+            ])
+            const termoData = { existe: termoNovo.existe || termoAntigo.existe }
             if (!termoData.existe) {
               deveRedirecionar = true
               window.location.href = `/termo-aceite?cpf=${cpf}&chave=${encodeURIComponent(chave)}&proximo=/dashboard`
