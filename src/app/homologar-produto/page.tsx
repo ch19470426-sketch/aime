@@ -317,7 +317,7 @@ function HomologarProdutoInner() {
         <div style={S.block}>
           <div style={{ padding: '12px' }}>
             <p style={{ fontSize: '8.5pt', color: '#374151', lineHeight: 1.5 }}>
-              Baixe o documento, revise, ajuste e o complemente (o inspetor é quem responde em juízo), gere um PDF, assine digitalmente e faça upload para armazenamento no AIMÊ e continuidade do processo.
+              Baixe o documento, revise, ajuste e o complemente (o inspetor é quem responde em juízo), assine digitalmente e faça upload para armazenamento no AIMÊ e continuidade do processo.
             </p>
           </div>
         </div>
