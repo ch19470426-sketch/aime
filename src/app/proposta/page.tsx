@@ -301,7 +301,7 @@ function PropostaInner() {
   async function salvarProposta() {
     setSalvando(true)
     try {
-      const nomeArq = `${chaveInspetor}_proposta_${tipoServico}_${cnpjoucpf}.html`
+      const nomeArq = `${chaveInspetor}_${cnpjoucpf}_${tipoServico}.html`
       const res = await fetch('/api/salvar-vistoria', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
