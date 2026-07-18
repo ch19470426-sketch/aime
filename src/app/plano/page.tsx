@@ -275,7 +275,7 @@ function PlanoInner() {
   async function gerarPlano() {
     setSalvando(true)
     solicita('Atenção — Plano de Trabalho',
-      'Após gerar o plano, preencha as datas no item 1.1 e verifique os documentos no item 1.2 antes de salvar.',
+      'Após gerar o plano, preencha as datas no item 1.2 e verifique os documentos no item 1.3 antes de salvar.',
       [{ label: 'Entendido', acao: () => fechar(), estilo: 'primario' }]
     )
     try {
