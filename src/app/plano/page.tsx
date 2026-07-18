@@ -313,7 +313,7 @@ function PlanoInner() {
       })
       const htmlData = await resHtml.json()
       if (!htmlData.html) { informa('Erro', 'Não foi possível gerar o plano.'); return }
-      const nomeArq = chaveInspetor + '_plano_' + tipoServico + '_' + cnpjoucpf + '.html'
+      const nomeArq = chaveInspetor + '_' + cnpjoucpf + '_' + tipoServico + '.html'
       const res = await fetch('/api/salvar-vistoria', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
