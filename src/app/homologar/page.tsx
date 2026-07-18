@@ -387,24 +387,6 @@ function Tela40Inner() {
       setVerificando(false)
       return
     }
-    // Grava no plano de trabalho o bloco de documentos preenchido pelo inspetor, substituindo o existente
-    if (planoEncontrado) {
-      try {
-        const nomeArqPlano = `${chaveInspetor}_plano_${planoTipoServico}_${cnpjoucpf}.html`
-        const docRes = await fetch(`/api/ler-documento?nome=${encodeURIComponent(nomeArqPlano)}&pasta=documentos_inspetor`)
-        const docData = await docRes.json()
-        if (docData.existe) {
-          const htmlAtualizado = substituirSecaoDocs(docData.html, planoDocs)
-          await fetch('/api/salvar-vistoria', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ nomeArquivo: nomeArqPlano, pasta: 'documentos_inspetor', payload: htmlAtualizado, contentType: 'text/html' })
-          })
-        }
-      } catch (e) {
-        console.error('Erro ao atualizar documentos do plano:', e)
-      }
-    }
 
     setEtapa('form')
     setVerificando(false)
@@ -554,8 +536,8 @@ function Tela40Inner() {
       
       if (novaLista.length === 0) {
         agradece('Homologação concluída!',
-          'Todos os registros foram revisados e homologados com sucesso. A seguir, vamos homologar o Plano de Trabalho.',
-          irParaHomologarPlano
+          'Todos os registros foram revisados e homologados com sucesso.',
+          () => window.location.href = '/dashboard'
         )
         return
       }
@@ -568,21 +550,6 @@ function Tela40Inner() {
     } finally {
       setSalvando(false)
     }
-  }
-
-  // Ao final de todo o processo do módulo 40 (todos os registros homologados/descartados),
-  // segue para o módulo 2.10 e homologa o Plano de Trabalho (já com a tabela de documentos
-  // confirmada). Se não havia plano encontrado, vai direto para o dashboard.
-  function irParaHomologarPlano() {
-    if (!planoEncontrado) {
-      window.location.href = '/dashboard'
-      return
-    }
-    const nomeArqPlano = `${chaveInspetor}_plano_${planoTipoServico}_${cnpjoucpf}.html`
-    window.location.href =
-      `/homologar-produto?cpf_inspetor=${cpfInspetor}&chave_inspetor=${chaveInspetor}&cnpjoucpf=${cnpjoucpf}` +
-      `&tipo_servico=${planoTipoServico}&nome_arquivo=${encodeURIComponent(nomeArqPlano)}` +
-      `&titulo=${encodeURIComponent('Plano de Trabalho')}`
   }
 
   async function voltarAnterior() {
@@ -601,7 +568,7 @@ function Tela40Inner() {
             await fetch(`/api/vistorias?nome=${form?.nome}`, { method: 'DELETE' })
             const novaLista = formularios.filter((_, i) => i !== indice)
             if (novaLista.length === 0) {
-              agradece('Pronto', 'Todos os registros foram processados. A seguir, vamos homologar o Plano de Trabalho.', irParaHomologarPlano)
+              agradece('Pronto', 'Todos os registros foram processados.', () => window.location.href = '/dashboard')
             } else {
               const novoIdx = Math.min(indice, novaLista.length - 1)
               setFormularios(novaLista)
@@ -628,65 +595,21 @@ function Tela40Inner() {
 
   if (etapa === 'gate') return (
     <div style={S.body}><div style={S.page}>
-      <HeaderBar subtitulo="Homologar Documentos e Vistoria" />
+      <HeaderBar subtitulo="Homologar Vistoria" />
       <div style={S.divider} />
       <div style={S.formBody}>
 
         <div style={S.block}>
-          <div style={S.blockTitle}>1.3.- Relação de Documentos Solicitados</div>
+          <div style={S.blockTitle}>Verificação de ativos</div>
           <div style={{ padding: '8px 10px' }}>
-            {!planoEncontrado && (
+            {planoAtivos.length === 0 && (
               <p style={{ fontSize: '8pt', color: '#9a3412' }}>
-                Nenhum plano de trabalho salvo foi encontrado para este estabelecimento. A relação de documentos não pôde ser recuperada.
+                Nenhum ativo cadastrado para ser homologado. Necessário cadastrar ativos para este serviço.
               </p>
             )}
-            {planoEncontrado && planoDocs.length === 0 && (
-              <p style={{ fontSize: '8pt', color: '#4a6480' }}>Nenhum documento cadastrado no plano de trabalho.</p>
-            )}
-            {planoDocs.length > 0 && (
-              <>
-                <p style={{ fontSize: '7.5pt', color: '#4a6480', marginBottom: '6px' }}>
-                  Registre a situação e o resultado de cada documento recebido para a inspeção.
-                </p>
-                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '8pt' }}>
-                  <thead>
-                    <tr style={{ background: '#1E3A8A', color: '#fff' }}>
-                      <th style={{ padding: '3px 6px', textAlign: 'left' }}>Documento</th>
-                      <th style={{ padding: '3px 6px', textAlign: 'center' }}>Situação</th>
-                      <th style={{ padding: '3px 6px', textAlign: 'center' }}>Resultado</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {planoDocs.map((d, i) => (
-                      <tr key={i} style={{ background: i%2===0?'#f8fafc':'#fff', borderBottom: '1px solid #e2e8f0' }}>
-                        <td style={{ padding: '3px 6px' }}>{d.doc}</td>
-                        <td style={{ padding: '3px 6px', textAlign: 'center' }}>
-                          <select style={{ width: '100%', fontSize: '8pt', textAlign: 'center' }} value={d.situacao === '—' ? '' : d.situacao}
-                            onChange={e => setPlanoDocs(prev => prev.map((x,j) => j===i ? {...x, situacao: e.target.value || '—'} : x))}>
-                            <option value="">—</option>
-                            <option>Entregue</option>
-                            <option>Pendente</option>
-                            <option>Desnecessário</option>
-                          </select>
-                        </td>
-                        <td style={{ padding: '3px 6px', textAlign: 'center' }}>
-                          <select style={{ width: '100%', fontSize: '8pt', textAlign: 'center' }} value={d.resultado === '—' ? '' : d.resultado}
-                            onChange={e => setPlanoDocs(prev => prev.map((x,j) => j===i ? {...x, resultado: e.target.value || '—'} : x))}>
-                            <option value="">—</option>
-                            <option>Conforme</option>
-                            <option>Não conforme</option>
-                            <option>Não se aplica</option>
-                          </select>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </>
-            )}
-            {planoAtivos.length === 0 && (
-              <p style={{ fontSize: '8pt', color: '#9a3412', marginTop: '8px' }}>
-                Nenhum ativo cadastrado para ser homologado. Necessário cadastrar ativos para este serviço.
+            {planoAtivos.length > 0 && (
+              <p style={{ fontSize: '8pt', color: '#4a6480' }}>
+                {planoAtivos.length} ativo(s) cadastrado(s) no plano de trabalho serão verificados antes de iniciar a homologação.
               </p>
             )}
           </div>
