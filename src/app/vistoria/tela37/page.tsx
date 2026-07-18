@@ -18,7 +18,7 @@ const VALOR_GUT: Record<string, number> = {
   'gravidade:Sem risco': 1, 'gravidade:Lesão/dano baixo': 2, 'gravidade:Lesão/dano moderado': 3, 'gravidade:Lesão/dano grave': 4, 'gravidade:Lesão/dano fatal': 5,
   'urgencia:Pode aguardar': 1, 'urgencia:Planejar': 3, 'urgencia:Imediata': 5,
   'probabilidade:Improvável': 1, 'probabilidade:Possível': 3, 'probabilidade:Provável/eminente': 5,
-  'exposicaorisco:Máximo 2 pessoas': 1, 'exposicaorisco:Até 6 pessoas': 3, 'exposicaorisco:Muitas pessoas': 5,
+  'exposicaorisco:Eventual (1)': 1, 'exposicaorisco:Frequente (3)': 3, 'exposicaorisco:Muitas pessoas (5)': 5,
 }
 
 function calcularGR(gra: number, urg: number, abr: number, exp: number): number {
