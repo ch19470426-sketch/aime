@@ -32,7 +32,10 @@ export async function GET(request: NextRequest) {
       .filter(f => {
         const nome = f.name
         if (!nome.startsWith(chaveInspetor)) return false
-        if (!nome.includes(cnpjoucpf)) return false
+        // Termo de aceite: documento do inspetor, sem cnpjoucpf no nome — sempre aparece
+        const ehTermo = nome.includes('termo_de_aceite')
+        // Demais documentos: devem conter o cnpjoucpf no nome
+        if (!ehTermo && !nome.includes(cnpjoucpf)) return false
         // Excluir fotos de vistoria (terminam com número antes da extensão)
         if (/\d+\.(jpg|jpeg|png|webp)$/i.test(nome)) return false
         const ehPdf  = nome.endsWith('.pdf')
