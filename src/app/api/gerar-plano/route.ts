@@ -59,14 +59,10 @@ const PLANOS: Record<string, Record<string, unknown>> = {
       "Projeto Arquitetônico Aprovado na Prefeitura",
       "Projetos Elétrico e Hidrossanitário Aprovados na Prefeitura",
       "Manual de Uso, Operação e Manutenção da Edificação",
-      "Atestado de Brigada de Incêndio (Imóveis não Residenciais)",
       "Alvará de Funcionamento (Imóveis não Residenciais)",
       "Licenças Ambientais (Imóveis não Residenciais)",
-      "Outorga e Licença de Estação de Tratamento de Efluentes",
-      "Outorga e Licença de Poço Profundo de Captação de Água",
-      "Relatório das Análises de Potabilidade de Água - Captação Própria",
-      "Relatório de Reuso de Água (Físico-químicos e Bacteriológicos)",
-      "Relatórios Manutenções Específicas - Ar Condicionado, Bombas"
+      "Relatórios Manutenções Específicas - Ar Condicionado, Bombas",
+      "⚠️ Aviso importante! O registro da situação de entrega e do resultado da avaliação dos documentos deverá ser efetuada pelo inspetor no Anexo 1 do laudo."
     ]
   },
   "22": {
@@ -120,14 +116,10 @@ const PLANOS: Record<string, Record<string, unknown>> = {
       "Projeto Arquitetônico Aprovado na Prefeitura",
       "Projetos Elétrico e Hidrossanitário Aprovados na Prefeitura",
       "Manual de Uso, Operação e Manutenção da Edificação",
-      "Atestado de Brigada de Incêndio (Imóveis não Residenciais)",
       "Alvará de Funcionamento (Imóveis não Residenciais)",
       "Licenças Ambientais (Imóveis não Residenciais)",
-      "Outorga e Licença de Estação de Tratamento de Efluentes",
-      "Outorga e Licença de Poço Profundo de Captação de Água",
-      "Relatório das Análises de Potabilidade de Água - Captação Própria",
-      "Relatório de Reuso de Água (Físico-químicos e Bacteriológicos)",
-      "Relatórios Manutenções Específicas - Ar Condicionado, Bombas"
+      "Relatórios Manutenções Específicas - Ar Condicionado, Bombas",
+      "⚠️ Aviso importante! O registro da situação de entrega e do resultado da avaliação dos documentos deverá ser efetuada pelo inspetor no Anexo 1 do laudo."
     ]
   },
   "23": {
@@ -162,7 +154,8 @@ const PLANOS: Record<string, Record<string, unknown>> = {
       "Projeto Arquitetônico Aprovado na Prefeitura",
       "Projetos elétrico/hidrossanitário aprovados na Prefeitura",
       "Manual de Uso, Operação e Manutenção da Edificação",
-      "Alvará de Funcionamento (Imóveis não Residenciais)"
+      "Alvará de Funcionamento (Imóveis não Residenciais)",
+      "⚠️ Aviso importante! O registro da situação de entrega e do resultado da avaliação dos documentos deverá ser efetuada pelo inspetor no Anexo 1 do laudo."
     ]
   },
   "24": {
@@ -203,7 +196,8 @@ const PLANOS: Record<string, Record<string, unknown>> = {
       "Manual de Uso, Operação e Manutenção da Edificação",
       "Plano de Manutenção Preventiva da Edificação",
       "Alvará de Funcionamento (Imóveis não Residenciais)",
-      "Licenças Ambientais (Imóveis não Residenciais)"
+      "Licenças Ambientais (Imóveis não Residenciais)",
+      "⚠️ Aviso importante! O registro da situação de entrega e do resultado da avaliação dos documentos deverá ser efetuada pelo inspetor no Anexo 1 do laudo."
     ]
   },
   "25": {
@@ -243,7 +237,8 @@ const PLANOS: Record<string, Record<string, unknown>> = {
       "Relatório de Inspeção Anual dos Elevadores (RIA)",
       "Contrato de Manutenção de Elevadores",
       "Laudo de inspeção de elevador anterior",
-      "Projeto de instalação dos elevadores aprovado na Prefeitura"
+      "Projeto de instalação dos elevadores aprovado na Prefeitura",
+      "⚠️ Aviso importante! O registro da situação de entrega e do resultado da avaliação dos documentos deverá ser efetuada pelo inspetor no Anexo 1 do laudo."
     ]
   },
   "26": {
@@ -280,7 +275,8 @@ const PLANOS: Record<string, Record<string, unknown>> = {
       "Prontuário das Instalações Elétricas (PIE)",
       "Alvará de Funcionamento da Instituição",
       "Contrato de Manutenção das Instalações Elétricas",
-      "Laudo de inspeção das instalações anterior"
+      "Laudo de inspeção das instalações anterior",
+      "⚠️ Aviso importante! O registro da situação de entrega e do resultado da avaliação dos documentos deverá ser efetuada pelo inspetor no Anexo 1 do laudo."
     ]
   },
   "27": {
@@ -318,7 +314,8 @@ const PLANOS: Record<string, Record<string, unknown>> = {
       "Planta baixa",
       "Manuais de operação e segurança das máquinas",
       "Laudo da última inspeção realizada",
-      "Alvará de funcionamento da instituição"
+      "Alvará de funcionamento da instituição",
+      "⚠️ Aviso importante! O registro da situação de entrega e do resultado da avaliação dos documentos deverá ser efetuada pelo inspetor no Anexo 1 do laudo."
     ]
   },
   "28": {
@@ -360,7 +357,8 @@ const PLANOS: Record<string, Record<string, unknown>> = {
       "Manual de procedimentos operacionais",
       "Registros de treinamento dos operadores",
       "Laudo de inspeção anterior",
-      "Documentação de alterações e reparos"
+      "Documentação de alterações e reparos",
+      "⚠️ Aviso importante! O registro da situação de entrega e do resultado da avaliação dos documentos deverá ser efetuada pelo inspetor no Anexo 1 do laudo."
     ]
   },
   "29": {
@@ -403,7 +401,8 @@ const PLANOS: Record<string, Record<string, unknown>> = {
       "Convenção do Condomínio",
       "Manual de Uso, Operação e Manutenção da Edificação",
       "Plano de Manutenção Preventiva da Edificação",
-      "Laudo de Inspeção Predial - Último"
+      "Laudo de Inspeção Predial - Último",
+      "⚠️ Aviso importante! O registro da situação de entrega e do resultado da avaliação dos documentos deverá ser efetuada pelo inspetor no Anexo 1 do laudo."
     ]
   }
 }
