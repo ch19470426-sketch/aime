@@ -321,10 +321,8 @@ function PlanoInner() {
       })
       const data = await res.json()
       if (data.sucesso) {
-        agradece('Plano de Trabalho salvo',
-          'O plano foi salvo em "Documentos inspetor". O Plano de Trabalho deverá ser homologado ao final da homologação da vistoria, quando as colunas Situação e Resultado estiverem registrados no bloco 1.3.- Relação de Documentos Solicitados.',
-          () => window.location.href = '/dashboard'
-        )
+        const tituloPlano = htmlData.planoInfo?.titulo ?? 'Plano de Trabalho'
+        window.location.href = `/homologar-produto?cpf_inspetor=${cpfInspetor}&chave_inspetor=${chaveInspetor}&cnpjoucpf=${cnpjoucpf}&tipo_servico=${tipoServico}&nome_arquivo=${encodeURIComponent(nomeArq)}&titulo=${encodeURIComponent(tituloPlano)}`
       } else {
         informa('Erro', data.erro ?? 'Não foi possível salvar.')
       }
