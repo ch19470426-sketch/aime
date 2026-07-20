@@ -178,7 +178,7 @@ function PlanoInner() {
   async function carregar() {
     setCarregando(true)
     try {
-      const estData = await query('estabelecimento', `cnpjoucpf=eq.${cnpjoucpf}&select=cnpjoucpf`)
+      const estData = await query('estabelecimento', `cnpjoucpf=eq.${cnpjoucpf}&select=cnpjoucpf,razao_social_nome`)
       if (!Array.isArray(estData) || !estData[0]) {
         informa(
           'Estabelecimento não cadastrado',
