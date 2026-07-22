@@ -1,9 +1,5 @@
-// src/app/homologar/page.tsx
-// AIMÊ — Tela 40: Homologar Vistoria
-// Reutiliza lógica completa das telas 31-38 com listas editáveis
-
-'use client'
-
+"use client"
+export const dynamic = 'force-dynamic'
 import React, { Suspense, useEffect, useRef, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Image from 'next/image'
