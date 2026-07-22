@@ -115,12 +115,6 @@ function PlanoInner() {
     verificarSessao()
   }, [cpfInspetor])
 
-  if (!sessaoVerificada) return (
-    <div style={{ backgroundColor: '#E8EEF7', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <p style={{ color: '#4a6480', fontSize: '14px' }}>Verificando sessão...</p>
-    </div>
-  )
-
   const tipoServico   = params.get('tipo_servico')   ?? '21'
 
   const { bannerProps, informa, agradece, solicita, fechar } = useBanner()
@@ -162,6 +156,12 @@ function PlanoInner() {
     return res.json()
   }
 
+
+  if (!sessaoVerificada) return (
+    <div style={{ backgroundColor: '#E8EEF7', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <p style={{ color: '#4a6480', fontSize: '14px' }}>Verificando sessão...</p>
+    </div>
+  )
   useEffect(() => {
     setAtivoAtual({ ...ATIVO_VAZIO })
     carregar()
