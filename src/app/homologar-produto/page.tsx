@@ -1,10 +1,5 @@
-// src/app/homologar-produto/page.tsx
-// AIMÊ — 2.10: Homologar, assinar e guardar produtos
-// Tela compartilhada por Proposta, Plano de Trabalho e Laudos: revisão final,
-// download do documento editável e do PDF, upload do PDF assinado (Gov.br) e guarda em Documentos inspetor.
-
-'use client'
-
+"use client"
+export const dynamic = 'force-dynamic'
 import React, { Suspense, useEffect, useRef, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Image from 'next/image'
