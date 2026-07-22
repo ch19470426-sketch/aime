@@ -1,8 +1,5 @@
-// src/app/proposta/page.tsx
-// AIMÊ — Tela Proposta Comercial (tipos 11-19)
-
-'use client'
-
+"use client"
+export const dynamic = 'force-dynamic'
 import { Suspense, useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Image from 'next/image'
