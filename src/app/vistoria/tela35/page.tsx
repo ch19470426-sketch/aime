@@ -260,7 +260,7 @@ function Tela31Inner() {
     const nrData = await nrRes.json()
     const nrFinal = nrData?.formatado ?? fotoNr
 
-    const nomeArquivo = `${chaveInspetor}${nrFinal}.json`
+    const nomeArquivo = `${chaveInspetor}_${cnpjoucpf}_${tipoServico}_${nrFinal}.json`
     const payload = {
       chaveInspetor, cpfInspetor, cnpjoucpf, tipoServico,
       savedAt: new Date().toISOString(),
