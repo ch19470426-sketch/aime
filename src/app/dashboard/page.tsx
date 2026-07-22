@@ -345,6 +345,11 @@ export default function Dashboard() {
       window.location.href = `/proposta?cpf_inspetor=${cpfInspetor}&chave_inspetor=${chaveInspetor}&cnpjoucpf=${docLimpo}&tipo_servico=${tipoServico}`
       return
     }
+    // Códigos 41-44: Laudos grupo 1 (Autovistoria, Inspeção, Imóvel Novo, Fachada)
+    if (Number(tipoServico) >= 41 && Number(tipoServico) <= 44) {
+      window.location.href = `/laudo?cpf_inspetor=${cpfInspetor}&chave_inspetor=${chaveInspetor}&cnpjoucpf=${docLimpo}&tipo_servico=${tipoServico}`
+      return
+    }
     // Código 40: Homologar Vistoria
     if (Number(tipoServico) === 40) {
       window.location.href = `/homologar?cpf_inspetor=${cpfInspetor}&chave_inspetor=${chaveInspetor}&cnpjoucpf=${docLimpo}`
