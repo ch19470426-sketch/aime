@@ -1,8 +1,5 @@
-// src/app/plano/page.tsx
-// AIMÊ — Tela Plano de Trabalho (tipos 21-29)
-
-'use client'
-
+"use client"
+export const dynamic = 'force-dynamic'
 import { Suspense, useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Image from 'next/image'
