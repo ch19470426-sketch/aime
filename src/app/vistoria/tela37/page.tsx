@@ -1,8 +1,4 @@
-// src/app/vistoria/tela37/page.tsx
-// AIMÊ — Tela 37: Vistoria Máquinas e Equipamentos - NR-12
-
-'use client'
-
+"use client"
 import { Suspense, useEffect, useRef, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Image from 'next/image'
