@@ -87,12 +87,7 @@ const ATIVO_VAZIO: Ativo = {
 
 export default function PlanoPage() {
   return (
-    <Suspense fallback={
-      <div style={S.body}><div style={S.page}>
-        <HeaderBar titulo="Carregando..." subtitulo="" />
-        <div style={S.divider} />
-      </div></div>
-    }>
+    <Suspense fallback={<div style={{ backgroundColor: "#E8EEF7", minHeight: "100vh" }} />}>
       <PlanoInner />
     </Suspense>
   )
