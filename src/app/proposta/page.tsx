@@ -112,22 +112,7 @@ function PropostaInner() {
   const cpfInspetor  = params.get('cpf_inspetor')   ?? ''
   const chaveInspetor = params.get('chave_inspetor') ?? ''
   const cnpjoucpf    = params.get('cnpjoucpf')       ?? ''
-  const [sessaoVerificada, setSessaoVerificada] = useState(false)
 
-  useEffect(() => {
-    async function verificarSessao() {
-      try {
-        const { createClient } = await import('@/utils/supabase/client')
-        const supabase = createClient()
-        const { data: { session } } = await supabase.auth.getSession()
-        if (!session?.user?.email) { window.location.href = '/'; return }
-        const cpfSessao = session.user.email.split('@')[0]
-        if (cpfInspetor && cpfSessao !== cpfInspetor) { window.location.href = '/'; return }
-        setSessaoVerificada(true)
-      } catch { window.location.href = '/' }
-    }
-    verificarSessao()
-  }, [cpfInspetor])
 
   const tipoServico  = params.get('tipo_servico')    ?? '11'
 
@@ -166,12 +151,6 @@ function PropostaInner() {
     return res.json()
   }
 
-
-  if (!sessaoVerificada) return (
-    <div style={{ backgroundColor: '#E8EEF7', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <p style={{ color: '#4a6480', fontSize: '14px' }}>Verificando sessão...</p>
-    </div>
-  )
   useEffect(() => {
     if (!cnpjoucpf || !cpfInspetor) return
     carregar()
