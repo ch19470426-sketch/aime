@@ -440,7 +440,7 @@ function LaudoComplemento() {
           <div style={{ backgroundColor: "#FFF9E6", border: "1px solid #F59E0B", borderRadius: "8px", padding: "10px 14px", marginBottom: "12px" }}>
             <p style={{ fontSize: "11px", fontWeight: "bold" as const, color: "#92400E", marginBottom: "4px" }}>Observação:</p>
             <p style={{ fontSize: "11px", color: "#92400E" }}>
-              A revisão integral do laudo deverá ser efetuada e ajustada pelo profissional no arquivo editável que será baixado, assinado (homologado) e carregado para validação e guarda na base de dados do AIMÊ.
+              A revisão integral do laudo deverá ser efetuada e ajustada pelo profissional no arquivo editável que será baixado, assinado (homologado) e carregado para validação e guarda na base de dados do AIMÊ. Ao profissional também cabe a responsabilidade de reescrever o conteúdo do item 6.- Conclusão, conforme análise do laudo e observações em campo, quando da coleta de dados de vistoria.
             </p>
           </div>
 
