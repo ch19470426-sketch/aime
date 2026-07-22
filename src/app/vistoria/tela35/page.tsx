@@ -1,8 +1,4 @@
-// src/app/vistoria/tela35/page.tsx
-// AIMÊ — Tela 35: Vistoria Elevador
-
-'use client'
-
+"use client"
 import { Suspense, useEffect, useRef, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Image from 'next/image'
