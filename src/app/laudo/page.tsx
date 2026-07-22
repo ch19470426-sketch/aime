@@ -121,7 +121,17 @@ function LaudoComplemento() {
           headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` }
         })
         const dadosE = await resE.json()
-        if (Array.isArray(dadosE) && dadosE.length > 0) setEstab(dadosE[0])
+        if (Array.isArray(dadosE) && dadosE.length > 0) {
+          setEstab(dadosE[0])
+        }
+        // Buscar responsável dos ativos (nome_responsavel está em ativos_a_vistoriar)
+        const resA = await fetch(`${SUPA_URL}/rest/v1/ativos_a_vistoriar?cpf_inspetor=eq.${cpfInspetor}&cnpjoucpf=eq.${cnpjoucpf}&select=nome_responsavel,funcao_responsavel&limit=1`, {
+          headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` }
+        })
+        const dadosA = await resA.json()
+        if (Array.isArray(dadosA) && dadosA.length > 0 && dadosA[0].nome_responsavel) {
+          setEstab(prev => ({ ...prev, nome_responsavel: dadosA[0].nome_responsavel, funcao_responsavel: dadosA[0].funcao_responsavel }))
+        }
 
         // Inspetor
         const resI = await fetch(`${SUPA_URL}/rest/v1/inspetor?cpf_inspetor=eq.${cpfInspetor}&select=*`, {
@@ -255,19 +265,19 @@ function LaudoComplemento() {
     card:      { backgroundColor: "white", borderRadius: "16px", boxShadow: "0 4px 24px rgba(0,0,0,0.12)", width: "100%", maxWidth: "860px", overflow: "hidden" },
     header:    { backgroundColor: "#1E3A8A", padding: "8px 16px", display: "flex", alignItems: "center", gap: "12px" },
     divider:   { height: "2px", backgroundColor: "#1E3A8A" },
-    body2:     { padding: "10px 14px" },
-    bloco:     { border: "1px solid #E2E8F0", borderRadius: "8px", overflow: "hidden", marginBottom: "8px" },
+    body2:     { padding: "8px 12px" },
+    bloco:     { border: "1px solid #E2E8F0", borderRadius: "8px", overflow: "hidden", marginBottom: "6px" },
     bHead:     { backgroundColor: "#1E3A8A", padding: "4px 12px" },
     bTitle:    { color: "white", fontWeight: "bold" as const, fontSize: "11px" },
-    bBody:     { padding: "6px 10px" },
+    bBody:     { padding: "5px 8px" },
     label:     { fontSize: "11px", fontWeight: "600" as const, color: "#374151", display: "block", marginBottom: "3px" },
     input:     { border: "1px solid #D1D5DB", borderRadius: "6px", padding: "6px 10px", fontSize: "12px", width: "100%", outline: "none", boxSizing: "border-box" as const },
-    textarea:  { border: "1px solid #D1D5DB", borderRadius: "6px", padding: "6px 10px", fontSize: "12px", width: "100%", outline: "none", boxSizing: "border-box" as const, resize: "vertical" as const, minHeight: "80px" },
+    textarea:  { border: "1px solid #D1D5DB", borderRadius: "6px", padding: "5px 8px", fontSize: "12px", width: "100%", outline: "none", boxSizing: "border-box" as const, resize: "vertical" as const, minHeight: "60px" },
     btn:       { padding: "8px 20px", borderRadius: "50px", border: "none", backgroundColor: "#1E3A8A", color: "white", fontWeight: "600" as const, fontSize: "12px", cursor: "pointer" },
     btnSec:    { padding: "8px 20px", borderRadius: "50px", border: "2px solid #1E3A8A", backgroundColor: "white", color: "#1E3A8A", fontWeight: "600" as const, fontSize: "12px", cursor: "pointer" },
     btnIA:     { padding: "6px 14px", borderRadius: "50px", border: "none", backgroundColor: "#059669", color: "white", fontWeight: "600" as const, fontSize: "11px", cursor: "pointer" },
-    grid2:     { display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" },
-    grid3:     { display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "8px" },
+    grid2:     { display: "grid", gridTemplateColumns: "1fr 1fr", gap: "6px" },
+    grid3:     { display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "6px" },
     contagem:  { fontSize: "10px", color: "#9CA3AF", textAlign: "right" as const, marginTop: "2px" },
   }
 
@@ -340,7 +350,7 @@ function LaudoComplemento() {
                 </div>
               </div>
               <div style={{ marginTop: "8px" }}>
-                <label style={S.label}>Síntese da descrição da edificação (Convenção ou Escritura) *</label>
+                <label style={S.label}>Descreva sinteticamente a edificação (Convenção ou Escritura) *</label>
                 <textarea style={S.textarea} maxLength={900} value={sinteseEdif}
                   onChange={e => setSinteseEdif(e.target.value)}
                   placeholder="Gerado pela IA ou escreva a síntese aqui..." />
@@ -450,7 +460,7 @@ function LaudoComplemento() {
           {erro && <p style={{ color: "#DC2626", fontSize: "12px", marginBottom: "12px" }}>{erro}</p>}
 
           <div style={{ display: "flex", gap: "10px", justifyContent: "flex-end" }}>
-            <button style={S.btnSec} onClick={() => window.location.href = '/dashboard'}>Cancelar</button>
+            <button style={S.btnSec} onClick={() => window.location.href = '/dashboard'}>Voltar</button>
             <button style={S.btn} onClick={gerarLaudo} disabled={carregando}>
               Gerar Laudo →
             </button>
