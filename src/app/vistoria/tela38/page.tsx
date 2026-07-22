@@ -1,8 +1,4 @@
-// src/app/vistoria/tela38/page.tsx
-// AIMÊ — Tela 38: Vistoria Caldeiras, Vasos de Pressão - NR-13
-
-'use client'
-
+"use client"
 import { Suspense, useEffect, useRef, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Image from 'next/image'
