@@ -26,7 +26,7 @@ const LAUDO_CONFIG: Record<string, {
 const NIVEIS_INSPECAO = ['Nível 1', 'Nível 2', 'Nível 3']
 const GRAUS_RISCO     = ['Crítico', 'Regular', 'Mínimo']
 const DESEMPENHOS     = ['Bom', 'Regular', 'Ruim', 'Crítico']
-const QUALID_MANUT    = ['Totalmente atende', 'Parcialmente atende', 'Não atende']
+const QUALID_MANUT    = ['Atende totalmente', 'Atende parcialmente', 'Não atende']
 const COND_USO        = ['Uso regular', 'Uso irregular']
 
 const SLUG: Record<string, string> = {
@@ -221,8 +221,6 @@ function LaudoComplemento() {
     if (cfg.temClassificacao && (!nivel || !risco || !desempenho || !manut || !uso || !desempGeral)) {
       setErro('Preencha todos os campos da classificação da edificação (item 3.3).'); return
     }
-    if (!rec51 || !rec52 || !rec53 || !rec54) { setErro('Gere ou preencha todas as recomendações (item 5).'); return }
-
     setEtapa('gerando')
     try {
       const slug = SLUG[tipoServico] ?? `laudo_${tipoServico}`
@@ -235,7 +233,7 @@ function LaudoComplemento() {
           estab, inspetor, ncs, nomeArquivo: nome,
           complemento: {
             nomeConvencao, incorporadora, sinteseEdif,
-            dadosVistoria, descVistoria,
+            descVistoria: dadosVistoria,
             classificacao: { nivel, risco, desempenho, manut, uso, desempGeral },
             rec51, rec52, rec53, rec54,
           }
@@ -257,11 +255,11 @@ function LaudoComplemento() {
     card:      { backgroundColor: "white", borderRadius: "16px", boxShadow: "0 4px 24px rgba(0,0,0,0.12)", width: "100%", maxWidth: "860px", overflow: "hidden" },
     header:    { backgroundColor: "#1E3A8A", padding: "8px 16px", display: "flex", alignItems: "center", gap: "12px" },
     divider:   { height: "2px", backgroundColor: "#1E3A8A" },
-    body2:     { padding: "16px 20px" },
-    bloco:     { border: "1px solid #E2E8F0", borderRadius: "8px", overflow: "hidden", marginBottom: "12px" },
+    body2:     { padding: "10px 14px" },
+    bloco:     { border: "1px solid #E2E8F0", borderRadius: "8px", overflow: "hidden", marginBottom: "8px" },
     bHead:     { backgroundColor: "#1E3A8A", padding: "4px 12px" },
     bTitle:    { color: "white", fontWeight: "bold" as const, fontSize: "11px" },
-    bBody:     { padding: "10px 12px" },
+    bBody:     { padding: "6px 10px" },
     label:     { fontSize: "11px", fontWeight: "600" as const, color: "#374151", display: "block", marginBottom: "3px" },
     input:     { border: "1px solid #D1D5DB", borderRadius: "6px", padding: "6px 10px", fontSize: "12px", width: "100%", outline: "none", boxSizing: "border-box" as const },
     textarea:  { border: "1px solid #D1D5DB", borderRadius: "6px", padding: "6px 10px", fontSize: "12px", width: "100%", outline: "none", boxSizing: "border-box" as const, resize: "vertical" as const, minHeight: "80px" },
@@ -315,7 +313,10 @@ function LaudoComplemento() {
       <div style={S.card}>
         <div style={S.header}>
           <Image src="/logo.png" alt="AIMÊ" width={80} height={32} priority style={{ filter: "brightness(0) invert(1)" }} />
-          <span style={{ color: "white", fontWeight: "bold", fontSize: "12px", flex: 1, textAlign: "center" }}>{cfg.titulo} — Complemento</span>
+          <div style={{ flex: 1, textAlign: "center" }}>
+            <div style={{ color: "white", fontWeight: "bold", fontSize: "12px" }}>{cfg.titulo}</div>
+            <div style={{ color: "rgba(255,255,255,0.8)", fontSize: "10px" }}>Coleta de Dados Básicos para Geração de Laudos</div>
+          </div>
         </div>
         <div style={S.divider} />
         <div style={S.body2}>
@@ -324,30 +325,32 @@ function LaudoComplemento() {
 
           {/* ── 1.1 Síntese da Edificação ── */}
           <div style={S.bloco}>
-            <div style={S.bHead}><span style={S.bTitle}>1.1 — Síntese da descrição da edificação</span></div>
+            <div style={S.bHead}><span style={S.bTitle}>1.1 — Descrição da Edificação ou Estabelecimento</span></div>
             <div style={S.bBody}>
               <div style={S.grid2}>
                 <div>
-                  <label style={S.label}>Nome conforme {tipoServico === '43' ? 'escritura' : 'convenção do condomínio'}</label>
-                  <input style={S.input} value={nomeConvencao} onChange={e => setNomeConvencao(e.target.value)} placeholder="Nome oficial conforme documento" />
+                  <label style={S.label}>Razão social / Nome</label>
+                  <input style={S.input} value={estab.razao_social_nome ?? ''} readOnly
+                    style={{ ...S.input, backgroundColor: '#F8FAFC', color: '#374151' }} />
                 </div>
                 <div>
-                  <label style={S.label}>Incorporadora / Construtora</label>
-                  <input style={S.input} value={incorporadora} onChange={e => setIncorporadora(e.target.value)} placeholder="Razão social da construtora" />
+                  <label style={S.label}>Responsável pelo ativo</label>
+                  <input style={S.input} value={estab.nome_responsavel ?? ''} readOnly
+                    style={{ ...S.input, backgroundColor: '#F8FAFC', color: '#374151' }} />
                 </div>
               </div>
               <div style={{ marginTop: "8px" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "3px" }}>
-                  <label style={S.label}>Síntese gerada pela IA (máx. 900 caracteres) *</label>
+                <label style={S.label}>Síntese da descrição da edificação (Convenção ou Escritura) *</label>
+                <textarea style={S.textarea} maxLength={900} value={sinteseEdif}
+                  onChange={e => setSinteseEdif(e.target.value)}
+                  placeholder="Gerado pela IA ou escreva a síntese aqui..." />
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "4px" }}>
+                  <div style={S.contagem}>{sinteseEdif.length}/900 caracteres</div>
                   <button style={{ ...S.btnIA, opacity: gerandoSintese ? 0.7 : 1 }}
-                    onClick={gerarSintese} disabled={gerandoSintese || !nomeConvencao}>
+                    onClick={gerarSintese} disabled={gerandoSintese}>
                     {gerandoSintese ? 'Gerando...' : '✦ Gerar com IA'}
                   </button>
                 </div>
-                <textarea style={S.textarea} maxLength={900} value={sinteseEdif}
-                  onChange={e => setSinteseEdif(e.target.value)}
-                  placeholder="Clique em 'Gerar com IA' ou escreva a síntese aqui..." />
-                <div style={S.contagem}>{sinteseEdif.length}/900 caracteres</div>
               </div>
             </div>
           </div>
@@ -356,23 +359,16 @@ function LaudoComplemento() {
           <div style={S.bloco}>
             <div style={S.bHead}><span style={S.bTitle}>3.1 — Descrição da Vistoria Técnica</span></div>
             <div style={S.bBody}>
-              <div>
-                <label style={S.label}>Informações para a IA (condições, acompanhante, acesso, observações)</label>
-                <input style={S.input} value={dadosVistoria} onChange={e => setDadosVistoria(e.target.value)}
-                  placeholder="Ex: Vistoria realizada em dia ensolarado, acompanhado pelo síndico João Silva, acesso a todas as áreas..." />
-              </div>
-              <div style={{ marginTop: "8px" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "3px" }}>
-                  <label style={S.label}>Descrição gerada pela IA (máx. 900 caracteres) *</label>
-                  <button style={{ ...S.btnIA, opacity: gerandoDesc ? 0.7 : 1 }}
-                    onClick={gerarDescricao} disabled={gerandoDesc || !dadosVistoria}>
-                    {gerandoDesc ? 'Gerando...' : '✦ Gerar com IA'}
-                  </button>
-                </div>
-                <textarea style={S.textarea} maxLength={900} value={descVistoria}
-                  onChange={e => setDescVistoria(e.target.value)}
-                  placeholder="Clique em 'Gerar com IA' ou escreva a descrição aqui..." />
-                <div style={S.contagem}>{descVistoria.length}/900 caracteres</div>
+              <label style={S.label}>Descreva sinteticamente como foi realizada a vistoria</label>
+              <textarea style={{ ...S.textarea, minHeight: "130px" }} maxLength={900} value={dadosVistoria}
+                onChange={e => setDadosVistoria(e.target.value)}
+                placeholder="Ex: A vistoria foi efetuada de forma descendente, seguindo em ordem da cobertura para a casa de máquinas e térreo, reservatórios de água e área de serviço do SPDA; suas duas caixas de escadas e seus acessos por corredores; hall's dos elevadores e corredores dos pavimentos tipo; pavimentos de garagens, área de piscina ... houve ou não intercorrências, ..." />
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "4px" }}>
+                <div style={S.contagem}>{dadosVistoria.length}/900 caracteres</div>
+                <button style={{ ...S.btnIA, opacity: gerandoDesc ? 0.7 : 1 }}
+                  onClick={gerarDescricao} disabled={gerandoDesc || !dadosVistoria}>
+                  {gerandoDesc ? 'Gerando...' : '✦ Gerar com IA'}
+                </button>
               </div>
             </div>
           </div>
@@ -430,30 +426,12 @@ function LaudoComplemento() {
             </div>
           )}
 
-          {/* ── 5. Recomendações ── */}
-          <div style={S.bloco}>
-            <div style={S.bHead}><span style={S.bTitle}>5 — Recomendações de Manutenção, Uso, Sustentabilidade e Gerais</span></div>
-            <div style={S.bBody}>
-              <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: "10px" }}>
-                <button style={{ ...S.btnIA, opacity: gerandoRec ? 0.7 : 1 }}
-                  onClick={gerarRecomendacoes}
-                  disabled={gerandoRec || ncs.length === 0 || !nivel}>
-                  {gerandoRec ? 'Gerando...' : '✦ Gerar todas com IA'}
-                </button>
-              </div>
-              {[
-                { label: '5.1 Avaliação e recomendações da manutenção *', val: rec51, set: setRec51 },
-                { label: '5.2 Avaliação e recomendações do uso da edificação *', val: rec52, set: setRec52 },
-                { label: '5.3 Avaliação e recomendações da sustentabilidade *', val: rec53, set: setRec53 },
-                { label: '5.4 Outras avaliações e recomendações *', val: rec54, set: setRec54 },
-              ].map(({ label, val, set }) => (
-                <div key={label} style={{ marginBottom: "8px" }}>
-                  <label style={S.label}>{label}</label>
-                  <textarea style={S.textarea} value={val} onChange={e => set(e.target.value)}
-                    placeholder="Gerado pela IA ou preencha manualmente..." />
-                </div>
-              ))}
-            </div>
+          {/* ── Observação ── */}
+          <div style={{ backgroundColor: "#FFF9E6", border: "1px solid #F59E0B", borderRadius: "8px", padding: "10px 14px", marginBottom: "12px" }}>
+            <p style={{ fontSize: "11px", fontWeight: "bold" as const, color: "#92400E", marginBottom: "4px" }}>Observação:</p>
+            <p style={{ fontSize: "11px", color: "#92400E" }}>
+              A revisão integral do laudo deverá ser efetuada e ajustada pelo profissional no arquivo editável que será baixado, assinado (homologado) e carregado para validação e guarda na base de dados do AIMÊ.
+            </p>
           </div>
 
           {/* ── NCs resumo ── */}
