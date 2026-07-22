@@ -129,12 +129,6 @@ function PropostaInner() {
     verificarSessao()
   }, [cpfInspetor])
 
-  if (!sessaoVerificada) return (
-    <div style={{ backgroundColor: '#E8EEF7', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <p style={{ color: '#4a6480', fontSize: '14px' }}>Verificando sessão...</p>
-    </div>
-  )
-
   const tipoServico  = params.get('tipo_servico')    ?? '11'
 
   const { bannerProps, informa, solicita, fechar } = useBanner()
@@ -172,6 +166,12 @@ function PropostaInner() {
     return res.json()
   }
 
+
+  if (!sessaoVerificada) return (
+    <div style={{ backgroundColor: '#E8EEF7', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <p style={{ color: '#4a6480', fontSize: '14px' }}>Verificando sessão...</p>
+    </div>
+  )
   useEffect(() => {
     if (!cnpjoucpf || !cpfInspetor) return
     carregar()
