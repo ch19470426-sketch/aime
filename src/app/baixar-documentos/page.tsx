@@ -16,6 +16,7 @@ interface Doc {
   nome: string
   label: string
   url: string
+  data?: string
 }
 
 function BaixarDocumentos() {
@@ -160,13 +161,14 @@ function BaixarDocumentos() {
               <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
                 {docs.map((doc) => (
                   <button key={doc.nome} onClick={() => baixar(doc)}
-                    style={{ display: "flex", alignItems: "center", gap: "12px", padding: "12px 16px", border: "1px solid #E2E8F0", borderRadius: "8px", backgroundColor: "white", cursor: "pointer", textAlign: "left" as const, transition: "background 0.15s" }}
+                    style={{ display: "flex", alignItems: "center", gap: "12px", padding: "10px 16px", border: "1px solid #E2E8F0", borderRadius: "8px", backgroundColor: "white", cursor: "pointer", textAlign: "left" as const, transition: "background 0.15s" }}
                     onMouseEnter={e => (e.currentTarget.style.backgroundColor = "#F0F4FF")}
                     onMouseLeave={e => (e.currentTarget.style.backgroundColor = "white")}>
                     <span style={{ fontSize: "20px" }}>
                       {doc.nome.endsWith('.pdf') ? '📄' : '📋'}
                     </span>
                     <span style={{ flex: 1, fontSize: "13px", color: "#374151" }}>{doc.label}</span>
+                    {doc.data && <span style={{ fontSize: "10px", color: "#9CA3AF", whiteSpace: "nowrap" as const }}>{doc.data}</span>}
                     <span style={{ fontSize: "11px", color: "#1E3A8A", fontWeight: 600 }}>↓ Baixar</span>
                   </button>
                 ))}
