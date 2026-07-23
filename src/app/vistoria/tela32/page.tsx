@@ -25,6 +25,13 @@ function calcularGR(gra: number, urg: number, abr: number, exp: number): number 
   return Math.round((0.4 * gra + 0.3 * urg + 0.2 * abr + 0.1 * exp) * 20)
 }
 
+function fmtDoc(v: string) {
+  const n = v.replace(/\D/g,"")
+  if (n.length===14) return n.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/,"$1.$2.$3/$4-$5")
+  if (n.length===11) return n.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/,"$1.$2.$3-$4")
+  return v
+}
+
 const TIPO_SERVICO_BANCO: Record<string, string> = {
   '31': '31 Autovistoria', '32': '32 Vistoria inspeção',
   '33': '33 Vistoria imóvel novo', '34': '34 Vistoria fachada',
@@ -332,7 +339,7 @@ function Tela31Inner() {
             <div style={S.blockTitle}>Identificação</div>
             <div style={S.blockBody}>
               <div style={{ ...S.row, ...S.c2 }}>
-                <Field label={cnpjoucpf.length === 11 ? "CPF" : "CNPJ"}><input style={S.input} value={cnpjDisplay} readOnly /></Field>
+                <Field label={cnpjoucpf.length === 11 ? "CPF" : "CNPJ"}><input style={S.input} value={fmtDoc(cnpjoucpf)} readOnly /></Field>
                 <Field label={cnpjoucpf.length === 11 ? "Nome" : "Razão social"}><input style={S.input} value={razaoSocial} readOnly /></Field>
               </div>
               <div style={{ ...S.row, ...S.c3 }}>
@@ -464,8 +471,17 @@ function Tela31Inner() {
                 </Field>
                 <button
                   style={S.photoBtn}
-                  onClick={() => fileInputRef.current?.click()}
-                  disabled={!sistema || !subsistema || !anomalia}
+                  onClick={() => {
+                    const faltando = []
+                    if (!sistema) faltando.push('Sistema')
+                    if (!subsistema) faltando.push('Subsistema')
+                    if (!anomalia) faltando.push('Anomalia')
+                    if (!origem) faltando.push('Origem')
+                    if (!local) faltando.push('Local de ocorrência')
+                    if (faltando.length > 0) { setErroValidacao('Preencha antes de tirar a foto: ' + faltando.join(', ')); return }
+                    setErroValidacao('')
+                    fileInputRef.current?.click()
+                  }}
                 >
                   📷 Adicionar foto
                 </button>
