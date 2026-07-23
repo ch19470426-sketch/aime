@@ -249,6 +249,8 @@ function Tela31Inner() {
       const cpVal = data.cp || data.causa_provavel || ''
       if (ncVal) setNc(ncVal)
       if (cpVal) setCp(cpVal)
+      // Evita que o textarea ganhe foco automático após receber valor da IA
+      setTimeout(() => { document.querySelectorAll('input, textarea, select').forEach((el) => (el as HTMLElement).blur()) }, 100)
       setFeedbackIA('✅ NC e CP geradas com sucesso!')
     } catch(e) {
       setFeedbackIA('⚠️ Erro ao gerar NC/CP: ' + String(e))
@@ -299,12 +301,13 @@ function Tela31Inner() {
     setSalvando(false); setSalvoOk(true); setArquivoSalvo(nomeArquivo)
   }
 
+  function blurAll() {
+    document.querySelectorAll<HTMLElement>('input, textarea, select').forEach(el => el.blur())
+  }
+
   function encerrar() {
-    // Força fechar teclado virtual antes de navegar (importante em tablets)
-    if (document.activeElement instanceof HTMLElement) {
-      document.activeElement.blur()
-    }
-    setTimeout(() => { window.location.href = '/dashboard' }, 50)
+    blurAll()
+    setTimeout(() => { window.location.href = '/dashboard' }, 100)
   }
 
   if (carregando) return (
@@ -324,7 +327,7 @@ function Tela31Inner() {
         <h2 style={{ color: '#1E3A8A', fontSize: '14pt', marginBottom: '8px' }}>Registro salvo!</h2>
         <p style={{ color: '#4a6480', fontSize: '9pt', marginBottom: '20px' }}>Arquivo: {arquivoSalvo}</p>
         <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
-          <button onClick={() => { if (document.activeElement instanceof HTMLElement) document.activeElement.blur(); setSalvoOk(false) }} style={{ ...S.btn, ...S.btnPri }}>➕ Nova Manifestação</button>
+          <button onClick={() => { blurAll(); setTimeout(() => setSalvoOk(false), 50) }} style={{ ...S.btn, ...S.btnPri }}>➕ Nova Manifestação</button>
           <button onClick={encerrar} style={{ ...S.btn, ...S.btnSec }}>Encerrar</button>
         </div>
       </div>
@@ -535,7 +538,7 @@ function Tela31Inner() {
 
           {/* FOOTER */}
           <div style={S.footer}>
-            <button style={{ ...S.btn, ...S.btnSec }} onClick={() => { if (document.activeElement instanceof HTMLElement) document.activeElement.blur(); setTimeout(() => encerrar(), 50) }}>Encerrar vistoria</button>
+            <button style={{ ...S.btn, ...S.btnSec }} onClick={() => encerrar()}>Encerrar vistoria</button>
             <button style={{ ...S.btn, ...S.btnPri, opacity: salvando ? 0.6 : 1 }} onClick={salvarDados} disabled={salvando}>
               {salvando ? 'Salvando...' : 'Salvar dados'}
             </button>
