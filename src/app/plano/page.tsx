@@ -85,6 +85,13 @@ const ATIVO_VAZIO: Ativo = {
   volume_interno_m3: '',
 }
 
+const SLUG_TIPO: Record<string, string> = {
+  '21': 'plano_autovistoria',    '22': 'plano_inspecao',
+  '23': 'plano_imovel_novo',     '24': 'plano_fachada',
+  '25': 'plano_elevador',        '26': 'plano_nr10',
+  '27': 'plano_nr12',            '28': 'plano_nr13',
+  '29': 'plano_manutencao',
+}
 export default function PlanoPage() {
   return (
     <Suspense fallback={<div style={{ backgroundColor: "#E8EEF7", minHeight: "100vh" }} />}>
@@ -310,7 +317,8 @@ function PlanoInner() {
       })
       const htmlData = await resHtml.json()
       if (!htmlData.html) { informa('Erro', 'Não foi possível gerar o plano.'); return }
-      const nomeArq = chaveInspetor + '_' + cnpjoucpf + '_' + tipoServico + '.html'
+      const slug = SLUG_TIPO[String(tipoServico)] ?? `tipo_${tipoServico}`
+    const nomeArq = `${chaveInspetor}_${cnpjoucpf}_${slug}.html`
       const res = await fetch('/api/salvar-vistoria', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
