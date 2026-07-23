@@ -66,11 +66,27 @@ export async function GET(request: NextRequest) {
         else if (nome.endsWith('_assinado.pdf')) label = label.replace(/\s*assinado\s*/i, '').trim() + ' — PDF assinado'
         else if (nome.endsWith('.pdf'))          label = label + ' — PDF'
 
-        return { nome, label: label.charAt(0).toUpperCase() + label.slice(1), url: urlData?.signedUrl ?? null }
+        const dataUpload = f.created_at ? new Date(f.created_at) : null
+        const dataFmt = dataUpload
+          ? `${String(dataUpload.getDate()).padStart(2,'0')}/${String(dataUpload.getMonth()+1).padStart(2,'0')}/${dataUpload.getFullYear()}`
+          : ''
+
+        return {
+          nome,
+          label: label.charAt(0).toUpperCase() + label.slice(1),
+          url: urlData?.signedUrl ?? null,
+          data: dataFmt,
+          dataISO: f.created_at ?? '',
+        }
       })
     )
 
-    return NextResponse.json({ docs: docs.filter(d => d.url) })
+    // Ordenar por data decrescente (mais recente primeiro)
+    const docsOrdenados = docs
+      .filter(d => d.url)
+      .sort((a, b) => (b.dataISO > a.dataISO ? 1 : b.dataISO < a.dataISO ? -1 : 0))
+
+    return NextResponse.json({ docs: docsOrdenados })
   } catch (err) {
     return NextResponse.json({ erro: String(err) }, { status: 500 })
   }
