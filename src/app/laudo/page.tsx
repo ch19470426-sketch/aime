@@ -29,6 +29,26 @@ const DESEMPENHOS     = ['Bom', 'Regular', 'Ruim', 'Crítico']
 const QUALID_MANUT    = ['Atende totalmente', 'Atende parcialmente', 'Não atende']
 const COND_USO        = ['Uso regular', 'Uso irregular']
 
+// Classificação específica — Imóvel Novo (43)
+const CL43 = {
+  a: ['Conforme', 'Pequenas NC', 'Moderadas NC', 'Graves NC'],
+  b: ['Excelente', 'Bom', 'Regular', 'Insatisfatório'],
+  c: ['Atende plenamente', 'Atende com restrições', 'Não atende'],
+  d: ['Apto', 'Apto com ressalvas', 'Não apto'],
+  e: ['Classe A', 'Classe B', 'Classe C', 'Classe D', 'Classe E'],
+  f: ['95-100', '85-94', '70-84', '50-69', '<50'],
+}
+
+// Classificação específica — Fachada (44)
+const CL44 = {
+  a: ['Excelente', 'Bom', 'Regular', 'Deficiente', 'Crítico'],
+  b: ['Adequada', 'Parcial', 'Insuficiente', 'Inexistente'],
+  c: ['Baixa', 'Média', 'Alta', 'Muito alta'],
+  d: ['Muito Baixo', 'Baixo', 'Médio', 'Alto', 'Crítico'],
+  e: ['Atende', 'Atende parcialmente', 'Não atende'],
+  f: ['Programável', 'No curto prazo', 'Urgente', 'Emergencial'],
+}
+
 const SLUG: Record<string, string> = {
   '41': 'laudo_autovistoria', '42': 'laudo_inspecao',
   '43': 'laudo_imovel_novo',  '44': 'laudo_fachada',
@@ -386,52 +406,77 @@ function LaudoComplemento() {
           {/* ── 3.3 Classificação da Edificação ── */}
           {cfg.temClassificacao && (
             <div style={S.bloco}>
-              <div style={S.bHead}><span style={S.bTitle}>3.3 — Resultado da Classificação da Edificação</span></div>
+              <div style={S.bHead}>
+                <span style={S.bTitle}>
+                  {tipoServico === '43' ? '3.3 — Resultado da Classificação do Imóvel'
+                    : tipoServico === '44' ? '3.3 — Resultado da Classificação da Fachada'
+                    : '3.3 — Resultado da Classificação da Edificação'}
+                </span>
+              </div>
               <div style={S.bBody}>
-                <div style={S.grid3}>
-                  <div>
-                    <label style={S.label}>a) Nível da inspeção *</label>
-                    <select style={S.input} value={nivel} onChange={e => setNivel(e.target.value)}>
-                      <option value="">Selecione...</option>
-                      {NIVEIS_INSPECAO.map(v => <option key={v} value={v}>{v}</option>)}
-                    </select>
+                {/* 41 e 42 — classificação padrão NBR 16.747 */}
+                {(tipoServico === '41' || tipoServico === '42') && (
+                  <div style={S.grid3}>
+                    {[
+                      { lbl: 'a) Nível da inspeção *', val: nivel, set: setNivel, opts: NIVEIS_INSPECAO },
+                      { lbl: 'b) Grau de risco *', val: risco, set: setRisco, opts: GRAUS_RISCO },
+                      { lbl: 'c) Desempenho *', val: desempenho, set: setDesempenho, opts: DESEMPENHOS },
+                      { lbl: 'd) Qualidade da manutenção *', val: manut, set: setManut, opts: QUALID_MANUT },
+                      { lbl: 'e) Condições de uso *', val: uso, set: setUso, opts: COND_USO },
+                      { lbl: 'f) Desempenho geral *', val: desempGeral, set: setDesempGeral, opts: DESEMPENHOS },
+                    ].map(({ lbl, val, set, opts }) => (
+                      <div key={lbl}>
+                        <label style={S.label}>{lbl}</label>
+                        <select style={S.input} value={val} onChange={e => set(e.target.value)}>
+                          <option value="">Selecione...</option>
+                          {opts.map(v => <option key={v} value={v}>{v}</option>)}
+                        </select>
+                      </div>
+                    ))}
                   </div>
-                  <div>
-                    <label style={S.label}>b) Grau de risco *</label>
-                    <select style={S.input} value={risco} onChange={e => setRisco(e.target.value)}>
-                      <option value="">Selecione...</option>
-                      {GRAUS_RISCO.map(v => <option key={v} value={v}>{v}</option>)}
-                    </select>
+                )}
+                {/* 43 — Imóvel Novo */}
+                {tipoServico === '43' && (
+                  <div style={S.grid3}>
+                    {[
+                      { lbl: 'a) Conformidade construtiva *', val: nivel, set: setNivel, opts: CL43.a },
+                      { lbl: 'b) Qualidade de acabamento *', val: risco, set: setRisco, opts: CL43.b },
+                      { lbl: 'c) Funcionalidade *', val: desempenho, set: setDesempenho, opts: CL43.c },
+                      { lbl: 'd) Habitabilidade *', val: manut, set: setManut, opts: CL43.d },
+                      { lbl: 'e) Classe do imóvel *', val: uso, set: setUso, opts: CL43.e },
+                      { lbl: 'f) Grau de satisfação no recebimento *', val: desempGeral, set: setDesempGeral, opts: CL43.f },
+                    ].map(({ lbl, val, set, opts }) => (
+                      <div key={lbl}>
+                        <label style={S.label}>{lbl}</label>
+                        <select style={S.input} value={val} onChange={e => set(e.target.value)}>
+                          <option value="">Selecione...</option>
+                          {opts.map(v => <option key={v} value={v}>{v}</option>)}
+                        </select>
+                      </div>
+                    ))}
                   </div>
-                  <div>
-                    <label style={S.label}>c) Desempenho *</label>
-                    <select style={S.input} value={desempenho} onChange={e => setDesempenho(e.target.value)}>
-                      <option value="">Selecione...</option>
-                      {DESEMPENHOS.map(v => <option key={v} value={v}>{v}</option>)}
-                    </select>
+                )}
+                {/* 44 — Fachada */}
+                {tipoServico === '44' && (
+                  <div style={S.grid3}>
+                    {[
+                      { lbl: 'a) Estado de conservação *', val: nivel, set: setNivel, opts: CL44.a },
+                      { lbl: 'b) Histórico de manutenção *', val: risco, set: setRisco, opts: CL44.b },
+                      { lbl: 'c) Exposição ambiental *', val: desempenho, set: setDesempenho, opts: CL44.c },
+                      { lbl: 'd) Risco de desprendimento *', val: manut, set: setManut, opts: CL44.d },
+                      { lbl: 'e) Desempenho do sistema *', val: uso, set: setUso, opts: CL44.e },
+                      { lbl: 'f) Prioridade de intervenção *', val: desempGeral, set: setDesempGeral, opts: CL44.f },
+                    ].map(({ lbl, val, set, opts }) => (
+                      <div key={lbl}>
+                        <label style={S.label}>{lbl}</label>
+                        <select style={S.input} value={val} onChange={e => set(e.target.value)}>
+                          <option value="">Selecione...</option>
+                          {opts.map(v => <option key={v} value={v}>{v}</option>)}
+                        </select>
+                      </div>
+                    ))}
                   </div>
-                  <div>
-                    <label style={S.label}>d) Qualidade da manutenção *</label>
-                    <select style={S.input} value={manut} onChange={e => setManut(e.target.value)}>
-                      <option value="">Selecione...</option>
-                      {QUALID_MANUT.map(v => <option key={v} value={v}>{v}</option>)}
-                    </select>
-                  </div>
-                  <div>
-                    <label style={S.label}>e) Condições de uso *</label>
-                    <select style={S.input} value={uso} onChange={e => setUso(e.target.value)}>
-                      <option value="">Selecione...</option>
-                      {COND_USO.map(v => <option key={v} value={v}>{v}</option>)}
-                    </select>
-                  </div>
-                  <div>
-                    <label style={S.label}>f) Desempenho geral *</label>
-                    <select style={S.input} value={desempGeral} onChange={e => setDesempGeral(e.target.value)}>
-                      <option value="">Selecione...</option>
-                      {DESEMPENHOS.map(v => <option key={v} value={v}>{v}</option>)}
-                    </select>
-                  </div>
-                </div>
+                )}
               </div>
             </div>
           )}
