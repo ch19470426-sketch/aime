@@ -272,7 +272,8 @@ function LaudoComplemento() {
       const data = await res.json()
       if (!res.ok || data.erro) { setErro(data.erro ?? 'Erro ao gerar laudo.'); setEtapa('complemento'); return }
       setNomeArquivo(nome)
-      setEtapa('pronto')
+      // Redirecionar diretamente usando a variável local (não o estado que pode não ter atualizado)
+      window.location.href = `/homologar-produto?cpf_inspetor=${cpfInspetor}&chave_inspetor=${chaveInspetor}&cnpjoucpf=${cnpjoucpf}&tipo_servico=${tipoServico}&nome_arquivo=${encodeURIComponent(nome)}&titulo=${encodeURIComponent(cfg.titulo)}`
     } catch (e) {
       setErro('Erro ao gerar laudo: ' + String(e))
       setEtapa('complemento')
