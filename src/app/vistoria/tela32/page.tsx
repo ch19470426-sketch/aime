@@ -303,12 +303,12 @@ function Tela31Inner() {
   }
 
   function blurAll() {
-    document.querySelectorAll<HTMLElement>('input, textarea, select').forEach(el => el.blur())
+    if (document.activeElement instanceof HTMLElement) document.activeElement.blur()
   }
 
   function encerrar() {
     blurAll()
-    setTimeout(() => { window.location.href = '/dashboard' }, 100)
+    window.location.href = '/dashboard'
   }
 
   if (carregando) return (
