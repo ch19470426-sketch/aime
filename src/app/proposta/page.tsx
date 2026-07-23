@@ -391,7 +391,7 @@ function PropostaInner() {
                 {/* MODO VISUALIZAÇÃO */}
                 {!modoEdicao && (
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px', marginTop: '8px' }}>
-                    <button style={{ ...S.btn, background: '#DC2626', color: '#fff', border: 'none' }}
+                    <button style={{ ...S.btn, ...S.btnSec }}
                       onClick={() => window.location.href = '/dashboard'}>Voltar</button>
                     <button style={{ ...S.btn, ...S.btnSec }}
                       onClick={() => setModoEdicao(true)}>✏️ Alterar dados</button>
