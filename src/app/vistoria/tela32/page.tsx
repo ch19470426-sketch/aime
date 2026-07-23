@@ -527,10 +527,10 @@ function Tela31Inner() {
             <div style={S.blockTitle}>Resultado da Análise e Avaliação</div>
             <div style={S.blockBody}>
               <Field label="Não conformidade (NC)">
-                <textarea style={{ ...S.input, ...S.textarea }} value={nc} maxLength={200} onChange={e => setNc(e.target.value)} placeholder="Gerado por IA após adicionar foto..." />
+                <textarea style={{ ...S.input, ...S.textarea, backgroundColor: "#F8FAFC", color: "#374151" }} value={nc} readOnly placeholder="Gerado por IA após adicionar foto..." />
               </Field>
               <Field label="Causa provável (CP)">
-                <textarea style={{ ...S.input, ...S.textarea }} value={cp} maxLength={200} onChange={e => setCp(e.target.value)} placeholder="Gerado por IA após adicionar foto..." />
+                <textarea style={{ ...S.input, ...S.textarea, backgroundColor: "#F8FAFC", color: "#374151" }} value={cp} readOnly placeholder="Gerado por IA após adicionar foto..." />
               </Field>
             </div>
           </div>
