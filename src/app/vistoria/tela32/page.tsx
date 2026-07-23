@@ -478,6 +478,10 @@ function Tela31Inner() {
                     if (!anomalia) faltando.push('Anomalia')
                     if (!origem) faltando.push('Origem')
                     if (!local) faltando.push('Local de ocorrência')
+                    if (!descGravidade) faltando.push('Gravidade')
+                    if (!descUrgencia) faltando.push('Urgência')
+                    if (!descAbrangencia) faltando.push('Abrangência')
+                    if (!descExposicao) faltando.push('Exposição ao risco')
                     if (faltando.length > 0) { setErroValidacao('Preencha antes de tirar a foto: ' + faltando.join(', ')); return }
                     setErroValidacao('')
                     fileInputRef.current?.click()
@@ -494,6 +498,10 @@ function Tela31Inner() {
                 if (!anomalia) faltando.push('Anomalia')
                 if (!origem) faltando.push('Origem')
                 if (!local) faltando.push('Local de ocorrência')
+                if (!descGravidade) faltando.push('Gravidade')
+                if (!descUrgencia) faltando.push('Urgência')
+                if (!descAbrangencia) faltando.push('Abrangência')
+                if (!descExposicao) faltando.push('Exposição ao risco')
                 if (faltando.length > 0) { setErroValidacao('Preencha antes de tirar a foto: ' + faltando.join(', ')); return }
                 setErroValidacao('')
                 fileInputRef.current?.click()
