@@ -542,11 +542,10 @@ function Tela31Inner() {
             <div style={S.blockBody}>
               <Field label={resultado === 'Não conforme' ? 'Descrição da Não Conformidade (IA)' : 'Observações'}>
                 <textarea
-                  style={{ ...S.input, ...S.textarea, minHeight: '48px' }}
+                  style={{ ...S.input, ...S.textarea, minHeight: '48px', backgroundColor: '#F8FAFC', color: '#374151' }}
                   value={nc}
                   maxLength={500}
-                  readOnly={resultado === 'Conforme' || resultado === 'Não aplicável'}
-                  onChange={e => setNc(e.target.value)}
+                  readOnly
                   placeholder={
                     !resultado ? 'Selecione o resultado primeiro...' :
                     resultado === 'Não conforme' ? 'Gerado por IA após adicionar foto...' :
