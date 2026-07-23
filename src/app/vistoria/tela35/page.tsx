@@ -302,7 +302,8 @@ function Tela31Inner() {
   }
 
   function encerrar() {
-    window.location.href = '/dashboard'
+    if (document.activeElement instanceof HTMLElement) document.activeElement.blur()
+    setTimeout(() => { window.location.href = '/dashboard' }, 50)
   }
 
   if (carregando) return (
@@ -322,7 +323,7 @@ function Tela31Inner() {
         <h2 style={{ color: '#1E3A8A', fontSize: '14pt', marginBottom: '8px' }}>Registro salvo!</h2>
         <p style={{ color: '#4a6480', fontSize: '9pt', marginBottom: '20px' }}>Arquivo: {arquivoSalvo}</p>
         <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
-          <button onClick={() => setSalvoOk(false)} style={{ ...S.btn, ...S.btnPri }}>➕ Nova Manifestação</button>
+          <button onClick={() => { if (document.activeElement instanceof HTMLElement) document.activeElement.blur(); setSalvoOk(false) }} style={{ ...S.btn, ...S.btnPri }}>➕ Nova Manifestação</button>
           <button onClick={encerrar} style={{ ...S.btn, ...S.btnSec }}>Encerrar</button>
         </div>
       </div>
@@ -557,7 +558,7 @@ function Tela31Inner() {
 
           {/* FOOTER */}
           <div style={S.footer}>
-            <button style={{ ...S.btn, ...S.btnSec }} onClick={encerrar}>Encerrar vistoria</button>
+            <button style={{ ...S.btn, ...S.btnSec }} onClick={() => { if (document.activeElement instanceof HTMLElement) document.activeElement.blur(); setTimeout(() => encerrar(), 50) }}>Encerrar vistoria</button>
             <button style={{ ...S.btn, ...S.btnPri, opacity: salvando ? 0.6 : 1 }} onClick={salvarDados} disabled={salvando}>
               {salvando ? 'Salvando...' : 'Salvar dados'}
             </button>
