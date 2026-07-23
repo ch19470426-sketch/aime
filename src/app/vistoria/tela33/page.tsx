@@ -103,6 +103,7 @@ function Tela31Inner() {
   // ── Estado ──
   const [feedbackIA,  setFeedbackIA]  = useState('')
   const [erroSave,    setErroSave]    = useState('')
+  const [erroValidacao, setErroValidacao] = useState('')
   const [salvando,    setSalvando]    = useState(false)
   const [salvoOk,     setSalvoOk]     = useState(false)
   const [arquivoSalvo,setArquivoSalvo] = useState('')
@@ -364,7 +365,7 @@ function Tela31Inner() {
             <div style={S.blockBody}>
               <div style={{ ...S.row, ...S.c3 }}>
                 <Field label="Sistema">
-                  <select style={S.input} value={sistema} onChange={e => { setSistema(e.target.value); setSubsistema(''); setAnomalia('') }}>
+                  <select style={S.input} value={sistema} onChange={e => { setSistema(e.target.value); setSubsistema(''); setAnomalia(''); setErroValidacao('') }}>
                     <option value="">Selecione...</option>
                     {sistemas.map(s => <option key={s.sistema} value={s.sistema}>{s.sistema}</option>)}
                   </select>
@@ -470,10 +471,21 @@ function Tela31Inner() {
                 </button>
                 <input ref={fileInputRef} type="file" accept="image/*" capture="environment" style={{ display: 'none' }} onChange={handleFotoChange} />
               </div>
-              <div style={S.photoArea} onClick={() => fileInputRef.current?.click()}>
+              <div style={S.photoArea} onClick={() => {
+                const faltando = []
+                if (!sistema) faltando.push('Sistema')
+                if (!subsistema) faltando.push('Subsistema')
+                if (!anomalia) faltando.push('Anomalia')
+                if (!origem) faltando.push('Origem')
+                if (!local) faltando.push('Local de ocorrência')
+                if (faltando.length > 0) { setErroValidacao('Preencha antes de tirar a foto: ' + faltando.join(', ')); return }
+                setErroValidacao('')
+                fileInputRef.current?.click()
+              }}>
                 {fotoBase64 && <img src={fotoBase64} alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />}
                 {!fotoBase64 && <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#8aa3c4', fontSize: '8pt' }}>Clique para adicionar a foto da anomalia</div>}
               </div>
+              {erroValidacao && <div style={{ color: '#DC2626', fontSize: '8pt', textAlign: 'center', marginTop: '4px', padding: '4px 8px', background: '#FEF2F2', borderRadius: '4px' }}>⚠️ {erroValidacao}</div>}
               {feedbackIA && <div style={S.aiStatus}>{feedbackIA}</div>}
             </div>
           </div>
