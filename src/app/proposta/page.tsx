@@ -277,7 +277,7 @@ function PropostaInner() {
     if (!valor) { informa('Atenção', 'Informe o valor do serviço.'); return }
     if (!prazo) { informa('Atenção', 'Informe o prazo de execução.'); return }
     if (!razaoSocial) { informa('Atenção', 'Nome/Razão social do estabelecimento não encontrado. Complete o cadastro do estabelecimento antes de gerar a proposta.'); return }
-    if (!endereco || !municipioUF) { informa('Atenção', 'Endereço do estabelecimento incompleto. Verifique se o CEP cadastrado é válido (edite o estabelecimento e informe/confirme o CEP) e tente novamente.'); return }
+    if (!endereco || !municipioUF) { informa('Atenção', `Endereço do estabelecimento incompleto (endereço: "${endereco}", município: "${municipioUF}"). Edite o estabelecimento e verifique o CEP.`); return }
 
     setSalvando(true)
     try {
@@ -392,7 +392,7 @@ function PropostaInner() {
                 {!modoEdicao && (
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px', marginTop: '8px' }}>
                     <button style={{ ...S.btn, background: '#DC2626', color: '#fff', border: 'none' }}
-                      onClick={() => window.location.href = '/dashboard'}>Cancelar</button>
+                      onClick={() => window.location.href = '/dashboard'}>Voltar</button>
                     <button style={{ ...S.btn, ...S.btnSec }}
                       onClick={() => setModoEdicao(true)}>✏️ Alterar dados</button>
                     <button style={{ ...S.btn, ...S.btnPri }}
