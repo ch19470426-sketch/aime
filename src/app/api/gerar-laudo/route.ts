@@ -302,7 +302,32 @@ ${tipoServico === '41' ? `
 <h2>3.2.- Resultado da Vistoria.</h2>
 <p>O resultado da vistoria, imagens dos formulários da coleta de dados, é apresentado no <strong>Anexo 2</strong> deste documento e apresenta, fielmente, dados, informações e fotos coletadas durante a realização da vistoria.</p>
 
-<h2>3.3.- Resultado da Classificação da Edificação.</h2>
+<h2>3.3.- ${tipoServico === '43' ? 'Resultado da Classificação do Imóvel' : tipoServico === '44' ? 'Resultado da Classificação da Fachada' : 'Resultado da Classificação da Edificação'}.</h2>
+${tipoServico === '43' ? `
+<p>O resultado da classificação do imóvel quanto à conformidade construtiva, acabamento, funcionalidade, habitabilidade, classe e satisfação no recebimento foi efetuada seguindo os critérios apresentados a seguir.</p>
+<table class="classif">
+  <tr><td colspan="2" class="cab">Resultado da Classificação do Imóvel.</td></tr>
+  <tr><td>a) A execução da obra para construção do imóvel em relação a <strong>CONFORMIDADE CONSTRUTIVA</strong> foi classificada como:</td><td>${cl.nivel ?? ''}</td></tr>
+  <tr><td>b) A <strong>QUALIDADE DE ACABAMENTO</strong> do imóvel em questão é classificada como:</td><td>${cl.risco ?? ''}</td></tr>
+  <tr><td>c) Quanto ao uso do imóvel em questão, a sua <strong>FUNCIONALIDADE</strong>:</td><td>${cl.desempenho ?? ''}</td></tr>
+  <tr><td>d) Quanto as condições de ocupação, a <strong>HABITABILIDADE</strong> do imóvel em questão pode ser considerada:</td><td>${cl.manut ?? ''}</td></tr>
+  <tr><td>e) A análise do resultado consolidado sobre a <strong>CLASSE DO IMÓVEL</strong> em questão resulta em:</td><td>${cl.uso ?? ''}</td></tr>
+  <tr><td>f) Qual o <strong>GRAU DE SATISFAÇÃO NO RECEBIMENTO</strong> do imóvel em questão:</td><td>${cl.desempGeral ?? ''}</td></tr>
+</table>
+<p style="margin-top:6pt">As Prioridades para aplicar as soluções de manutenção constam na relação apresentada no item 4. deste documento.</p>
+` : tipoServico === '44' ? `
+<p>O resultado da classificação da fachada quanto ao estado de conservação, manutenção, exposição ambiental, risco de desprendimento de elementos, desempenho do sistema e prioridade de intervenção foi obtido seguindo os critérios apresentados a seguir.</p>
+<table class="classif">
+  <tr><td colspan="2" class="cab">Resultado da Classificação da Fachada.</td></tr>
+  <tr><td>a) Quanto as condições gerais, o <strong>ESTADO DE CONSERVAÇÃO</strong> da fachada pode ser classificado como:</td><td>${cl.nivel ?? ''}</td></tr>
+  <tr><td>b) O histórico de <strong>MANUTENÇÃO</strong> da fachada apresenta que a manutenção efetuada é:</td><td>${cl.risco ?? ''}</td></tr>
+  <tr><td>c) A <strong>AGRESSIVIDADE DO MEIO AMBIENTE</strong> sobre a fachada em questão é considerada:</td><td>${cl.desempenho ?? ''}</td></tr>
+  <tr><td>d) O <strong>RISCO DE QUEDA DE ELEMENTOS</strong> da fachada em questão é considerado:</td><td>${cl.manut ?? ''}</td></tr>
+  <tr><td>e) O <strong>DESEMPENHO TÉCNICO DO SISTEMA</strong> da fachada em questão:</td><td>${cl.uso ?? ''}</td></tr>
+  <tr><td>f) Quanto a priorização para manutenção da fachada, a <strong>PRIORIDADE DE INTERVENÇÃO</strong> deve ser adotada:</td><td>${cl.desempGeral ?? ''}</td></tr>
+</table>
+<p style="margin-top:6pt">As Prioridades para aplicar as soluções de manutenção constam na relação apresentada no item 4. deste documento.</p>
+` : `
 <table class="classif">
   <tr><td colspan="2" class="cab">Resultado da Classificação da Edificação.</td></tr>
   <tr><td>a) Quanto ao <strong>NÍVEL</strong> da inspeção efetuada o imóvel em questão foi classificado como <strong>INSPEÇÃO PREDIAL NÍVEL:</strong></td><td>${cl.nivel ?? ''}</td></tr>
@@ -312,6 +337,7 @@ ${tipoServico === '41' ? `
   <tr><td>e) Quanto as <strong>CONDIÇÕES DE USO</strong> a edificação foi classificada como EDIFICAÇÃO DE USO:</td><td>${cl.uso ?? ''}</td></tr>
   <tr><td>f) Quanto ao <strong>DESEMPENHO GERAL</strong> a edificação foi classificada como:</td><td>${cl.desempGeral ?? ''}</td></tr>
 </table>
+`}
 
 <!-- ─── 4. NÃO CONFORMIDADES ─────────────────────────────────────────────── -->
 <h1 class="quebra">4.- Relação de Não Conformidades e Análise das Manifestações Patológicas.</h1>
