@@ -258,6 +258,7 @@ function Tela31Inner() {
   }
 
   async function salvarDados() {
+    blurAll()
     if (!fotoBase64) { alert('Adicione a foto antes de salvar.'); return }
     setSalvando(true); setErroSave('')
 
