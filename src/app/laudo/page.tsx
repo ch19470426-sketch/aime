@@ -103,7 +103,7 @@ function LaudoComplemento() {
 
   // Complemento 1.1
   const [nomeConvencao, setNomeConvencao] = useState('')
-  const [incorporadora, setIncorporadora]  = useState('')
+  const [nivelInspecao, setNivelInspecao]  = useState('')
   const [sinteseEdif, setSinteseEdif]     = useState('')
   const [sinteseTemp, setSinteseTemp]     = useState('')  // gerado pela IA, aguarda confirmar
   const [gerandoSintese, setGerandoSintese] = useState(false)
@@ -191,7 +191,7 @@ function LaudoComplemento() {
             pavimentos: estab.numero_pavimentos, unidades: estab.numero_unidades_salas,
             area_construida: estab.area_construida, area_terreno: estab.area_terreno,
             responsavel: estab.nome_responsavel, funcao: estab.funcao_responsavel,
-            nome_convencao: nomeConvencao,
+            nome_convencao: nomeConvencao, nivel_inspecao: nivelInspecao,
           }
         })
       })
@@ -209,7 +209,7 @@ function LaudoComplemento() {
       const res = await fetch('/api/ia-laudo', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ tipo: 'descricao_vistoria', dados: { informacoes: dadosVistoria, tipo_servico: tipoServico } })
+        body: JSON.stringify({ tipo: 'descricao_vistoria', dados: { informacoes: dadosVistoria, tipo_servico: tipoServico, nivel_inspecao: nivelInspecao } })
       })
       const data = await res.json()
       if (data.texto) setDescTemp(data.texto)
@@ -370,9 +370,11 @@ function LaudoComplemento() {
                   <input style={{ ...S.input, backgroundColor: '#F8FAFC' }} value={estab.razao_social_nome ?? ''} readOnly />
                 </div>
                 <div>
-                  <label style={S.label}>Denominação oficial (convenção/escritura)</label>
-                  <input style={S.input} value={nomeConvencao} onChange={e => setNomeConvencao(e.target.value)}
-                    placeholder="Nome conforme documento oficial" />
+                  <label style={S.label}>Nível da Inspeção</label>
+                  <select style={S.input} value={nivelInspecao} onChange={e => setNivelInspecao(e.target.value)}>
+                    <option value="">Selecione...</option>
+                    <option>Nível 1</option><option>Nível 2</option><option>Nível 3</option>
+                  </select>
                 </div>
                 <div>
                   <label style={S.label}>Responsável pelo ativo</label>
@@ -450,12 +452,11 @@ function LaudoComplemento() {
                 {(tipoServico === '41' || tipoServico === '42') && (
                   <div style={S.grid3}>
                     {[
-                      { lbl: 'a) Nível da inspeção *', val: nivel, set: setNivel, opts: NIVEIS_INSPECAO },
-                      { lbl: 'b) Grau de risco *', val: risco, set: setRisco, opts: GRAUS_RISCO },
-                      { lbl: 'c) Desempenho *', val: desempenho, set: setDesempenho, opts: DESEMPENHOS },
-                      { lbl: 'd) Qualidade da manutenção *', val: manut, set: setManut, opts: QUALID_MANUT },
-                      { lbl: 'e) Condições de uso *', val: uso, set: setUso, opts: COND_USO },
-                      { lbl: 'f) Desempenho geral *', val: desempGeral, set: setDesempGeral, opts: DESEMPENHOS },
+                      { lbl: 'a) Grau de risco *', val: risco, set: setRisco, opts: GRAUS_RISCO },
+                      { lbl: 'b) Desempenho *', val: desempenho, set: setDesempenho, opts: DESEMPENHOS },
+                      { lbl: 'c) Qualidade da manutenção *', val: manut, set: setManut, opts: QUALID_MANUT },
+                      { lbl: 'd) Condições de uso *', val: uso, set: setUso, opts: COND_USO },
+                      { lbl: 'e) Desempenho geral *', val: desempGeral, set: setDesempGeral, opts: DESEMPENHOS },
                     ].map(({ lbl, val, set, opts }) => (
                       <div key={lbl}>
                         <label style={S.label}>{lbl}</label>
