@@ -460,23 +460,37 @@ function LaudoComplemento() {
               <div style={{ ...S.bBody, paddingTop: '4px', paddingBottom: '4px' }}>
                 {/* 41 e 42 — classificação padrão NBR 16.747 */}
                 {(tipoServico === '41' || tipoServico === '42') && (
-                  <div style={S.grid3}>
-                    {[
-                      { lbl: 'a) Grau de risco *', val: risco, set: setRisco, opts: GRAUS_RISCO },
-                      { lbl: 'b) Desempenho *', val: desempenho, set: setDesempenho, opts: DESEMPENHOS },
-                      { lbl: 'c) Qualidade da manutenção *', val: manut, set: setManut, opts: QUALID_MANUT },
-                      { lbl: 'd) Condições de uso *', val: uso, set: setUso, opts: COND_USO },
-                      { lbl: 'e) Desempenho geral *', val: desempGeral, set: setDesempGeral, opts: DESEMPENHOS },
-                    ].map(({ lbl, val, set, opts }, i, arr) => (
-                      <div key={lbl}>
-                        <label style={S.label}>{lbl}</label>
-                        <select style={S.input} value={val} onChange={e => set(e.target.value)}>
-                          <option value="">Selecione...</option>
-                          {opts.map(v => <option key={v} value={v}>{v}</option>)}
-                        </select>
-                      </div>
-                    ))}
-                  </div>
+                  <>
+                    <div style={S.grid3}>
+                      {[
+                        { lbl: 'a) Grau de risco *', val: risco, set: setRisco, opts: GRAUS_RISCO },
+                        { lbl: 'b) Desempenho *', val: desempenho, set: setDesempenho, opts: DESEMPENHOS },
+                        { lbl: 'c) Qualidade da manutenção *', val: manut, set: setManut, opts: QUALID_MANUT },
+                      ].map(({ lbl, val, set, opts }) => (
+                        <div key={lbl}>
+                          <label style={S.label}>{lbl}</label>
+                          <select style={S.input} value={val} onChange={e => set(e.target.value)}>
+                            <option value="">Selecione...</option>
+                            {opts.map(v => <option key={v} value={v}>{v}</option>)}
+                          </select>
+                        </div>
+                      ))}
+                    </div>
+                    <div style={{ ...S.grid2, marginTop: '6px' }}>
+                      {[
+                        { lbl: 'd) Condições de uso *', val: uso, set: setUso, opts: COND_USO },
+                        { lbl: 'e) Desempenho geral *', val: desempGeral, set: setDesempGeral, opts: DESEMPENHOS },
+                      ].map(({ lbl, val, set, opts }) => (
+                        <div key={lbl}>
+                          <label style={S.label}>{lbl}</label>
+                          <select style={S.input} value={val} onChange={e => set(e.target.value)}>
+                            <option value="">Selecione...</option>
+                            {opts.map(v => <option key={v} value={v}>{v}</option>)}
+                          </select>
+                        </div>
+                      ))}
+                    </div>
+                  </>
                 )}
                 {/* 43 — Imóvel Novo */}
                 {tipoServico === '43' && (
