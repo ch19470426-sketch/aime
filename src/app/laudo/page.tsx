@@ -442,7 +442,7 @@ function LaudoComplemento() {
                 </span>
               </div>
               <div style={{ ...S.bBody, paddingTop: '4px', paddingBottom: '4px' }}>
-                {/* 41 e 42 — classificação padrão NBR 16.747 */
+                {/* 41 e 42 — classificação padrão NBR 16.747 */}
                 {(tipoServico === '41' || tipoServico === '42') && (
                   <div style={S.grid3}>
                     {[
