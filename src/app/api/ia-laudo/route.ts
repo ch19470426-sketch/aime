@@ -32,11 +32,13 @@ DADOS DA EDIFICAÇÃO:
 - Área do terreno: ${d.area_terreno || 'não informada'} m²
 - Nome do responsável: ${d.responsavel || 'não informado'}
 - Função do responsável: ${d.funcao || 'não informada'}
+- Nível da inspeção: ${d.nivel_inspecao || 'não informado'}
 
 INSTRUÇÕES:
 - Redija em linguagem técnica formal, em terceira pessoa
 - Use a denominação oficial quando informada, caso contrário use a razão social
-- Descreva as características físicas e funcionais: uso, tipo, pavimentos, unidades, áreas
+- Descreva obrigatoriamente: uso, tipo, número de pavimentos, quantidade de unidades/salas, área construída e área do terreno — mesmo que sejam os únicos dados disponíveis
+- Se algum dado não foi informado, omita esse item da síntese
 - Máximo de 900 caracteres
 - Não inclua endereço
 - Não use marcadores ou listas — texto corrido`
@@ -46,6 +48,8 @@ INSTRUÇÕES:
       const d = dados
       const nomeLaudo = TIPO_LAUDO[d.tipo_servico] ?? 'Laudo Técnico'
       prompt = `Você é um engenheiro civil experiente em inspeção predial. Redija a descrição da realização da vistoria técnica para o item 3.1 de um ${nomeLaudo}.
+
+NÍVEL DA INSPEÇÃO: ${d.nivel_inspecao || 'não informado'}
 
 INFORMAÇÕES FORNECIDAS PELO INSPETOR:
 ${d.informacoes}
