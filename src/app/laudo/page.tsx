@@ -147,12 +147,22 @@ function LaudoComplemento() {
           setEstab(dadosE[0])
         }
         // Buscar responsável dos ativos (nome_responsavel está em ativos_a_vistoriar)
-        const resA = await fetch(`${SUPA_URL}/rest/v1/ativos_a_vistoriar?cpf_inspetor=eq.${cpfInspetor}&cnpjoucpf=eq.${cnpjoucpf}&select=nome_responsavel,funcao_responsavel&limit=1`, {
+        const resA = await fetch(`${SUPA_URL}/rest/v1/ativos_a_vistoriar?cpf_inspetor=eq.${cpfInspetor}&cnpjoucpf=eq.${cnpjoucpf}&select=nome_responsavel,funcao_responsavel,uso_ativo,numero_pavimentos,numero_unidades_salas,area_construida,area_terreno&limit=1`, {
           headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` }
         })
         const dadosA = await resA.json()
         if (Array.isArray(dadosA) && dadosA.length > 0 && dadosA[0].nome_responsavel) {
-          setEstab(prev => ({ ...prev, nome_responsavel: dadosA[0].nome_responsavel, funcao_responsavel: dadosA[0].funcao_responsavel }))
+          setEstab(prev => ({
+            ...prev,
+            nome_responsavel:    dadosA[0].nome_responsavel,
+            funcao_responsavel:  dadosA[0].funcao_responsavel,
+            // Se estab não tiver os campos de características, usar os do ativo
+            uso_imovel:          prev.uso_imovel          || dadosA[0].uso_ativo,
+            numero_pavimentos:   prev.numero_pavimentos   || dadosA[0].numero_pavimentos,
+            numero_unidades_salas: prev.numero_unidades_salas || dadosA[0].numero_unidades_salas,
+            area_construida:     prev.area_construida     || dadosA[0].area_construida,
+            area_terreno:        prev.area_terreno        || dadosA[0].area_terreno,
+          }))
         }
 
         // Inspetor
@@ -268,7 +278,7 @@ function LaudoComplemento() {
           cpfInspetor, chaveInspetor, cnpjoucpf, tipoServico,
           estab, inspetor, ncs, nomeArquivo: nome,
           complemento: {
-            nomeConvencao, incorporadora, sinteseEdif,
+            nomeConvencao, sinteseEdif,
             descVistoria: descVistoria || dadosVistoria,
             classificacao: { nivel, risco, desempenho, manut, uso, desempGeral },
             rec51, rec52, rec53, rec54,
