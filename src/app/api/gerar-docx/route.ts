@@ -145,6 +145,8 @@ export async function POST(request: NextRequest) {
         .replace(/<!--[\s\S]*?-->/g, '')          // remove comentários
         .replace(/\s@[\w:]+="[^"]*"/g, '')        // remove atributos @xxx="..."
         .replace(/\s@[\w:]+='[^']*'/g, '')        // remove atributos @xxx='...'
+        .replace(/(<[^>]*?)@([\w])/g, '$1&#64;$2') // @ dentro de tags → &#64;
+        .replace(/>([^<]*?)@([\w])/g, '>$1&#64;$2') // @ no texto → &#64;
 
       bufferBruto = await HTMLtoDOCX(htmlSanitizado, headerHTML, {
         table: { row: { cantSplit: true } },
@@ -165,7 +167,10 @@ export async function POST(request: NextRequest) {
         },
       }, footerHTML)
     } catch (errGeracao) {
-      return NextResponse.json({ erro: `[etapa: geracao-inicial] ${String(errGeracao)}` }, { status: 500 })
+      // Logar posição do @ no HTML para diagnóstico
+      const posAt = html.indexOf('@')
+      const contextoAt = posAt >= 0 ? html.substring(Math.max(0, posAt-30), posAt+30) : 'nenhum @'
+      return NextResponse.json({ erro: `[etapa: geracao-inicial] ${String(errGeracao)} | @ em: ${contextoAt}` }, { status: 500 })
     }
 
     let bufferCorrigido
