@@ -202,8 +202,18 @@ function HomologarProdutoInner() {
         // Buscar dados estruturados do laudo (JSON salvo junto com o HTML)
         const nomeJson = nomeArquivo.replace(/\.html$/i, '_dados.json')
         const resJson = await fetch(`/api/ler-documento?nome=${encodeURIComponent(nomeJson)}&pasta=documentos_inspetor`)
-        if (!resJson.ok) throw new Error('Dados do laudo não encontrados. Regenere o laudo.')
-        const dadosLaudo = await resJson.json()
+        
+        let dadosLaudo: any = null
+        if (resJson.ok) {
+          const respJson = await resJson.json()
+          if (respJson.existe && respJson.html) {
+            try { dadosLaudo = JSON.parse(respJson.html) } catch { /* */ }
+          }
+        }
+        
+        if (!dadosLaudo) {
+          throw new Error('Dados do laudo não encontrados. Por favor regenere o laudo clicando em "Gerar Laudo" novamente.')
+        }
 
         const res = await fetch('/api/gerar-laudo-docx', {
           method: 'POST',
