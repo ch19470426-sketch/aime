@@ -106,12 +106,14 @@ function LaudoComplemento() {
   const [nivelInspecao, setNivelInspecao]  = useState('')
   const [sinteseEdif, setSinteseEdif]     = useState('')
   const [sinteseTemp, setSinteseTemp]     = useState('')  // gerado pela IA, aguarda confirmar
+  const [editandoSintese, setEditandoSintese] = useState(false)
   const [gerandoSintese, setGerandoSintese] = useState(false)
 
   // Complemento 3.1
   const [dadosVistoria, setDadosVistoria] = useState('')
   const [descVistoria, setDescVistoria]   = useState('')
   const [descTemp, setDescTemp]           = useState('')  // gerado pela IA, aguarda confirmar
+  const [editandoDesc, setEditandoDesc]   = useState(false)
   const [gerandoDesc, setGerandoDesc]     = useState(false)
 
   // Complemento 3.3
@@ -393,10 +395,13 @@ function LaudoComplemento() {
               </div>
               <div style={{ marginTop: "8px" }}>
                 <label style={S.label}>Descreva sinteticamente a edificação (Convenção ou Escritura) *</label>
-                <textarea style={S.textarea} maxLength={900} value={sinteseEdif}
+                <textarea style={{ ...S.textarea, backgroundColor: editandoSintese ? '#FFFBEB' : undefined, borderColor: editandoSintese ? '#F59E0B' : undefined }} maxLength={900} value={sinteseEdif}
                   onChange={e => setSinteseEdif(e.target.value)}
                   placeholder="Preencha os campos acima e clique em Gerar com IA..." />
-                <div style={S.contagem}>{sinteseEdif.length}/900 caracteres</div>
+                <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+                  <div style={S.contagem}>{sinteseEdif.length}/900 caracteres</div>
+                  {editandoSintese && <span style={{ fontSize:"10px", color:"#92400E" }}>✏️ Modo ajuste — edite e clique em Salvar</span>}
+                </div>
                 {sinteseTemp && (
                   <div style={{ marginTop: "6px", padding: "8px", background: "#F0FFF4", border: "1px solid #6EE7B7", borderRadius: "6px" }}>
                     <p style={{ fontSize: "10px", color: "#065F46", fontWeight: 600, marginBottom: "4px" }}>✦ Resultado da IA — revise e clique em Salvar para confirmar:</p>
@@ -409,9 +414,20 @@ function LaudoComplemento() {
                     {gerandoSintese ? 'Gerando...' : '✦ Gerar'}
                   </button>
                   <button style={{ ...S.btnIA, backgroundColor: "#1E3A8A", opacity: sinteseTemp ? 1 : 0.35, cursor: sinteseTemp ? "pointer" : "default" }}
-                    onClick={() => { if (sinteseTemp) { setSinteseEdif(sinteseTemp); setSinteseTemp('') } }}
+                    onClick={() => { if (sinteseTemp) { setSinteseEdif(sinteseTemp); setSinteseTemp(''); setEditandoSintese(false) } }}
                     disabled={!sinteseTemp}>
                     Salvar
+                  </button>
+                  {editandoSintese && (
+                    <button style={{ ...S.btnIA, backgroundColor: "#059669" }}
+                      onClick={() => { setEditandoSintese(false) }}>
+                      ✓ Confirmar ajuste
+                    </button>
+                  )}
+                  <button style={{ ...S.btnIA, backgroundColor: "#6B7280", opacity: sinteseTemp ? 1 : 0.35, cursor: sinteseTemp ? "pointer" : "default" }}
+                    onClick={() => { if (sinteseTemp) { setSinteseEdif(sinteseTemp); setEditandoSintese(true); setSinteseTemp('') } }}
+                    disabled={!sinteseTemp}>
+                    Ajustar
                   </button>
                 </div>
               </div>
@@ -423,7 +439,7 @@ function LaudoComplemento() {
             <div style={S.bHead}><span style={S.bTitle}>3.1 — Descrição da Vistoria Técnica</span></div>
             <div style={S.bBody}>
               <label style={S.label}>Descreva sinteticamente como foi realizada a vistoria</label>
-              <textarea style={{ ...S.textarea, minHeight: "130px" }} maxLength={900} value={dadosVistoria}
+              <textarea style={{ ...S.textarea, minHeight: "130px", backgroundColor: editandoDesc ? "#FFFBEB" : undefined, borderColor: editandoDesc ? "#F59E0B" : undefined }} maxLength={900} value={dadosVistoria}
                 onChange={e => setDadosVistoria(e.target.value)}
                 placeholder="Ex: A vistoria foi efetuada de forma descendente, seguindo em ordem da cobertura para a casa de máquinas e térreo, reservatórios de água e área de serviço do SPDA; suas duas caixas de escadas e seus acessos por corredores; hall's dos elevadores e corredores dos pavimentos tipo; pavimentos de garagens, área de piscina ... houve ou não intercorrências, ..." />
               <div style={S.contagem}>{dadosVistoria.length}/900 caracteres</div>
@@ -439,10 +455,21 @@ function LaudoComplemento() {
                   {gerandoDesc ? 'Gerando...' : '✦ Gerar'}
                 </button>
                 <button style={{ ...S.btnIA, backgroundColor: "#1E3A8A", opacity: descTemp ? 1 : 0.35, cursor: descTemp ? "pointer" : "default" }}
-                  onClick={() => { if (descTemp) { setDescVistoria(descTemp); setDadosVistoria(descTemp); setDescTemp('') } }}
+                  onClick={() => { if (descTemp) { setDescVistoria(descTemp); setDadosVistoria(descTemp); setDescTemp(''); setEditandoDesc(false) } }}
                   disabled={!descTemp}>
                   Salvar
                 </button>
+                <button style={{ ...S.btnIA, backgroundColor: "#6B7280", opacity: descTemp ? 1 : 0.35, cursor: descTemp ? "pointer" : "default" }}
+                  onClick={() => { if (descTemp) { setDadosVistoria(descTemp); setEditandoDesc(true); setDescTemp('') } }}
+                  disabled={!descTemp}>
+                  Ajustar
+                </button>
+                {editandoDesc && (
+                  <button style={{ ...S.btnIA, backgroundColor: "#059669" }}
+                    onClick={() => { setDescVistoria(dadosVistoria); setEditandoDesc(false) }}>
+                    ✓ Confirmar ajuste
+                  </button>
+                )}
               </div>
             </div>
           </div>
