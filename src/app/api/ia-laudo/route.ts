@@ -21,9 +21,9 @@ export async function POST(request: NextRequest) {
       const d = dados
       prompt = `Você é um engenheiro civil experiente em inspeção predial. Redija uma síntese objetiva da edificação para o item 1.1 de um laudo técnico.
 
-DADOS DISPONÍVEIS:
-- Nome conforme convenção/escritura: ${d.nome_convencao || 'não informado'}
-- Incorporadora/construtora: ${d.incorporadora || 'não informada'}
+DADOS DA EDIFICAÇÃO:
+- Razão social / Nome: ${d.razao_social || 'não informado'}
+- Denominação oficial (convenção/escritura): ${d.nome_convencao || 'não informado'}
 - Uso do imóvel: ${d.uso || 'não informado'}
 - Tipo do imóvel: ${d.tipo || 'não informado'}
 - Número de pavimentos: ${d.pavimentos || 'não informado'}
@@ -35,9 +35,10 @@ DADOS DISPONÍVEIS:
 
 INSTRUÇÕES:
 - Redija em linguagem técnica formal, em terceira pessoa
-- Descreva as características físicas e funcionais da edificação
+- Use a denominação oficial quando informada, caso contrário use a razão social
+- Descreva as características físicas e funcionais: uso, tipo, pavimentos, unidades, áreas
 - Máximo de 900 caracteres
-- Não inclua endereço nem razão social
+- Não inclua endereço
 - Não use marcadores ou listas — texto corrido`
 
     // ── Prompt 2: Descrição da vistoria ──────────────────────────────────────
