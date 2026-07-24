@@ -140,11 +140,9 @@ export async function POST(request: NextRequest) {
 
     let bufferBruto
     try {
-      // Sanitizar HTML antes de converter:
-      // 1. Remover comentários <!-- ... --> que podem conter JSON com chars inválidos
-      // 2. Remover atributos com @ que causam "Invalid XML name"
+      // Sanitizar HTML antes de converter para evitar InvalidCharacterError:
       const htmlSanitizado = html
-        .replace(/<!--[\s\S]*?-->/g, '')          // remove comentários HTML
+        .replace(/<!--[\s\S]*?-->/g, '')          // remove comentários
         .replace(/\s@[\w:]+="[^"]*"/g, '')        // remove atributos @xxx="..."
         .replace(/\s@[\w:]+='[^']*'/g, '')        // remove atributos @xxx='...'
 
