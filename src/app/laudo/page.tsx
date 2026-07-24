@@ -186,11 +186,12 @@ function LaudoComplemento() {
         body: JSON.stringify({
           tipo: 'sintese_edificacao',
           dados: {
+            razao_social: estab.razao_social_nome,
             uso: estab.uso_imovel, tipo: estab.tipo_imovel,
             pavimentos: estab.numero_pavimentos, unidades: estab.numero_unidades_salas,
             area_construida: estab.area_construida, area_terreno: estab.area_terreno,
             responsavel: estab.nome_responsavel, funcao: estab.funcao_responsavel,
-            nome_convencao: nomeConvencao, incorporadora,
+            nome_convencao: nomeConvencao,
           }
         })
       })
@@ -363,16 +364,19 @@ function LaudoComplemento() {
           <div style={S.bloco}>
             <div style={S.bHead}><span style={S.bTitle}>1.1 — Descrição da Edificação ou Estabelecimento</span></div>
             <div style={S.bBody}>
-              <div style={S.grid2}>
+              <div style={S.grid3}>
                 <div>
                   <label style={S.label}>Razão social / Nome</label>
-                  <input style={S.input} value={estab.razao_social_nome ?? ''} readOnly
-                    style={{ ...S.input, backgroundColor: '#F8FAFC', color: '#374151' }} />
+                  <input style={{ ...S.input, backgroundColor: '#F8FAFC' }} value={estab.razao_social_nome ?? ''} readOnly />
+                </div>
+                <div>
+                  <label style={S.label}>Denominação oficial (convenção/escritura)</label>
+                  <input style={S.input} value={nomeConvencao} onChange={e => setNomeConvencao(e.target.value)}
+                    placeholder="Nome conforme documento oficial" />
                 </div>
                 <div>
                   <label style={S.label}>Responsável pelo ativo</label>
-                  <input style={S.input} value={estab.nome_responsavel ?? ''} readOnly
-                    style={{ ...S.input, backgroundColor: '#F8FAFC', color: '#374151' }} />
+                  <input style={{ ...S.input, backgroundColor: '#F8FAFC' }} value={estab.nome_responsavel ?? ''} readOnly />
                 </div>
               </div>
               <div style={{ marginTop: "8px" }}>
