@@ -2,6 +2,10 @@
 // AIMÊ — Gera DOCX profissional do laudo diretamente via pacote docx
 // Evita o bug do html-to-docx (@w Invalid XML name)
 
+export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
+export const maxDuration = 60
+
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 
