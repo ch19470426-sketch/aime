@@ -8,6 +8,12 @@ export const maxDuration = 60
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import {
+  Document, Packer, Paragraph, Table, TableRow, TableCell,
+  TextRun, AlignmentType, WidthType, ShadingType,
+  BorderStyle, PageBreak, Header, Footer, PageNumber,
+  convertMillimetersToTwip, VerticalAlign,
+} from 'docx'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -77,13 +83,8 @@ export async function POST(request: NextRequest) {
     if (!cpfInspetor || !tipoServico)
       return NextResponse.json({ erro: 'Parâmetros obrigatórios ausentes.' }, { status: 400 })
 
-    // Importação dinâmica do pacote docx (não disponível como import estático no Edge)
-    const {
-      Document, Packer, Paragraph, Table, TableRow, TableCell,
-      TextRun, AlignmentType, WidthType, ShadingType,
-      BorderStyle, PageBreak, Header, Footer, PageNumber,
-      convertMillimetersToTwip, VerticalAlign,
-    } = await import('docx')
+    // Imports já feitos no topo do arquivo
+    const _ = { Document, Packer, Paragraph, Table, TableRow, TableCell, TextRun, AlignmentType, WidthType, ShadingType, BorderStyle, PageBreak, Header, Footer, PageNumber, convertMillimetersToTwip, VerticalAlign }
 
     const titulo = TITULO[tipoServico] ?? 'Laudo Técnico'
     const sistemas = SISTEMAS[tipoServico] ?? []
@@ -591,23 +592,23 @@ export async function POST(request: NextRequest) {
     })
 
     const buffer = await Packer.toBuffer(doc)
+    const bytes = new Uint8Array(buffer)
     const nomeSemExt = (nomeArquivo || 'laudo').replace(/\.html$/i, '')
     const nomeDocx = nomeSemExt + '.docx'
 
-    // Salvar no storage
-    const { error } = await supabase.storage.from('aime')
-      .upload(`documentos_inspetor/${nomeDocx}`, buffer, {
+    // Salvar no storage também
+    await supabase.storage.from('aime')
+      .upload(`documentos_inspetor/${nomeDocx}`, Buffer.from(bytes), {
         contentType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
         upsert: true,
       })
-    if (error) return NextResponse.json({ erro: error.message }, { status: 500 })
 
-    // Retornar o DOCX como download direto também
-    return new NextResponse(buffer, {
+    return new NextResponse(bytes, {
+      status: 200,
       headers: {
         'Content-Type': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
         'Content-Disposition': `attachment; filename="${nomeDocx}"`,
-      }
+      },
     })
 
   } catch (err) {
