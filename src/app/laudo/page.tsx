@@ -166,6 +166,7 @@ function LaudoComplemento() {
         const resNCs = await fetch(`/api/listar-vistorias?chave_inspetor=${chaveInspetor}&cnpjoucpf=${cnpjoucpf}&tipo_servico=${cfg.tipoVistoria}`)
         const dadosNCs = await resNCs.json()
         if (dadosNCs.ncs) setNcs(dadosNCs.ncs)
+        else if (dadosNCs.erro) setErro('Erro ao buscar NCs: ' + dadosNCs.erro)
       } catch (e) {
         setErro('Erro ao carregar dados: ' + String(e))
       } finally {
@@ -195,7 +196,8 @@ function LaudoComplemento() {
       })
       const data = await res.json()
       if (data.texto) setSinteseTemp(data.texto)
-    } catch { setErro('Erro ao gerar síntese. Tente novamente.') }
+      else setErro('IA não retornou resultado: ' + JSON.stringify(data).substring(0, 100))
+    } catch (e) { setErro('Erro ao gerar síntese: ' + String(e)) }
     finally { setGerandoSintese(false) }
   }
 
@@ -210,7 +212,8 @@ function LaudoComplemento() {
       })
       const data = await res.json()
       if (data.texto) setDescTemp(data.texto)
-    } catch { setErro('Erro ao gerar descrição. Tente novamente.') }
+      else setErro('IA não retornou resultado: ' + JSON.stringify(data).substring(0, 100))
+    } catch (e) { setErro('Erro ao gerar descrição: ' + String(e)) }
     finally { setGerandoDesc(false) }
   }
 
@@ -295,7 +298,7 @@ function LaudoComplemento() {
     bBody:     { padding: "5px 8px" },
     label:     { fontSize: "11px", fontWeight: "600" as const, color: "#374151", display: "block", marginBottom: "3px" },
     input:     { border: "1px solid #D1D5DB", borderRadius: "6px", padding: "6px 10px", fontSize: "12px", width: "100%", outline: "none", boxSizing: "border-box" as const },
-    textarea:  { border: "1px solid #D1D5DB", borderRadius: "6px", padding: "5px 8px", fontSize: "12px", width: "100%", outline: "none", boxSizing: "border-box" as const, resize: "vertical" as const, minHeight: "60px" },
+    textarea:  { border: "1px solid #D1D5DB", borderRadius: "6px", padding: "5px 8px", fontSize: "12px", width: "100%", outline: "none", boxSizing: "border-box" as const, resize: "vertical" as const, minHeight: "96px" },
     btn:       { padding: "8px 20px", borderRadius: "50px", border: "none", backgroundColor: "#1E3A8A", color: "white", fontWeight: "600" as const, fontSize: "12px", cursor: "pointer" },
     btnSec:    { padding: "8px 20px", borderRadius: "50px", border: "2px solid #1E3A8A", backgroundColor: "white", color: "#1E3A8A", fontWeight: "600" as const, fontSize: "12px", cursor: "pointer" },
     btnIA:     { padding: "6px 14px", borderRadius: "50px", border: "none", backgroundColor: "#059669", color: "white", fontWeight: "600" as const, fontSize: "11px", cursor: "pointer" },
@@ -438,8 +441,8 @@ function LaudoComplemento() {
                     : '3.3 — Resultado da Classificação da Edificação'}
                 </span>
               </div>
-              <div style={S.bBody}>
-                {/* 41 e 42 — classificação padrão NBR 16.747 */}
+              <div style={{ ...S.bBody, paddingTop: '4px', paddingBottom: '4px' }}>
+                {/* 41 e 42 — classificação padrão NBR 16.747 */
                 {(tipoServico === '41' || tipoServico === '42') && (
                   <div style={S.grid3}>
                     {[
