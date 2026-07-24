@@ -196,6 +196,36 @@ function HomologarProdutoInner() {
   async function baixarEditavel() {
     setGerandoDocx(true)
     try {
+      // Laudos 41-44: usar rota especializada que gera DOCX profissional via pacote docx
+      const ehLaudo = numServico >= 41 && numServico <= 44
+      if (ehLaudo) {
+        // Buscar dados estruturados do laudo (JSON salvo junto com o HTML)
+        const nomeJson = nomeArquivo.replace(/\.html$/i, '_dados.json')
+        const resJson = await fetch(`/api/ler-documento?nome=${encodeURIComponent(nomeJson)}&pasta=documentos_inspetor`)
+        if (!resJson.ok) throw new Error('Dados do laudo não encontrados. Regenere o laudo.')
+        const dadosLaudo = await resJson.json()
+
+        const res = await fetch('/api/gerar-laudo-docx', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ...dadosLaudo, nomeArquivo })
+        })
+        if (!res.ok) {
+          let detalhe = ''
+          try { detalhe = (await res.json())?.erro ?? '' } catch { /* */ }
+          throw new Error(`Falha ao gerar o documento Word (${res.status}). ${detalhe}`)
+        }
+        const blob = await res.blob()
+        const url = URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = nomeAmigavel('docx')
+        a.click()
+        URL.revokeObjectURL(url)
+        return
+      }
+
+      // Demais documentos: usar rota html-to-docx padrão
       const { cabecalho, rodape, htmlSemCabRod } = extrairCabRod(html)
       const htmlSemPadding = comMargemPadrao(htmlSemCabRod, '')
       const res = await fetch('/api/gerar-docx', {
