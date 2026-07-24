@@ -698,14 +698,25 @@ ${anexo2 || '<p><em>Nenhum formulário de vistoria disponível.</em></p>'}
 </body>
 </html>`
 
-    // ── Salvar no storage ──────────────────────────────────────────────────────
+    // ── Salvar HTML no storage ───────────────────────────────────────────────
     const { error } = await supabase.storage
       .from('aime')
       .upload(`documentos_inspetor/${nomeArquivo}`, Buffer.from(html, 'utf-8'), {
         contentType: 'text/html', upsert: true,
       })
-
     if (error) return NextResponse.json({ erro: error.message }, { status: 500 })
+
+    // ── Salvar dados estruturados JSON (para geração do DOCX profissional) ──
+    const dadosJson = JSON.stringify({
+      cpfInspetor, chaveInspetor, cnpjoucpf, tipoServico,
+      estab, inspetor, ncs, complemento
+    })
+    const nomeJson = nomeArquivo.replace(/\.html$/i, '_dados.json')
+    await supabase.storage.from('aime')
+      .upload(`documentos_inspetor/${nomeJson}`, Buffer.from(dadosJson, 'utf-8'), {
+        contentType: 'application/json', upsert: true,
+      })
+
     return NextResponse.json({ ok: true, nomeArquivo })
 
   } catch (err) {
