@@ -387,14 +387,13 @@ function LaudoComplemento() {
                 <div style={{ display: "flex", justifyContent: "flex-end", gap: "6px", marginTop: "6px" }}>
                   <button style={{ ...S.btnIA, opacity: gerandoSintese ? 0.7 : 1 }}
                     onClick={gerarSintese} disabled={gerandoSintese}>
-                    {gerandoSintese ? 'Gerando...' : '✦ Gerar com IA'}
+                    {gerandoSintese ? 'Gerando...' : '✦ Gerar'}
                   </button>
-                  {sinteseTemp && (
-                    <button style={{ ...S.btnIA, backgroundColor: "#1E3A8A" }}
-                      onClick={() => { setSinteseEdif(sinteseTemp); setSinteseTemp('') }}>
-                      Salvar ✓
-                    </button>
-                  )}
+                  <button style={{ ...S.btnIA, backgroundColor: "#1E3A8A", opacity: sinteseTemp ? 1 : 0.35, cursor: sinteseTemp ? "pointer" : "default" }}
+                    onClick={() => { if (sinteseTemp) { setSinteseEdif(sinteseTemp); setSinteseTemp('') } }}
+                    disabled={!sinteseTemp}>
+                    Salvar
+                  </button>
                 </div>
               </div>
             </div>
@@ -418,14 +417,13 @@ function LaudoComplemento() {
               <div style={{ display: "flex", justifyContent: "flex-end", gap: "6px", marginTop: "6px" }}>
                 <button style={{ ...S.btnIA, opacity: gerandoDesc ? 0.7 : 1 }}
                   onClick={gerarDescricao} disabled={gerandoDesc || !dadosVistoria}>
-                  {gerandoDesc ? 'Gerando...' : '✦ Gerar com IA'}
+                  {gerandoDesc ? 'Gerando...' : '✦ Gerar'}
                 </button>
-                {descTemp && (
-                  <button style={{ ...S.btnIA, backgroundColor: "#1E3A8A" }}
-                    onClick={() => { setDescVistoria(descTemp); setDadosVistoria(descTemp); setDescTemp('') }}>
-                    Salvar ✓
-                  </button>
-                )}
+                <button style={{ ...S.btnIA, backgroundColor: "#1E3A8A", opacity: descTemp ? 1 : 0.35, cursor: descTemp ? "pointer" : "default" }}
+                  onClick={() => { if (descTemp) { setDescVistoria(descTemp); setDadosVistoria(descTemp); setDescTemp('') } }}
+                  disabled={!descTemp}>
+                  Salvar
+                </button>
               </div>
             </div>
           </div>
