@@ -1,5 +1,6 @@
 // src/app/api/listar-vistorias/route.ts
-// AIMÊ — Lista todas as NCs das vistorias de um inspetor+estabelecimento+serviço
+// AIMÊ — Lista NCs das vistorias — suporta nome novo ({chave}_{cnpj}_{tipo}_{nr}.json)
+// e nome antigo ({chave}{nr}.json) para compatibilidade
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
@@ -16,28 +17,40 @@ export async function GET(request: NextRequest) {
   const tipoServico   = p.get('tipo_servico')    ?? ''
 
   if (!chaveInspetor || !cnpjoucpf || !tipoServico) {
-    return NextResponse.json({ erro: 'Parâmetros obrigatórios: chave_inspetor, cnpjoucpf, tipo_servico' }, { status: 400 })
+    return NextResponse.json({ erro: 'Parâmetros obrigatórios ausentes' }, { status: 400 })
   }
 
   try {
-    // Listar todos os arquivos em vistorias/ que começam com a chave do inspetor
     const { data: arquivos, error } = await supabase.storage
       .from('aime')
       .list('vistorias', { limit: 1000 })
 
     if (error) return NextResponse.json({ erro: error.message }, { status: 500 })
 
-    // Filtrar pelo padrão: {chave}_{cnpjoucpf}_{tipoServico}_{nr}.json
-    const prefixo = `${chaveInspetor}_${cnpjoucpf}_${tipoServico}_`
+    // Padrão novo:  {chave}_{cnpj}_{tipo}_{nr}.json
+    const prefixoNovo  = `${chaveInspetor}_${cnpjoucpf}_${tipoServico}_`
+    // Padrão antigo: {chave}{nr}.json  (nr = 3 dígitos)
+    const prefixoAntigo = chaveInspetor
+
     const arquivosFiltrados = (arquivos ?? [])
-      .filter(f => f.name.startsWith(prefixo) && f.name.endsWith('.json'))
+      .filter(f => {
+        const nome = f.name
+        if (!nome.endsWith('.json')) return false
+        // Padrão novo
+        if (nome.startsWith(prefixoNovo)) return true
+        // Padrão antigo: começa com chave seguido direto de dígitos
+        if (nome.startsWith(prefixoAntigo) && /^[A-Z0-9\-]+\d{3,}\.json$/.test(nome)) {
+          // Precisa abrir para filtrar por cnpjoucpf e tipoServico
+          return true
+        }
+        return false
+      })
       .sort((a, b) => a.name.localeCompare(b.name))
 
     if (arquivosFiltrados.length === 0) {
-      return NextResponse.json({ ncs: [] })
+      return NextResponse.json({ ncs: [], total: 0 })
     }
 
-    // Baixar e parsear cada JSON
     const ncs = await Promise.all(
       arquivosFiltrados.map(async (arquivo) => {
         try {
@@ -47,7 +60,14 @@ export async function GET(request: NextRequest) {
           if (!blob) return null
           const text = await blob.text()
           const json = JSON.parse(text)
-          // Retornar sem a foto base64 para não sobrecarregar
+
+          // Para arquivos antigos: filtrar por cnpjoucpf e tipoServico dentro do JSON
+          const isNovo = arquivo.name.startsWith(prefixoNovo)
+          if (!isNovo) {
+            if (json.cnpjoucpf !== cnpjoucpf) return null
+            if (String(json.tipoServico) !== String(tipoServico)) return null
+          }
+
           const { fotoBase64: _, ...semFoto } = json
           return semFoto
         } catch { return null }
