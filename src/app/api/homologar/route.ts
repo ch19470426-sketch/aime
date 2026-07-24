@@ -143,6 +143,15 @@ ${!isNR ? `<div class="f"><label>Causa provável (CP)</label><span style="white-
 
 <div class="stamp"><span>✓ Homologado em ${dataHomologacao || ''} — ${chaveInspetor || ''}</span></div>
 </div>
+<!-- AIME-NC-DATA:${JSON.stringify({
+  chaveInspetor, cpfInspetor: dadosVistoria.cpfInspetor, cnpjoucpf, tipoServico: dadosVistoria.tipoServico,
+  sistema: dadosVistoria.sistema, subsistema: dadosVistoria.subsistema, anomalia: dadosVistoria.anomalia,
+  origem: dadosVistoria.origem, local: dadosVistoria.local, complemento: dadosVistoria.complemento,
+  grauRisco: dadosVistoria.grauRisco, prioridade: dadosVistoria.prioridade,
+  fotoNr: dadosVistoria.fotoNr, dataVistoria: dadosVistoria.dataVistoria,
+  nc: dadosVistoria.nc, cp: dadosVistoria.cp,
+  fotoBase64: dadosVistoria.fotoBase64 ?? ''
+})} -->
 </body>
 </html>`
 
