@@ -136,7 +136,14 @@ INSTRUÇÕES:
     })
 
     const data = await response.json()
-    const texto = data.content?.map((c: any) => c.text || '').join('') ?? ''
+    const textoRaw = data.content?.map((c: any) => c.text || '').join('') ?? ''
+    // Remover formatação markdown que a IA pode incluir
+    const texto = textoRaw
+      .replace(/^#{1,6}\s+/gm, '')   // remove ## headings
+      .replace(/\*\*([^*]+)\*\*/g, '$1')  // remove **bold**
+      .replace(/\*([^*]+)\*/g, '$1')      // remove *italic*
+      .replace(/^[-•]\s+/gm, '')          // remove bullet points
+      .trim()
 
     // Para recomendações, parsear JSON
     if (tipo === 'recomendacoes') {
