@@ -1,6 +1,5 @@
 // src/app/api/listar-vistorias/route.ts
-// AIMÊ — Lista NCs das vistorias — suporta nome novo ({chave}_{cnpj}_{tipo}_{nr}.json)
-// e nome antigo ({chave}{nr}.json) para compatibilidade
+// Lista NCs das vistorias — busca em vistorias/ (JSONs) e vistorias_homologadas/ (HTMLs)
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
@@ -9,6 +8,12 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
+
+// Mapeamento tipo laudo → tipo vistoria
+const LAUDO_PARA_VISTORIA: Record<string,string> = {
+  '41':'31','42':'32','43':'33','44':'34',
+  '45':'35','46':'36','47':'37','48':'38',
+}
 
 export async function GET(request: NextRequest) {
   const p = request.nextUrl.searchParams
@@ -20,69 +25,87 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ erro: 'Parâmetros obrigatórios ausentes' }, { status: 400 })
   }
 
+  const tipoVistoria = LAUDO_PARA_VISTORIA[tipoServico] ?? tipoServico
+  const ncs: any[] = []
+
   try {
-    const { data: arquivos, error } = await supabase.storage
+    // ── 1. Buscar em vistorias_homologadas/ (HTMLs com JSON embutido) ──────────
+    const { data: homologados } = await supabase.storage
+      .from('aime')
+      .list('vistorias_homologadas', { limit: 1000 })
+
+    for (const arquivo of (homologados ?? [])) {
+      if (!arquivo.name.endsWith('.html')) continue
+      if (!arquivo.name.startsWith(chaveInspetor)) continue
+
+      try {
+        const { data: blob } = await supabase.storage
+          .from('aime')
+          .download(`vistorias_homologadas/${arquivo.name}`)
+        if (!blob) continue
+
+        const html = await blob.text()
+
+        // Extrair JSON embutido no comentário <!-- AIME-NC-DATA:{...} -->
+        const m = html.match(/<!--\s*AIME-NC-DATA:([\s\S]*?)\s*-->/)
+        if (m) {
+          const dados = JSON.parse(m[1])
+          if (dados.cnpjoucpf !== cnpjoucpf) continue
+          if (String(dados.tipoServico) !== String(tipoServico) &&
+              String(dados.tipoServico) !== String(tipoVistoria)) continue
+          const { fotoBase64: _, ...semFoto } = dados
+          ncs.push(semFoto)
+        } else {
+          // HTML antigo sem JSON embutido — extrair dados via nome do arquivo
+          // Padrão novo: {chave}_{cnpj}_{tipo}_{nr}.html
+          const partes = arquivo.name.replace('.html','').split('_')
+          if (partes.length >= 4) {
+            const tipoArq = partes[2]
+            const cnpjArq = partes[1]
+            if (cnpjArq !== cnpjoucpf) continue
+            if (tipoArq !== tipoServico && tipoArq !== tipoVistoria) continue
+            ncs.push({ chaveInspetor, cnpjoucpf, tipoServico: tipoArq, fotoNr: partes[3] })
+          }
+        }
+      } catch { continue }
+    }
+
+    // ── 2. Buscar em vistorias/ (JSONs ainda não homologados) ──────────────────
+    const { data: pendentes } = await supabase.storage
       .from('aime')
       .list('vistorias', { limit: 1000 })
 
-    if (error) return NextResponse.json({ erro: error.message }, { status: 500 })
+    const prefixoNovo = `${chaveInspetor}_${cnpjoucpf}_${tipoServico}_`
 
-    // Mapeamento laudo → vistoria (para arquivos antigos que gravam o tipo da vistoria)
-    const LAUDO_PARA_VISTORIA: Record<string,string> = {
-      '41':'31','42':'32','43':'33','44':'34',
-      '45':'35','46':'36','47':'37','48':'38',
-    }
-    const tipoVistoria = LAUDO_PARA_VISTORIA[tipoServico] ?? tipoServico
+    for (const arquivo of (pendentes ?? [])) {
+      if (!arquivo.name.endsWith('.json')) continue
 
-    // Padrão novo:  {chave}_{cnpj}_{tipo}_{nr}.json
-    const prefixoNovo  = `${chaveInspetor}_${cnpjoucpf}_${tipoServico}_`
-    // Padrão antigo: {chave}{nr}.json  (nr = 3 dígitos)
-    const prefixoAntigo = chaveInspetor
+      const isNovo = arquivo.name.startsWith(prefixoNovo)
+      const isAntigo = !isNovo && arquivo.name.startsWith(chaveInspetor) &&
+        /^[A-Z0-9\-]+\d{3,}\.json$/.test(arquivo.name)
 
-    const arquivosFiltrados = (arquivos ?? [])
-      .filter(f => {
-        const nome = f.name
-        if (!nome.endsWith('.json')) return false
-        // Padrão novo
-        if (nome.startsWith(prefixoNovo)) return true
-        // Padrão antigo: começa com chave seguido direto de dígitos
-        if (nome.startsWith(prefixoAntigo) && /^[A-Z0-9\-]+\d{3,}\.json$/.test(nome)) {
-          // Precisa abrir para filtrar por cnpjoucpf e tipoServico
-          return true
+      if (!isNovo && !isAntigo) continue
+
+      try {
+        const { data: blob } = await supabase.storage
+          .from('aime')
+          .download(`vistorias/${arquivo.name}`)
+        if (!blob) continue
+
+        const dados = JSON.parse(await blob.text())
+
+        if (!isNovo) {
+          if (dados.cnpjoucpf !== cnpjoucpf) continue
+          if (String(dados.tipoServico) !== String(tipoServico) &&
+              String(dados.tipoServico) !== String(tipoVistoria)) continue
         }
-        return false
-      })
-      .sort((a, b) => a.name.localeCompare(b.name))
 
-    if (arquivosFiltrados.length === 0) {
-      return NextResponse.json({ ncs: [], total: 0 })
+        const { fotoBase64: _, ...semFoto } = dados
+        ncs.push(semFoto)
+      } catch { continue }
     }
 
-    const ncs = await Promise.all(
-      arquivosFiltrados.map(async (arquivo) => {
-        try {
-          const { data: blob } = await supabase.storage
-            .from('aime')
-            .download(`vistorias/${arquivo.name}`)
-          if (!blob) return null
-          const text = await blob.text()
-          const json = JSON.parse(text)
-
-          // Para arquivos antigos: filtrar por cnpjoucpf e tipoServico dentro do JSON
-          const isNovo = arquivo.name.startsWith(prefixoNovo)
-          if (!isNovo) {
-            if (json.cnpjoucpf !== cnpjoucpf) return null
-            if (String(json.tipoServico) !== String(tipoServico) && String(json.tipoServico) !== String(tipoVistoria)) return null
-          }
-
-          const { fotoBase64: _, ...semFoto } = json
-          return semFoto
-        } catch { return null }
-      })
-    )
-
-    const ncsValidas = ncs.filter(Boolean)
-    return NextResponse.json({ ncs: ncsValidas, total: ncsValidas.length })
+    return NextResponse.json({ ncs, total: ncs.length })
   } catch (err) {
     return NextResponse.json({ erro: String(err) }, { status: 500 })
   }
