@@ -140,7 +140,15 @@ export async function POST(request: NextRequest) {
 
     let bufferBruto
     try {
-      bufferBruto = await HTMLtoDOCX(html, headerHTML, {
+      // Sanitizar HTML antes de converter:
+      // 1. Remover comentários <!-- ... --> que podem conter JSON com chars inválidos
+      // 2. Remover atributos com @ que causam "Invalid XML name"
+      const htmlSanitizado = html
+        .replace(/<!--[\s\S]*?-->/g, '')          // remove comentários HTML
+        .replace(/\s@[\w:]+="[^"]*"/g, '')        // remove atributos @xxx="..."
+        .replace(/\s@[\w:]+='[^']*'/g, '')        // remove atributos @xxx='...'
+
+      bufferBruto = await HTMLtoDOCX(htmlSanitizado, headerHTML, {
         table: { row: { cantSplit: true } },
         header: !!headerHTML,
         footer: true,
