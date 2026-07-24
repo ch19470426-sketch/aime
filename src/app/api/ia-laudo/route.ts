@@ -32,13 +32,12 @@ DADOS DA EDIFICAÇÃO:
 - Área do terreno: ${d.area_terreno || 'não informada'} m²
 - Nome do responsável: ${d.responsavel || 'não informado'}
 - Função do responsável: ${d.funcao || 'não informada'}
-- Nível da inspeção: ${d.nivel_inspecao || 'não informado'}
-
 INSTRUÇÕES:
 - Redija em linguagem técnica formal, em terceira pessoa
 - Use a denominação oficial quando informada, caso contrário use a razão social
-- Descreva obrigatoriamente: uso, tipo, número de pavimentos, quantidade de unidades/salas, área construída e área do terreno — mesmo que sejam os únicos dados disponíveis
-- Se algum dado não foi informado, omita esse item da síntese
+- Descreva as características físicas da edificação: uso, tipo, número de pavimentos, número de unidades/salas, área construída e área do terreno
+- NÃO descreva a vistoria, datas, ou como o trabalho foi realizado — apenas as características da edificação
+- Se algum dado não foi informado, omita-o da síntese
 - Máximo de 900 caracteres
 - Não inclua endereço
 - Não use marcadores ou listas — texto corrido`
@@ -49,14 +48,16 @@ INSTRUÇÕES:
       const nomeLaudo = TIPO_LAUDO[d.tipo_servico] ?? 'Laudo Técnico'
       prompt = `Você é um engenheiro civil experiente em inspeção predial. Redija a descrição da realização da vistoria técnica para o item 3.1 de um ${nomeLaudo}.
 
-NÍVEL DA INSPEÇÃO: ${d.nivel_inspecao || 'não informado'}
+NÍVEL DA INSPEÇÃO REALIZADA: ${d.nivel_inspecao || 'não informado'}
 
-INFORMAÇÕES FORNECIDAS PELO INSPETOR:
+INFORMAÇÕES DO INSPETOR SOBRE A REALIZAÇÃO DA VISTORIA:
 ${d.informacoes}
 
 INSTRUÇÕES:
 - Redija em linguagem técnica formal, em primeira pessoa do plural (nós)
-- Descreva como foi realizada a vistoria: condições, metodologia empregada, acompanhantes, acesso
+- Descreva APENAS como a vistoria foi realizada: metodologia, percurso, condições climáticas, acompanhantes, acesso às áreas, intercorrências
+- NÃO descreva características da edificação — apenas a execução da vistoria
+- Mencione o nível da inspeção realizada
 - Máximo de 900 caracteres
 - Texto corrido, sem marcadores ou listas
 - Tom profissional e objetivo`
