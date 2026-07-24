@@ -27,6 +27,13 @@ export async function GET(request: NextRequest) {
 
     if (error) return NextResponse.json({ erro: error.message }, { status: 500 })
 
+    // Mapeamento laudo → vistoria (para arquivos antigos que gravam o tipo da vistoria)
+    const LAUDO_PARA_VISTORIA: Record<string,string> = {
+      '41':'31','42':'32','43':'33','44':'34',
+      '45':'35','46':'36','47':'37','48':'38',
+    }
+    const tipoVistoria = LAUDO_PARA_VISTORIA[tipoServico] ?? tipoServico
+
     // Padrão novo:  {chave}_{cnpj}_{tipo}_{nr}.json
     const prefixoNovo  = `${chaveInspetor}_${cnpjoucpf}_${tipoServico}_`
     // Padrão antigo: {chave}{nr}.json  (nr = 3 dígitos)
@@ -65,7 +72,7 @@ export async function GET(request: NextRequest) {
           const isNovo = arquivo.name.startsWith(prefixoNovo)
           if (!isNovo) {
             if (json.cnpjoucpf !== cnpjoucpf) return null
-            if (String(json.tipoServico) !== String(tipoServico)) return null
+            if (String(json.tipoServico) !== String(tipoServico) && String(json.tipoServico) !== String(tipoVistoria)) return null
           }
 
           const { fotoBase64: _, ...semFoto } = json
