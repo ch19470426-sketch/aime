@@ -207,7 +207,7 @@ function LaudoComplemento() {
         body: JSON.stringify({ tipo: 'descricao_vistoria', dados: { informacoes: dadosVistoria, tipo_servico: tipoServico } })
       })
       const data = await res.json()
-      if (data.texto) setDescVistoria(data.texto)
+      if (data.texto) { setDescVistoria(data.texto); setDadosVistoria(data.texto) }
     } catch { setErro('Erro ao gerar descrição. Tente novamente.') }
     finally { setGerandoDesc(false) }
   }
@@ -247,7 +247,7 @@ function LaudoComplemento() {
   async function gerarLaudo() {
     setErro('')
     if (!sinteseEdif) { setErro('Gere ou preencha a síntese da edificação (item 1.1).'); return }
-    if (!descVistoria) { setErro('Gere ou preencha a descrição da vistoria (item 3.1).'); return }
+    if (!dadosVistoria) { setErro('Preencha a descrição da vistoria (item 3.1).'); return }
     if (cfg.temClassificacao && (!nivel || !risco || !desempenho || !manut || !uso || !desempGeral)) {
       setErro('Preencha todos os campos da classificação da edificação (item 3.3).'); return
     }
@@ -263,7 +263,7 @@ function LaudoComplemento() {
           estab, inspetor, ncs, nomeArquivo: nome,
           complemento: {
             nomeConvencao, incorporadora, sinteseEdif,
-            descVistoria: dadosVistoria,
+            descVistoria: descVistoria || dadosVistoria,
             classificacao: { nivel, risco, desempenho, manut, uso, desempGeral },
             rec51, rec52, rec53, rec54,
           }
