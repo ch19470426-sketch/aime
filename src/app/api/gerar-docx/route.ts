@@ -141,12 +141,15 @@ export async function POST(request: NextRequest) {
     let bufferBruto
     try {
       // Sanitizar HTML antes de converter para evitar InvalidCharacterError:
+      // Converter width:XX% para px (bug html-to-docx: tabela com colspan seguida de tabela com th width% causa @w inválido)
+      const PAGE_WIDTH_PX = 793 // largura útil A4 em px
       const htmlSanitizado = html
         .replace(/<!--[\s\S]*?-->/g, '')          // remove comentários
         .replace(/\s@[\w:]+="[^"]*"/g, '')        // remove atributos @xxx="..."
         .replace(/\s@[\w:]+='[^']*'/g, '')        // remove atributos @xxx='...'
         .replace(/(<[^>]*?)@([\w])/g, '$1&#64;$2') // @ dentro de tags → &#64;
         .replace(/>([^<]*?)@([\w])/g, '>$1&#64;$2') // @ no texto → &#64;
+        .replace(/width:(\d+(?:\.\d+)?)%/g, (_, p) => `width:${Math.round(parseFloat(p) * PAGE_WIDTH_PX / 100)}px`) // % → px
 
       bufferBruto = await HTMLtoDOCX(htmlSanitizado, headerHTML, {
         table: { row: { cantSplit: true } },
