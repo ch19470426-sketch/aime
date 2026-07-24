@@ -273,6 +273,23 @@ function LaudoComplemento() {
     try {
       const slug = SLUG[tipoServico] ?? `laudo_${tipoServico}`
       const nome = `${chaveInspetor}_${cnpjoucpf}_${slug}.html`
+
+      // ── Gerar recomendações por sistema via IA (paralelo) ──
+      const sistemaComNCs = [...new Set((ncs ?? []).map((nc: any) => nc.sistema).filter(Boolean))]
+      const recsSistema: Record<string, string> = {}
+      await Promise.all(sistemaComNCs.map(async (s: string) => {
+        const ncsS = (ncs ?? []).filter((nc: any) => nc.sistema === s)
+        try {
+          const r = await fetch('/api/ia-laudo', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ tipo: 'recomendacao_sistema', dados: { sistema: s, ncs: ncsS } })
+          })
+          const d = await r.json()
+          if (d.texto) recsSistema[s] = d.texto
+        } catch { /* segue sem recomendação para este sistema */ }
+      }))
+
       const res = await fetch('/api/gerar-laudo', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -282,8 +299,10 @@ function LaudoComplemento() {
           complemento: {
             nomeConvencao, sinteseEdif,
             descVistoria: descVistoria || dadosVistoria,
-            classificacao: { nivel, risco, desempenho, manut, uso, desempGeral },
+            nivelInspecao,
+            classificacao: { nivel: nivelInspecao, risco, desempenho, manut, uso, desempGeral },
             rec51, rec52, rec53, rec54,
+            recsSistema,
           }
         })
       })
