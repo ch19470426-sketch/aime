@@ -254,7 +254,7 @@ function LaudoComplemento() {
     setErro('')
     if (!sinteseEdif) { setErro('Gere ou preencha a síntese da edificação (item 1.1).'); return }
     if (!dadosVistoria) { setErro('Preencha a descrição da vistoria (item 3.1).'); return }
-    if (cfg.temClassificacao && (!nivel || !risco || !desempenho || !manut || !uso || !desempGeral)) {
+    if (cfg.temClassificacao && (!risco || !desempenho || !manut || !uso || !desempGeral)) {
       setErro('Preencha todos os campos da classificação da edificação (item 3.3).'); return
     }
     setEtapa('gerando')
@@ -457,7 +457,7 @@ function LaudoComplemento() {
                       { lbl: 'c) Qualidade da manutenção *', val: manut, set: setManut, opts: QUALID_MANUT },
                       { lbl: 'd) Condições de uso *', val: uso, set: setUso, opts: COND_USO },
                       { lbl: 'e) Desempenho geral *', val: desempGeral, set: setDesempGeral, opts: DESEMPENHOS },
-                    ].map(({ lbl, val, set, opts }) => (
+                    ].map(({ lbl, val, set, opts }, i, arr) => (
                       <div key={lbl}>
                         <label style={S.label}>{lbl}</label>
                         <select style={S.input} value={val} onChange={e => set(e.target.value)}>
