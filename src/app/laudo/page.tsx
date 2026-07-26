@@ -131,6 +131,40 @@ function LaudoComplemento() {
   const [rec54, setRec54] = useState('')
   const [gerandoRec, setGerandoRec] = useState(false)
 
+  // ── Campos complementares ──
+  const [croquiBase64, setCroquiBase64]     = useState('')
+  const [fotoCapa, setFotoCapa]             = useState('')  // foto fachada
+  const [artRrt, setArtRrt]                 = useState('')  // ART/RRT base64
+
+  // Documentos Anexo 1 — situação e resultado por documento
+  const DOCS_LISTA = [
+    'Auto de Conclusão da Edificação (HABITE-SE)',
+    'Convenção do Condomínio',
+    'Alvará de Funcionamento de Elevadores',
+    'Relatório de Inspeção Anual dos Elevadores (RIA)',
+    'Apólice de Seguro da edificação',
+    'Auto de Vistoria do Corpo de Bombeiros (AVCB)',
+    'Atestado do Sistema de Proteção a Descarga Atmosférica (SPDA)',
+    'Avaliação da Rede de Distribuição Interna de Gás',
+    'Contrato de Manutenção de Elevadores',
+    'Certificado de Desratização e Desinsetização',
+    'Relatório de Manutenção e Limpeza das Caixas de Água',
+    'Certificado do reservatório de GLP',
+    'Laudo de autovistoria anterior',
+    'Projeto Arquitetônico Aprovado na Prefeitura',
+    'Projetos Elétrico e Hidrossanitário Aprovados na Prefeitura',
+    'Manual de Uso, Operação e Manutenção da Edificação',
+    'Plano de Manutenção Preventiva da Edificação',
+    'Atestado de Brigada de Incêndio (Imóveis não Residenciais)',
+    'Alvará de Funcionamento (Imóveis não Residenciais)',
+    'Licenças Ambientais (Imóveis não Residenciais)',
+    'Outorga e Licença de Estação de Tratamento de Efluentes',
+    'Outorga e Licença de Poço Profundo de Captação de Água',
+  ]
+  const [docsAnexo1, setDocsAnexo1] = useState<Record<string,{situacao:string,resultado:string}>>(
+    () => Object.fromEntries(DOCS_LISTA.map(d => [d, {situacao:'',resultado:''}]))
+  )
+
   const SUPA_URL = 'https://asgorarunzhiojqioxzq.supabase.co'
   const SUPA_KEY = 'sb_publishable_dH85HYKGxv3X0te627VfOw_OGaPoNMF'
 
@@ -261,6 +295,16 @@ function LaudoComplemento() {
     finally { setGerandoRec(false) }
   }
 
+  // ── Ler arquivo como base64 ──
+  function lerArquivoBase64(file: File): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader()
+      reader.onload = () => resolve(reader.result as string)
+      reader.onerror = reject
+      reader.readAsDataURL(file)
+    })
+  }
+
   // ── Gerar laudo ──
   async function gerarLaudo() {
     setErro('')
@@ -298,6 +342,7 @@ function LaudoComplemento() {
           estab, inspetor, ncs, nomeArquivo: nome,
           complemento: {
             nomeConvencao, sinteseEdif,
+            croquiBase64, fotoCapa, artRrt, docsAnexo1,
             descVistoria: descVistoria || dadosVistoria,
             nivelInspecao,
             classificacao: { nivel: nivelInspecao, risco, desempenho, manut, uso, desempGeral },
@@ -583,6 +628,119 @@ function LaudoComplemento() {
               </div>
             </div>
           )}
+
+
+          {/* ── Croqui + Foto Fachada ── */}
+          <div style={S.bloco}>
+            <div style={S.bHead}><span style={S.bTitle}>Localização — Croqui e Foto da Fachada Principal</span></div>
+            <div style={S.bBody}>
+              <div style={S.grid2}>
+                <div>
+                  <label style={S.label}>Croqui de localização (mapa)</label>
+                  {croquiBase64
+                    ? <div style={{ position:'relative' }}>
+                        <img src={croquiBase64} style={{ width:'100%', height:'120px', objectFit:'cover', border:'1px solid #D1D5DB', borderRadius:'4px' }} alt="Croqui" />
+                        <button onClick={() => setCroquiBase64('')}
+                          style={{ position:'absolute', top:4, right:4, background:'#DC2626', color:'white', border:'none', borderRadius:'4px', padding:'2px 8px', fontSize:'10px', cursor:'pointer' }}>✕</button>
+                      </div>
+                    : <label style={{ border:'1px dashed #D1D5DB', borderRadius:'6px', padding:'20px', textAlign:'center' as const, display:'block', cursor:'pointer', fontSize:'11px', color:'#6B7280' }}>
+                        📍 Clique para inserir croqui / mapa
+                        <input type="file" accept="image/*" style={{ display:'none' }}
+                          onChange={async e => { const f = e.target.files?.[0]; if (f) setCroquiBase64(await lerArquivoBase64(f)) }} />
+                      </label>
+                  }
+                </div>
+                <div>
+                  <label style={S.label}>Foto da fachada principal</label>
+                  {fotoCapa
+                    ? <div style={{ position:'relative' }}>
+                        <img src={fotoCapa} style={{ width:'100%', height:'120px', objectFit:'cover', border:'1px solid #D1D5DB', borderRadius:'4px' }} alt="Fachada" />
+                        <button onClick={() => setFotoCapa('')}
+                          style={{ position:'absolute', top:4, right:4, background:'#DC2626', color:'white', border:'none', borderRadius:'4px', padding:'2px 8px', fontSize:'10px', cursor:'pointer' }}>✕</button>
+                      </div>
+                    : <label style={{ border:'1px dashed #D1D5DB', borderRadius:'6px', padding:'20px', textAlign:'center' as const, display:'block', cursor:'pointer', fontSize:'11px', color:'#6B7280' }}>
+                        📷 Clique para inserir foto da fachada
+                        <input type="file" accept="image/*" style={{ display:'none' }}
+                          onChange={async e => { const f = e.target.files?.[0]; if (f) setFotoCapa(await lerArquivoBase64(f)) }} />
+                      </label>
+                  }
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* ── ART/RRT ── */}
+          <div style={S.bloco}>
+            <div style={S.bHead}><span style={S.bTitle}>Anexo 3 — ART / RRT do Responsável Técnico</span></div>
+            <div style={S.bBody}>
+              {artRrt
+                ? <div style={{ position:'relative' }}>
+                    {artRrt.startsWith('data:image')
+                      ? <img src={artRrt} style={{ width:'100%', maxHeight:'200px', objectFit:'contain', border:'1px solid #D1D5DB', borderRadius:'4px' }} alt="ART/RRT" />
+                      : <div style={{ padding:'12px', background:'#F0F4FF', borderRadius:'4px', fontSize:'11px', color:'#1E3A8A' }}>
+                          📄 Arquivo PDF carregado
+                        </div>
+                    }
+                    <button onClick={() => setArtRrt('')}
+                      style={{ position:'absolute', top:4, right:4, background:'#DC2626', color:'white', border:'none', borderRadius:'4px', padding:'2px 8px', fontSize:'10px', cursor:'pointer' }}>✕ Remover</button>
+                  </div>
+                : <label style={{ border:'1px dashed #D1D5DB', borderRadius:'6px', padding:'16px', textAlign:'center' as const, display:'block', cursor:'pointer', fontSize:'11px', color:'#6B7280' }}>
+                    📋 Clique para inserir imagem ou PDF da ART/RRT
+                    <input type="file" accept="image/*,application/pdf" style={{ display:'none' }}
+                      onChange={async e => { const f = e.target.files?.[0]; if (f) setArtRrt(await lerArquivoBase64(f)) }} />
+                  </label>
+              }
+              <p style={{ fontSize:'10px', color:'#9CA3AF', marginTop:'6px' }}>
+                A ART ou RRT será inserida no Anexo 3 do laudo. Formatos aceitos: imagem (JPG/PNG) ou PDF.
+              </p>
+            </div>
+          </div>
+
+          {/* ── Documentos Anexo 1 ── */}
+          <div style={S.bloco}>
+            <div style={S.bHead}><span style={S.bTitle}>Anexo 1 — Documentação da Edificação Solicitada</span></div>
+            <div style={S.bBody}>
+              <p style={{ fontSize:'10px', color:'#6B7280', marginBottom:'8px' }}>
+                Informe a situação e o resultado de cada documento solicitado ao responsável.
+              </p>
+              <table style={{ width:'100%', borderCollapse:'collapse' as const, fontSize:'10px' }}>
+                <thead>
+                  <tr style={{ backgroundColor:'#1E3A8A', color:'white' }}>
+                    <th style={{ padding:'4px 6px', textAlign:'left' as const, width:'50%' }}>Documento</th>
+                    <th style={{ padding:'4px 6px', textAlign:'center' as const, width:'25%' }}>Situação</th>
+                    <th style={{ padding:'4px 6px', textAlign:'center' as const, width:'25%' }}>Resultado</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {DOCS_LISTA.map((doc, i) => (
+                    <tr key={doc} style={{ backgroundColor: i%2===0 ? '#F8FAFC' : 'white' }}>
+                      <td style={{ padding:'3px 6px', borderBottom:'1px solid #E2E8F0' }}>{doc}</td>
+                      <td style={{ padding:'2px 4px', borderBottom:'1px solid #E2E8F0' }}>
+                        <select style={{ ...S.input, fontSize:'10px', padding:'2px 4px' }}
+                          value={docsAnexo1[doc]?.situacao ?? ''}
+                          onChange={e => setDocsAnexo1(prev => ({...prev, [doc]: {...prev[doc], situacao: e.target.value}}))}>
+                          <option value="">—</option>
+                          <option>Entregue</option>
+                          <option>Pendente</option>
+                          <option>Desnecessário</option>
+                        </select>
+                      </td>
+                      <td style={{ padding:'2px 4px', borderBottom:'1px solid #E2E8F0' }}>
+                        <select style={{ ...S.input, fontSize:'10px', padding:'2px 4px' }}
+                          value={docsAnexo1[doc]?.resultado ?? ''}
+                          onChange={e => setDocsAnexo1(prev => ({...prev, [doc]: {...prev[doc], resultado: e.target.value}}))}>
+                          <option value="">—</option>
+                          <option>Conforme</option>
+                          <option>Não conforme</option>
+                          <option>Não se aplica</option>
+                        </select>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
 
           {/* ── Observação ── */}
           <div style={{ backgroundColor: "#FFF9E6", border: "1px solid #F59E0B", borderRadius: "8px", padding: "10px 14px", marginBottom: "12px" }}>
