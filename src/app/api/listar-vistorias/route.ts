@@ -17,36 +17,45 @@ const LAUDO_PARA_VISTORIA: Record<string,string> = {
   '45':'35','46':'36','47':'37','48':'38',
 }
 
-// Extrai texto de <label>X</label><span>Y</span> no HTML do formulário homologado
-function extrairCampo(html: string, label: string): string {
-  const re = new RegExp(`<label[^>]*>[^<]*${label}[^<]*</label>\\s*<span[^>]*>([^<]*)</span>`, 'i')
-  const m = html.match(re)
-  return m?.[1]?.trim() ?? ''
+// Extrai campo de <div class="f"><label>X</label><span>VALOR</span></div>
+function campo(html: string, label: string): string {
+  const re = new RegExp(
+    `<div class="f">\\s*<label[^>]*>[^<]*${label}[^<]*</label>\\s*<span[^>]*>([\\s\\S]*?)</span>`,
+    'i'
+  )
+  return html.match(re)?.[1]?.trim().replace(/<[^>]+>/g,'') ?? ''
 }
 
-// Extrai src da imagem (foto da NC)
-function extrairFoto(html: string): string {
-  const m = html.match(/<img[^>]+src="(data:image[^"]+)"/)
-  return m?.[1] ?? ''
+// Extrai Grau de Risco e Prioridade — estão em <div class="m"> com estrutura diferente
+function campoM(html: string, label: string): string {
+  // <span>Grau de Risco</span><span style="font-size:13pt...">76</span>
+  // <span>Prioridade</span><span class="badge"...>Alta</span>
+  const re = new RegExp(
+    `<span[^>]*>[^<]*${label}[^<]*</span>\\s*<span[^>]*>([^<]*)</span>`,
+    'i'
+  )
+  return html.match(re)?.[1]?.trim() ?? ''
 }
 
-// Parseia HTML antigo do formulário homologado extraindo todos os campos
-function parsearHtmlHomologado(html: string, arquivo: string): any {
+// Parseia HTML do formulário homologado (sem AIME-NC-DATA)
+function parsearHtml(html: string, nome: string): any {
   return {
-    arquivo,
-    sistema:    extrairCampo(html, 'Sistema'),
-    subsistema: extrairCampo(html, 'Subsistema'),
-    anomalia:   extrairCampo(html, 'Anomalia') || extrairCampo(html, 'Não conformidade') || extrairCampo(html, 'NC'),
-    origem:     extrairCampo(html, 'Origem') || extrairCampo(html, 'Resultado'),
-    local:      extrairCampo(html, 'Local'),
-    complemento:extrairCampo(html, 'Complemento'),
-    grauRisco:  extrairCampo(html, 'Grau de Risco') || extrairCampo(html, 'Grau Risco') || extrairCampo(html, 'GR'),
-    prioridade: extrairCampo(html, 'Prioridade'),
-    fotoNr:     extrairCampo(html, 'Foto') || extrairCampo(html, 'Nº Foto') || arquivo.match(/(\d+)\.html$/)?.[1] || '',
-    dataVistoria:extrairCampo(html, 'Data'),
-    nc:         extrairCampo(html, 'Descrição') || extrairCampo(html, 'NC'),
-    cp:         extrairCampo(html, 'Causa') || extrairCampo(html, 'CP'),
-    fotoBase64: extrairFoto(html),
+    sistema:     campo(html, 'Sistema'),
+    subsistema:  campo(html, 'Subsistema'),
+    anomalia:    campo(html, 'Anomalia') || campo(html, 'Não conformidade \\(NC\\)'),
+    local:       campo(html, 'Local'),
+    complemento: campo(html, 'Complemento'),
+    gravidade:   campo(html, 'Gravidade'),
+    urgencia:    campo(html, 'Urgência') || campo(html, 'Urgencia'),
+    abrangencia: campo(html, 'Abrangência') || campo(html, 'Abrangencia'),
+    exposicao:   campo(html, 'Exposição') || campo(html, 'Exposicao'),
+    grauRisco:   campoM(html, 'Grau de Risco'),
+    prioridade:  campoM(html, 'Prioridade'),
+    fotoNr:      campo(html, 'Foto Nº') || campo(html, 'Foto N') || nome.match(/_(\d+)\.html$/)?.[1] || '',
+    dataVistoria:campo(html, 'Data Vistoria') || campo(html, 'Data'),
+    nc:          campo(html, 'Não conformidade \\(NC\\)'),
+    cp:          campo(html, 'Causa provável') || campo(html, 'Causa provavel'),
+    fotoBase64:  html.match(/<img[^>]+src="(data:image[^"]+)"/)?.[1] ?? '',
     _fonte: 'html_parsed',
   }
 }
@@ -56,7 +65,7 @@ export async function GET(request: NextRequest) {
   const chaveInspetor = p.get('chave_inspetor') ?? ''
   const cnpjoucpf     = p.get('cnpjoucpf')      ?? ''
   const tipoServico   = p.get('tipo_servico')    ?? ''
-  const comFoto       = p.get('com_foto') === '1' // incluir fotoBase64
+  const comFoto       = p.get('com_foto') === '1'
 
   if (!chaveInspetor || !cnpjoucpf || !tipoServico)
     return NextResponse.json({ erro: 'Parâmetros obrigatórios ausentes' }, { status: 400 })
@@ -69,16 +78,14 @@ export async function GET(request: NextRequest) {
     const { data: homologados } = await supabase.storage
       .from('aime').list('vistorias_homologadas', { limit: 1000 })
 
-    // Filtrar por chave e CNPJ no nome do arquivo
-    // Padrão novo:  INS-001_12345678000190_31_001.html
-    // Padrão antigo: INS-001003.html
-    const prefixoNovo = `${chaveInspetor}_${cnpjoucpf}_${tipoVistoria}_`
-
     for (const arq of (homologados ?? [])) {
       if (!arq.name.endsWith('.html')) continue
 
-      const isNovo = arq.name.startsWith(`${chaveInspetor}_${cnpjoucpf}_${tipoVistoria}_`) ||
-                     arq.name.startsWith(`${chaveInspetor}_${cnpjoucpf}_${tipoServico}_`)
+      // Filtrar por padrão do nome:
+      // Novo:   INS-001_12345678000190_31_001.html → chave_cnpj_tipo_nr
+      // Antigo: INS-001003.html                   → chaveNr
+      const isNovo   = arq.name.startsWith(`${chaveInspetor}_${cnpjoucpf}_${tipoVistoria}_`) ||
+                       arq.name.startsWith(`${chaveInspetor}_${cnpjoucpf}_${tipoServico}_`)
       const isAntigo = !isNovo && arq.name.startsWith(chaveInspetor) &&
                        /^[A-Z0-9\-]+\d{3,}\.html$/.test(arq.name)
 
@@ -90,29 +97,34 @@ export async function GET(request: NextRequest) {
         if (!blob) continue
         const html = await blob.text()
 
-        // Tentar AIME-NC-DATA primeiro (arquivos novos)
-        const m = html.match(/<!--\s*AIME-NC-DATA:([\s\S]*?)\s*-->/)
-        if (m) {
+        // Tentar AIME-NC-DATA (arquivos homologados após 24/07)
+        const mJson = html.match(/<!--\s*AIME-NC-DATA:([\s\S]*?)\s*-->/)
+        if (mJson) {
           try {
-            const dados = JSON.parse(m[1])
+            const dados = JSON.parse(mJson[1])
             if (dados.cnpjoucpf !== cnpjoucpf) continue
             const tipoOk = String(dados.tipoServico) === String(tipoServico) ||
                            String(dados.tipoServico) === String(tipoVistoria)
             if (!tipoOk) continue
-            const nc = comFoto ? dados : (({ fotoBase64: _, ...rest }) => rest)(dados)
-            ncs.push({ ...nc, _arquivo: arq.name })
-          } catch { /* JSON inválido, tentar parsing */ }
-        } else {
-          // Arquivos sem AIME-NC-DATA: parsear HTML
-          // Para padrão novo, o CNPJ já está no nome — não precisa verificar dentro do HTML
-          if (isNovo || html.includes(cnpjoucpf)) {
-            // Verificar tipo de serviço no HTML
-            const tipoNoHtml = html.match(/Tipo de serviço[^<]*<\/label>\s*<span[^>]*>([^<]*)</i)?.[1]?.trim()
-            if (tipoNoHtml && tipoNoHtml !== tipoVistoria && tipoNoHtml !== tipoServico) continue
-            const nc = parsearHtmlHomologado(html, arq.name)
+            const nc: any = { ...dados, _arquivo: arq.name }
             if (!comFoto) delete nc.fotoBase64
-            ncs.push({ ...nc, cnpjoucpf, tipoServico: tipoVistoria })
+            ncs.push(nc)
+          } catch { /* fallthrough para parsing HTML */ }
+        } else {
+          // Arquivos antigos: parsear HTML diretamente
+          if (isAntigo) {
+            // Verificar se o CNPJ do arquivo corresponde
+            if (!html.includes(cnpjoucpf)) continue
+            // Verificar tipo de serviço
+            const tipoHtml = campo(html, 'Tipo de serviço')
+            if (tipoHtml && tipoHtml !== tipoVistoria && tipoHtml !== tipoServico) continue
           }
+          const nc = parsearHtml(html, arq.name)
+          nc.cnpjoucpf   = cnpjoucpf
+          nc.tipoServico = tipoVistoria
+          nc._arquivo    = arq.name
+          if (!comFoto) delete nc.fotoBase64
+          ncs.push(nc)
         }
       } catch { continue }
     }
@@ -124,8 +136,8 @@ export async function GET(request: NextRequest) {
     for (const arq of (pendentes ?? [])) {
       if (!arq.name.endsWith('.json') || arq.name.includes('emptyFolder')) continue
 
-      const isNovo = arq.name.startsWith(`${chaveInspetor}_${cnpjoucpf}_${tipoServico}_`) ||
-                     arq.name.startsWith(`${chaveInspetor}_${cnpjoucpf}_${tipoVistoria}_`)
+      const isNovo   = arq.name.startsWith(`${chaveInspetor}_${cnpjoucpf}_${tipoServico}_`) ||
+                       arq.name.startsWith(`${chaveInspetor}_${cnpjoucpf}_${tipoVistoria}_`)
       const isAntigo = !isNovo && arq.name.startsWith(chaveInspetor) &&
                        /^[A-Z0-9\-]+\d{3,}\.json$/.test(arq.name)
       if (!isNovo && !isAntigo) continue
@@ -141,13 +153,16 @@ export async function GET(request: NextRequest) {
           if (String(dados.tipoServico) !== String(tipoServico) &&
               String(dados.tipoServico) !== String(tipoVistoria)) continue
         }
-        const nc = comFoto ? dados : (({ fotoBase64: _, ...rest }) => rest)(dados)
-        ncs.push({ ...nc, _arquivo: arq.name })
+        const nc: any = { ...dados, _arquivo: arq.name }
+        if (!comFoto) delete nc.fotoBase64
+        ncs.push(nc)
       } catch { continue }
     }
 
     // Ordenar por fotoNr
-    ncs.sort((a, b) => String(a.fotoNr ?? '').localeCompare(String(b.fotoNr ?? ''), undefined, { numeric: true }))
+    ncs.sort((a, b) =>
+      String(a.fotoNr ?? '').localeCompare(String(b.fotoNr ?? ''), undefined, { numeric: true })
+    )
 
     return NextResponse.json({ ncs, total: ncs.length })
   } catch (err) {
