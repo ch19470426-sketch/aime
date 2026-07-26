@@ -784,10 +784,51 @@ ${anexo2 || '<p><em>Nenhum formulário de vistoria disponível.</em></p>'}
 </body>
 </html>`
 
+    // ── Substituir placeholders de imagem no HTML ───────────────────────────
+    async function imgSrc(path: string): Promise<string> {
+      if (!path) return ''
+      try {
+        const { data, error } = await supabase.storage.from('aime').download(path)
+        if (error || !data) return ''
+        const buf = Buffer.from(await data.arrayBuffer())
+        const ext = path.split('.').pop()?.toLowerCase() ?? 'jpg'
+        const mime = ext === 'png' ? 'image/png' : 'image/jpeg'
+        return `data:${mime};base64,${buf.toString('base64')}`
+      } catch { return '' }
+    }
+
+    let htmlFinal = html
+    if (complemento?.pathCroqui) {
+      const src = await imgSrc(complemento.pathCroqui)
+      if (src) htmlFinal = htmlFinal.replace(
+        '<img src="__CROQUI__">',
+        `<img src="${src}" style="width:100%;height:130px;object-fit:cover">`
+      )
+    }
+    if (complemento?.pathFoto) {
+      const src = await imgSrc(complemento.pathFoto)
+      if (src) htmlFinal = htmlFinal.replace(
+        '<img src="__FACHADA__">',
+        `<img src="${src}" style="width:100%;height:130px;object-fit:cover">`
+      )
+    }
+    if (complemento?.pathArt) {
+      const src = await imgSrc(complemento.pathArt)
+      if (src) {
+        const isPdf = complemento.pathArt.endsWith('.pdf')
+        htmlFinal = htmlFinal.replace(
+          '[ART/RRT — a ser inserida pelo responsável técnico após baixar o documento editável]',
+          isPdf
+            ? `<embed src="${src}" type="application/pdf" style="width:100%;height:400px">`
+            : `<img src="${src}" style="max-width:100%;border:1px solid #1E3A8A">`
+        )
+      }
+    }
+
     // ── Salvar HTML no storage ───────────────────────────────────────────────
     const { error } = await supabase.storage
       .from('aime')
-      .upload(`documentos_inspetor/${nomeArquivo}`, Buffer.from(html, 'utf-8'), {
+      .upload(`documentos_inspetor/${nomeArquivo}`, Buffer.from(htmlFinal, 'utf-8'), {
         contentType: 'text/html', upsert: true,
       })
     if (error) return NextResponse.json({ erro: error.message }, { status: 500 })
