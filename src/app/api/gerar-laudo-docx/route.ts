@@ -227,6 +227,10 @@ export async function POST(request: NextRequest) {
     // Tabela 1.1 Localização
     // Células de imagem para localização
     function celImagem(imgBase64: string, placeholder: string, width: number) {
+      // width está em DXA (1/1440 de polegada). Converter para pontos: 1pt = 20 DXA
+      // Imagem ocupa 90% da célula, altura proporcional 130pt
+      const imgWidthPt  = Math.round(width / 20 * 0.88)  // 88% da largura da célula em pt
+      const imgHeightPt = 130
       if (imgBase64 && imgBase64.startsWith('data:image')) {
         const matches = imgBase64.match(/^data:([^;]+);base64,(.+)$/)
         if (matches) {
@@ -235,20 +239,32 @@ export async function POST(request: NextRequest) {
           return new TableCell({
             width: { size: width, type: WidthType.DXA },
             children: [new Paragraph({
-              children: [new ImageRun({ data: imgBuf, transformation: { width: Math.round(width*0.13), height: 130 }, type: ext })],
+              children: [new ImageRun({ data: imgBuf, transformation: { width: imgWidthPt, height: imgHeightPt }, type: ext })],
               alignment: AlignmentType.CENTER,
+              spacing: { before: 40, after: 40 },
             })],
             margins: { top: 40, bottom: 40, left: 40, right: 40 },
+            verticalAlign: VerticalAlign.CENTER,
           })
         }
       }
-      return cel(placeholder, { width, align: AlignmentType.CENTER })
+      return new TableCell({
+        width: { size: width, type: WidthType.DXA },
+        children: [new Paragraph({
+          children: [new TextRun({ text: placeholder, italics: true, size: 18, color: '9CA3AF', font: 'Arial' })],
+          alignment: AlignmentType.CENTER,
+          spacing: { before: 200, after: 200 },
+        })],
+        margins: { top: 40, bottom: 40, left: 40, right: 40 },
+        verticalAlign: VerticalAlign.CENTER,
+        shading: { type: ShadingType.CLEAR, color: 'auto', fill: 'F8FAFC' },
+      })
     }
 
     const tab11loc = new Table({ width:{size:TW,type:WidthType.DXA}, rows:[
       new TableRow({children:[cel('',{bg:'F2F2F2',span:2})]}),
       new TableRow({children:[cel('Localização do Estabelecimento',{bg:'F2F2F2',span:2,bold:true,align:AlignmentType.CENTER})]}),
-      new TableRow({ height:{value:2800,rule:'exact' as any}, children:[
+      new TableRow({ height:{value:2800,rule:'atLeast' as any}, children:[
         celImagem(imgCroqui, '[CROQUI MAPS — colar após baixar o documento]', Math.floor(TW/2)),
         celImagem(imgFoto,   '[FOTO DA FACHADA PRINCIPAL — inserir pelo responsável técnico]', TW-Math.floor(TW/2)),
       ]}),
@@ -644,79 +660,140 @@ export async function POST(request: NextRequest) {
           par(''),
           tabA1,
           par(''),
-          // ANEXO 2 — Formulários de vistoria homologados
+          // ANEXO 2 — Formulários de vistoria (layout fiel ao HTML homologado)
           new Paragraph({children:[new PageBreak()]}),
           par('Anexo 2 – Resultado da Vistoria',{bold:true}),
           par(''),
-          ...((ncsComFoto ?? []).length === 0 ? [par('[Nenhuma vistoria homologada encontrada.]',{italics:true})] :
-            (ncsComFoto ?? []).flatMap((nc: any) => {
-              const nomeS = (nc.sistema||'').slice(3).replace(/_/g,' ')
-              const grStr = String(nc.grauRisco||'—')
-              const prStr = String(nc.prioridade||'—')
-              // Foto da NC
-              const fotoEls: any[] = []
-              if (nc.fotoBase64 && nc.fotoBase64.startsWith('data:image')) {
-                try {
-                  const m = nc.fotoBase64.match(/^data:([^;]+);base64,(.+)$/)
-                  if (m) {
-                    const buf = Buffer.from(m[2], 'base64')
-                    const ext = m[1].includes('png') ? 'png' as const : 'jpg' as const
-                    fotoEls.push(new Paragraph({ children: [new ImageRun({ data: buf, transformation: { width: 480, height: 280 }, type: ext })], alignment: AlignmentType.CENTER }))
-                  }
-                } catch { fotoEls.push(par('[Foto não disponível]',{italics:true,align:AlignmentType.CENTER})) }
-              } else {
-                fotoEls.push(par('[Foto não disponível]',{italics:true,align:AlignmentType.CENTER}))
-              }
-              return [
-                new Paragraph({children:[new PageBreak()]}),
-                new Table({ width:{size:TW,type:WidthType.DXA}, rows:[
+          ...((ncsComFoto ?? []).length === 0
+            ? [par('[Nenhuma vistoria homologada encontrada para este serviço.]',{italics:true})]
+            : (ncsComFoto ?? []).flatMap((nc: any, idx: number) => {
+                const nomeS   = X(nc.sistema).slice(3).replace(/_/g,' ')
+                const nomeDoc = (cnpjoucpf?.length === 11) ? 'CPF' : 'CNPJ'
+                const labelNC = X(nc.resultado) ? 'Resultado' : 'Não conformidade (NC)'
+
+                // ── Bloco: Identificação ──────────────────────────────────────
+                const tabIdent = new Table({ width:{size:TW,type:WidthType.DXA}, rows:[
+                  new TableRow({children:[cel('Identificação',{bg:'1E3A8A',span:4,bold:true})]}),
                   new TableRow({children:[
-                    cel('AIMÊ — Vistoria Homologada',{bg:'1E3A8A',span:4,bold:true,align:AlignmentType.CENTER}),
+                    cel(nomeDoc+':',{bg:'EEF2FF',bold:true,width:800}),
+                    cel(X(nc.cnpjoucpf),{width:2038}),
+                    cel('Razão Social / Nome:',{bg:'EEF2FF',bold:true,width:1600}),
+                    cel(X(estab?.razao_social_nome),{width:TW-4438}),
                   ]}),
                   new TableRow({children:[
-                    cel('Foto Nº',{bg:'F2F2F2',bold:true,width:800,align:AlignmentType.CENTER}),
-                    cel(String(nc.fotoNr||'—'),{width:800,align:AlignmentType.CENTER}),
-                    cel('Data Vistoria',{bg:'F2F2F2',bold:true,width:1500}),
-                    cel(String(nc.dataVistoria||'—'),{width:TW-3100}),
+                    cel('Tipo serviço:',{bg:'EEF2FF',bold:true,width:800}),
+                    cel(X(nc.tipoServico||tipoServico),{width:2038}),
+                    cel('Data Vistoria:',{bg:'EEF2FF',bold:true,width:1600}),
+                    cel(X(nc.dataVistoria),{width:TW-4438}),
+                  ]}),
+                ]})
+
+                // ── Bloco: Dados da NC ────────────────────────────────────────
+                const tabNC = new Table({ width:{size:TW,type:WidthType.DXA}, rows:[
+                  new TableRow({children:[cel('Anomalia / Não Conformidade',{bg:'1E3A8A',span:4,bold:true})]}),
+                  new TableRow({children:[
+                    cel('Sistema:',{bg:'EEF2FF',bold:true,width:800}),
+                    cel(nomeS,{width:2038}),
+                    cel('Subsistema:',{bg:'EEF2FF',bold:true,width:1600}),
+                    cel(X(nc.subsistema),{width:TW-4438}),
                   ]}),
                   new TableRow({children:[
-                    cel('Sistema',{bg:'F2F2F2',bold:true,width:800}),
-                    cel(nomeS,{width:TW-800,span:3}),
+                    cel('Anomalia:',{bg:'EEF2FF',bold:true,width:800}),
+                    cel(X(nc.anomalia),{span:3,width:TW-800}),
                   ]}),
                   new TableRow({children:[
-                    cel('Subsistema',{bg:'F2F2F2',bold:true,width:800}),
-                    cel(String(nc.subsistema||'—'),{width:2000}),
-                    cel('Local',{bg:'F2F2F2',bold:true,width:800}),
-                    cel(String(nc.local||'—')+(nc.complemento?' — '+String(nc.complemento):''),{width:TW-3600}),
+                    cel('Local:',{bg:'EEF2FF',bold:true,width:800}),
+                    cel(X(nc.local),{width:2038}),
+                    cel('Complemento:',{bg:'EEF2FF',bold:true,width:1600}),
+                    cel(X(nc.complemento),{width:TW-4438}),
+                  ]}),
+                ]})
+
+                // ── Bloco: Classificação de Risco ─────────────────────────────
+                const corGR = Number(nc.grauRisco) >= 64 ? 'DC2626'
+                  : Number(nc.grauRisco) >= 35 ? 'D97706' : '059669'
+                const tabRisco = new Table({ width:{size:TW,type:WidthType.DXA}, rows:[
+                  new TableRow({children:[cel('Classificação de Risco',{bg:'1E3A8A',span:4,bold:true})]}),
+                  new TableRow({children:[
+                    cel('Gravidade:',{bg:'EEF2FF',bold:true,width:800}),
+                    cel(X(nc.gravidade),{width:2038}),
+                    cel('Urgência:',{bg:'EEF2FF',bold:true,width:1600}),
+                    cel(X(nc.urgencia),{width:TW-4438}),
                   ]}),
                   new TableRow({children:[
-                    cel('Anomalia',{bg:'F2F2F2',bold:true,width:800}),
-                    cel(String(nc.anomalia||'—'),{span:3,width:TW-800}),
+                    cel('Abrangência:',{bg:'EEF2FF',bold:true,width:800}),
+                    cel(X(nc.abrangencia),{width:2038}),
+                    cel('Exposição:',{bg:'EEF2FF',bold:true,width:1600}),
+                    cel(X(nc.exposicao),{width:TW-4438}),
                   ]}),
                   new TableRow({children:[
-                    cel('Grau de Risco',{bg:'F2F2F2',bold:true,width:800}),
-                    cel(grStr,{width:2000,align:AlignmentType.CENTER,bold:true}),
-                    cel('Prioridade',{bg:'F2F2F2',bold:true,width:800}),
-                    cel(prStr,{width:TW-3600,align:AlignmentType.CENTER,bold:true}),
+                    cel('Grau de Risco:',{bg:'EEF2FF',bold:true,width:800}),
+                    cel(X(nc.grauRisco),{width:2038,bold:true,align:AlignmentType.CENTER}),
+                    cel('Prioridade:',{bg:'EEF2FF',bold:true,width:1600}),
+                    cel(X(nc.prioridade),{width:TW-4438,bold:true,align:AlignmentType.CENTER}),
+                  ]}),
+                ]})
+
+                // ── Bloco: Foto ───────────────────────────────────────────────
+                const fotoRows: any[] = [
+                  new TableRow({children:[cel('Evidência Fotográfica',{bg:'1E3A8A',span:2,bold:true})]}),
+                  new TableRow({children:[
+                    cel('Foto Nº:',{bg:'EEF2FF',bold:true,width:800}),
+                    cel(X(nc.fotoNr),{width:TW-800,bold:true,align:AlignmentType.CENTER}),
+                  ]}),
+                ]
+                if (nc.fotoBase64 && nc.fotoBase64.startsWith('data:image')) {
+                  try {
+                    const m = nc.fotoBase64.match(/^data:([^;]+);base64,(.+)$/)
+                    if (m) {
+                      const buf = Buffer.from(m[2], 'base64')
+                      const ext = m[1].includes('png') ? 'png' as const : 'jpg' as const
+                      fotoRows.push(new TableRow({
+                        height: { value: 4000, rule: 'atLeast' as any },
+                        children:[new TableCell({
+                          columnSpan: 2,
+                          children: [new Paragraph({
+                            children: [new ImageRun({ data: buf, transformation: { width: 500, height: 280 }, type: ext })],
+                            alignment: AlignmentType.CENTER,
+                            spacing: { before: 60, after: 60 },
+                          })],
+                          margins: { top: 60, bottom: 60, left: 80, right: 80 },
+                        })],
+                      }))
+                    }
+                  } catch { fotoRows.push(new TableRow({children:[cel('[Foto não disponível]',{span:2,italics:true,align:AlignmentType.CENTER})]})) }
+                } else {
+                  fotoRows.push(new TableRow({ height:{value:1500,rule:'atLeast' as any}, children:[cel('[Sem foto]',{span:2,italics:true,align:AlignmentType.CENTER})]}))
+                }
+                const tabFoto = new Table({ width:{size:TW,type:WidthType.DXA}, rows: fotoRows })
+
+                // ── Bloco: NC e CP ────────────────────────────────────────────
+                const tabNCCP = new Table({ width:{size:TW,type:WidthType.DXA}, rows:[
+                  new TableRow({children:[cel(labelNC,{bg:'1E3A8A',span:2,bold:true})]}),
+                  new TableRow({children:[
+                    cel('NC:',{bg:'EEF2FF',bold:true,width:800}),
+                    cel(X(nc.nc||nc.anomalia),{width:TW-800}),
                   ]}),
                   new TableRow({children:[
-                    cel('Não Conformidade (NC)',{bg:'F2F2F2',bold:true,width:800}),
-                    cel(String(nc.nc||nc.anomalia||'—'),{span:3,width:TW-800}),
+                    cel('Causa Provável:',{bg:'EEF2FF',bold:true,width:800}),
+                    cel(X(nc.cp),{width:TW-800}),
                   ]}),
                   new TableRow({children:[
-                    cel('Causa Provável',{bg:'F2F2F2',bold:true,width:800}),
-                    cel(String(nc.cp||'—'),{span:3,width:TW-800}),
+                    cel('Solução:',{bg:'EEF2FF',bold:true,width:800}),
+                    cel(X(nc.solucaoNC||nc.cp),{width:TW-800}),
                   ]}),
-                  new TableRow({children:[
-                    cel('Solução',{bg:'F2F2F2',bold:true,width:800}),
-                    cel(String(nc.solucaoNC||nc.cp||'—'),{span:3,width:TW-800}),
-                  ]}),
-                ]}),
-                par(''),
-                ...fotoEls,
-                par(''),
-              ]
-            })
+                  new TableRow({children:[cel(`✓ Homologado — ${X(nc.chaveInspetor||chaveInspetor)}`,{span:2,bg:'D1FAE5',align:AlignmentType.CENTER})]}),
+                ]})
+
+                return [
+                  ...(idx > 0 ? [new Paragraph({children:[new PageBreak()]})] : []),
+                  tabIdent, par(''),
+                  tabNC, par(''),
+                  tabRisco, par(''),
+                  tabFoto, par(''),
+                  tabNCCP, par(''),
+                ]
+              })
           ),
           // ANEXO 3
           new Paragraph({children:[new PageBreak()]}),
