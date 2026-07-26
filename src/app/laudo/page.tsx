@@ -325,15 +325,18 @@ function LaudoComplemento() {
           : base64.startsWith('data:image/jpeg') || base64.startsWith('data:image/jpg') ? 'jpg'
           : base64.startsWith('data:application/pdf') ? 'pdf' : 'jpg'
         const nomeImg = `${chaveInspetor}_${cnpjoucpf}_${sufixo}.${ext}`
-        try {
-          const res = await fetch('/api/upload-imagem-laudo', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ base64, nomeArquivo: nomeImg }),
-          })
-          const data = await res.json()
-          return data.path ?? ''
-        } catch { return '' }
+        // Converter base64 para Blob
+        const arr = base64.split(',')
+        const mime = arr[0].match(/:(.*?);/)?.[1] ?? 'image/jpeg'
+        const bstr = atob(arr[1])
+        const u8 = new Uint8Array(bstr.length)
+        for (let i = 0; i < bstr.length; i++) u8[i] = bstr.charCodeAt(i)
+        const blob = new Blob([u8], { type: mime })
+        const res = await fetch(
+          `https://asgorarunzhiojqioxzq.supabase.co/storage/v1/object/aime/laudos_imagens/${nomeImg}`,
+          { method: 'POST', headers: { 'Authorization': `Bearer sb_publishable_dH85HYKGxv3X0te627VfOw_OGaPoNMF`, 'Content-Type': mime, 'x-upsert': 'true' }, body: blob }
+        )
+        return res.ok ? `laudos_imagens/${nomeImg}` : ''
       }
 
       const [pathCroqui, pathFoto, pathArt] = await Promise.all([
@@ -361,6 +364,36 @@ function LaudoComplemento() {
 
       // SNC — solução para cada NC (paralelo)
       const ncsComSolucao = await Promise.all((ncs ?? []).map(async (nc: any) => {
+        try {
+          const r = await fetch('/api/ia-laudo', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ tipo: 'solucao_nc', dados: nc })
+          })
+          const d = await r.json()
+          return { ...nc, solucaoNC: d.texto ?? '' }
+        } catch { return nc }
+      }))
+
+      // DRT — recomendações gerais item 5 (manutenção, uso, sustentabilidade, outros)
+      let rec51 = '', rec52 = '', rec53 = '', rec54 = ''
+      try {
+        const rDRT = await fetch('/api/ia-laudo', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            tipo: 'recomendacoes',
+            dados: {
+              tipo_servico: tipoServico,
+              ncs: ncsComSolucao.filter((nc: any) => nc.prioridade === 'Alta' || nc.prioridade === 'Média'),
+              classificacao: { nivel: nivelInspecao, risco, desempenho, manut, uso, desempGeral },
+            }
+          })
+        })
+        const dDRT = await rDRT.json()
+        if (dDRT.rec51) rec51 = dDRT.rec51
+        if (dDRT.rec52) rec52 = dDRT.rec52
+        if (dDRT.rec53) rec53 = dDRT.rec53
+        if (dDRT.rec54) rec54 = dDRT.rec54
+      } catch { /* segue sem recomendações DRT */ } any) => {
         try {
           const r = await fetch('/api/ia-laudo', {
             method: 'POST', headers: { 'Content-Type': 'application/json' },
