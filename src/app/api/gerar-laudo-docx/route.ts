@@ -12,7 +12,7 @@ import {
   Document, Packer, Paragraph, Table, TableRow, TableCell,
   TextRun, AlignmentType, WidthType, ShadingType,
   BorderStyle, PageBreak, Header, Footer, PageNumber,
-  convertMillimetersToTwip, VerticalAlign,
+  ImageRun, convertMillimetersToTwip, VerticalAlign,
 } from 'docx'
 
 const supabase = createClient(
@@ -138,6 +138,25 @@ export async function POST(request: NextRequest) {
     }
 
     // NCs por sistema
+    // ── Buscar imagens do storage ────────────────────────────────────────────
+    async function buscarImagemBase64(path: string): Promise<string> {
+      if (!path) return ''
+      try {
+        const { data, error } = await supabase.storage.from('aime').download(path)
+        if (error || !data) return ''
+        const buf = Buffer.from(await data.arrayBuffer())
+        const ext = path.split('.').pop()?.toLowerCase() ?? 'jpg'
+        const mime = ext === 'png' ? 'image/png' : ext === 'pdf' ? 'application/pdf' : 'image/jpeg'
+        return `data:${mime};base64,${buf.toString('base64')}`
+      } catch { return '' }
+    }
+
+    const [imgCroqui, imgFoto, imgArt] = await Promise.all([
+      buscarImagemBase64(complemento?.pathCroqui ?? ''),
+      buscarImagemBase64(complemento?.pathFoto   ?? ''),
+      buscarImagemBase64(complemento?.pathArt    ?? ''),
+    ])
+
     const ncsPorSistema: Record<string, any[]> = {}
     sistemas.forEach(s => ncsPorSistema[s] = [])
     ;(ncs ?? []).forEach((nc: any) => { if (ncsPorSistema[nc.sistema] !== undefined) ncsPorSistema[nc.sistema].push(nc) })
@@ -149,6 +168,25 @@ export async function POST(request: NextRequest) {
       const b = arr.filter((n:any)=>n.prioridade==='Baixa').length
       return { s, a, m, b, t: a+m+b }
     })
+
+  // Descrições dos sistemas construtivos (base fixa conforme NBR 16.747)
+  const DESC_SISTEMAS_41: Record<string,string> = {
+    '01_Sistema Estrutural': 'Compreende os elementos de fundação, estrutura de concreto armado ou metálica, pilares, vigas e lajes, responsáveis pela sustentação e estabilidade da edificação.',
+    '02_Fachadas, Empenas e Marquises': 'Inclui revestimentos externos, pintura de fachada, peitoris, pingadeiras, rufos, marquises e elementos ornamentais expostos ao intemperismo.',
+    '03_Cobertura e Telhados': 'Composto por estrutura do telhado, telhas, calhas, rufos, impermeabilização da laje de cobertura e captação de águas pluviais.',
+    '04_Instalações Hidrossanitárias': 'Abrange redes de água fria e quente, esgoto sanitário, drenagem pluvial, reservatórios, bombas e equipamentos hidráulicos.',
+    '05_Instalações Elétricas e SPDA': 'Inclui quadros de distribuição, fiação, tomadas, iluminação, grupo gerador, SPDA e sistema de aterramento.',
+    '06_Instalações de Gás': 'Compreende rede de distribuição de gás (GLP ou GN), central de gás, registros, medidores e ramais de consumo.',
+    '07_Sistema de Prevenção e Combate a Incêndio': 'Inclui sprinklers, hidrantes, extintores, saídas de emergência, iluminação de emergência, alarme e sinalização de segurança.',
+    '08_Elevadores e Equipamentos Eletromecânicos': 'Abrange elevadores, escadas rolantes, plataformas de acessibilidade, bombas, compressores e demais equipamentos eletromecânicos.',
+    '09_Impermeabilização': 'Compreende sistemas de impermeabilização de coberturas, lajes, reservatórios, fundações, banheiros e áreas molhadas.',
+    '10_Acessibilidade': 'Inclui rampas, corrimãos, pisos táteis, vagas para PCD, banheiros adaptados e demais elementos de acessibilidade conforme NBR 9050.',
+    '11_Contenção de Encostas e Arrimos': 'Abrange muros de arrimo, taludes, cortinas de estacas, drenos e sistemas de contenção de solo.',
+    '12_Áreas Comuns e Infraestrutura': 'Compreende hall, corredores, escadas, garagem, playground, salão de festas, guarita e demais áreas de uso coletivo.',
+    '13_Documentação e Conformidade Legal': 'Inclui análise dos documentos técnicos e legais da edificação quanto à sua regularidade e conformidade normativa.',
+  }
+  const descSistema = (s: string) => DESC_SISTEMAS_41[s] || `Sistema construtivo: ${s.replace(/_/g,' ').slice(3)}`
+
     const totA = stat.reduce((x,s)=>x+s.a,0)
     const totM = stat.reduce((x,s)=>x+s.m,0)
     const totB = stat.reduce((x,s)=>x+s.b,0)
@@ -172,12 +210,32 @@ export async function POST(request: NextRequest) {
     ]})
 
     // Tabela 1.1 Localização
+    // Células de imagem para localização
+    function celImagem(imgBase64: string, placeholder: string, width: number) {
+      if (imgBase64 && imgBase64.startsWith('data:image')) {
+        const matches = imgBase64.match(/^data:([^;]+);base64,(.+)$/)
+        if (matches) {
+          const imgBuf = Buffer.from(matches[2], 'base64')
+          const ext = matches[1].includes('png') ? 'png' as const : 'jpg' as const
+          return new TableCell({
+            width: { size: width, type: WidthType.DXA },
+            children: [new Paragraph({
+              children: [new ImageRun({ data: imgBuf, transformation: { width: Math.round(width*0.13), height: 130 }, type: ext })],
+              alignment: AlignmentType.CENTER,
+            })],
+            margins: { top: 40, bottom: 40, left: 40, right: 40 },
+          })
+        }
+      }
+      return cel(placeholder, { width, align: AlignmentType.CENTER })
+    }
+
     const tab11loc = new Table({ width:{size:TW,type:WidthType.DXA}, rows:[
       new TableRow({children:[cel('',{bg:'F2F2F2',span:2})]}),
       new TableRow({children:[cel('Localização do Estabelecimento',{bg:'F2F2F2',span:2,bold:true,align:AlignmentType.CENTER})]}),
       new TableRow({ height:{value:2800,rule:'exact' as any}, children:[
-        cel('[CROQUI MAPS — colar após baixar o documento]',{width:Math.floor(TW/2),align:AlignmentType.CENTER}),
-        cel('[FOTO DA FACHADA PRINCIPAL — inserir pelo responsável técnico]',{width:TW-Math.floor(TW/2),align:AlignmentType.CENTER}),
+        celImagem(imgCroqui, '[CROQUI MAPS — colar após baixar o documento]', Math.floor(TW/2)),
+        celImagem(imgFoto,   '[FOTO DA FACHADA PRINCIPAL — inserir pelo responsável técnico]', TW-Math.floor(TW/2)),
       ]}),
       new TableRow({children:[cel('',{bg:'F2F2F2',span:2})]}),
     ]})
@@ -243,7 +301,7 @@ export async function POST(request: NextRequest) {
     for (const s of sistemas) {
       const arr = ncsPorSistema[s]
       if (!arr.length) continue
-      const nomeS = s.replace(/_/g,' ')
+      const nomeS = s.slice(3).replace(/_/g,' ')
       const rec = complemento?.recsSistema?.[s] || ''
       elems41.push(new Table({ width:{size:TW,type:WidthType.DXA}, rows:[
         new TableRow({children:[cel('',{bg:'F2F2F2',span:6})]}),
@@ -251,7 +309,7 @@ export async function POST(request: NextRequest) {
         new TableRow({children:[cel('Sistema construtivo ou instalação:',{span:6,bold:true,bg:'FFFFFF'})]}),
         new TableRow({children:[cel(nomeS,{span:6,bg:'FFFFFF'})]}),
         new TableRow({children:[cel('Descrição:',{span:6,bold:true,bg:'FFFFFF'})]}),
-        new TableRow({children:[cel(complemento?.descSistemas?.[s]||'[Descrição do sistema construtivo — preencher]',{span:6,bg:'FFFFFF',italics:!complemento?.descSistemas?.[s]})]}),
+        new TableRow({children:[cel(descSistema(s),{span:6,bg:'FFFFFF'})]}),
         new TableRow({children:[cel('Recomendação para o sistema construtivo:',{span:6,bold:true,bg:'FFFFFF'})]}),
         new TableRow({children:[cel(rec||'[Gerado pela IA — revisar]',{span:6,bg:'FFFFFF',italics:!rec})]}),
         new TableRow({children:[
@@ -268,7 +326,7 @@ export async function POST(request: NextRequest) {
           cel(X(nc.local)+(nc.complemento?' — '+X(nc.complemento):''),{width:1800}),
           cel(X(nc.grauRisco),{align:AlignmentType.CENTER,width:700}),
           cel(X(nc.prioridade),{align:AlignmentType.CENTER,width:900,bold:true}),
-          cel(X(nc.cp),{width:3438}),
+          cel(X(nc.solucaoNC||nc.cp||'—'),{width:3738}),
         ]})),
         new TableRow({children:[cel('',{bg:'F2F2F2',span:6})]}),
       ]}))
@@ -583,7 +641,15 @@ export async function POST(request: NextRequest) {
           par(''),
           par('Inserir neste espaço a ART (Anotação de Responsabilidade Técnica) ou RRT (Registro de Responsabilidade Técnica) devidamente registrada no CREA ou CAU, relativa à execução deste trabalho de Laudo de Autovistoria.'),
           par(''),
-          par('[Espaço reservado para inserção da ART/RRT pelo responsável técnico]',{italics:true,align:AlignmentType.CENTER}),
+          ...(imgArt && imgArt.startsWith('data:image') ? (() => {
+            const matches = imgArt.match(/^data:([^;]+);base64,(.+)$/)
+            if (matches) {
+              const imgBuf = Buffer.from(matches[2], 'base64')
+              const ext = matches[1].includes('png') ? 'png' as const : 'jpg' as const
+              return [new Paragraph({ children: [new ImageRun({ data: imgBuf, transformation: { width: 500, height: 350 }, type: ext })], alignment: AlignmentType.CENTER })]
+            }
+            return [par('[Espaço reservado para inserção da ART/RRT pelo responsável técnico]',{italics:true,align:AlignmentType.CENTER})]
+          })() : [par('[Espaço reservado para inserção da ART/RRT pelo responsável técnico]',{italics:true,align:AlignmentType.CENTER})]),
           par(''),
           par('-.-.-.-.-',{align:AlignmentType.CENTER}),
         ]
