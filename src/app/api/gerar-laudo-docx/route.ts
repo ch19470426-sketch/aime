@@ -245,23 +245,22 @@ export async function POST(request: NextRequest) {
       if (!arr.length) continue
       const nomeS = s.replace(/_/g,' ')
       const rec = complemento?.recsSistema?.[s] || ''
-      elems41.push(h(`   ${nomeS}`, 3))
       elems41.push(new Table({ width:{size:TW,type:WidthType.DXA}, rows:[
         new TableRow({children:[cel('',{bg:'F2F2F2',span:6})]}),
         new TableRow({children:[cel('Relação de Não Conformidades e Soluções por Sistema Construtivo',{span:6,bold:true,align:AlignmentType.CENTER,bg:'FFFFFF'})]}),
         new TableRow({children:[cel('Sistema construtivo ou instalação:',{span:6,bold:true,bg:'FFFFFF'})]}),
         new TableRow({children:[cel(nomeS,{span:6,bg:'FFFFFF'})]}),
         new TableRow({children:[cel('Descrição:',{span:6,bold:true,bg:'FFFFFF'})]}),
-        new TableRow({children:[cel('[Ver tabela de sistemas construtivos]',{span:6,bg:'FFFFFF',italics:true})]}),
+        new TableRow({children:[cel(complemento?.descSistemas?.[s]||'[Descrição do sistema construtivo — preencher]',{span:6,bg:'FFFFFF',italics:!complemento?.descSistemas?.[s]})]}),
         new TableRow({children:[cel('Recomendação para o sistema construtivo:',{span:6,bold:true,bg:'FFFFFF'})]}),
         new TableRow({children:[cel(rec||'[Gerado pela IA — revisar]',{span:6,bg:'FFFFFF',italics:!rec})]}),
         new TableRow({children:[
-          cel('Foto',{bg:'F2F2F2',bold:true,align:AlignmentType.CENTER,width:600}),
-          cel('Não Conformidade',{bg:'F2F2F2',bold:true,width:2200}),
-          cel('Local ocorrência',{bg:'F2F2F2',bold:true,width:1800}),
-          cel('Grau Risco',{bg:'F2F2F2',bold:true,align:AlignmentType.CENTER,width:700}),
-          cel('Prioridade',{bg:'F2F2F2',bold:true,align:AlignmentType.CENTER,width:900}),
-          cel('Soluções',{bg:'F2F2F2',bold:true,width:3438}),
+          cel('Foto',{bg:'F2F2F2',bold:true,align:AlignmentType.CENTER,width:500}),
+          cel('Não Conformidade',{bg:'F2F2F2',bold:true,width:2500}),
+          cel('Local ocorrência',{bg:'F2F2F2',bold:true,width:1500}),
+          cel('Grau Risco',{bg:'F2F2F2',bold:true,align:AlignmentType.CENTER,width:600}),
+          cel('Prioridade',{bg:'F2F2F2',bold:true,align:AlignmentType.CENTER,width:800}),
+          cel('Soluções',{bg:'F2F2F2',bold:true,width:3738}),
         ]}),
         ...arr.map((nc:any) => new TableRow({children:[
           cel(X(nc.fotoNr),{align:AlignmentType.CENTER,width:600}),
