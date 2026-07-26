@@ -345,20 +345,33 @@ function LaudoComplemento() {
         salvarImagem(artRrt, 'art_rrt'),
       ])
 
-      // ── Gerar recomendações por sistema via IA (paralelo) ──
+      // ── Gerar recomendações por sistema + SNC para cada NC via IA ──
       const sistemaComNCs = [...new Set((ncs ?? []).map((nc: any) => nc.sistema).filter(Boolean))]
       const recsSistema: Record<string, string> = {}
+
+      // RSR — recomendação por sistema (paralelo)
       await Promise.all(sistemaComNCs.map(async (s: string) => {
         const ncsS = (ncs ?? []).filter((nc: any) => nc.sistema === s)
         try {
           const r = await fetch('/api/ia-laudo', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ tipo: 'recomendacao_sistema', dados: { sistema: s, ncs: ncsS } })
           })
           const d = await r.json()
           if (d.texto) recsSistema[s] = d.texto
-        } catch { /* segue sem recomendação para este sistema */ }
+        } catch { /* segue sem recomendação */ }
+      }))
+
+      // SNC — solução para cada NC (paralelo)
+      const ncsComSolucao = await Promise.all((ncs ?? []).map(async (nc: any) => {
+        try {
+          const r = await fetch('/api/ia-laudo', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ tipo: 'solucao_nc', dados: nc })
+          })
+          const d = await r.json()
+          return { ...nc, solucaoNC: d.texto ?? '' }
+        } catch { return nc }
       }))
 
       const res = await fetch('/api/gerar-laudo', {
@@ -366,7 +379,7 @@ function LaudoComplemento() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           cpfInspetor, chaveInspetor, cnpjoucpf, tipoServico,
-          estab, inspetor, ncs, nomeArquivo: nome,
+          estab, inspetor, ncs: ncsComSolucao, nomeArquivo: nome,
           complemento: {
             nomeConvencao, sinteseEdif,
             pathCroqui, pathFoto, pathArt, docsAnexo1,
