@@ -62,6 +62,27 @@ INSTRUÇÕES:
 - Texto corrido, sem marcadores ou listas
 - Tom profissional e objetivo`
 
+    // ── Prompt SNC: Solução Não Conformidade ────────────────────────────────
+    } else if (tipo === 'solucao_nc') {
+      const d = dados
+      // Remove os 3 primeiros chars do sistema (ex: "01_")
+      const sistemaLimpo = (d.sistema || '').slice(3).replace(/_/g,' ')
+      prompt = `Você é um engenheiro diagnóstico especialista em patologia de edificações. Utilizando apenas critérios previstos em normas técnicas, descreva a "Solução Não Conformidade" correspondente às variáveis abaixo.
+
+SISTEMA: ${sistemaLimpo}
+SUBSISTEMA: ${d.subsistema || ''}
+LOCAL / COMPLEMENTO: ${d.local || ''}${d.complemento ? ' — ' + d.complemento : ''}
+NÃO CONFORMIDADE: ${d.nc || d.anomalia || ''}
+CAUSA PROVÁVEL: ${d.cp || ''}
+
+INSTRUÇÕES:
+- A solução indica a medida técnica necessária para eliminar ou mitigar a origem da manifestação patológica
+- Indique a ação corretiva e o insumo a utilizar, considerando a abrangência do dano
+- Máximo de 200 caracteres, em até duas frases
+- Linguagem técnica objetiva, sem justificativa
+- Respeite as regras sintáticas do português, incluindo pontuação
+- Não inclua prefixos como "Solução:" ou numeração`
+
     // ── Prompt 3: Recomendações ───────────────────────────────────────────────
     } else if (tipo === 'recomendacoes') {
       const d = dados
