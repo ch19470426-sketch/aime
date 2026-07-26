@@ -157,9 +157,24 @@ export async function POST(request: NextRequest) {
       buscarImagemBase64(complemento?.pathArt    ?? ''),
     ])
 
+    // Buscar fotoBase64 de cada NC do storage (vistorias_homologadas)
+    const ncsComFoto = await Promise.all((ncs ?? []).map(async (nc: any) => {
+      if (nc.fotoBase64) return nc // já tem foto
+      if (!nc._arquivo) return nc
+      try {
+        const pasta = 'vistorias_homologadas'
+        const { data: blob } = await supabase.storage.from('aime')
+          .download(`${pasta}/${nc._arquivo}`)
+        if (!blob) return nc
+        const html = await blob.text()
+        const m = html.match(/<img[^>]+src="(data:image[^"]+)"/)
+        return m ? { ...nc, fotoBase64: m[1] } : nc
+      } catch { return nc }
+    }))
+
     const ncsPorSistema: Record<string, any[]> = {}
     sistemas.forEach(s => ncsPorSistema[s] = [])
-    ;(ncs ?? []).forEach((nc: any) => { if (ncsPorSistema[nc.sistema] !== undefined) ncsPorSistema[nc.sistema].push(nc) })
+    ;(ncsComFoto ?? []).forEach((nc: any) => { if (ncsPorSistema[nc.sistema] !== undefined) ncsPorSistema[nc.sistema].push(nc) })
 
     const stat = sistemas.map(s => {
       const arr = ncsPorSistema[s]
@@ -629,12 +644,80 @@ export async function POST(request: NextRequest) {
           par(''),
           tabA1,
           par(''),
-          // ANEXO 2
+          // ANEXO 2 — Formulários de vistoria homologados
           new Paragraph({children:[new PageBreak()]}),
           par('Anexo 2 – Resultado da Vistoria',{bold:true}),
           par(''),
-          par('[Os formulários de vistoria homologados são inseridos aqui automaticamente. Verificar se as vistorias foram homologadas no módulo 40.]',{italics:true}),
-          par(''),
+          ...((ncsComFoto ?? []).length === 0 ? [par('[Nenhuma vistoria homologada encontrada.]',{italics:true})] :
+            (ncsComFoto ?? []).flatMap((nc: any) => {
+              const nomeS = (nc.sistema||'').slice(3).replace(/_/g,' ')
+              const grStr = String(nc.grauRisco||'—')
+              const prStr = String(nc.prioridade||'—')
+              // Foto da NC
+              const fotoEls: any[] = []
+              if (nc.fotoBase64 && nc.fotoBase64.startsWith('data:image')) {
+                try {
+                  const m = nc.fotoBase64.match(/^data:([^;]+);base64,(.+)$/)
+                  if (m) {
+                    const buf = Buffer.from(m[2], 'base64')
+                    const ext = m[1].includes('png') ? 'png' as const : 'jpg' as const
+                    fotoEls.push(new Paragraph({ children: [new ImageRun({ data: buf, transformation: { width: 480, height: 280 }, type: ext })], alignment: AlignmentType.CENTER }))
+                  }
+                } catch { fotoEls.push(par('[Foto não disponível]',{italics:true,align:AlignmentType.CENTER})) }
+              } else {
+                fotoEls.push(par('[Foto não disponível]',{italics:true,align:AlignmentType.CENTER}))
+              }
+              return [
+                new Paragraph({children:[new PageBreak()]}),
+                new Table({ width:{size:TW,type:WidthType.DXA}, rows:[
+                  new TableRow({children:[
+                    cel('AIMÊ — Vistoria Homologada',{bg:'1E3A8A',span:4,bold:true,align:AlignmentType.CENTER}),
+                  ]}),
+                  new TableRow({children:[
+                    cel('Foto Nº',{bg:'F2F2F2',bold:true,width:800,align:AlignmentType.CENTER}),
+                    cel(String(nc.fotoNr||'—'),{width:800,align:AlignmentType.CENTER}),
+                    cel('Data Vistoria',{bg:'F2F2F2',bold:true,width:1500}),
+                    cel(String(nc.dataVistoria||'—'),{width:TW-3100}),
+                  ]}),
+                  new TableRow({children:[
+                    cel('Sistema',{bg:'F2F2F2',bold:true,width:800}),
+                    cel(nomeS,{width:TW-800,span:3}),
+                  ]}),
+                  new TableRow({children:[
+                    cel('Subsistema',{bg:'F2F2F2',bold:true,width:800}),
+                    cel(String(nc.subsistema||'—'),{width:2000}),
+                    cel('Local',{bg:'F2F2F2',bold:true,width:800}),
+                    cel(String(nc.local||'—')+(nc.complemento?' — '+String(nc.complemento):''),{width:TW-3600}),
+                  ]}),
+                  new TableRow({children:[
+                    cel('Anomalia',{bg:'F2F2F2',bold:true,width:800}),
+                    cel(String(nc.anomalia||'—'),{span:3,width:TW-800}),
+                  ]}),
+                  new TableRow({children:[
+                    cel('Grau de Risco',{bg:'F2F2F2',bold:true,width:800}),
+                    cel(grStr,{width:2000,align:AlignmentType.CENTER,bold:true}),
+                    cel('Prioridade',{bg:'F2F2F2',bold:true,width:800}),
+                    cel(prStr,{width:TW-3600,align:AlignmentType.CENTER,bold:true}),
+                  ]}),
+                  new TableRow({children:[
+                    cel('Não Conformidade (NC)',{bg:'F2F2F2',bold:true,width:800}),
+                    cel(String(nc.nc||nc.anomalia||'—'),{span:3,width:TW-800}),
+                  ]}),
+                  new TableRow({children:[
+                    cel('Causa Provável',{bg:'F2F2F2',bold:true,width:800}),
+                    cel(String(nc.cp||'—'),{span:3,width:TW-800}),
+                  ]}),
+                  new TableRow({children:[
+                    cel('Solução',{bg:'F2F2F2',bold:true,width:800}),
+                    cel(String(nc.solucaoNC||nc.cp||'—'),{span:3,width:TW-800}),
+                  ]}),
+                ]}),
+                par(''),
+                ...fotoEls,
+                par(''),
+              ]
+            })
+          ),
           // ANEXO 3
           new Paragraph({children:[new PageBreak()]}),
           par(' Anexo 3 – Anotações de responsabilidade dos profissionais que atuaram nesta inspeção.',{bold:true}),
