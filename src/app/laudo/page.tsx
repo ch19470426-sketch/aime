@@ -393,16 +393,7 @@ function LaudoComplemento() {
         if (dDRT.rec52) rec52 = dDRT.rec52
         if (dDRT.rec53) rec53 = dDRT.rec53
         if (dDRT.rec54) rec54 = dDRT.rec54
-      } catch { /* segue sem recomendações DRT */ } any) => {
-        try {
-          const r = await fetch('/api/ia-laudo', {
-            method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ tipo: 'solucao_nc', dados: nc })
-          })
-          const d = await r.json()
-          return { ...nc, solucaoNC: d.texto ?? '' }
-        } catch { return nc }
-      }))
+      } catch { /* segue sem recomendações DRT */ }
 
       const res = await fetch('/api/gerar-laudo', {
         method: 'POST',
