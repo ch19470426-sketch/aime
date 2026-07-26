@@ -325,18 +325,15 @@ function LaudoComplemento() {
           : base64.startsWith('data:image/jpeg') || base64.startsWith('data:image/jpg') ? 'jpg'
           : base64.startsWith('data:application/pdf') ? 'pdf' : 'jpg'
         const nomeImg = `${chaveInspetor}_${cnpjoucpf}_${sufixo}.${ext}`
-        // Converter base64 para Blob
-        const arr = base64.split(',')
-        const mime = arr[0].match(/:(.*?);/)?.[1] ?? 'image/jpeg'
-        const bstr = atob(arr[1])
-        const u8 = new Uint8Array(bstr.length)
-        for (let i = 0; i < bstr.length; i++) u8[i] = bstr.charCodeAt(i)
-        const blob = new Blob([u8], { type: mime })
-        const res = await fetch(
-          `https://asgorarunzhiojqioxzq.supabase.co/storage/v1/object/aime/laudos_imagens/${nomeImg}`,
-          { method: 'POST', headers: { 'Authorization': `Bearer sb_publishable_dH85HYKGxv3X0te627VfOw_OGaPoNMF`, 'Content-Type': mime, 'x-upsert': 'true' }, body: blob }
-        )
-        return res.ok ? `laudos_imagens/${nomeImg}` : ''
+        try {
+          const res = await fetch('/api/upload-imagem-laudo', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ base64, nomeArquivo: nomeImg }),
+          })
+          const data = await res.json()
+          return data.path ?? ''
+        } catch { return '' }
       }
 
       const [pathCroqui, pathFoto, pathArt] = await Promise.all([
