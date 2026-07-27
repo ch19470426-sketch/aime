@@ -121,67 +121,6 @@ export async function POST(request: NextRequest) {
         keepNext: true,
       })
     }
-
-    // ── Design System §3 ─────────────────────────────────────────────────────
-    function titulo(txt: string): Table {
-      return new Table({ width:{size:TW,type:WidthType.DXA},
-        borders:{top:{style:BorderStyle.NIL},bottom:{style:BorderStyle.NIL},left:{style:BorderStyle.NIL},right:{style:BorderStyle.NIL},insideH:{style:BorderStyle.NIL},insideV:{style:BorderStyle.NIL}},
-        rows:[new TableRow({children:[new TableCell({
-          children:[new Paragraph({children:[new TextRun({text:txt,bold:true,color:'FFFFFF',size:20,font:'Arial'})],spacing:{before:80,after:80},indent:{left:80}})],
-          shading:{type:ShadingType.CLEAR,color:'auto',fill:'1E3A8A'},
-          margins:{top:60,bottom:60,left:120,right:120},
-        })]})],
-        margins:{top:140,bottom:60},
-      })
-    }
-    function blocoHdr(txt: string): TableRow {
-      return new TableRow({children:[cel(txt,{bg:'1E3A8A',bold:true,span:99})]})
-    }
-    function itemRow(letra:string, crit:string, val:string, bgBadge='EEF2FF', fgBadge='1e40af'): TableRow {
-      return new TableRow({children:[
-        new TableCell({width:{size:320,type:WidthType.DXA},
-          children:[new Paragraph({children:[new TextRun({text:letra,bold:true,color:'FFFFFF',size:20,font:'Arial'})],alignment:AlignmentType.CENTER,spacing:{before:80,after:80}})],
-          shading:{type:ShadingType.CLEAR,color:'auto',fill:'1E3A8A'},
-          borders:{top:{style:BorderStyle.SINGLE,size:1,color:'1E3A8A'},bottom:{style:BorderStyle.NIL},left:{style:BorderStyle.NIL},right:{style:BorderStyle.NIL}},
-          margins:{top:40,bottom:40,left:40,right:40},
-        }),
-        new TableCell({
-          children:[new Paragraph({children:[new TextRun({text:crit,color:'1E3A8A',size:16,font:'Arial'})],spacing:{before:80,after:80}})],
-          borders:{top:{style:BorderStyle.SINGLE,size:1,color:'1E3A8A'},bottom:{style:BorderStyle.NIL},left:{style:BorderStyle.NIL},right:{style:BorderStyle.SINGLE,size:1,color:'1E3A8A'}},
-          margins:{top:40,bottom:40,left:80,right:80},
-        }),
-        new TableCell({width:{size:2800,type:WidthType.DXA},
-          children:[new Paragraph({children:[new TextRun({text:val||'—',bold:true,size:17,font:'Arial',color:fgBadge})],alignment:AlignmentType.CENTER,spacing:{before:80,after:80}})],
-          shading:{type:ShadingType.CLEAR,color:'auto',fill:bgBadge},
-          borders:{top:{style:BorderStyle.SINGLE,size:1,color:'1E3A8A'},bottom:{style:BorderStyle.NIL},left:{style:BorderStyle.NIL},right:{style:BorderStyle.NIL}},
-          margins:{top:40,bottom:40,left:80,right:80},
-        }),
-      ]})
-    }
-    function itemRec(num:string, txt:string): TableRow {
-      return new TableRow({children:[
-        new TableCell({width:{size:500,type:WidthType.DXA},
-          children:[new Paragraph({children:[new TextRun({text:num,bold:true,color:'1E3A8A',size:18,font:'Arial'})],alignment:AlignmentType.CENTER,spacing:{before:80,after:80}})],
-          shading:{type:ShadingType.CLEAR,color:'auto',fill:'EEF2FF'},
-          borders:{top:{style:BorderStyle.SINGLE,size:1,color:'1E3A8A'},bottom:{style:BorderStyle.NIL},left:{style:BorderStyle.NIL},right:{style:BorderStyle.SINGLE,size:1,color:'1E3A8A'}},
-          margins:{top:40,bottom:40,left:40,right:40},
-        }),
-        new TableCell({
-          children:[new Paragraph({children:[new TextRun({text:txt,size:17,color:'333333',font:'Arial'})],spacing:{before:80,after:80}})],
-          borders:{top:{style:BorderStyle.SINGLE,size:1,color:'1E3A8A'},bottom:{style:BorderStyle.NIL},left:{style:BorderStyle.NIL},right:{style:BorderStyle.NIL}},
-          margins:{top:40,bottom:40,left:80,right:80},
-        }),
-      ]})
-    }
-    function blocoTabela(rows: any[]): Table {
-      return new Table({width:{size:TW,type:WidthType.DXA},
-        borders:{top:{style:BorderStyle.SINGLE,size:3,color:'1E3A8A'},bottom:{style:BorderStyle.SINGLE,size:3,color:'1E3A8A'},left:{style:BorderStyle.SINGLE,size:3,color:'1E3A8A'},right:{style:BorderStyle.SINGLE,size:3,color:'1E3A8A'},insideH:{style:BorderStyle.SINGLE,size:1,color:'1E3A8A'},insideV:{style:BorderStyle.NIL}},
-        rows, margins:{bottom:100},
-      })
-    }
-
-
-
     // ── Design System §3 ─────────────────────────────────────────────────────
     function titulo(txt: string): Table {
       return new Table({ width:{size:TW,type:WidthType.DXA},
