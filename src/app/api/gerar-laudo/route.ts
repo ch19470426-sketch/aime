@@ -407,7 +407,7 @@ export async function POST(request: NextRequest) {
     // ── §3.4 — Seção 4.2 Estatística + gráficos ──────────────────────────────
     const maxT = Math.max(...stat.map(s=>s.t),1)
     const S42 = `
-<div class="titulo">4.2 – Análise Estatística das Manifestações Patológicas</div>
+<div class="titulo">4.2.- Análise Estatística das Manifestações Patológicas.</div>
 <div class="bloco">
   <div class="bloco-header">Estatística por Sistema Construtivo e Prioridade</div>
   <table>
@@ -487,7 +487,7 @@ export async function POST(request: NextRequest) {
 
     // ── §3.6 — Seção 5 Recomendações ─────────────────────────────────────────
     const S5 = `
-<div class="titulo">5 – Recomendações sobre Manutenção, Uso, Sustentabilidade e Gerais</div>
+<div class="titulo">5.- Recomendações sobre a Manutenção, Uso, Sustentabilidade e Gerais.</div>
 <div class="bloco">
   <div class="bloco-header">Recomendações Técnicas</div>
   <div class="item-rec">
@@ -615,15 +615,15 @@ ${cabInspetor?`<div class="cab">${cabInspetor}</div>`:''}
 <p style="text-align:right;font-size:8.5pt;color:#222;margin:0">${xe(estab?.cidade)}/${xe(estab?.uf)}, ${dataHoje}</p>
 <br><br><br><br><br>
 
-<div class="titulo">1 – Considerações Preliminares</div>
+<div class="titulo">1.- Considerações Preliminares.</div>
 <p>Este ${titulo} é o documento completo resultante do trabalho executado na vistoria da edificação, análise, classificação e priorização das manifestações patológicas, conforme exigências da ABNT/NBR 16.747/2020 e legislação vigente.</p>
 
 ${S11}
 
-<div class="titulo">1.2 – Objetivo</div>
+<div class="titulo">1.2.- Objetivo.</div>
 <p>Avaliar as condições de segurança, funcionalidade, habitabilidade e manutenção ${tipoServico==='43'?'do imóvel':'da edificação'}, de acordo com os critérios da ABNT NBR 16.747/2020 e normas correlatas.</p>
 
-<div class="titulo">1.3 – Plano de Trabalho</div>
+<div class="titulo">1.3.- Plano de Trabalho.</div>
 <p>As etapas básicas desenvolvidas para a realização do presente trabalho constam na tabela que segue.</p>
 <table>
   <tr>
@@ -641,41 +641,82 @@ ${S11}
   <tr><td style="text-align:center">1</td><td style="text-align:center">1</td><td></td><td></td><td>Entrega do laudo ao síndico ou responsável</td></tr>
 </table>
 
-<div class="titulo">1.4 – Condições e Limitações</div>
+<div class="titulo">1.4.- Condições e limitações.</div>
+<p>O ${titulo} segue as condições abaixo relacionadas, além de estar sujeito às seguintes limitações:</p>
 <ul>
   <li>Neste trabalho computamos como corretos os elementos documentais consultados e as informações prestadas por terceiros, de boa fé e confiáveis;</li>
-  <li>O trabalho apresentado e o resultado final são válidos apenas para a sequência metodológica apresentada;</li>
-  <li>O responsável técnico não assume responsabilidade sobre matéria alheia ao exercício profissional.</li>
+  <li>O trabalho apresentado e o resultado final são válidos apenas para a sequência metodológica apresentada, sendo vedada a utilização deste laudo em conexão com qualquer outro trabalho, exceto como referência para contratação dos serviços de manutenção;</li>
+  <li>O responsável técnico não assume responsabilidade sobre matéria alheia ao exercício profissional, estabelecido em leis, códigos e regulamentos.</li>
 </ul>
 
 <div class="section">
-<div class="titulo">2 – Metodologia Adotada</div>
-<p>A metodologia adotada para este trabalho segue as normas da ABNT, IBAPE e legislação estadual e municipal.</p>
+<div class="titulo">2.- Metodologia adotada para o Trabalho de Autovistoria.</div>
+<p>A metodologia adotada para este trabalho segue as normas da ABNT, IBAPE e legislação estadual e municipal que regulamentam a autovistoria.</p>
 
-<div class="titulo">2.1 – NBR-16.747/2020</div>
-<p>A metodologia básica foi pautada nos requisitos da NBR-16.747/2020 (Inspeção Predial — Diretrizes, Conceitos, Terminologia e Procedimentos) da ABNT.</p>
+<div class="titulo">2.1.- Norma Brasileira para Inspeção Predial — NBR-16.747/2020.</div>
+<p>A metodologia básica para execução do presente trabalho foi pautada nos requisitos constantes da NBR-16.747/2020 (Inspeção Predial — Diretrizes, Conceitos, Terminologia e Procedimentos) da Associação Brasileira de Normas Técnicas — ABNT.</p>
+<p><i><b>"Abrangências da análise</b></i></p>
+<p><i>A inspeção predial baseia-se na constatação e análise do estado aparente de desempenho dos sistemas construtivos na fase de uso, operação e manutenção, considerando os requisitos dos usuários.</i></p>
+<p><i>A análise consiste na constatação da situação da edificação quanto à sua capacidade de atender às suas funções segundo os requisitos dos usuários, com base na análise fundamentalmente sensorial e efetuada por um profissional habilitado."</i></p>
 
-<div class="titulo">2.2 – Norma de Inspeção Predial do IBAPE/2025</div>
-<p>A Norma do IBAPE fixa diretrizes, conceitos, terminologias, critérios e procedimentos relativos à Inspeção Predial, abrangendo os requisitos mínimos de:</p>
+<div class="titulo">2.2.- Norma de Inspeção Predial do IBAPE/2025.</div>
+<p>A Norma de Inspeção Predial do IBAPE fixa diretrizes, conceitos, terminologias, critérios e procedimentos relativos à atividade de Inspeção Predial, abrangendo os requisitos mínimos de:</p>
 <ul>
-  <li><b>Segurança:</b> estrutural, contra incêndio e no uso e operação;</li>
-  <li><b>Habitabilidade:</b> estanqueidade, saúde, higiene e qualidade do ar, funcionalidade e acessibilidade;</li>
-  <li><b>Sustentabilidade:</b> durabilidade e manutenibilidade.</li>
+  <li><i>Segurança: segurança estrutural; segurança contra incêndio; segurança no uso e na operação;</i></li>
+  <li><i>Habitabilidade: estanqueidade; saúde, higiene e qualidade do ar; funcionalidade e acessibilidade;</i></li>
+  <li><i>Sustentabilidade: durabilidade e manutenibilidade.</i></li>
 </ul>
+<p>A norma se aplica a todas as tipologias de edificações, sendo elas públicas ou privadas, devendo ser observadas as características técnicas e complexidades dos sistemas construtivos.</p>
+<p><i>As normas ABNT apresentadas a seguir são referências auxiliares e complementares à aplicação da norma IBAPE: NBR 16747: Inspeção Predial; NBR 5674: Manutenção de Edificações; NBR 15575: Desempenho; NBR 14037: Manual de Operação, Uso e Manutenção; NBR 16280: Reforma em Edificações.</i></p>
 
-<div class="titulo">2.3 – Critérios e Prioridades</div>
-<p>O critério baseia-se na análise do risco (GUT adaptado): Gravidade, Urgência e Tendência de evolução.</p>
+<div class="titulo">2.3.- Critérios e Metodologia da Inspeção.</div>
+<p><b>2.3.1.- Critérios.</b></p>
+<p>O critério utilizado para elaboração de laudos baseia-se na análise do risco oferecido aos usuários, ao meio ambiente e ao patrimônio, diante as condições observadas nos sistemas construtivos durante a vistoria.</p>
+<p>A análise do risco consiste na classificação das anomalias e falhas identificadas nos diversos sistemas construtivos e instalações de uma edificação, levando em consideração: a Gravidade, a Urgência e a Tendência de evolução, usando a metodologia GUT adaptado.</p>
+<p><b>2.3.2.- Método.</b></p>
+<p>O método empregado consiste em: determinar o nível da inspeção predial (NBR 16.747); verificar e analisar a documentação; obter informações com responsáveis pela edificação; vistoriar os sistemas construtivos e instalações; classificar e priorizar as manifestações patológicas; e elaborar o laudo técnico.</p>
+<p>O planejamento da vistoria inclui uma entrevista com o responsável pela edificação, abordando características técnicas e aspectos cotidianos da manutenção do prédio, de forma a antecipar as dificuldades do trabalho.</p>
+<p><b>2.3.3.- Classificação das Inspeções Prediais (NBR 16.747) e Edificações.</b></p>
+<p>A classificação das inspeções prediais e edificações devem ser efetuadas segundo critérios definidos em normas técnicas, conforme segue:</p>
+<p>Quanto ao NÍVEL de inspeção predial as edificações são classificadas quanto a sua complexidade e elaboração de laudo:</p>
 <ul>
-  <li><b>Prioridade Alta:</b> ações imediatas — prazo inferior a 8 meses;</li>
-  <li><b>Prioridade Média:</b> ações a curto prazo — prazo inferior a 15 meses;</li>
-  <li><b>Prioridade Baixa:</b> ações planejadas — prazo não superior a 30 meses.</li>
+  <li><b>NÍVEL 1:</b> Edificações mais simples, sem necessidade de equipe multidisciplinar, necessário somente um profissional: Engenheiro Civil ou Arquiteto;</li>
+  <li><b>NÍVEL 2:</b> Edifícios multifamiliares ou comerciais sem sistemas construtivos mais complexos como climatização, automação, etc, somente com elevadores. Requer Engenheiro Civil ou Arquiteto e Engenheiro Elétrico;</li>
+  <li><b>NÍVEL 3:</b> Edificações complexas onde há sistemas implantados com manutenção regulamentada pela NBR 5674 da ABNT. Requer equipe multidisciplinar composta por Engenheiro Civil ou Arquiteto, Engenheiro Elétrico e Engenheiro Mecânico.</li>
+</ul>
+<p><b>Quanto ao RISCO</b> as edificações são classificadas considerando o risco oferecido aos usuários, ao meio ambiente e ao patrimônio:</p>
+<ul>
+  <li><b>CRÍTICO:</b> Relativo ao risco que pode provocar danos contra a saúde e segurança das pessoas e/ou meio ambiente, perda excessiva de desempenho causando possível interdição. Recomenda-se intervenção imediata;</li>
+  <li><b>REGULAR:</b> Relativo ao risco que pode provocar a perda de funcionalidade sem prejuízo à operação direta de sistemas, perda pontual de desempenho. Recomenda-se intervenção a curto prazo;</li>
+  <li><b>MÍNIMO:</b> Relativo a pequenos prejuízos à estética ou atividade programável e planejada. Recomenda-se programar intervenção a médio prazo.</li>
+</ul>
+<p>As Prioridades para efetuar as manutenções das não conformidades são apuradas por metodologias técnicas como a GUT adaptado (Gravidade, Urgência e Tendência):</p>
+<ul>
+  <li><b>Prioridade 1 (Alta):</b> ações necessárias de imediato — prazo inferior a 8 meses;</li>
+  <li><b>Prioridade 2 (Média):</b> ações corretivas a médio prazo — prazo inferior a 15 meses;</li>
+  <li><b>Prioridade 3 (Baixa):</b> ações planejadas a longo prazo — prazo não superior a 30 meses.</li>
+</ul>
+<p><b>2.3.4.- Critérios para avaliação da manutenção, uso da edificação e do desempenho.</b></p>
+<p>As recomendações quanto a manutenção, uso da edificação e sustentabilidade serão efetuadas segundo os critérios que seguem.</p>
+<p><b>Quanto a MANUTENÇÃO</b> da edificação será avaliada a coerência entre o plano de manutenção apresentado e o recomendado, classificando como: Totalmente atende; Parcialmente atende; Não atende.</p>
+<p><b>Quanto as CONDIÇÕES DE USO</b> a análise de cada um dos sistemas construtivos será efetuada em relação ao tipo de uso previsto em projeto:</p>
+<ul>
+  <li><b>USO REGULAR</b> é aquele onde a edificação é ocupada e utilizada dentro dos parâmetros previstos no projeto;</li>
+  <li><b>USO IRREGULAR</b> quando a edificação se encontra ocupada e utilizada de forma irregular, com o uso divergente do previsto no projeto.</li>
+</ul>
+<p><b>Quanto a DESEMPENHO</b> a edificação é classificada por níveis:</p>
+<ul>
+  <li><b>BOM,</b> anomalias inexistentes ou leves, sem impacto relevante no desempenho;</li>
+  <li><b>REGULAR,</b> anomalias leves a moderadas, com impactos pontuais. Exige manutenções corretivas programáveis;</li>
+  <li><b>RUIM,</b> anomalias significativas, com prejuízo ao desempenho, durabilidade ou segurança. Requer intervenções corretivas prioritárias;</li>
+  <li><b>CRÍTICO,</b> anomalias graves, com risco à segurança, à saúde ou à funcionalidade. Demanda intervenção imediata.</li>
 </ul>
 </div>
 
 <div class="section">
-<div class="titulo">3 – Resultado da Vistoria Técnica e Classificação</div>
+<div class="titulo">3.- Resultado da Vistoria Técnica e Classificação da Edificação.</div>
 
-<div class="titulo">3.1 – Descrição da Vistoria Técnica</div>
+<div class="titulo">3.1.- Descrição da Vistoria Técnica.</div>
 <div class="bloco">
   <div class="bloco-header">Descrição da Realização da Vistoria — Nível da Inspeção: ${xe(nivel)||'—'}</div>
   <div style="padding:8px 10px">
@@ -683,17 +724,20 @@ ${S11}
   </div>
 </div>
 
-<div class="titulo">3.2 – Resultado da Vistoria</div>
+<div class="titulo">3.2.- Resultado da Vistoria.</div>
 <p>O resultado da vistoria, com imagens dos formulários de coleta de dados, é apresentado no Anexo 2 deste documento.</p>
 
 ${S33}
 </div>
 
 <div class="section">
-<div class="titulo">4 – Relação de Não Conformidades e Análise das Manifestações Patológicas</div>
+<div class="titulo">4.- Relação de Não Conformidades e Análise das Manifestações Patológicas.</div>
 
-<div class="titulo">4.1 – Relação de Não Conformidades e Soluções</div>
-<p>Prioridade apurada pelo grau de risco (0–100): superior a 64 pontos = Alta; entre 35 e 64 = Média; inferior a 35 = Baixa.</p>
+<div class="titulo">4.1.- Relação de Não Conformidades e Soluções.</div>
+<p>Neste item é apresentado, de forma clara e concisa, o conjunto de manifestações patológicas identificadas na vistoria, suas localizações e o número da foto no respectivo formulário de vistoria.</p>
+<p>Salientamos, também, a importância do condomínio documentar as manutenções corretivas realizadas no pós inspeção, indicando a solução aplicada, local, data e responsável técnico pela execução.</p>
+<p>A prioridade para manutenção de cada uma das não conformidades foi obtida pelo grau de risco (0 a 100), calculado com base nos parâmetros: gravidade, urgência, tendência e exposição ao risco.</p>
+<p>Quanto a definição das prioridades foi adotado o critério: grau de risco superior a 64 pontos, prioridade ALTA; grau de risco menor que 65 pontos e maior que 34 pontos, prioridade MÉDIA; grau de risco menor que 35 pontos, prioridade BAIXA.</p>
 ${S41||'<p><i>Nenhuma não conformidade registrada.</i></p>'}
 
 ${S42}
@@ -704,11 +748,11 @@ ${S5}
 </div>
 
 <div class="section">
-<div class="titulo">6 – Conclusão</div>
+<div class="titulo">6.- Conclusão.</div>
 <p>Diante do exposto, a edificação vistoriada apresenta ${totT>0?`${totT} manifestações patológicas: ${totA} de prioridade Alta, ${totM} de prioridade Média e ${totB} de prioridade Baixa`:'ausência de manifestações patológicas relevantes'}.</p>
 <p>Recomendamos nova vistoria em prazo máximo de 5 anos.</p>
 
-<div class="titulo">7 – Encerramento</div>
+<div class="titulo">7.- Encerramento.</div>
 <ul>
   <li>Anexo 1 – Relação de documentos solicitados e analisados;</li>
   <li>Anexo 2 – Resultado da Vistoria (formulários homologados);</li>
