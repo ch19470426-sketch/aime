@@ -762,7 +762,7 @@ export async function POST(request: NextRequest) {
           par(''),
           tabA1,
           par(''),
-          // ANEXO 2 — Layout idêntico ao formulário de vistoria (PDF)
+          // ANEXO 2 — layout idêntico ao Formulario_autovistoria_A4_Forms.html
           new Paragraph({children:[new PageBreak()]}),
           par('Anexo 2 – Resultado da Vistoria',{bold:true}),
           par(''),
@@ -770,148 +770,158 @@ export async function POST(request: NextRequest) {
             ? [par('[Nenhuma vistoria homologada encontrada para este serviço.]',{italics:true})]
             : (ncsComFoto ?? []).flatMap((nc: any, idx: number) => {
 
-                const nomeS   = X(nc.sistema).slice(3).replace(/_/g,' ')
-                const nomeDoc = cnpjoucpf?.length === 11 ? 'CPF' : 'CNPJ'
-                const grNum   = Number(nc.grauRisco)
-                const corGR   = grNum >= 64 ? 'DC2626' : grNum >= 35 ? 'D97706' : '16A34A'
-                const bgGR    = grNum >= 64 ? 'FEE2E2' : grNum >= 35 ? 'FEF9C3' : 'DCFCE7'
-                const priSim  = nc.prioridade==='Alta' ? '▲ Alta' : nc.prioridade==='Baixa' ? '▼ Baixa' : '■ Média'
+                const nomeS  = X(nc.sistema).slice(3).replace(/_/g,' ')
+                const grNum  = Number(nc.grauRisco)
+                // Cores por prioridade (igual ao formulário HTML)
+                const corGR   = grNum >= 64 ? 'E24B4A' : grNum >= 35 ? 'E8A000' : '1A7A3C'
+                const bgBadge = grNum >= 64 ? 'FCEBEB' : grNum >= 35 ? 'FFF0C2' : 'E6F5EE'
+                const fgBadge = grNum >= 64 ? 'CC0000' : grNum >= 35 ? '8A5C00' : '1A7A3C'
+                const priSim  = grNum >= 64 ? '▲ Alta' : grNum >= 35 ? '● Média' : '▼ Baixa'
 
-                // Helper: linha de label + valor no padrão do formulário
-                function linhaForm(label: string, valor: string, w=TW): TableRow {
-                  return new TableRow({ children:[
-                    new TableCell({ width:{size:w,type:WidthType.DXA},
-                      children:[
-                        new Paragraph({children:[new TextRun({text:label,bold:true,size:14,color:'1E5C96',font:'Arial'})],spacing:{before:40,after:0}}),
-                        new Paragraph({children:[new TextRun({text:valor||'—',size:16,color:'111827',font:'Arial'})],spacing:{before:0,after:40}}),
-                      ],
-                      borders:{top:{style:BorderStyle.SINGLE,size:1,color:'C3D4F0'},bottom:{style:BorderStyle.SINGLE,size:1,color:'C3D4F0'},left:{style:BorderStyle.SINGLE,size:1,color:'C3D4F0'},right:{style:BorderStyle.SINGLE,size:1,color:'C3D4F0'}},
-                      margins:{top:40,bottom:40,left:100,right:100},
-                    }),
-                  ]})
-                }
-
-                function duasLinhasForm(l1:string,v1:string,w1:number, l2:string,v2:string,w2:number): TableRow {
-                  return new TableRow({ children:[
-                    new TableCell({ width:{size:w1,type:WidthType.DXA},
-                      children:[
-                        new Paragraph({children:[new TextRun({text:l1,bold:true,size:14,color:'1E5C96',font:'Arial'})],spacing:{before:40,after:0}}),
-                        new Paragraph({children:[new TextRun({text:v1||'—',size:16,color:'111827',font:'Arial'})],spacing:{before:0,after:40}}),
-                      ],
-                      borders:{top:{style:BorderStyle.SINGLE,size:1,color:'C3D4F0'},bottom:{style:BorderStyle.SINGLE,size:1,color:'C3D4F0'},left:{style:BorderStyle.SINGLE,size:1,color:'C3D4F0'},right:{style:BorderStyle.SINGLE,size:1,color:'C3D4F0'}},
-                      margins:{top:40,bottom:40,left:100,right:100},
-                    }),
-                    new TableCell({ width:{size:w2,type:WidthType.DXA},
-                      children:[
-                        new Paragraph({children:[new TextRun({text:l2,bold:true,size:14,color:'1E5C96',font:'Arial'})],spacing:{before:40,after:0}}),
-                        new Paragraph({children:[new TextRun({text:v2||'—',size:16,color:'111827',font:'Arial'})],spacing:{before:0,after:40}}),
-                      ],
-                      borders:{top:{style:BorderStyle.SINGLE,size:1,color:'C3D4F0'},bottom:{style:BorderStyle.SINGLE,size:1,color:'C3D4F0'},left:{style:BorderStyle.SINGLE,size:1,color:'C3D4F0'},right:{style:BorderStyle.SINGLE,size:1,color:'C3D4F0'}},
-                      margins:{top:40,bottom:40,left:100,right:100},
-                    }),
-                  ]})
-                }
-
-                function tresLinhasForm(l1:string,v1:string,w1:number, l2:string,v2:string,w2:number, l3:string,v3:string,w3:number): TableRow {
-                  const mkCell = (lbl:string,val:string,w:number) => new TableCell({ width:{size:w,type:WidthType.DXA},
-                    children:[
-                      new Paragraph({children:[new TextRun({text:lbl,bold:true,size:14,color:'1E5C96',font:'Arial'})],spacing:{before:40,after:0}}),
-                      new Paragraph({children:[new TextRun({text:val||'—',size:16,color:'111827',font:'Arial'})],spacing:{before:0,after:40}}),
-                    ],
-                    borders:{top:{style:BorderStyle.SINGLE,size:1,color:'C3D4F0'},bottom:{style:BorderStyle.SINGLE,size:1,color:'C3D4F0'},left:{style:BorderStyle.SINGLE,size:1,color:'C3D4F0'},right:{style:BorderStyle.SINGLE,size:1,color:'C3D4F0'}},
-                    margins:{top:40,bottom:40,left:100,right:100},
-                  })
-                  return new TableRow({ children:[mkCell(l1,v1,w1),mkCell(l2,v2,w2),mkCell(l3,v3,w3)] })
-                }
-
-                function quatroLinhasForm(l1:string,v1:string, l2:string,v2:string, l3:string,v3:string, l4:string,v4:string): TableRow {
-                  const w = Math.floor(TW/4)
-                  const mkCell = (lbl:string,val:string) => new TableCell({ width:{size:w,type:WidthType.DXA},
-                    children:[
-                      new Paragraph({children:[new TextRun({text:lbl,bold:true,size:14,color:'1E5C96',font:'Arial'})],spacing:{before:40,after:0}}),
-                      new Paragraph({children:[new TextRun({text:val||'—',size:16,color:'111827',font:'Arial'})],spacing:{before:0,after:40}}),
-                    ],
-                    borders:{top:{style:BorderStyle.SINGLE,size:1,color:'C3D4F0'},bottom:{style:BorderStyle.SINGLE,size:1,color:'C3D4F0'},left:{style:BorderStyle.SINGLE,size:1,color:'C3D4F0'},right:{style:BorderStyle.SINGLE,size:1,color:'C3D4F0'}},
-                    margins:{top:40,bottom:40,left:100,right:100},
-                  })
-                  return new TableRow({ children:[mkCell(l1,v1),mkCell(l2,v2),mkCell(l3,v3),mkCell(l4,v4)] })
-                }
-
-                function secHeader(txt: string): TableRow {
-                  return new TableRow({ children:[new TableCell({ width:{size:TW,type:WidthType.DXA},
-                    children:[new Paragraph({children:[new TextRun({text:txt,bold:true,size:16,color:'FFFFFF',font:'Arial'})],spacing:{before:60,after:60},indent:{left:80}})],
-                    shading:{type:ShadingType.CLEAR,color:'auto',fill:'1E3A8A'},
+                // ── Helpers ─────────────────────────────────────────────────
+                // block-title: fundo #185FA5, texto branco, uppercase bold
+                function blockTitle(txt: string): TableRow {
+                  return new TableRow({children:[new TableCell({
+                    width:{size:TW,type:WidthType.DXA},
+                    children:[new Paragraph({
+                      children:[new TextRun({text:txt.toUpperCase(),bold:true,size:14,color:'FFFFFF',font:'Arial'})],
+                      spacing:{before:40,after:40},indent:{left:80},
+                    })],
+                    shading:{type:ShadingType.CLEAR,color:'auto',fill:'185FA5'},
                     margins:{top:0,bottom:0,left:0,right:0},
                     columnSpan:10,
                   })]})
                 }
 
-                function mkTable(rows: TableRow[]): Table {
-                  return new Table({ width:{size:TW,type:WidthType.DXA},
-                    borders:{top:{style:BorderStyle.SINGLE,size:2,color:'C3D4F0'},bottom:{style:BorderStyle.SINGLE,size:2,color:'C3D4F0'},left:{style:BorderStyle.SINGLE,size:2,color:'C3D4F0'},right:{style:BorderStyle.SINGLE,size:2,color:'C3D4F0'},insideH:{style:BorderStyle.NIL},insideV:{style:BorderStyle.NIL}},
-                    rows, margins:{bottom:60},
+                // campo: label uppercase cinza acima, valor em caixa com borda #B5D4F4
+                function campo(label: string, valor: string, w: number): TableCell {
+                  return new TableCell({
+                    width:{size:w,type:WidthType.DXA},
+                    children:[
+                      new Paragraph({children:[new TextRun({text:label.toUpperCase(),bold:true,size:12,color:'4a6480',font:'Arial'})],spacing:{before:40,after:20}}),
+                      new Paragraph({children:[new TextRun({text:valor||'—',size:16,color:'0C2744',font:'Arial'})],
+                        border:{top:{style:BorderStyle.SINGLE,size:1,color:'B5D4F4'},bottom:{style:BorderStyle.SINGLE,size:1,color:'B5D4F4'},left:{style:BorderStyle.SINGLE,size:1,color:'B5D4F4'},right:{style:BorderStyle.SINGLE,size:1,color:'B5D4F4'}} as any,
+                        spacing:{before:20,after:40},indent:{left:60},
+                      }),
+                    ],
+                    margins:{top:40,bottom:40,left:80,right:80},
+                    borders:{top:{style:BorderStyle.NIL},bottom:{style:BorderStyle.NIL},left:{style:BorderStyle.NIL},right:{style:BorderStyle.NIL}},
                   })
                 }
 
-                // Cabeçalho AIMÊ
-                const tabCab = new Table({ width:{size:TW,type:WidthType.DXA},
+                function mkRow(...cells: TableCell[]): TableRow {
+                  return new TableRow({children:cells})
+                }
+
+                function bloco(rows: TableRow[]): Table {
+                  return new Table({
+                    width:{size:TW,type:WidthType.DXA},
+                    borders:{
+                      top:{style:BorderStyle.SINGLE,size:2,color:'B5D4F4'},
+                      bottom:{style:BorderStyle.SINGLE,size:2,color:'B5D4F4'},
+                      left:{style:BorderStyle.SINGLE,size:2,color:'B5D4F4'},
+                      right:{style:BorderStyle.SINGLE,size:2,color:'B5D4F4'},
+                      insideH:{style:BorderStyle.NIL},
+                      insideV:{style:BorderStyle.NIL},
+                    },
+                    rows,
+                    margins:{bottom:80},
+                  })
+                }
+
+                // ── Cabeçalho do formulário ──────────────────────────────────
+                const tabCab = new Table({
+                  width:{size:TW,type:WidthType.DXA},
                   borders:{top:{style:BorderStyle.NIL},bottom:{style:BorderStyle.NIL},left:{style:BorderStyle.NIL},right:{style:BorderStyle.NIL},insideH:{style:BorderStyle.NIL},insideV:{style:BorderStyle.NIL}},
-                  rows:[new TableRow({children:[new TableCell({ width:{size:TW,type:WidthType.DXA},
+                  rows:[new TableRow({children:[new TableCell({
+                    width:{size:TW,type:WidthType.DXA},
                     children:[
-                      new Paragraph({children:[new TextRun({text:'AIMÊ',bold:true,size:26,color:'FFFFFF',font:'Arial'}),new TextRun({text:'  Autovistoria',bold:true,size:22,color:'FFFFFF',font:'Arial'})],spacing:{before:80,after:20},indent:{left:80}}),
-                      new Paragraph({children:[new TextRun({text:'Formulário para registro de manifestações patológicas e avaliação de riscos',size:14,color:'B5D4F4',font:'Arial'})],spacing:{before:0,after:80},indent:{left:80}}),
+                      new Paragraph({children:[
+                        new TextRun({text:'AIMÊ',bold:true,size:24,color:'FFFFFF',font:'Arial'}),
+                        new TextRun({text:'  Autovistoria',bold:true,size:20,color:'FFFFFF',font:'Arial'}),
+                      ],spacing:{before:80,after:16},indent:{left:80}}),
+                      new Paragraph({children:[
+                        new TextRun({text:'Formulário para registro de manifestações patológicas e avaliação de riscos',size:13,color:'B5D4F4',font:'Arial'}),
+                      ],spacing:{before:0,after:80},indent:{left:80}}),
                     ],
-                    shading:{type:ShadingType.CLEAR,color:'auto',fill:'1E3A8A'},
-                    margins:{top:60,bottom:60,left:120,right:120},
+                    shading:{type:ShadingType.CLEAR,color:'auto',fill:'0C447C'},
+                    margins:{top:80,bottom:80,left:120,right:120},
                   })]})],
-                  margins:{bottom:0},
+                  margins:{bottom:100},
                 })
 
-                // IDENTIFICAÇÃO
-                const tabIdent = mkTable([
-                  secHeader('IDENTIFICAÇÃO'),
-                  duasLinhasForm(nomeDoc, fmtDoc(X(nc.cnpjoucpf||cnpjoucpf)), Math.floor(TW/2), 'RAZÃO SOCIAL', X(estab?.razao_social_nome), TW-Math.floor(TW/2)),
+                // ── IDENTIFICAÇÃO ────────────────────────────────────────────
+                const tabIdent = bloco([
+                  blockTitle('Identificação'),
+                  mkRow(
+                    campo(cnpjoucpf?.length===11?'CPF':'CNPJ', fmtDoc(X(nc.cnpjoucpf||cnpjoucpf)), Math.floor(TW/2)),
+                    campo('Razão Social / Nome', X(estab?.razao_social_nome), TW-Math.floor(TW/2)),
+                  ),
                 ])
 
-                // MANIFESTAÇÃO PATOLÓGICA
-                const tabMP = mkTable([
-                  secHeader('MANIFESTAÇÃO PATOLÓGICA'),
-                  tresLinhasForm('SISTEMA',nomeS,Math.floor(TW/3),'SUBSISTEMA',X(nc.subsistema),Math.floor(TW/3),'ANOMALIA / FALHA',X(nc.anomalia),TW-2*Math.floor(TW/3)),
-                  tresLinhasForm('ORIGEM',X(nc.origem||nc.resultado||'—'),Math.floor(TW/3),'LOCAL DE OCORRÊNCIA',X(nc.local),Math.floor(TW/3),'COMPLEMENTO DO LOCAL',X(nc.complemento),TW-2*Math.floor(TW/3)),
+                // ── MANIFESTAÇÃO PATOLÓGICA ──────────────────────────────────
+                const tabMP = bloco([
+                  blockTitle('Manifestação Patológica'),
+                  mkRow(
+                    campo('Sistema', nomeS, Math.floor(TW/3)),
+                    campo('Subsistema', X(nc.subsistema), Math.floor(TW/3)),
+                    campo('Anomalia / Falha', X(nc.anomalia), TW-2*Math.floor(TW/3)),
+                  ),
+                  mkRow(
+                    campo('Origem', X(nc.origem||nc.resultado||'—'), Math.floor(TW/3)),
+                    campo('Local de Ocorrência', X(nc.local), Math.floor(TW/3)),
+                    campo('Complemento do Local', X(nc.complemento), TW-2*Math.floor(TW/3)),
+                  ),
                 ])
 
-                // CLASSIFICAÇÃO DE RISCO
-                const tabRisco = mkTable([
-                  secHeader('CLASSIFICAÇÃO DE RISCO'),
-                  quatroLinhasForm('GRAVIDADE',X(nc.gravidade),'URGÊNCIA',X(nc.urgencia),'ABRANGÊNCIA',X(nc.abrangencia),'EXPOSIÇÃO',X(nc.exposicao)),
-                  new TableRow({ children:[
-                    new TableCell({ width:{size:Math.floor(TW*0.4),type:WidthType.DXA},
-                      columnSpan:1,
+                // ── CLASSIFICAÇÃO DE RISCO ───────────────────────────────────
+                const W4 = Math.floor(TW/4)
+                const tabRisco = bloco([
+                  blockTitle('Classificação de Risco'),
+                  mkRow(
+                    campo('Gravidade',   X(nc.gravidade),    W4),
+                    campo('Urgência',    X(nc.urgencia),     W4),
+                    campo('Abrangência', X(nc.abrangencia),  W4),
+                    campo('Exposição',   X(nc.exposicao),    TW-3*W4),
+                  ),
+                  new TableRow({children:[
+                    // Grau de Risco — fundo #E6F1FB, GR em fonte grande
+                    new TableCell({
+                      width:{size:Math.floor(TW/2),type:WidthType.DXA},
                       children:[
-                        new Paragraph({children:[new TextRun({text:'GRAU DE RISCO',bold:true,size:14,color:'1E5C96',font:'Arial'})],spacing:{before:60,after:20}}),
-                        new Paragraph({children:[new TextRun({text:X(nc.grauRisco),bold:true,size:48,color:corGR,font:'Arial'})],spacing:{before:0,after:60}}),
+                        new Paragraph({children:[new TextRun({text:'GRAU DE RISCO',bold:true,size:12,color:'4a6480',font:'Arial'})],spacing:{before:60,after:20}}),
+                        new Paragraph({children:[new TextRun({text:X(nc.grauRisco),bold:true,size:40,color:corGR,font:'Arial'})],spacing:{before:0,after:60}}),
                       ],
-                      shading:{type:ShadingType.CLEAR,color:'auto',fill:bgGR},
-                      borders:{top:{style:BorderStyle.SINGLE,size:1,color:'C3D4F0'},bottom:{style:BorderStyle.SINGLE,size:1,color:'C3D4F0'},left:{style:BorderStyle.SINGLE,size:1,color:'C3D4F0'},right:{style:BorderStyle.SINGLE,size:1,color:'C3D4F0'}},
+                      shading:{type:ShadingType.CLEAR,color:'auto',fill:'E6F1FB'},
+                      borders:{top:{style:BorderStyle.NIL},bottom:{style:BorderStyle.NIL},left:{style:BorderStyle.NIL},right:{style:BorderStyle.SINGLE,size:1,color:'B5D4F4'}},
                       margins:{top:60,bottom:60,left:120,right:120},
                     }),
-                    new TableCell({ width:{size:TW-Math.floor(TW*0.4),type:WidthType.DXA},
-                      columnSpan:1,
+                    // Prioridade — badge colorido centralizado
+                    new TableCell({
+                      width:{size:TW-Math.floor(TW/2),type:WidthType.DXA},
                       children:[
-                        new Paragraph({children:[new TextRun({text:'PRIORIDADE',bold:true,size:14,color:'1E5C96',font:'Arial'})],spacing:{before:60,after:20}}),
-                        new Paragraph({children:[new TextRun({text:priSim,bold:true,size:28,color:corGR,font:'Arial'})],spacing:{before:0,after:60}}),
+                        new Paragraph({children:[new TextRun({text:'PRIORIDADE',bold:true,size:12,color:'4a6480',font:'Arial'})],spacing:{before:60,after:20},alignment:AlignmentType.CENTER}),
+                        new Paragraph({
+                          children:[new TextRun({text:priSim,bold:true,size:22,color:fgBadge,font:'Arial'})],
+                          spacing:{before:0,after:60},
+                          alignment:AlignmentType.CENTER,
+                          shading:{type:ShadingType.CLEAR,color:'auto',fill:bgBadge} as any,
+                        }),
                       ],
-                      shading:{type:ShadingType.CLEAR,color:'auto',fill:bgGR},
-                      borders:{top:{style:BorderStyle.SINGLE,size:1,color:'C3D4F0'},bottom:{style:BorderStyle.SINGLE,size:1,color:'C3D4F0'},left:{style:BorderStyle.SINGLE,size:1,color:'C3D4F0'},right:{style:BorderStyle.SINGLE,size:1,color:'C3D4F0'}},
+                      shading:{type:ShadingType.CLEAR,color:'auto',fill:'E6F1FB'},
+                      borders:{top:{style:BorderStyle.NIL},bottom:{style:BorderStyle.NIL},left:{style:BorderStyle.NIL},right:{style:BorderStyle.NIL}},
                       margins:{top:60,bottom:60,left:120,right:120},
                     }),
                   ]}),
                 ])
 
-                // EVIDÊNCIA FOTOGRÁFICA
+                // ── EVIDÊNCIA FOTOGRÁFICA ────────────────────────────────────
                 const fotoRows: TableRow[] = [
-                  secHeader('EVIDÊNCIA FOTOGRÁFICA'),
-                  duasLinhasForm('FOTO Nº', X(nc.fotoNr), Math.floor(TW/2), 'DATA DA VISTORIA', X(nc.dataVistoria), TW-Math.floor(TW/2)),
+                  blockTitle('Evidência Fotográfica'),
+                  mkRow(
+                    campo('Foto Nº', X(nc.fotoNr), Math.floor(TW/2)),
+                    campo('Data da Vistoria', X(nc.dataVistoria), TW-Math.floor(TW/2)),
+                  ),
                 ]
                 if (nc.fotoBase64 && nc.fotoBase64.startsWith('data:image')) {
                   try {
@@ -919,32 +929,46 @@ export async function POST(request: NextRequest) {
                     if (m2) {
                       const buf = Buffer.from(m2[2],'base64')
                       const ext = m2[1].includes('png') ? 'png' as const : 'jpg' as const
-                      fotoRows.push(new TableRow({ height:{value:4500,rule:'atLeast' as any},
-                        children:[new TableCell({ columnSpan:10, width:{size:TW,type:WidthType.DXA},
-                          children:[new Paragraph({children:[new ImageRun({data:buf,transformation:{width:510,height:310},type:ext})],alignment:AlignmentType.CENTER,spacing:{before:80,after:80}})],
-                          borders:{top:{style:BorderStyle.SINGLE,size:1,color:'C3D4F0'},bottom:{style:BorderStyle.SINGLE,size:1,color:'C3D4F0'},left:{style:BorderStyle.SINGLE,size:1,color:'C3D4F0'},right:{style:BorderStyle.SINGLE,size:1,color:'C3D4F0'}},
+                      fotoRows.push(new TableRow({
+                        height:{value:4800,rule:'atLeast' as any},
+                        children:[new TableCell({
+                          columnSpan:10,
+                          width:{size:TW,type:WidthType.DXA},
+                          children:[new Paragraph({
+                            children:[new ImageRun({data:buf,transformation:{width:TW/57,height:220},type:ext})],
+                            alignment:AlignmentType.CENTER,
+                            spacing:{before:80,after:80},
+                          })],
+                          shading:{type:ShadingType.CLEAR,color:'auto',fill:'E6F1FB'},
+                          borders:{top:{style:BorderStyle.SINGLE,size:1,color:'B5D4F4'},bottom:{style:BorderStyle.SINGLE,size:1,color:'B5D4F4'},left:{style:BorderStyle.NIL},right:{style:BorderStyle.NIL}},
                           margins:{top:80,bottom:80,left:80,right:80},
                         })],
                       }))
                     }
                   } catch { /* sem foto */ }
                 } else {
-                  fotoRows.push(new TableRow({ height:{value:2000,rule:'atLeast' as any},
-                    children:[new TableCell({ columnSpan:10, width:{size:TW,type:WidthType.DXA},
-                      children:[new Paragraph({children:[new TextRun({text:'[Sem foto disponível]',italics:true,color:'9CA3AF',font:'Arial',size:16})],alignment:AlignmentType.CENTER,spacing:{before:200,after:200}})],
-                      shading:{type:ShadingType.CLEAR,color:'auto',fill:'F8FAFC'},
-                      borders:{top:{style:BorderStyle.SINGLE,size:1,color:'C3D4F0'},bottom:{style:BorderStyle.SINGLE,size:1,color:'C3D4F0'},left:{style:BorderStyle.SINGLE,size:1,color:'C3D4F0'},right:{style:BorderStyle.SINGLE,size:1,color:'C3D4F0'}},
+                  fotoRows.push(new TableRow({
+                    height:{value:1200,rule:'atLeast' as any},
+                    children:[new TableCell({
+                      columnSpan:10,
+                      width:{size:TW,type:WidthType.DXA},
+                      children:[new Paragraph({
+                        children:[new TextRun({text:'[Sem foto disponível]',italics:true,color:'B5D4F4',font:'Arial',size:16})],
+                        alignment:AlignmentType.CENTER,spacing:{before:200,after:200},
+                      })],
+                      shading:{type:ShadingType.CLEAR,color:'auto',fill:'E6F1FB'},
+                      borders:{top:{style:BorderStyle.SINGLE,size:1,color:'B5D4F4'},bottom:{style:BorderStyle.SINGLE,size:1,color:'B5D4F4'},left:{style:BorderStyle.NIL},right:{style:BorderStyle.NIL}},
                     })],
                   }))
                 }
-                const tabFoto = mkTable(fotoRows)
+                const tabFoto = bloco(fotoRows)
 
-                // RESULTADO DA ANÁLISE
-                const tabNC = mkTable([
-                  secHeader('RESULTADO DA ANÁLISE E AVALIAÇÃO'),
-                  linhaForm('DESCRIÇÃO DA NÃO CONFORMIDADE (NC)', X(nc.nc||nc.anomalia||'—')),
-                  linhaForm('DESCRIÇÃO DA CAUSA PROVÁVEL (CP)', X(nc.cp||'—')),
-                  linhaForm('SOLUÇÃO', X(nc.solucaoNC||nc.cp||'—')),
+                // ── RESULTADO DA ANÁLISE ─────────────────────────────────────
+                const tabNC = bloco([
+                  blockTitle('Resultado da Análise e Avaliação'),
+                  mkRow(campo('Descrição da não conformidade (NC)', X(nc.nc||nc.anomalia||'—'), TW)),
+                  mkRow(campo('Descrição da causa provável (CP)', X(nc.cp||'—'), TW)),
+                  mkRow(campo('Solução recomendada', X(nc.solucaoNC||nc.cp||'—'), TW)),
                 ])
 
                 const elems: any[] = []
