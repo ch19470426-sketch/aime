@@ -106,7 +106,7 @@ export async function POST(request: NextRequest) {
       return new Paragraph({
         children: runs,
         alignment: opts.align ?? AlignmentType.JUSTIFIED,
-        spacing: { before: opts.before ?? 60, after: opts.after ?? 60 },
+        spacing: { before: opts.before ?? 120, after: opts.after ?? 120 },
         indent: opts.indent ? { left: opts.indent } : undefined,
         keepNext: opts.keepNext,
       })
@@ -116,10 +116,65 @@ export async function POST(request: NextRequest) {
       const ind = [0, 0, 0, 720]
       return new Paragraph({
         children: [new TextRun({ text: texto, bold: true, size: 20, font: 'Arial' })],
-        spacing: { before: nivel2 === 1 ? 200 : 120, after: 60 },
+        spacing: { before: nivel2 === 1 ? 280 : 200, after: 120 },
         indent: { left: ind[nivel2] ?? 0 },
         keepNext: true,
       })
+    }
+
+    // Gráfico de barras como SVG→buffer para ImageRun
+    function svgBarras(stat: {s:string,a:number,m:number,b:number,t:number}[]): Buffer {
+      const itens = stat.filter(s => s.t > 0)
+      if (itens.length === 0) return Buffer.from('<svg xmlns="http://www.w3.org/2000/svg" width="1" height="1"/>')
+      const W = 500, BAR_H = 16, GAP = 6, LBL = 165
+      const max = Math.max(...itens.map(s => s.t), 1)
+      const totalH = itens.length * (BAR_H + GAP) + 30
+      const bars = itens.map(({s, a, m, b, t}, i) => {
+        const label = s.slice(3).replace(/_/g,' ').slice(0, 32)
+        const y = 24 + i * (BAR_H + GAP)
+        const wA = Math.round((a / max) * (W - LBL - 40))
+        const wM = Math.round((m / max) * (W - LBL - 40))
+        const wB = Math.round((b / max) * (W - LBL - 40))
+        const wT = Math.round((t / max) * (W - LBL - 40))
+        return `<text x="0" y="${y+12}" font-size="9" fill="#222" font-family="Arial">${label}</text>
+<rect x="${LBL}" y="${y}" width="${wT}" height="${BAR_H}" fill="#1E3A8A" rx="2"/>
+<text x="${LBL+wT+4}" y="${y+12}" font-size="9" font-weight="bold" fill="#1E3A8A" font-family="Arial">${t}</text>`
+      }).join('')
+      const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${totalH}">
+<text x="0" y="14" font-size="10" font-weight="bold" fill="#1E3A8A" font-family="Arial">Nº de ocorrências por sistema construtivo</text>
+${bars}</svg>`
+      return Buffer.from(svg)
+    }
+
+    function svgPizza(totA: number, totM: number, totB: number): Buffer {
+      const tot = totA + totM + totB
+      if (tot === 0) return Buffer.from('<svg xmlns="http://www.w3.org/2000/svg" width="1" height="1"/>')
+      const R = 65, CX = 80, CY = 80
+      function slice(start: number, end: number, cor: string, val: number) {
+        if (val === 0) return ''
+        const s = start * 2 * Math.PI - Math.PI / 2
+        const e = end   * 2 * Math.PI - Math.PI / 2
+        const x1 = CX + R * Math.cos(s), y1 = CY + R * Math.sin(s)
+        const x2 = CX + R * Math.cos(e), y2 = CY + R * Math.sin(e)
+        const large = (end - start) > 0.5 ? 1 : 0
+        const pct = Math.round(val * 100 / tot)
+        const mx = CX + R * 0.6 * Math.cos((s + e) / 2)
+        const my = CY + R * 0.6 * Math.sin((s + e) / 2)
+        return `<path d="M${CX},${CY} L${x1.toFixed(1)},${y1.toFixed(1)} A${R},${R} 0 ${large},1 ${x2.toFixed(1)},${y2.toFixed(1)} Z" fill="${cor}"/>
+<text x="${mx.toFixed(1)}" y="${(my+4).toFixed(1)}" text-anchor="middle" font-size="10" font-weight="bold" fill="white" font-family="Arial">${pct}%</text>`
+      }
+      const fA = totA/tot, fM = totM/tot
+      const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="280" height="170">
+<text x="0" y="14" font-size="10" font-weight="bold" fill="#1E3A8A" font-family="Arial">Distribuição por Prioridade</text>
+${slice(0,fA,'#DC2626',totA)}${slice(fA,fA+fM,'#D97706',totM)}${slice(fA+fM,1,'#059669',totB)}
+<rect x="160" y="30" width="12" height="12" fill="#DC2626" rx="2"/>
+<text x="176" y="41" font-size="9" font-family="Arial" fill="#222">Alta (${totA})</text>
+<rect x="160" y="50" width="12" height="12" fill="#D97706" rx="2"/>
+<text x="176" y="61" font-size="9" font-family="Arial" fill="#222">Média (${totM})</text>
+<rect x="160" y="70" width="12" height="12" fill="#059669" rx="2"/>
+<text x="176" y="81" font-size="9" font-family="Arial" fill="#222">Baixa (${totB})</text>
+</svg>`
+      return Buffer.from(svg)
     }
 
     function cel(texto: string, opts: any = {}) {
@@ -606,8 +661,17 @@ export async function POST(request: NextRequest) {
           par('A tabela que segue apresenta a estatística de ocorrências de manifestações patológicas por sistema construtivos e prioridades, onde se pode observar a distribuição das mesmas pelos sistemas.'),
           tab42,
           par(''),
-          par('[Gráfico de barras: nº ocorrências por sistema — inserir após baixar o documento]',{italics:true,align:AlignmentType.CENTER}),
-          par('[Gráfico de pizza: ocorrências por prioridade (A/M/B) — inserir após baixar o documento]',{italics:true,align:AlignmentType.CENTER}),
+          // Gráfico de barras SVG
+          ...(() => {
+            const svgBuf = svgBarras(stat)
+            const iH = Math.max(60, stat.filter((s:any) => s.t > 0).length * 22 + 30)
+            return [new Paragraph({ children: [new ImageRun({ data: svgBuf, transformation: { width: 460, height: iH }, type: 'svg' as any })], spacing: { before: 80, after: 60 } })]
+          })(),
+          // Gráfico de pizza SVG
+          ...(() => {
+            const svgBuf = svgPizza(totA, totM, totB)
+            return [new Paragraph({ children: [new ImageRun({ data: svgBuf, transformation: { width: 250, height: 155 }, type: 'svg' as any })], spacing: { before: 60, after: 80 } })]
+          })(),
           par(''),
           // 5. RECOMENDAÇÕES
           new Paragraph({children:[new PageBreak()]}),
