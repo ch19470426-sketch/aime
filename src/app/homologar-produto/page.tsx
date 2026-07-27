@@ -1,13 +1,4 @@
-"use cl
-
-  // Preview: criar blob URL quando o html do laudo é carregado
-  useEffect(() => {
-    if (!html) { setBlobUrl(''); return }
-    const blob = new Blob([html], { type: 'text/html;charset=utf-8' })
-    const url  = URL.createObjectURL(blob)
-    setBlobUrl(url)
-    return () => URL.revokeObjectURL(url)
-  }, [html])ient"
+"use client"
 export const dynamic = 'force-dynamic'
 import React, { Suspense, useEffect, useRef, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
@@ -99,6 +90,14 @@ function HomologarProdutoInner() {
     carregarDocumento()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [nomeArquivo])
+
+  useEffect(() => {
+    if (!html) { setBlobUrl(''); return }
+    const blob = new Blob([html], { type: 'text/html;charset=utf-8' })
+    const url  = URL.createObjectURL(blob)
+    setBlobUrl(url)
+    return () => URL.revokeObjectURL(url)
+  }, [html])
 
   async function query(table: string, qparams: string) {
     const res = await fetch(`${SUPA_URL}/rest/v1/${table}?${qparams}`, {
@@ -376,7 +375,7 @@ function HomologarProdutoInner() {
           onChange={onArquivoPdfEscolhido} />
 
         {blobUrl && (
-          <div style={{ border: '1px solid #c3d4f0', borderRadius: '6px', overflow: 'hidden', marginBottom: '4px' }}>
+          <div style={{ border: '1px solid #c3d4f0', borderRadius: '6px', overflow: 'hidden', marginBottom: '8px' }}>
             <div style={{ background: '#1E3A8A', color: '#fff', fontSize: '7.5pt', fontWeight: 700, padding: '3px 10px' }}>
               Preview do documento
             </div>
