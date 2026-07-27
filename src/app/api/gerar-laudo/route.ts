@@ -115,17 +115,18 @@ function badgeP(p: string): string {
 // ─── CSS (mesmo padrão das propostas) ────────────────────────────────────────
 const CSS = `
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: Arial, sans-serif; font-size: 10pt; line-height: 1.5; color: #000; padding: 2cm 2cm 2cm 2.5cm; }
+body { font-family: Arial, sans-serif; font-size: 10pt; line-height: 1.6; color: #000; padding: 2cm 2cm 2cm 2.5cm; }
 .cab { text-align: center; margin-bottom: 10pt; padding-bottom: 4pt; border-bottom: 2px solid #1E3A8A; font-size: 12pt; color: #374151; white-space: pre-line; }
-.rod { margin-top: 10pt; padding-top: 4pt; border-top: 1px solid #ccc; font-size: 10pt; text-align: center; white-space: pre-line; color: #374151; }
-h1 { font-size: 11pt; font-weight: bold; margin: 14pt 0 2pt; }
-h2 { font-size: 10pt; font-weight: bold; margin: 10pt 0 2pt; }
-h3 { font-size: 10pt; font-weight: bold; margin: 8pt 0 2pt; }
-p  { margin: 4pt 0; text-align: justify; }
-ul { margin: 4pt 0 4pt 0.8cm; padding-left: 0; list-style: none; }
-li { margin-bottom: 3pt; text-align: justify; padding-left: 1.2em; text-indent: -1.2em; }
+.rod { margin-top: 10pt; padding-top: 4pt; border-top: 1px solid #ccc; font-size: 10pt; text-align: center; white-space: pre-line; }
+h1 { font-size: 10pt; font-weight: bold; margin: 16pt 0 6pt; }
+h2 { font-size: 10pt; font-weight: bold; margin: 16pt 0 6pt; }
+h3 { font-size: 10pt; font-weight: bold; margin: 12pt 0 4pt; }
+p  { margin: 6pt 0; text-align: justify !important; }
+ul { margin: 6pt 0 6pt 0.8cm; padding-left: 0; list-style: none; }
+li { margin-bottom: 4pt; text-align: justify !important; text-align-last: left !important; padding-left: 1.2em; text-indent: -1.2em; }
 li::before { content: "• "; }
 b { font-weight: bold; }
+i { font-style: italic; }
 .quebra { page-break-before: always; }
 table { width: 100%; border-collapse: collapse; margin: 4pt 0; font-size: 8.5pt; }
 th { background: #1E3A8A; color: #fff; padding: 4pt 6pt; font-weight: bold; text-align: left; border-right: 1px solid #4a6fa5; font-size: 8pt; }
@@ -152,6 +153,59 @@ tr:nth-child(even) td { background: #f7f9ff; }
 .stamp{ background: #E6F5EE; border: 2px solid #1A7A3C; border-radius: 8px; padding: 6px 12px; text-align: center; margin-top: 4px; }
 .stamp span { color: #1A7A3C; font-weight: bold; font-size: 8pt; }
 `
+
+// ─── Gráficos SVG ────────────────────────────────────────────────────────────
+function graficoBarra(stat: {s:string,t:number}[], titulo: string): string {
+  const W = 560, H = 20
+  const max = Math.max(...stat.filter(s=>s.t>0).map(s=>s.t), 1)
+  const itens = stat.filter(s=>s.t>0)
+  if (itens.length === 0) return '<p><i>Sem dados para o gráfico.</i></p>'
+  const totalH = itens.length * (H + 6) + 30
+  const bars = itens.map(({s,t}, i) => {
+    const w = Math.round((t / max) * (W - 160))
+    const y = 28 + i * (H + 6)
+    const label = s.slice(3).replace(/_/g,' ').slice(0,35)
+    return `<text x="0" y="${y+14}" font-size="7" fill="#222" font-family="Arial">${label}</text>
+<rect x="160" y="${y+2}" width="${w}" height="${H-4}" fill="#1E3A8A" rx="2"/>
+<text x="${162+w}" y="${y+14}" font-size="8" fill="#1E3A8A" font-weight="bold" font-family="Arial">${t}</text>`
+  }).join('')
+  return `<p style="font-size:8pt;font-weight:bold;color:#1E3A8A;margin:6pt 0 2pt">${titulo}</p>
+<svg width="100%" viewBox="0 0 ${W} ${totalH}" xmlns="http://www.w3.org/2000/svg" style="max-width:560px">
+  ${bars}
+</svg>`
+}
+
+function graficoPizza(totA: number, totM: number, totB: number): string {
+  const tot = totA + totM + totB
+  if (tot === 0) return '<p><i>Sem dados para o gráfico.</i></p>'
+  const R = 70, CX = 90, CY = 80
+  function arc(start: number, end: number, cor: string, label: string, val: number) {
+    if (val === 0) return ''
+    const s = start * 2 * Math.PI - Math.PI/2
+    const e = end   * 2 * Math.PI - Math.PI/2
+    const x1 = CX + R * Math.cos(s), y1 = CY + R * Math.sin(s)
+    const x2 = CX + R * Math.cos(e), y2 = CY + R * Math.sin(e)
+    const large = (end - start) > 0.5 ? 1 : 0
+    const pct = Math.round(val*100/tot)
+    const mx = CX + (R*0.65)*Math.cos((s+e)/2), my = CY + (R*0.65)*Math.sin((s+e)/2)
+    return `<path d="M${CX},${CY} L${x1},${y1} A${R},${R} 0 ${large},1 ${x2},${y2} Z" fill="${cor}"/>
+<text x="${mx}" y="${my}" text-anchor="middle" font-size="9" fill="white" font-weight="bold" font-family="Arial">${pct}%</text>`
+  }
+  const fA = totA/tot, fM = totM/tot
+  const slices = arc(0, fA, '#DC2626', 'Alta', totA)
+    + arc(fA, fA+fM, '#D97706', 'Média', totM)
+    + arc(fA+fM, 1, '#059669', 'Baixa', totB)
+  return `<p style="font-size:8pt;font-weight:bold;color:#1E3A8A;margin:6pt 0 2pt">Distribuição por Prioridade</p>
+<svg width="240" height="160" xmlns="http://www.w3.org/2000/svg">
+  ${slices}
+  <rect x="175" y="30" width="12" height="12" fill="#DC2626" rx="2"/>
+  <text x="192" y="41" font-size="8" font-family="Arial" fill="#222">Alta (${totA})</text>
+  <rect x="175" y="50" width="12" height="12" fill="#D97706" rx="2"/>
+  <text x="192" y="61" font-size="8" font-family="Arial" fill="#222">Média (${totM})</text>
+  <rect x="175" y="70" width="12" height="12" fill="#059669" rx="2"/>
+  <text x="192" y="81" font-size="8" font-family="Arial" fill="#222">Baixa (${totB})</text>
+</svg>`
+}
 
 // ─── POST handler ─────────────────────────────────────────────────────────────
 export async function POST(request: NextRequest) {
@@ -615,6 +669,14 @@ ${tab41 || '<p><i>Nenhuma não conformidade registrada.</i></p>'}
 <h2>4.2.- Análise Estatística das Manifestações Patológicas.</h2>
 <p>A tabela que segue apresenta a estatística de ocorrências de manifestações patológicas por sistema construtivos e prioridades.</p>
 ${tab42}
+<div style="margin-top:10pt;display:flex;gap:20pt;flex-wrap:wrap">
+  <div style="flex:1;min-width:280px">
+    ${graficoBarra(stat.filter(s=>s.t>0).map(s=>({s:s.s,t:s.t})), 'Nº de ocorrências por sistema construtivo')}
+  </div>
+  <div style="flex:0 0 240px">
+    ${graficoPizza(totA,totM,totB)}
+  </div>
+</div>
 </div>
 
 <div class="quebra">
