@@ -55,6 +55,7 @@ function HomologarProdutoInner() {
   const [gerandoDocx, setGerandoDocx] = useState(false)
   const [enviando,    setEnviando]    = useState(false)
   const inputPdfRef = useRef<HTMLInputElement>(null)
+  const iframeRef    = useRef<HTMLIFrameElement>(null)
 
   const numServico = Number(tipoServico)
   const grupo4x    = numServico >= 41 && numServico <= 49
@@ -224,23 +225,15 @@ function HomologarProdutoInner() {
           throw new Error('Dados do laudo não encontrados. Por favor regenere o laudo clicando em "Gerar Laudo" novamente.')
         }
 
-        const res = await fetch('/api/gerar-laudo-docx', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ ...dadosLaudo, nomeArquivo })
-        })
-        if (!res.ok) {
-          let detalhe = ''
-          try { detalhe = (await res.json())?.erro ?? '' } catch { /* */ }
-          throw new Error(`Falha ao gerar o documento Word (${res.status}). ${detalhe}`)
+        // Laudos 41-44: imprimir o HTML como PDF via iframe
+        if (iframeRef.current?.contentWindow) {
+          iframeRef.current.contentWindow.print()
+        } else if (blobUrl) {
+          // fallback: abrir em nova aba para imprimir
+          const w = window.open(blobUrl, '_blank')
+          if (w) setTimeout(() => w.print(), 800)
         }
-        const blob = await res.blob()
-        const url = URL.createObjectURL(blob)
-        const a = document.createElement('a')
-        a.href = url
-        a.download = nomeAmigavel('docx')
-        a.click()
-        URL.revokeObjectURL(url)
+        setGerandoDocx(false)
         return
       }
 
@@ -380,6 +373,7 @@ function HomologarProdutoInner() {
               Preview do documento
             </div>
             <iframe
+              ref={iframeRef}
               src={blobUrl}
               style={{ width: '100%', height: '800px', border: 'none', display: 'block' }}
               title="Preview do laudo"
@@ -392,7 +386,7 @@ function HomologarProdutoInner() {
             Voltar
           </button>
           <button style={{ ...S.btn, ...S.btnSec, opacity: gerandoDocx ? 0.6 : 1 }} onClick={baixarEditavel} disabled={gerandoDocx}>
-            {gerandoDocx ? 'Gerando...' : 'Baixar documento editável'}
+            {gerandoDocx ? 'Gerando...' : (numServico >= 41 && numServico <= 44 ? 'Baixar PDF' : 'Baixar documento editável')}
           </button>
           <button style={{ ...S.btn, ...S.btnPri, opacity: enviando ? 0.6 : 1 }}
             onClick={() => inputPdfRef.current?.click()} disabled={enviando}>
