@@ -122,59 +122,101 @@ export async function POST(request: NextRequest) {
       })
     }
 
-    // Gráfico de barras como SVG→buffer para ImageRun
-    function svgBarras(stat: {s:string,a:number,m:number,b:number,t:number}[]): Buffer {
+    // Gráfico de barras como tabela DOCX
+    function tabelaBarras(stat: {s:string,a:number,m:number,b:number,t:number}[]): any[] {
       const itens = stat.filter(s => s.t > 0)
-      if (itens.length === 0) return Buffer.from('<svg xmlns="http://www.w3.org/2000/svg" width="1" height="1"/>')
-      const W = 500, BAR_H = 16, GAP = 6, LBL = 165
+      if (itens.length === 0) return []
       const max = Math.max(...itens.map(s => s.t), 1)
-      const totalH = itens.length * (BAR_H + GAP) + 30
-      const bars = itens.map(({s, a, m, b, t}, i) => {
-        const label = s.slice(3).replace(/_/g,' ').slice(0, 32)
-        const y = 24 + i * (BAR_H + GAP)
-        const wA = Math.round((a / max) * (W - LBL - 40))
-        const wM = Math.round((m / max) * (W - LBL - 40))
-        const wB = Math.round((b / max) * (W - LBL - 40))
-        const wT = Math.round((t / max) * (W - LBL - 40))
-        return `<text x="0" y="${y+12}" font-size="9" fill="#222" font-family="Arial">${label}</text>
-<rect x="${LBL}" y="${y}" width="${wT}" height="${BAR_H}" fill="#1E3A8A" rx="2"/>
-<text x="${LBL+wT+4}" y="${y+12}" font-size="9" font-weight="bold" fill="#1E3A8A" font-family="Arial">${t}</text>`
-      }).join('')
-      const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${totalH}">
-<text x="0" y="14" font-size="10" font-weight="bold" fill="#1E3A8A" font-family="Arial">Nº de ocorrências por sistema construtivo</text>
-${bars}</svg>`
-      return Buffer.from(svg)
+      const BAR_W = 5000  // largura total da barra em DXA
+      const rows = [
+        new TableRow({ children: [
+          cel('Sistema Construtivo', { bg:'1E3A8A', bold:true, width:3200 }),
+          cel('Ocorrências', { bg:'1E3A8A', bold:true, width:BAR_W, align:AlignmentType.CENTER }),
+          cel('Nº', { bg:'1E3A8A', bold:true, width:500, align:AlignmentType.CENTER }),
+        ]}),
+        ...itens.map(({s, t}) => {
+          const label = s.slice(3).replace(/_/g,' ')
+          const barLen = Math.max(1, Math.round((t / max) * (BAR_W - 200)))
+          // Barra: célula interna com fundo azul proporcional
+          const barCell = new TableCell({
+            width: { size: BAR_W, type: WidthType.DXA },
+            children: [new Paragraph({
+              children: [new TextRun({ text: ' '.repeat(Math.max(1, Math.round(barLen/50))), font: 'Arial', size: 20, highlight: 'none' as any })],
+              shading: { type: ShadingType.CLEAR, color: 'auto', fill: '1E3A8A' } as any,
+              spacing: { before: 40, after: 40 },
+            })],
+            shading: { type: ShadingType.CLEAR, color: 'auto', fill: 'EEF2FF' },
+            margins: { top: 40, bottom: 40, left: 0, right: 0 },
+          })
+          // Workaround: usar célula dividida com barra colorida
+          const filledW = Math.max(100, Math.round((t / max) * BAR_W))
+          const emptyW  = BAR_W - filledW
+          const barFill = new TableCell({
+            width: { size: filledW, type: WidthType.DXA },
+            children: [new Paragraph({ children: [], spacing: { before: 80, after: 80 } })],
+            shading: { type: ShadingType.CLEAR, color: 'auto', fill: '1E3A8A' },
+            margins: { top: 0, bottom: 0, left: 0, right: 0 },
+          })
+          const barEmpty = new TableCell({
+            width: { size: Math.max(100, emptyW), type: WidthType.DXA },
+            children: [new Paragraph({ children: [], spacing: { before: 80, after: 80 } })],
+            shading: { type: ShadingType.CLEAR, color: 'auto', fill: 'EEF2FF' },
+            margins: { top: 0, bottom: 0, left: 0, right: 0 },
+          })
+          return new TableRow({ children: [
+            cel(label, { width: 3200 }),
+            barFill,
+            barEmpty,
+            cel(String(t), { width: 500, bold:true, align: AlignmentType.CENTER }),
+          ]})
+        })
+      ]
+      return [
+        par('Nº de ocorrências por sistema construtivo', { bold: true }),
+        new Table({ width: { size: TW, type: WidthType.DXA }, rows, columnWidths: [3200, ...itens.map((_,i) => i===0?2500:0).filter(Boolean), 5000, 500] }),
+      ]
     }
 
-    function svgPizza(totA: number, totM: number, totB: number): Buffer {
+    // Gráfico de pizza como tabela DOCX (legenda colorida)
+    function tabelaPizza(totA: number, totM: number, totB: number): any[] {
       const tot = totA + totM + totB
-      if (tot === 0) return Buffer.from('<svg xmlns="http://www.w3.org/2000/svg" width="1" height="1"/>')
-      const R = 65, CX = 80, CY = 80
-      function slice(start: number, end: number, cor: string, val: number) {
-        if (val === 0) return ''
-        const s = start * 2 * Math.PI - Math.PI / 2
-        const e = end   * 2 * Math.PI - Math.PI / 2
-        const x1 = CX + R * Math.cos(s), y1 = CY + R * Math.sin(s)
-        const x2 = CX + R * Math.cos(e), y2 = CY + R * Math.sin(e)
-        const large = (end - start) > 0.5 ? 1 : 0
-        const pct = Math.round(val * 100 / tot)
-        const mx = CX + R * 0.6 * Math.cos((s + e) / 2)
-        const my = CY + R * 0.6 * Math.sin((s + e) / 2)
-        return `<path d="M${CX},${CY} L${x1.toFixed(1)},${y1.toFixed(1)} A${R},${R} 0 ${large},1 ${x2.toFixed(1)},${y2.toFixed(1)} Z" fill="${cor}"/>
-<text x="${mx.toFixed(1)}" y="${(my+4).toFixed(1)}" text-anchor="middle" font-size="10" font-weight="bold" fill="white" font-family="Arial">${pct}%</text>`
-      }
-      const fA = totA/tot, fM = totM/tot
-      const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="280" height="170">
-<text x="0" y="14" font-size="10" font-weight="bold" fill="#1E3A8A" font-family="Arial">Distribuição por Prioridade</text>
-${slice(0,fA,'#DC2626',totA)}${slice(fA,fA+fM,'#D97706',totM)}${slice(fA+fM,1,'#059669',totB)}
-<rect x="160" y="30" width="12" height="12" fill="#DC2626" rx="2"/>
-<text x="176" y="41" font-size="9" font-family="Arial" fill="#222">Alta (${totA})</text>
-<rect x="160" y="50" width="12" height="12" fill="#D97706" rx="2"/>
-<text x="176" y="61" font-size="9" font-family="Arial" fill="#222">Média (${totM})</text>
-<rect x="160" y="70" width="12" height="12" fill="#059669" rx="2"/>
-<text x="176" y="81" font-size="9" font-family="Arial" fill="#222">Baixa (${totB})</text>
-</svg>`
-      return Buffer.from(svg)
+      if (tot === 0) return []
+      const pA = Math.round(totA*100/tot), pM = Math.round(totM*100/tot), pB = 100-pA-pM
+      return [
+        par('Distribuição por Prioridade', { bold: true }),
+        new Table({ width: { size: 4000, type: WidthType.DXA }, rows: [
+          new TableRow({ children: [
+            cel('Prioridade', { bg:'1E3A8A', bold:true, width:1400 }),
+            cel('Qtd', { bg:'1E3A8A', bold:true, width:600, align:AlignmentType.CENTER }),
+            cel('%', { bg:'1E3A8A', bold:true, width:600, align:AlignmentType.CENTER }),
+            cel('', { bg:'1E3A8A', bold:true, width:1400 }),
+          ]}),
+          new TableRow({ children: [
+            cel('Alta (Imediata)', { width:1400 }),
+            cel(String(totA), { width:600, bold:true, align:AlignmentType.CENTER }),
+            cel(pA+'%', { width:600, align:AlignmentType.CENTER }),
+            new TableCell({ width:{size:1400,type:WidthType.DXA}, children:[new Paragraph({children:[]})], shading:{type:ShadingType.CLEAR,color:'auto',fill:'DC2626'} }),
+          ]}),
+          new TableRow({ children: [
+            cel('Média (Curto Prazo)', { width:1400 }),
+            cel(String(totM), { width:600, bold:true, align:AlignmentType.CENTER }),
+            cel(pM+'%', { width:600, align:AlignmentType.CENTER }),
+            new TableCell({ width:{size:1400,type:WidthType.DXA}, children:[new Paragraph({children:[]})], shading:{type:ShadingType.CLEAR,color:'auto',fill:'D97706'} }),
+          ]}),
+          new TableRow({ children: [
+            cel('Baixa (Longo Prazo)', { width:1400 }),
+            cel(String(totB), { width:600, bold:true, align:AlignmentType.CENTER }),
+            cel(pB+'%', { width:600, align:AlignmentType.CENTER }),
+            new TableCell({ width:{size:1400,type:WidthType.DXA}, children:[new Paragraph({children:[]})], shading:{type:ShadingType.CLEAR,color:'auto',fill:'059669'} }),
+          ]}),
+          new TableRow({ children: [
+            cel('Total', { bg:'E5E7EB', bold:true, width:1400 }),
+            cel(String(tot), { bg:'E5E7EB', bold:true, width:600, align:AlignmentType.CENTER }),
+            cel('100%', { bg:'E5E7EB', width:600, align:AlignmentType.CENTER }),
+            cel('', { bg:'E5E7EB', width:1400 }),
+          ]}),
+        ]}),
+      ]
     }
 
     function cel(texto: string, opts: any = {}) {
@@ -661,17 +703,9 @@ ${slice(0,fA,'#DC2626',totA)}${slice(fA,fA+fM,'#D97706',totM)}${slice(fA+fM,1,'#
           par('A tabela que segue apresenta a estatística de ocorrências de manifestações patológicas por sistema construtivos e prioridades, onde se pode observar a distribuição das mesmas pelos sistemas.'),
           tab42,
           par(''),
-          // Gráfico de barras SVG
-          ...(() => {
-            const svgBuf = svgBarras(stat)
-            const iH = Math.max(60, stat.filter((s:any) => s.t > 0).length * 22 + 30)
-            return [new Paragraph({ children: [new ImageRun({ data: svgBuf, transformation: { width: 460, height: iH }, type: 'svg' as any })], spacing: { before: 80, after: 60 } })]
-          })(),
-          // Gráfico de pizza SVG
-          ...(() => {
-            const svgBuf = svgPizza(totA, totM, totB)
-            return [new Paragraph({ children: [new ImageRun({ data: svgBuf, transformation: { width: 250, height: 155 }, type: 'svg' as any })], spacing: { before: 60, after: 80 } })]
-          })(),
+          ...tabelaBarras(stat),
+          par(''),
+          ...tabelaPizza(totA, totM, totB),
           par(''),
           // 5. RECOMENDAÇÕES
           new Paragraph({children:[new PageBreak()]}),
