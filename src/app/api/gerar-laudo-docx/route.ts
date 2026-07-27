@@ -328,14 +328,13 @@ export async function POST(request: NextRequest) {
     // Tabela 1.1 Características
     const tab11 = new Table({ width:{size:TW,type:WidthType.DXA}, rows:[
       new TableRow({children:[cel('Características da Edificação',{bg:'1E3A8A',span:6,bold:true,align:AlignmentType.CENTER,color:'FFFFFF'})]}),
-      new TableRow({children:[cel('Identificação e características da edificação:',{bg:'F2F2F2',span:6})]}),
       new TableRow({children:[cel(X(labelDoc)+':',{width:1000}),cel(X(estab?.razao_social_nome),{span:2,width:3000}),cel(labelDoc+':',{width:800}),cel(fmtDoc(cnpjoucpf),{width:2200}),cel('CEP: '+X(estab?.cep),{width:1438}),]}),
       new TableRow({children:[cel('Endereço:',{width:1000}),cel(X(estab?.logradouro)+', '+X(estab?.numero)+' '+X(estab?.complemento),{span:3,width:5000}),cel('Bairro:',{width:800}),cel(X(estab?.bairro),{width:1638}),]}),
       new TableRow({children:[cel('Cidade e UF:',{width:1000}),cel(X(estab?.cidade)+'/'+X(estab?.uf),{width:2000}),cel('Responsável:',{width:1600}),cel(X(estab?.nome_responsavel),{span:2,width:3838}),]}),
       new TableRow({children:[cel('Tel:',{width:1000}),cel(X(estab?.whatsapp),{width:2000}),cel('e-Mail:',{width:1600}),cel(X(estab?.email),{span:2,width:3838}),]}),
       new TableRow({children:[cel('Uso:',{width:1000}),cel(X(estab?.uso_imovel),{width:1600}),cel('Tipo:',{width:800}),cel(X(estab?.tipo_imovel),{width:1400}),cel('Pav:',{width:600}),cel(X(estab?.numero_pavimentos),{width:638}),]}),
       new TableRow({children:[cel('Unidades:',{width:1000}),cel(X(estab?.numero_unidades_salas),{width:1600}),cel('Área construída:',{width:1400}),cel(X(estab?.area_construida)+' m²',{width:1200}),cel('Terreno:',{width:800}),cel(X(estab?.area_terreno)+' m²',{width:1038}),]}),
-      new TableRow({children:[cel('Síntese da descrição da Edificação:',{bg:'F2F2F2',span:6,bold:true})]}),
+      new TableRow({children:[cel('Síntese da descrição da Edificação:',{bg:'EEF2FF',span:6,bold:true})]}),
       new TableRow({children:[cel(X(complemento?.sinteseEdif),{span:6})]}),
     ]})
 
@@ -395,24 +394,20 @@ export async function POST(request: NextRequest) {
     ]
     const tab13 = new Table({ width:{size:TW,type:WidthType.DXA}, rows:[
       new TableRow({children:[cel('Agenda de Trabalho – Inspetor e Síndico',{bg:'1E3A8A',span:5,bold:true,align:AlignmentType.CENTER,color:'FFFFFF'})]}),
-      new TableRow({children:[cel('Duração Prevista',{span:2,bg:'1E3A8A',align:AlignmentType.CENTER,bold:true,color:'FFFFFF'}),cel('Período',{span:2,bg:'1E3A8A',align:AlignmentType.CENTER,bold:true,color:'FFFFFF'}),cel('Atividades',{bg:'F2F2F2',align:AlignmentType.CENTER})]}),
-      new TableRow({children:[cel('Horas',{bg:'1E3A8A',width:800,align:AlignmentType.CENTER,color:'FFFFFF'}),cel('Dias Úteis',{bg:'F2F2F2',width:1000,align:AlignmentType.CENTER}),cel('Dt Início',{bg:'F2F2F2',width:1200,align:AlignmentType.CENTER}),cel('Dt Fim',{bg:'F2F2F2',width:1200,align:AlignmentType.CENTER}),cel('Atividades',{bg:'F2F2F2',width:5438,align:AlignmentType.CENTER})]}),
+      new TableRow({children:[cel('Duração Prevista',{span:2,bg:'1E3A8A',align:AlignmentType.CENTER,bold:true,color:'FFFFFF'}),cel('Período',{span:2,bg:'1E3A8A',align:AlignmentType.CENTER,bold:true,color:'FFFFFF'}),cel('Atividades',{bg:'1E3A8A',align:AlignmentType.CENTER,color:'FFFFFF'})]}),
+      new TableRow({children:[cel('Horas',{bg:'1E3A8A',width:800,align:AlignmentType.CENTER,color:'FFFFFF'}),cel('Dias Úteis',{bg:'1E3A8A',width:1000,align:AlignmentType.CENTER,color:'FFFFFF'}),cel('Dt Início',{bg:'1E3A8A',width:1200,align:AlignmentType.CENTER,color:'FFFFFF'}),cel('Dt Fim',{bg:'1E3A8A',width:1200,align:AlignmentType.CENTER,color:'FFFFFF'}),cel('Atividades',{bg:'1E3A8A',width:5438,align:AlignmentType.CENTER,color:'FFFFFF'})]}),
       ...ATIVIDADES_PLANO.map(([h,d,a]) => new TableRow({children:[cel(h,{width:800,align:AlignmentType.CENTER}),cel(d,{width:1000,align:AlignmentType.CENTER}),cel('',{width:1200}),cel('',{width:1200}),cel(a,{width:5438})]})),
-      new TableRow({children:[cel('',{bg:'F2F2F2',span:5})]}),
     ]})
 
     // Tabela 3.1
     const tab31 = new Table({ width:{size:TW,type:WidthType.DXA}, rows:[
-      new TableRow({children:[cel('',{bg:'F2F2F2'})]}),
-      new TableRow({children:[cel('Descrição da Realização da Vistoria',{bold:true,align:AlignmentType.CENTER})]}),
+      new TableRow({children:[cel('Descrição da Realização da Vistoria',{bg:'1E3A8A',bold:true,align:AlignmentType.CENTER,color:'FFFFFF'})]}),
       new TableRow({height:{value:1500,rule:'atLeast' as any},children:[cel(X(complemento?.descVistoria||complemento?.dadosVistoria))]}),
-      new TableRow({children:[cel('',{bg:'F2F2F2'})]}),
-    ]})
+          ]})
 
     // Tabela 3.3
     const tab33rows: any[] = [
-      new TableRow({children:[cel('',{bg:'F2F2F2',span:2})]}),
-      new TableRow({children:[cel('Resultado da Classificação da Edificação.',{span:2,bold:true,align:AlignmentType.CENTER})]}),
+      new TableRow({children:[cel('Resultado da Classificação da Edificação.',{bg:'1E3A8A',span:2,bold:true,align:AlignmentType.CENTER,color:'FFFFFF'})]}),
     ]
     const cl33 = tipoServico==='43' ? [
       ['a) A execução da obra em relação à CONFORMIDADE CONSTRUTIVA foi classificada como:', cl.nivel||''],
@@ -437,7 +432,6 @@ export async function POST(request: NextRequest) {
       ['f) Quanto ao DESEMPENHO a edificação foi classificada como:', cl.desempGeral||''],
     ]
     cl33.forEach(([d,v]) => tab33rows.push(new TableRow({children:[cel(d,{width:Math.floor(TW*0.72)}),cel(v,{width:TW-Math.floor(TW*0.72),align:AlignmentType.CENTER,bold:true})]})))
-    tab33rows.push(new TableRow({children:[cel('',{bg:'F2F2F2',span:2})]}))
     const tab33 = new Table({ width:{size:TW,type:WidthType.DXA}, rows:tab33rows })
 
     // Tabelas 4.1 por sistema
@@ -448,8 +442,7 @@ export async function POST(request: NextRequest) {
       const nomeS = s.slice(3).replace(/_/g,' ')
       const rec = complemento?.recsSistema?.[s] || ''
       elems41.push(new Table({ width:{size:TW,type:WidthType.DXA}, rows:[
-        new TableRow({children:[cel('',{bg:'F2F2F2',span:6})]}),
-        new TableRow({children:[cel('Relação de Não Conformidades e Soluções por Sistema Construtivo',{span:6,bold:true,align:AlignmentType.CENTER,bg:'FFFFFF'})]}),
+        new TableRow({children:[cel('Relação de Não Conformidades e Soluções por Sistema Construtivo',{span:6,bold:true,align:AlignmentType.CENTER,bg:'1E3A8A',color:'FFFFFF'})]}),
         new TableRow({children:[cel('Sistema construtivo ou instalação:',{span:6,bold:true,bg:'FFFFFF'})]}),
         new TableRow({children:[cel(nomeS,{span:6,bg:'FFFFFF'})]}),
         new TableRow({children:[cel('Descrição:',{span:6,bold:true,bg:'FFFFFF'})]}),
@@ -457,12 +450,12 @@ export async function POST(request: NextRequest) {
         new TableRow({children:[cel('Recomendação para o sistema construtivo:',{span:6,bold:true,bg:'FFFFFF'})]}),
         new TableRow({children:[cel(rec||'[Gerado pela IA — revisar]',{span:6,bg:'FFFFFF',italics:!rec})]}),
         new TableRow({children:[
-          cel('Foto',{bg:'F2F2F2',bold:true,align:AlignmentType.CENTER,width:500}),
-          cel('Não Conformidade',{bg:'F2F2F2',bold:true,width:2500}),
-          cel('Local ocorrência',{bg:'F2F2F2',bold:true,width:1500}),
-          cel('Grau Risco',{bg:'F2F2F2',bold:true,align:AlignmentType.CENTER,width:600}),
-          cel('Prioridade',{bg:'F2F2F2',bold:true,align:AlignmentType.CENTER,width:800}),
-          cel('Soluções',{bg:'F2F2F2',bold:true,width:3738}),
+          cel('Foto',{bg:'1E3A8A',bold:true,align:AlignmentType.CENTER,width:500,color:'FFFFFF'}),
+          cel('Não Conformidade',{bg:'1E3A8A',bold:true,width:2500,color:'FFFFFF'}),
+          cel('Local ocorrência',{bg:'1E3A8A',bold:true,width:1500,color:'FFFFFF'}),
+          cel('Grau Risco',{bg:'1E3A8A',bold:true,align:AlignmentType.CENTER,width:600,color:'FFFFFF'}),
+          cel('Prioridade',{bg:'1E3A8A',bold:true,align:AlignmentType.CENTER,width:800,color:'FFFFFF'}),
+          cel('Soluções',{bg:'1E3A8A',bold:true,width:3738,color:'FFFFFF'}),
         ]}),
         ...arr.map((nc:any) => new TableRow({children:[
           cel(X(nc.fotoNr),{align:AlignmentType.CENTER,width:600}),
@@ -472,18 +465,17 @@ export async function POST(request: NextRequest) {
           cel(X(nc.prioridade),{align:AlignmentType.CENTER,width:900,bold:true}),
           cel(X(nc.solucaoNC||nc.cp||'—'),{width:3738}),
         ]})),
-        new TableRow({children:[cel('',{bg:'F2F2F2',span:6})]}),
-      ]}))
+              ]}))
       elems41.push(par(''))
     }
 
     // Tabela 4.2
     const tab42 = new Table({ width:{size:TW,type:WidthType.DXA}, rows:[
       
-      new TableRow({children:[cel('Estatística de Manifestações Patológicas por Sistema Construtivo',{span:9,bold:true,align:AlignmentType.CENTER,bg:'EEECE1'})]}),
+      new TableRow({children:[cel('Estatística de Manifestações Patológicas por Sistema Construtivo',{span:9,bold:true,align:AlignmentType.CENTER,bg:'1E3A8A',color:'FFFFFF'})]}),
       new TableRow({children:[
         cel('Sistemas construtivos',{bg:'2a52a8',bold:true,rowSpan:2,width:3500,color:'FFFFFF'}),
-        cel('Manifestações por Prioridades',{bg:'F2F2F2',bold:true,span:6,align:AlignmentType.CENTER,width:5438}),
+        cel('Manifestações por Prioridades',{bg:'2a52a8',bold:true,span:6,align:AlignmentType.CENTER,width:5438,color:'FFFFFF'}),
         cel('Sub total',{bg:'2a52a8',bold:true,align:AlignmentType.CENTER,width:700,color:'FFFFFF'}),
       ]}),
       new TableRow({children:[
@@ -493,7 +485,7 @@ export async function POST(request: NextRequest) {
         cel('%',{bg:'2a52a8',bold:true,align:AlignmentType.CENTER,color:'FFFFFF',width:650}),
         cel('B',{bg:'2a52a8',bold:true,align:AlignmentType.CENTER,color:'FFFFFF',width:650}),
         cel('%',{bg:'2a52a8',bold:true,align:AlignmentType.CENTER,color:'FFFFFF',width:788}),
-        cel('',{bg:'F2F2F2',bold:true,align:AlignmentType.CENTER,width:700}),
+        cel('',{bg:'2a52a8',bold:true,align:AlignmentType.CENTER,width:700,color:'FFFFFF'}),
       ]}),
       ...stat.map(({s,a,m,b,t}) => new TableRow({children:[
         cel(s.replace(/_/g,' '),{bg:'FFFFFF',width:3500}),
@@ -521,7 +513,6 @@ export async function POST(request: NextRequest) {
 
     // Tabela 5
     const tab5 = new Table({ width:{size:TW,type:WidthType.DXA}, rows:[
-      new TableRow({children:[cel('',{bg:'F2F2F2',span:3})]}),
       new TableRow({children:[cel('5.1.- Avaliação e recomendações da manutenção.',{span:3,bold:true})]}),
       new TableRow({children:[cel('',{width:500}),cel(X(complemento?.rec51)||'[A ser preenchido pelo responsável técnico]',{span:2,italics:!complemento?.rec51})]}),
       new TableRow({children:[cel('',{span:3})]}),
@@ -533,18 +524,15 @@ export async function POST(request: NextRequest) {
       new TableRow({children:[cel('',{span:3})]}),
       new TableRow({children:[cel('5.4.- Outras avaliações e recomendações.',{span:3,bold:true})]}),
       new TableRow({children:[cel('',{width:500}),cel(X(complemento?.rec54)||'[A ser preenchido]',{span:2,italics:!complemento?.rec54})]}),
-      new TableRow({children:[cel('',{bg:'F2F2F2',span:3})]}),
     ]})
 
     // Tabela Anexo 1
     const tabA1 = new Table({ width:{size:TW,type:WidthType.DXA}, rows:[
-      new TableRow({children:[cel('',{bg:'F2F2F2',span:3})]}),
       new TableRow({children:[cel('Documentação da Edificação Solicitada para Análise e Avaliação',{span:3,bold:true,align:AlignmentType.CENTER})]}),
-      new TableRow({children:[cel('Documentos',{bg:'F2F2F2',bold:true,width:Math.floor(TW*0.6)}),cel('Situação',{bg:'F2F2F2',bold:true,align:AlignmentType.CENTER,width:Math.floor(TW*0.2)}),cel('Resultado',{bg:'F2F2F2',bold:true,width:TW-Math.floor(TW*0.8)})]}),
+      new TableRow({children:[cel('Documentos',{bg:'1E3A8A',bold:true,width:Math.floor(TW*0.6),color:'FFFFFF'}),cel('Situação',{bg:'1E3A8A',bold:true,align:AlignmentType.CENTER,width:Math.floor(TW*0.2),color:'FFFFFF'}),cel('Resultado',{bg:'1E3A8A',bold:true,width:TW-Math.floor(TW*0.8),color:'FFFFFF'})]}),
       ...DOCS_ANEXO1.map(d => new TableRow({children:[cel(d,{width:Math.floor(TW*0.6)}),cel('',{align:AlignmentType.CENTER,width:Math.floor(TW*0.2)}),cel('',{width:TW-Math.floor(TW*0.8)})]})),
       new TableRow({children:[cel('Situação: Entregue; Pendente; Desnecessário — Resultado: Conforme; Não conforme; Não se aplica',{span:3,italics:true})]}),
-      new TableRow({children:[cel('',{bg:'F2F2F2',span:3})]}),
-    ]})
+          ]})
 
     // Cabeçalho/Rodapé
     const cabTexto = X(inspetor?.cabecalho_documentos) || titulo
