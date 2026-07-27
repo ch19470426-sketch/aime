@@ -306,23 +306,6 @@ export async function POST(request: NextRequest) {
   <tr><td><b>e)</b> Quanto às <b>CONDIÇÕES DE USO</b> a edificação foi classificada como EDIFICAÇÃO DE USO:</td><td style="text-align:center"><span class="badge bc-uso">${xmlEsc(cl.uso)||'—'}</span></td></tr>
   <tr><td><b>f)</b> Quanto ao <b>DESEMPENHO GERAL</b> a edificação foi classificada como:</td><td style="text-align:center"><span class="badge bc-global">${xmlEsc(cl.desempGeral)||'—'}</span></td></tr>
 </table>`
-<div class="bloco">
-  <div class="bloco-header">Resultado da Classificação da Fachada</div>
-  <div class="item-row"><div class="item-letra">a)</div><div class="item-criterio">Quanto ao <strong>ESTADO DE CONSERVAÇÃO</strong> da fachada pode ser classificado como:</div><div class="item-valor"><span class="badge bc-nivel">${xmlEsc(cl.risco)||'—'}</span></div></div>
-  <div class="item-row"><div class="item-letra">b)</div><div class="item-criterio">O histórico de <strong>MANUTENÇÃO</strong> da fachada:</div><div class="item-valor"><span class="badge bc-manut">${xmlEsc(cl.manut)||'—'}</span></div></div>
-  <div class="item-row"><div class="item-letra">c)</div><div class="item-criterio">A <strong>AGRESSIVIDADE DO MEIO AMBIENTE</strong> sobre a fachada é considerada:</div><div class="item-valor"><span class="badge bc-risco">${xmlEsc(cl.desempenho)||'—'}</span></div></div>
-  <div class="item-row"><div class="item-letra">d)</div><div class="item-criterio">O <strong>RISCO DE QUEDA DE ELEMENTOS</strong> da fachada é considerado:</div><div class="item-valor"><span class="badge b-alto">${xmlEsc(cl.uso)||'—'}</span></div></div>
-  <div class="item-row"><div class="item-letra">e)</div><div class="item-criterio">O <strong>DESEMPENHO TÉCNICO DO SISTEMA</strong> da fachada:</div><div class="item-valor"><span class="badge bc-desemp">${xmlEsc(cl.desempGeral)||'—'}</span></div></div>
-</div>` : `
-<div class="bloco">
-  <div class="bloco-header">Resultado da Classificação da Edificação</div>
-  <div class="item-row"><div class="item-letra">a)</div><div class="item-criterio">Quanto ao <strong>NÍVEL</strong> da inspeção efetuada o imóvel foi classificado como INSPEÇÃO PREDIAL NÍVEL:</div><div class="item-valor"><span class="badge bc-nivel">${xmlEsc(nivel)||'—'}</span></div></div>
-  <div class="item-row"><div class="item-letra">b)</div><div class="item-criterio">Quanto ao <strong>GRAU DE RISCO</strong> o imóvel encontra-se classificado como de RISCO:</div><div class="item-valor"><span class="badge bc-risco">${xmlEsc(cl.risco)||'—'}</span></div></div>
-  <div class="item-row"><div class="item-letra">c)</div><div class="item-criterio">Quanto ao <strong>DESEMPENHO</strong> a classificação geral do imóvel foi classificada como:</div><div class="item-valor"><span class="badge bc-desemp">${xmlEsc(cl.desempenho)||'—'}</span></div></div>
-  <div class="item-row"><div class="item-letra">d)</div><div class="item-criterio">Quanto à <strong>QUALIDADE DA MANUTENÇÃO</strong> a edificação foi classificada como QUALIDADE QUE:</div><div class="item-valor"><span class="badge bc-manut">${xmlEsc(cl.manut)||'—'}</span></div></div>
-  <div class="item-row"><div class="item-letra">e)</div><div class="item-criterio">Quanto às <strong>CONDIÇÕES DE USO</strong> a edificação foi classificada como EDIFICAÇÃO DE USO:</div><div class="item-valor"><span class="badge bc-uso">${xmlEsc(cl.uso)||'—'}</span></div></div>
-  <div class="item-row"><div class="item-letra">f)</div><div class="item-criterio">Quanto ao <strong>DESEMPENHO GERAL</strong> a edificação foi classificada como:</div><div class="item-valor"><span class="badge bc-global">${xmlEsc(cl.desempGeral)||'—'}</span></div></div>
-</div>`
 
     // ── Tabela 4.1 — NCs por sistema ──
     const tabela41 = sistemas.map(s => {
