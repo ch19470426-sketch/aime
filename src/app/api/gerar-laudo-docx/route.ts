@@ -121,63 +121,6 @@ export async function POST(request: NextRequest) {
         keepNext: true,
       })
     }
-    // ── Design System §3 ─────────────────────────────────────────────────────
-    function tituloDS(txt: string): Table {
-      return new Table({ width:{size:TW,type:WidthType.DXA},
-        borders:{top:{style:BorderStyle.NIL},bottom:{style:BorderStyle.NIL},left:{style:BorderStyle.NIL},right:{style:BorderStyle.NIL},insideH:{style:BorderStyle.NIL},insideV:{style:BorderStyle.NIL}},
-        rows:[new TableRow({children:[new TableCell({
-          children:[new Paragraph({children:[new TextRun({text:txt,bold:true,color:'FFFFFF',size:20,font:'Arial'})],spacing:{before:80,after:80},indent:{left:80}})],
-          shading:{type:ShadingType.CLEAR,color:'auto',fill:'1E3A8A'},
-          margins:{top:60,bottom:60,left:120,right:120},
-        })]})],
-        margins:{top:140,bottom:60},
-      })
-    }
-    function blocoHdr(txt: string): TableRow {
-      return new TableRow({children:[cel(txt,{bg:'1E3A8A',bold:true,span:99})]})
-    }
-    function itemRow(letra:string, crit:string, val:string, bgBadge='EEF2FF', fgBadge='1e40af'): TableRow {
-      return new TableRow({children:[
-        new TableCell({width:{size:320,type:WidthType.DXA},
-          children:[new Paragraph({children:[new TextRun({text:letra,bold:true,color:'FFFFFF',size:20,font:'Arial'})],alignment:AlignmentType.CENTER,spacing:{before:80,after:80}})],
-          shading:{type:ShadingType.CLEAR,color:'auto',fill:'1E3A8A'},
-          borders:{top:{style:BorderStyle.SINGLE,size:1,color:'1E3A8A'},bottom:{style:BorderStyle.NIL},left:{style:BorderStyle.NIL},right:{style:BorderStyle.NIL}},
-          margins:{top:40,bottom:40,left:40,right:40},
-        }),
-        new TableCell({
-          children:[new Paragraph({children:[new TextRun({text:crit,color:'1E3A8A',size:16,font:'Arial'})],spacing:{before:80,after:80}})],
-          borders:{top:{style:BorderStyle.SINGLE,size:1,color:'1E3A8A'},bottom:{style:BorderStyle.NIL},left:{style:BorderStyle.NIL},right:{style:BorderStyle.SINGLE,size:1,color:'1E3A8A'}},
-          margins:{top:40,bottom:40,left:80,right:80},
-        }),
-        new TableCell({width:{size:2800,type:WidthType.DXA},
-          children:[new Paragraph({children:[new TextRun({text:val||'—',bold:true,size:17,font:'Arial',color:fgBadge})],alignment:AlignmentType.CENTER,spacing:{before:80,after:80}})],
-          shading:{type:ShadingType.CLEAR,color:'auto',fill:bgBadge},
-          borders:{top:{style:BorderStyle.SINGLE,size:1,color:'1E3A8A'},bottom:{style:BorderStyle.NIL},left:{style:BorderStyle.NIL},right:{style:BorderStyle.NIL}},
-          margins:{top:40,bottom:40,left:80,right:80},
-        }),
-      ]})
-    }
-    function itemRec(num:string, txt:string): TableRow {
-      return new TableRow({children:[
-        new TableCell({width:{size:500,type:WidthType.DXA},
-          children:[new Paragraph({children:[new TextRun({text:num,bold:true,color:'1E3A8A',size:18,font:'Arial'})],alignment:AlignmentType.CENTER,spacing:{before:80,after:80}})],
-          shading:{type:ShadingType.CLEAR,color:'auto',fill:'EEF2FF'},
-          borders:{top:{style:BorderStyle.SINGLE,size:1,color:'1E3A8A'},bottom:{style:BorderStyle.NIL},left:{style:BorderStyle.NIL},right:{style:BorderStyle.SINGLE,size:1,color:'1E3A8A'}},
-          margins:{top:40,bottom:40,left:40,right:40},
-        }),
-        new TableCell({
-          children:[new Paragraph({children:[new TextRun({text:txt,size:17,color:'333333',font:'Arial'})],spacing:{before:80,after:80}})],
-          borders:{top:{style:BorderStyle.SINGLE,size:1,color:'1E3A8A'},bottom:{style:BorderStyle.NIL},left:{style:BorderStyle.NIL},right:{style:BorderStyle.NIL}},
-          margins:{top:40,bottom:40,left:80,right:80},
-        }),
-      ]})
-    }
-    function blocoTabela(rows: any[]): Table {
-      return new Table({width:{size:TW,type:WidthType.DXA},
-        borders:{top:{style:BorderStyle.SINGLE,size:3,color:'1E3A8A'},bottom:{style:BorderStyle.SINGLE,size:3,color:'1E3A8A'},left:{style:BorderStyle.SINGLE,size:3,color:'1E3A8A'},right:{style:BorderStyle.SINGLE,size:3,color:'1E3A8A'},insideH:{style:BorderStyle.SINGLE,size:1,color:'1E3A8A'},insideV:{style:BorderStyle.NIL}},
-        rows, margins:{bottom:100},
-      })
-    }
 
     // Gráfico de barras como tabela DOCX
     function tabelaBarras(stat: {s:string,a:number,m:number,b:number,t:number}[]): any[] {
@@ -451,29 +394,35 @@ export async function POST(request: NextRequest) {
     ]})
 
     // Tabela 3.3
-    const ITENS33 = tipoServico==='43' ? [
-      {l:'a)',d:'A execução da obra em relação à CONFORMIDADE CONSTRUTIVA foi classificada como:',v:X(cl.nivel),bg:'dbeafe',fg:'1e40af'},
-      {l:'b)',d:'A QUALIDADE DE ACABAMENTO do imóvel é classificada como:',v:X(cl.risco),bg:'fef9c3',fg:'854d0e'},
-      {l:'c)',d:'Quanto ao uso, a FUNCIONALIDADE do imóvel:',v:X(cl.desempenho),bg:'dcfce7',fg:'166534'},
-      {l:'d)',d:'Quanto às condições de ocupação, a HABITABILIDADE pode ser considerada:',v:X(cl.manut),bg:'f3e8ff',fg:'6b21a8'},
-      {l:'e)',d:'A análise sobre a CLASSE DO IMÓVEL resulta em:',v:X(cl.uso),bg:'e0f2fe',fg:'0369a1'},
-      {l:'f)',d:'O GRAU DE SATISFAÇÃO NO RECEBIMENTO do imóvel:',v:X(cl.desempGeral),bg:'dcfce7',fg:'166534'},
-    ] : tipoServico==='44' ? [
-      {l:'a)',d:'Quanto ao ESTADO DE CONSERVAÇÃO da fachada:',v:X(cl.risco),bg:'fef9c3',fg:'854d0e'},
-      {l:'b)',d:'O histórico de MANUTENÇÃO da fachada:',v:X(cl.manut),bg:'f3e8ff',fg:'6b21a8'},
-      {l:'c)',d:'A AGRESSIVIDADE DO MEIO AMBIENTE sobre a fachada:',v:X(cl.desempenho),bg:'fef9c3',fg:'854d0e'},
-      {l:'d)',d:'O RISCO DE QUEDA DE ELEMENTOS da fachada:',v:X(cl.uso),bg:'fee2e2',fg:'991b1b'},
-      {l:'e)',d:'O DESEMPENHO TÉCNICO DO SISTEMA da fachada:',v:X(cl.desempGeral),bg:'dcfce7',fg:'166534'},
-    ] : [
-      {l:'a)',d:'Quanto ao NÍVEL da inspeção efetuada o imóvel foi classificado como INSPEÇÃO PREDIAL NÍVEL:',v:nivel,bg:'dbeafe',fg:'1e40af'},
-      {l:'b)',d:'Quanto ao GRAU DE RISCO o imóvel encontra-se classificado como de RISCO:',v:X(cl.risco),bg:'fef9c3',fg:'854d0e'},
-      {l:'c)',d:'Quanto ao DESEMPENHO a classificação geral do imóvel foi classificada como:',v:X(cl.desempenho),bg:'dcfce7',fg:'166534'},
-      {l:'d)',d:'Quanto à QUALIDADE DA MANUTENÇÃO a edificação foi classificada como QUALIDADE QUE:',v:X(cl.manut),bg:'f3e8ff',fg:'6b21a8'},
-      {l:'e)',d:'Quanto às CONDIÇÕES DE USO a edificação foi classificada como EDIFICAÇÃO DE USO:',v:X(cl.uso),bg:'e0f2fe',fg:'0369a1'},
-      {l:'f)',d:'Quanto ao DESEMPENHO GERAL a edificação foi classificada como:',v:X(cl.desempGeral),bg:'dcfce7',fg:'166534'},
+    const tab33rows: any[] = [
+      new TableRow({children:[cel('',{bg:'F2F2F2',span:2})]}),
+      new TableRow({children:[cel('Resultado da Classificação da Edificação.',{span:2,bold:true,align:AlignmentType.CENTER})]}),
     ]
-    const titulo33 = tipoServico==='43'?'Resultado da Classificação do Imóvel':tipoServico==='44'?'Resultado da Classificação da Fachada':'Resultado da Classificação da Edificação'
-    const tab33 = blocoTabela([blocoHdr(titulo33), ...ITENS33.map((i:any)=>itemRow(i.l,i.d,i.v,i.bg,i.fg))])
+    const cl33 = tipoServico==='43' ? [
+      ['a) A execução da obra em relação à CONFORMIDADE CONSTRUTIVA foi classificada como:', cl.nivel||''],
+      ['b) A QUALIDADE DE ACABAMENTO do imóvel é classificada como:', cl.risco||''],
+      ['c) A FUNCIONALIDADE do imóvel:', cl.desempenho||''],
+      ['d) A HABITABILIDADE pode ser considerada:', cl.manut||''],
+      ['e) A CLASSE DO IMÓVEL resulta em:', cl.uso||''],
+      ['f) O GRAU DE SATISFAÇÃO NO RECEBIMENTO do imóvel:', cl.desempGeral||''],
+    ] : tipoServico==='44' ? [
+      ['a) Quanto ao ESTADO DE CONSERVAÇÃO da fachada pode ser classificado como:', cl.nivel||''],
+      ['b) O histórico de MANUTENÇÃO da fachada é:', cl.risco||''],
+      ['c) A AGRESSIVIDADE DO MEIO AMBIENTE sobre a fachada é:', cl.desempenho||''],
+      ['d) O RISCO DE QUEDA DE ELEMENTOS da fachada é considerado:', cl.manut||''],
+      ['e) O DESEMPENHO TÉCNICO DO SISTEMA da fachada:', cl.uso||''],
+      ['f) A PRIORIDADE DE INTERVENÇÃO para manutenção:', cl.desempGeral||''],
+    ] : [
+      ['a) Quanto ao NÍVEL da inspeção efetuada o imóvel em questão foi classificado como INSPEÇÃO PREDIAL NÍVEL:', nivel],
+      ['b) Quando ao GRAU DE RISCO o imóvel em questão encontra-se classificado como de RISCO:', cl.risco||''],
+      ['c) Quanto ao DESEMPENHO a classificação geral do imóvel foi classificada como de DESEMPENHO:', cl.desempenho||''],
+      ['d) Quanto a QUALIDADE DA MANUTENÇÃO a edificação foi classificada como QUALIDADE QUE:', cl.manut||''],
+      ['e) Quanto as CONDIÇÕES DE USO a edificação foi classificada como EDIFICAÇÃO DE USO:', cl.uso||''],
+      ['f) Quanto ao DESEMPENHO a edificação foi classificada como:', cl.desempGeral||''],
+    ]
+    cl33.forEach(([d,v]) => tab33rows.push(new TableRow({children:[cel(d,{width:Math.floor(TW*0.72)}),cel(v,{width:TW-Math.floor(TW*0.72),align:AlignmentType.CENTER,bold:true})]})))
+    tab33rows.push(new TableRow({children:[cel('',{bg:'F2F2F2',span:2})]}))
+    const tab33 = new Table({ width:{size:TW,type:WidthType.DXA}, rows:tab33rows })
 
     // Tabelas 4.1 por sistema
     const elems41: any[] = []
@@ -555,13 +504,21 @@ export async function POST(request: NextRequest) {
     ]})
 
     // Tabela 5
-    const tab5 = blocoTabela([
-      blocoHdr('Recomendações sobre Manutenção, Uso, Sustentabilidade e Gerais'),
-      itemRec('5.1', '5.1.- Avaliação e recomendações da manutenção.  ' + (X(complemento?.rec51)||'[A ser preenchido]')),
-      itemRec('5.2', '5.2.- Avaliação e recomendações do uso da edificação.  ' + (X(complemento?.rec52)||'[A ser preenchido]')),
-      itemRec('5.3', '5.3.- Avaliação e recomendações da sustentabilidade.  ' + (X(complemento?.rec53)||'[A ser preenchido]')),
-      itemRec('5.4', '5.4.- Outras avaliações e recomendações.  ' + (X(complemento?.rec54)||'[A ser preenchido]')),
-    ])
+    const tab5 = new Table({ width:{size:TW,type:WidthType.DXA}, rows:[
+      new TableRow({children:[cel('',{bg:'F2F2F2',span:3})]}),
+      new TableRow({children:[cel('5.1.- Avaliação e recomendações da manutenção.',{span:3,bold:true})]}),
+      new TableRow({children:[cel('',{width:500}),cel(X(complemento?.rec51)||'[A ser preenchido pelo responsável técnico]',{span:2,italics:!complemento?.rec51})]}),
+      new TableRow({children:[cel('',{span:3})]}),
+      new TableRow({children:[cel('5.2.- Avaliação e recomendações do uso da edificação.',{span:3,bold:true})]}),
+      new TableRow({children:[cel('',{width:500}),cel(X(complemento?.rec52)||'[A ser preenchido]',{span:2,italics:!complemento?.rec52})]}),
+      new TableRow({children:[cel('',{span:3})]}),
+      new TableRow({children:[cel('5.3.- Avaliação e recomendações da sustentabilidade.',{span:3,bold:true})]}),
+      new TableRow({children:[cel('',{width:500}),cel(X(complemento?.rec53)||'[A ser preenchido]',{span:2,italics:!complemento?.rec53})]}),
+      new TableRow({children:[cel('',{span:3})]}),
+      new TableRow({children:[cel('5.4.- Outras avaliações e recomendações.',{span:3,bold:true})]}),
+      new TableRow({children:[cel('',{width:500}),cel(X(complemento?.rec54)||'[A ser preenchido]',{span:2,italics:!complemento?.rec54})]}),
+      new TableRow({children:[cel('',{bg:'F2F2F2',span:3})]}),
+    ]})
 
     // Tabela Anexo 1
     const tabA1 = new Table({ width:{size:TW,type:WidthType.DXA}, rows:[
@@ -635,25 +592,25 @@ export async function POST(request: NextRequest) {
           par(''),
           // ÍNDICE
           new Paragraph({children:[new PageBreak()]}),
-          tituloDS('ÍNDICE'),
+          h('ÍNDICE',1),
           ...['1.- Considerações Preliminares','     1.1.- Características e localização da edificação','     1.2.- Objetivo','     1.3.- Plano de Trabalho','     1.4.- Condições e limitações','2.- Metodologia adotada para o Trabalho de Autovistoria','3.- Resultado da Vistoria Técnica e Classificação da Edificação','     3.1.- Descrição da Vistoria Técnica','     3.2.- Resultado da Vistoria','     3.3.- Resultado da Classificação da Edificação','4.- Relação de Não Conformidades e Análise das Manifestações Patológicas','     4.1.- Relação de Não Conformidades e Soluções','     4.2.- Análise Estatística das Manifestações Patológicas','5.- Recomendações sobre a Manutenção, Uso, Sustentabilidade e Gerais','6.- Conclusão','7.- Encerramento','Anexo 1 – Relação de documentos solicitados e analisados','Anexo 2 – Resultado da Vistoria','Anexo 3 – Anotações de responsabilidade dos profissionais que atuaram nesta inspeção'].map(t => par(t,{before:40,after:20})),
           par(''),
           // 1. CONSIDERAÇÕES
           new Paragraph({children:[new PageBreak()]}),
-          tituloDS('1.- Considerações Preliminares'),
+          h('1.- Considerações Preliminares.'),
           par('Este Laudo de Autovistoria é o documento completo resultante do trabalho executado na vistoria da edificação, análise, classificação e priorização das manifestações patológicas, conforme exigências da ABNT/NBR 16.747/2020, recomendações da Norma de Inspeção Predial do IBAPE de 2025 e legislação vigente.'),
           par('A inspeção apresentada neste laudo é o resultado de um exame "clínico geral" que avalia as condições globais do objeto em estudo e detecta a existência de problemas de conservação ou funcionamento, com base em uma análise fundamentalmente sensorial e efetuada por um profissional habilitado.'),
           par('A documentação da edificação solicitada pelo inspetor na reunião inicial foi analisada e avaliada, e o resultado fica registrado na planilha apresentada no Anexo 1 deste laudo.'),
           par(''),
-          tituloDS('1.1.- Características e localização da edificação.'),
+          h('1.1.- Características e localização da edificação.',2),
           tab11, par(''), tab11loc, par(''),
-          tituloDS('1.2.- Objetivo.'),
+          h('1.2.- Objetivo.',2),
           par('Avaliar as condições de segurança, funcionalidade, habitabilidade e manutenção da edificação, de acordo com os critérios da ABNT NBR 16.747/2020, normas correlatas, legislação vigente e metodologia apresentada neste documento.'),
           par(''),
-          tituloDS('1.3.- Plano de Trabalho.'),
+          h('1.3.- Plano de Trabalho.',2),
           par('As etapas básicas desenvolvidas para a realização do presente trabalho de Inspeção Predial constam na tabela que segue:'),
           tab13, par(''),
-          tituloDS('1.4.- Condições e limitações.'),
+          h('1.4.- Condições e limitações.',2),
           par('O Laudo de Autovistoria segue as condições abaixo relacionadas, além de estar sujeito às seguintes limitações:'),
           par('Neste trabalho computamos como corretos os elementos documentais consultados e as informações prestadas por terceiros, de boa fé e confiáveis;',{indent:720}),
           par('O trabalho apresentado e o resultado final são válidos apenas para a sequência metodológica apresentada, sendo vedada a utilização deste laudo em conexão com qualquer outro trabalho, exceto como referência para contratação dos serviços de manutenção;',{indent:720}),
@@ -661,16 +618,16 @@ export async function POST(request: NextRequest) {
           par(''),
           // 2. METODOLOGIA
           new Paragraph({children:[new PageBreak()]}),
-          tituloDS('2.- Metodologia Adotada'),
+          h('2.- Metodologia adotada para o Trabalho de Autovistoria.'),
           par('A metodologia adotada para este trabalho segue as normas da ABNT, IBAPE e legislação estadual e municipal que regulamentam a autovistoria.'),
           par(''),
-          tituloDS('2.1.- Norma Brasileira para Inspeção Predial — NBR-16.747/2020.'),
+          h('2.1.- Norma Brasileira para Inspeção Predial — NBR-16.747/2020.',2),
           par('A metodologia básica para execução do presente trabalho foi pautada nos requisitos constantes da NBR-16.747/2020 (Inspeção Predial — Diretrizes, Conceitos, Terminologia e Procedimentos) da Associação Brasileira de Normas Técnicas — ABNT.'),
           par([{text:'"Abrangências da análise',bold:true,italics:true}]),
           par('A inspeção predial baseia-se na constatação e análise do estado aparente de desempenho dos sistemas construtivos na fase de uso, operação e manutenção, considerando os requisitos dos usuários.',{italics:true}),
           par('A análise consiste na constatação da situação da edificação quanto à sua capacidade de atender às suas funções segundo os requisitos dos usuários, com base na análise fundamentalmente sensorial e efetuada por um profissional habilitado."',{italics:true}),
           par(''),
-          tituloDS('2.2.- Norma de Inspeção Predial do IBAPE/2025.'),
+          h('2.2.- Norma de Inspeção Predial do IBAPE/2025.',2),
           par('A Norma de Inspeção Predial do IBAPE fixa diretrizes, conceitos, terminologias, critérios e procedimentos relativos à atividade de Inspeção Predial, abrangendo os requisitos mínimos de:'),
           par('Segurança: segurança estrutural; segurança contra incêndio; segurança no uso e na operação;',{indent:720,italics:true}),
           par('Habitabilidade: estanqueidade; saúde, higiene e qualidade do ar; funcionalidade e acessibilidade;',{indent:720,italics:true}),
@@ -678,16 +635,16 @@ export async function POST(request: NextRequest) {
           par('A norma se aplica a todas as tipologias de edificações, sendo elas públicas ou privadas, devendo ser observadas as características técnicas e complexidades dos sistemas construtivos.'),
           par([{text:'As normas ABNT apresentadas a seguir são referências auxiliares e complementares à aplicação da norma IBAPE: ',italics:true},{text:'NBR 16747: Inspeção Predial; NBR 5674: Manutenção de Edificações; NBR 15575: Desempenho; NBR 14037: Manual de Operação, Uso e Manutenção; NBR 16280: Reforma em Edificações.',italics:true}]),
           par(''),
-          tituloDS('2.3.- Critérios e Metodologia da Inspeção.'),
-          tituloDS('2.3.1.- Critérios.'),
+          h('2.3.- Critérios e Metodologia da Inspeção.',2),
+          h('2.3.1.- Critérios.',3),
           par('O critério utilizado para elaboração de laudos baseia-se na análise do risco oferecido aos usuários, ao meio ambiente e ao patrimônio, diante as condições observadas nos sistemas construtivos durante a vistoria.'),
           par('A análise do risco consiste na classificação das anomalias e falhas identificadas nos diversos sistemas construtivos e instalações de uma edificação, levando em consideração: a Gravidade, a Urgência e a Tendência de evolução, usando a metodologia GUT adaptado.'),
           par(''),
-          tituloDS('2.3.2.- Método.'),
+          h('2.3.2.- Método.',3),
           par('O método empregado consiste em: determinar o nível da inspeção predial (NBR 16.747); verificar e analisar a documentação; obter informações com responsáveis pela edificação; vistoriar os sistemas construtivos e instalações; classificar e priorizar as manifestações patológicas; e elaborar o laudo técnico.'),
           par('O planejamento da vistoria inclui uma entrevista com o responsável pela edificação, abordando características técnicas e aspectos cotidianos da manutenção do prédio, de forma a antecipar as dificuldades do trabalho.'),
           par(''),
-          tituloDS('2.3.3.- Classificação das Inspeções Prediais (NBR 16.747) e Edificações.'),
+          h('2.3.3.- Classificação das Inspeções Prediais (NBR 16.747) e Edificações.',3),
           par('A classificação das inspeções prediais e edificações devem ser efetuadas segundo critérios definidos em normas técnicas, conforme segue:'),
           par([{text:'Quanto ao NÍVEL'},{text:' de inspeção predial as edificações são classificadas quanto a sua complexidade e elaboração de laudo:'}]),
           par([{text:'NÍVEL 1:',bold:true},{text:' Edificações mais simples, sem necessidade de equipe multidisciplinar, necessário somente um profissional: Engenheiro Civil ou Arquiteto;'}],{indent:720}),
@@ -702,7 +659,7 @@ export async function POST(request: NextRequest) {
           par([{text:'Prioridade 2 (Média):',bold:true},{text:' ações corretivas a médio prazo — prazo inferior a 15 meses;'}],{indent:630}),
           par([{text:'Prioridade 3 (Baixa):',bold:true},{text:' ações planejadas a longo prazo — prazo não superior a 30 meses.'}],{indent:630}),
           par(''),
-          tituloDS('2.3.4.- Critérios para avaliação da manutenção, uso da edificação e do desempenho.'),
+          h('2.3.4.- Critérios para avaliação da manutenção, uso da edificação e do desempenho.',3),
           par('As recomendações quanto a manutenção, uso da edificação e sustentabilidade serão efetuadas segundo os critérios que seguem.'),
           par([{text:'Quanto a MANUTENÇÃO',bold:true},{text:' da edificação será avaliada a coerência entre o plano de manutenção apresentado e o recomendado, classificando como: Totalmente atende; Parcialmente atende; Não atende.'}]),
           par([{text:'Quanto as CONDIÇÕES DE USO',bold:true},{text:' a análise de cada um dos sistemas construtivos será efetuada em relação ao tipo de uso previsto em projeto:'}]),
@@ -716,33 +673,33 @@ export async function POST(request: NextRequest) {
           par(''),
           // 3. RESULTADO
           new Paragraph({children:[new PageBreak()]}),
-          tituloDS('3.- Resultado da Vistoria e Classificação'),
+          h('3.- Resultado da Vistoria Técnica e Classificação da Edificação.'),
           par(''),
-          tituloDS('3.1.- Descrição da Vistoria Técnica.'),
+          h('3.1.- Descrição da Vistoria Técnica.',2),
           tab31, par(''),
           par('Os sistemas construtivos e instalações vistoriadas, com as condições observadas e as respectivas recomendações são apresentadas nos Relatórios de Não Conformidades, item 4 deste documento.'),
           par('O resultado da vistoria é apresentado por sistema construtivo ou instalação, num conjunto de formulários, contendo o sistema e subsistema construtivo, localização da anomalia, o grau de risco e a prioridade para manutenção.'),
           par(''),
-          tituloDS('3.2.- Resultado da Vistoria.'),
+          h('3.2.- Resultado da Vistoria.',2),
           par('O resultado da vistoria, imagens dos formulários da coleta de dados, é apresentado no Anexo 2 deste documento e apresenta, fielmente, dados, informações e fotos coletadas durante a realização da vistoria.'),
           par(''),
-          tituloDS('3.3.- Resultado da Classificação da Edificação.'),
+          h('3.3.- Resultado da Classificação da Edificação.',2),
           par('O resultado da classificação da edificação quanto ao nível de inspeção, grau de risco, desempenho, manutenção e uso foi efetuada seguindo a metodologia apresentada para execução deste trabalho.'),
           tab33,
           par([{text:'As Prioridades para aplicar as soluções de manutenção constam na relação apresentada no '},{text:'item 4.',bold:true},{text:' deste documento.'}]),
           par(''),
           // 4. NÃO CONFORMIDADES
           new Paragraph({children:[new PageBreak()]}),
-          tituloDS('4.- Relação de Não Conformidades e Análise'),
+          h('4.- Relação de Não Conformidades e Análise das Manifestações Patológicas.'),
           par(''),
-          tituloDS('4.1.- Relação de Não Conformidades e Soluções.'),
+          h('4.1.- Relação de Não Conformidades e Soluções.',2),
           par('Neste item é apresentado, de forma clara e concisa, o conjunto de manifestações patológicas identificadas na vistoria, suas localizações e o número da foto no respectivo formulário de vistoria.'),
           par('Salientamos, também, a importância do condomínio documentar as manutenções corretivas realizadas no pós inspeção, indicando a solução aplicada, local, data e responsável técnico pela execução.'),
           par('A prioridade para manutenção de cada uma das não conformidades foi obtida pelo grau de risco (0 a 100), calculado com base nos parâmetros: gravidade, urgência, tendência e exposição ao risco.'),
           par('Quanto a definição das prioridades foi adotado o critério: grau de risco superior a 64 pontos, prioridade ALTA; grau de risco menor que 65 pontos e maior que 34 pontos, prioridade MÉDIA; grau de risco menor que 35 pontos, prioridade BAIXA.'),
           par(''),
           ...elems41,
-          tituloDS('4.2.- Análise Estatística das Manifestações Patológicas.'),
+          h('4.2.- Análise Estatística das Manifestações Patológicas.',2),
           par('A tabela que segue apresenta a estatística de ocorrências de manifestações patológicas por sistema construtivos e prioridades, onde se pode observar a distribuição das mesmas pelos sistemas.'),
           tab42,
           par(''),
@@ -752,7 +709,7 @@ export async function POST(request: NextRequest) {
           par(''),
           // 5. RECOMENDAÇÕES
           new Paragraph({children:[new PageBreak()]}),
-          tituloDS('5.- Recomendações'),
+          h('5.- Recomendações sobre a Manutenção, Uso, Sustentabilidade e Gerais.'),
           par('No decorrer do processo de autovistoria foi efetuada a análise da documentação, a vistoria na edificação, a classificação da edificação e das anomalias e falhas identificadas, o que possibilitou uma completa avaliação dos sistemas construtivos da edificação.'),
           par('A seguir estão registradas as recomendações para a manutenção, o uso, a sustentabilidade e outras consideradas pertinentes para este trabalho.'),
           par(''),
@@ -760,7 +717,7 @@ export async function POST(request: NextRequest) {
           par(''),
           // 6. CONCLUSÃO
           new Paragraph({children:[new PageBreak()]}),
-          tituloDS('6.- Conclusão'),
+          h('6.- Conclusão.'),
           par('\t\tDiante do exposto neste documento, e após analisados todos os fatos observados que interferem ou possam vir a interferir com o assunto objeto deste laudo, concluímos:'),
           par(`A vistoria proporcionou a constatação de que, considerando a idade da construção, o imóvel ${totA>0?'apresenta anomalias que requerem intervenção imediata':'não apresenta nenhum dano aparente que represente ameaça à sua solidez, no que se refere ao aspecto estrutural e contenções'}.`),
           par(`Verificou-se a ${totT>0?'existência':'não existência'} de ${totT>0?`${totT} manifestações patológicas distribuídas nos sistemas construtivos vistoriados, sendo ${totA} de prioridade Alta, ${totM} de prioridade Média e ${totB} de prioridade Baixa, as quais necessitam de intervenções corretivas a serem executadas segundo as prioridades definidas`:'danos que possam comprometer a segurança da edificação'}.`),
@@ -769,20 +726,20 @@ export async function POST(request: NextRequest) {
           par([{text:'Atenção: ',bold:true,size:16},{text:'O titular do direito autoral deste trabalho somente autoriza sua reprodução nos casos legais cabíveis, vedando sua cópia ou qualquer forma de reprodução que caracterize plágio.',italics:true,size:16}]),
           par(''),
           // 7. ENCERRAMENTO
-          tituloDS('7.- Encerramento'),
-          tituloDS('7.1. Anexos:'),
+          h('7.- Encerramento.'),
+          h('7.1. Anexos:',2),
           par('Anexo 1 – Relação de documentos solicitados e analisados;',{indent:450}),
           par('Anexo 2 – Resultado da Vistoria;',{indent:450}),
           par('Anexo 3 – Anotações de responsabilidade dos profissionais que atuaram nesta inspeção.',{indent:450}),
           par(''),
-          tituloDS('7.2.- Declaração de conformidade com o Código de Ética.'),
+          h('7.2.- Declaração de conformidade com o Código de Ética.',2),
           par('\t\tO signatário atesta que a presente autovistoria segue criteriosamente os seguintes princípios:'),
           par('Os itens deste trabalho foram revisados pessoalmente pelo responsável técnico que elaborou o Laudo Autovistoria;',{indent:450}),
           par('O responsável técnico não possui no presente, nem contempla para o futuro, interesse nos bens envolvidos neste trabalho;',{indent:450}),
           par('O trabalho encontra-se abrigado por absoluta confidencialidade, sendo garantido o sigilo perante terceiros quanto às razões que motivaram a presente contratação, bem como aos resultados alcançados;',{indent:450}),
           par('Este trabalho foi elaborado em observância estrita aos princípios dos Códigos de Ética Profissional do CONFEA e do IBAPE.',{indent:450}),
           par(''),
-          tituloDS('7.3.- Termo de encerramento:'),
+          h('7.3.- Termo de encerramento:',2),
           par('\t\tO responsável técnico pela execução deste trabalho coloca-se ao inteiro dispor para esclarecimentos adicionais, caso necessários.'),
           par('O documento é entregue em mídia magnética.'),
           par(''),
@@ -797,13 +754,13 @@ export async function POST(request: NextRequest) {
           par(''),
           // ANEXO 1
           new Paragraph({children:[new PageBreak()]}),
-          tituloDS('Anexo 1 – Relação de Documentos Solicitados e Avaliados'),
+          par(' Anexo 1 – Relação de Documentos Solicitados e Avaliados',{bold:true}),
           par(''),
           tabA1,
           par(''),
           // ANEXO 2 — Formulários de vistoria (layout fiel ao HTML homologado)
           new Paragraph({children:[new PageBreak()]}),
-          tituloDS('Anexo 2 – Resultado da Vistoria'),
+          par('Anexo 2 – Resultado da Vistoria',{bold:true}),
           par(''),
           ...((ncsComFoto ?? []).length === 0
             ? [par('[Nenhuma vistoria homologada encontrada para este serviço.]',{italics:true})]
@@ -938,7 +895,7 @@ export async function POST(request: NextRequest) {
           ),
           // ANEXO 3
           new Paragraph({children:[new PageBreak()]}),
-          tituloDS('Anexo 3 – Anotações de Responsabilidade Técnica'),
+          par(' Anexo 3 – Anotações de responsabilidade dos profissionais que atuaram nesta inspeção.',{bold:true}),
           par(''),
           par('Inserir neste espaço a ART (Anotação de Responsabilidade Técnica) ou RRT (Registro de Responsabilidade Técnica) devidamente registrada no CREA ou CAU, relativa à execução deste trabalho de Laudo de Autovistoria.'),
           par(''),
