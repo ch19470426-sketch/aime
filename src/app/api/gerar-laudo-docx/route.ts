@@ -306,8 +306,7 @@ export async function POST(request: NextRequest) {
 
     // Tabela 1.1 Características
     const tab11 = new Table({ width:{size:TW,type:WidthType.DXA}, rows:[
-      new TableRow({children:[cel('',{bg:'F2F2F2',span:6,width:TW})]}),
-      new TableRow({children:[cel('Características da Edificação',{bg:'F2F2F2',span:6,bold:true,align:AlignmentType.CENTER})]}),
+      new TableRow({children:[cel('Características da Edificação',{bg:'1E3A8A',span:6,bold:true,align:AlignmentType.CENTER,color:'FFFFFF'})]}),
       new TableRow({children:[cel('Identificação e características da edificação:',{bg:'F2F2F2',span:6})]}),
       new TableRow({children:[cel(X(labelDoc)+':',{width:1000}),cel(X(estab?.razao_social_nome),{span:2,width:3000}),cel(labelDoc+':',{width:800}),cel(fmtDoc(cnpjoucpf),{width:2200}),cel('CEP: '+X(estab?.cep),{width:1438}),]}),
       new TableRow({children:[cel('Endereço:',{width:1000}),cel(X(estab?.logradouro)+', '+X(estab?.numero)+' '+X(estab?.complemento),{span:3,width:5000}),cel('Bairro:',{width:800}),cel(X(estab?.bairro),{width:1638}),]}),
@@ -317,8 +316,6 @@ export async function POST(request: NextRequest) {
       new TableRow({children:[cel('Unidades:',{width:1000}),cel(X(estab?.numero_unidades_salas),{width:1600}),cel('Área construída:',{width:1400}),cel(X(estab?.area_construida)+' m²',{width:1200}),cel('Terreno:',{width:800}),cel(X(estab?.area_terreno)+' m²',{width:1038}),]}),
       new TableRow({children:[cel('Síntese da descrição da Edificação:',{bg:'F2F2F2',span:6,bold:true})]}),
       new TableRow({children:[cel(X(complemento?.sinteseEdif),{span:6})]}),
-      new TableRow({children:[cel('',{span:6})]}),
-      new TableRow({children:[cel('',{bg:'F2F2F2',span:6})]}),
     ]})
 
     // Tabela 1.1 Localização
@@ -359,13 +356,11 @@ export async function POST(request: NextRequest) {
     }
 
     const tab11loc = new Table({ width:{size:TW,type:WidthType.DXA}, rows:[
-      new TableRow({children:[cel('',{bg:'F2F2F2',span:2})]}),
-      new TableRow({children:[cel('Localização do Estabelecimento',{bg:'F2F2F2',span:2,bold:true,align:AlignmentType.CENTER})]}),
+      new TableRow({children:[cel('Localização do Estabelecimento',{bg:'1E3A8A',span:2,bold:true,align:AlignmentType.CENTER,color:'FFFFFF'})]}),
       new TableRow({ height:{value:2800,rule:'atLeast' as any}, children:[
         celImagem(imgCroqui, '[CROQUI MAPS — colar após baixar o documento]', Math.floor(TW/2)),
         celImagem(imgFoto,   '[FOTO DA FACHADA PRINCIPAL — inserir pelo responsável técnico]', TW-Math.floor(TW/2)),
       ]}),
-      new TableRow({children:[cel('',{bg:'F2F2F2',span:2})]}),
     ]})
 
     // Tabela 1.3 Plano de trabalho
@@ -758,86 +753,122 @@ export async function POST(request: NextRequest) {
           par(''),
           tabA1,
           par(''),
-          // ANEXO 2 — Formulários de vistoria (layout fiel ao HTML homologado)
+          // ANEXO 2 — Formulários de vistoria (layout idêntico ao formulário PDF)
           new Paragraph({children:[new PageBreak()]}),
           par('Anexo 2 – Resultado da Vistoria',{bold:true}),
           par(''),
           ...((ncsComFoto ?? []).length === 0
             ? [par('[Nenhuma vistoria homologada encontrada para este serviço.]',{italics:true})]
             : (ncsComFoto ?? []).flatMap((nc: any, idx: number) => {
-                const nomeS   = X(nc.sistema).slice(3).replace(/_/g,' ')
-                const nomeDoc = (cnpjoucpf?.length === 11) ? 'CPF' : 'CNPJ'
-                const labelNC = X(nc.resultado) ? 'Resultado' : 'Não conformidade (NC)'
-
-                // ── Bloco: Identificação ──────────────────────────────────────
-                const tabIdent = new Table({ width:{size:TW,type:WidthType.DXA}, rows:[
-                  new TableRow({children:[cel('Identificação',{bg:'1E3A8A',span:4,bold:true})]}),
-                  new TableRow({children:[
-                    cel(nomeDoc+':',{bg:'EEF2FF',bold:true,width:800}),
-                    cel(X(nc.cnpjoucpf),{width:2038}),
-                    cel('Razão Social / Nome:',{bg:'EEF2FF',bold:true,width:1600}),
-                    cel(X(estab?.razao_social_nome),{width:TW-4438}),
-                  ]}),
-                  new TableRow({children:[
-                    cel('Tipo serviço:',{bg:'EEF2FF',bold:true,width:800}),
-                    cel(X(nc.tipoServico||tipoServico),{width:2038}),
-                    cel('Data Vistoria:',{bg:'EEF2FF',bold:true,width:1600}),
-                    cel(X(nc.dataVistoria),{width:TW-4438}),
-                  ]}),
-                ]})
-
-                // ── Bloco: Dados da NC ────────────────────────────────────────
-                const tabNC = new Table({ width:{size:TW,type:WidthType.DXA}, rows:[
-                  new TableRow({children:[cel('Anomalia / Não Conformidade',{bg:'1E3A8A',span:4,bold:true})]}),
-                  new TableRow({children:[
-                    cel('Sistema:',{bg:'EEF2FF',bold:true,width:800}),
-                    cel(nomeS,{width:2038}),
-                    cel('Subsistema:',{bg:'EEF2FF',bold:true,width:1600}),
-                    cel(X(nc.subsistema),{width:TW-4438}),
-                  ]}),
-                  new TableRow({children:[
-                    cel('Anomalia:',{bg:'EEF2FF',bold:true,width:800}),
-                    cel(X(nc.anomalia),{span:3,width:TW-800}),
-                  ]}),
-                  new TableRow({children:[
-                    cel('Local:',{bg:'EEF2FF',bold:true,width:800}),
-                    cel(X(nc.local),{width:2038}),
-                    cel('Complemento:',{bg:'EEF2FF',bold:true,width:1600}),
-                    cel(X(nc.complemento),{width:TW-4438}),
-                  ]}),
-                ]})
-
-                // ── Bloco: Classificação de Risco ─────────────────────────────
+                const nomeS = X(nc.sistema).slice(3).replace(/_/g,' ')
+                const nomeDoc = cnpjoucpf?.length === 11 ? 'CPF' : 'CNPJ'
                 const corGR = Number(nc.grauRisco) >= 64 ? 'DC2626'
-                  : Number(nc.grauRisco) >= 35 ? 'D97706' : '059669'
-                const tabRisco = new Table({ width:{size:TW,type:WidthType.DXA}, rows:[
-                  new TableRow({children:[cel('Classificação de Risco',{bg:'1E3A8A',span:4,bold:true})]}),
+                  : Number(nc.grauRisco) >= 35 ? 'D97706' : '166534'
+                const bgGR = Number(nc.grauRisco) >= 64 ? 'FEE2E2'
+                  : Number(nc.grauRisco) >= 35 ? 'FEF9C3' : 'DCFCE7'
+
+                // Cabeçalho do formulário (logo + título)
+                const tabCab = new Table({ width:{size:TW,type:WidthType.DXA}, rows:[
                   new TableRow({children:[
-                    cel('Gravidade:',{bg:'EEF2FF',bold:true,width:800}),
-                    cel(X(nc.gravidade),{width:2038}),
-                    cel('Urgência:',{bg:'EEF2FF',bold:true,width:1600}),
-                    cel(X(nc.urgencia),{width:TW-4438}),
-                  ]}),
-                  new TableRow({children:[
-                    cel('Abrangência:',{bg:'EEF2FF',bold:true,width:800}),
-                    cel(X(nc.abrangencia),{width:2038}),
-                    cel('Exposição:',{bg:'EEF2FF',bold:true,width:1600}),
-                    cel(X(nc.exposicao),{width:TW-4438}),
-                  ]}),
-                  new TableRow({children:[
-                    cel('Grau de Risco:',{bg:'EEF2FF',bold:true,width:800}),
-                    cel(X(nc.grauRisco),{width:2038,bold:true,align:AlignmentType.CENTER}),
-                    cel('Prioridade:',{bg:'EEF2FF',bold:true,width:1600}),
-                    cel(X(nc.prioridade),{width:TW-4438,bold:true,align:AlignmentType.CENTER}),
+                    new TableCell({
+                      width:{size:TW,type:WidthType.DXA},
+                      children:[
+                        new Paragraph({children:[new TextRun({text:'AIMÊ  Autovistoria',bold:true,color:'FFFFFF',size:22,font:'Arial'})],spacing:{before:60,after:20},indent:{left:80}}),
+                        new Paragraph({children:[new TextRun({text:'Formulário para registro de manifestações patológicas e avaliação de riscos',color:'BFD4F0',size:14,font:'Arial'})],spacing:{before:0,after:60},indent:{left:80}}),
+                      ],
+                      shading:{type:ShadingType.CLEAR,color:'auto',fill:'1E3A8A'},
+                      margins:{top:80,bottom:80,left:120,right:120},
+                    }),
                   ]}),
                 ]})
 
-                // ── Bloco: Foto ───────────────────────────────────────────────
-                const fotoRows: any[] = [
-                  new TableRow({children:[cel('Evidência Fotográfica',{bg:'1E3A8A',span:2,bold:true})]}),
+                // Bloco: Identificação
+                const tabIdent = new Table({ width:{size:TW,type:WidthType.DXA}, rows:[
+                  new TableRow({children:[cel('IDENTIFICAÇÃO',{bg:'1E3A8A',bold:true,span:4,color:'FFFFFF'})]}),
                   new TableRow({children:[
-                    cel('Foto Nº:',{bg:'EEF2FF',bold:true,width:800}),
-                    cel(X(nc.fotoNr),{width:TW-800,bold:true,align:AlignmentType.CENTER}),
+                    cel(nomeDoc,{bg:'EEF2FF',bold:true,width:800,size:14,color:'1E3A8A'}),
+                    cel(X(estab?.razao_social_nome) ? 'RAZÃO SOCIAL' : '',{bg:'EEF2FF',bold:true,width:TW-800,size:14,color:'1E3A8A',span:3}),
+                  ]}),
+                  new TableRow({children:[
+                    cel(fmtDoc(X(nc.cnpjoucpf||cnpjoucpf)),{width:800}),
+                    cel(X(estab?.razao_social_nome),{span:3,width:TW-800}),
+                  ]}),
+                ]})
+
+                // Bloco: Manifestação Patológica
+                const tabMP = new Table({ width:{size:TW,type:WidthType.DXA}, rows:[
+                  new TableRow({children:[cel('MANIFESTAÇÃO PATOLÓGICA',{bg:'1E3A8A',bold:true,span:6,color:'FFFFFF'})]}),
+                  new TableRow({children:[
+                    cel('SISTEMA',{bg:'EEF2FF',bold:true,width:1600,size:14,color:'1E3A8A'}),
+                    cel('SUBSISTEMA',{bg:'EEF2FF',bold:true,width:2000,size:14,color:'1E3A8A'}),
+                    cel('ANOMALIA / FALHA',{bg:'EEF2FF',bold:true,width:TW-3600,size:14,color:'1E3A8A',span:4}),
+                  ]}),
+                  new TableRow({children:[
+                    cel(nomeS,{width:1600}),
+                    cel(X(nc.subsistema),{width:2000}),
+                    cel(X(nc.anomalia),{span:4,width:TW-3600}),
+                  ]}),
+                  new TableRow({children:[
+                    cel('ORIGEM',{bg:'EEF2FF',bold:true,width:1600,size:14,color:'1E3A8A'}),
+                    cel('LOCAL DE OCORRÊNCIA',{bg:'EEF2FF',bold:true,width:2000,size:14,color:'1E3A8A'}),
+                    cel('COMPLEMENTO DO LOCAL',{bg:'EEF2FF',bold:true,width:TW-3600,size:14,color:'1E3A8A',span:4}),
+                  ]}),
+                  new TableRow({children:[
+                    cel(X(nc.origem||nc.resultado||'—'),{width:1600}),
+                    cel(X(nc.local),{width:2000}),
+                    cel(X(nc.complemento),{span:4,width:TW-3600}),
+                  ]}),
+                ]})
+
+                // Bloco: Classificação de Risco
+                const tabRisco = new Table({ width:{size:TW,type:WidthType.DXA}, rows:[
+                  new TableRow({children:[cel('CLASSIFICAÇÃO DE RISCO',{bg:'1E3A8A',bold:true,span:8,color:'FFFFFF'})]}),
+                  new TableRow({children:[
+                    cel('GRAVIDADE',{bg:'EEF2FF',bold:true,width:1200,size:14,color:'1E3A8A'}),
+                    cel('URGÊNCIA',{bg:'EEF2FF',bold:true,width:1400,size:14,color:'1E3A8A'}),
+                    cel('ABRANGÊNCIA',{bg:'EEF2FF',bold:true,width:1800,size:14,color:'1E3A8A'}),
+                    cel('EXPOSIÇÃO',{bg:'EEF2FF',bold:true,width:TW-4400,size:14,color:'1E3A8A',span:5}),
+                  ]}),
+                  new TableRow({children:[
+                    cel(X(nc.gravidade),{width:1200}),
+                    cel(X(nc.urgencia),{width:1400}),
+                    cel(X(nc.abrangencia),{width:1800}),
+                    cel(X(nc.exposicao),{span:5,width:TW-4400}),
+                  ]}),
+                  new TableRow({children:[
+                    new TableCell({
+                      columnSpan:4,
+                      width:{size:Math.floor(TW/2),type:WidthType.DXA},
+                      children:[
+                        new Paragraph({children:[new TextRun({text:'GRAU DE RISCO',bold:true,size:14,color:'1E3A8A',font:'Arial'})],spacing:{before:60,after:20}}),
+                        new Paragraph({children:[new TextRun({text:X(nc.grauRisco),bold:true,size:40,color:corGR,font:'Arial'})],spacing:{before:0,after:60}}),
+                      ],
+                      shading:{type:ShadingType.CLEAR,color:'auto',fill:bgGR},
+                      margins:{top:60,bottom:60,left:120,right:120},
+                    }),
+                    new TableCell({
+                      columnSpan:4,
+                      width:{size:TW-Math.floor(TW/2),type:WidthType.DXA},
+                      children:[
+                        new Paragraph({children:[new TextRun({text:'PRIORIDADE',bold:true,size:14,color:'1E3A8A',font:'Arial'})],spacing:{before:60,after:20}}),
+                        new Paragraph({children:[new TextRun({text:(nc.prioridade==='Alta'?'▲ ':nc.prioridade==='Baixa'?'▼ ':'■ ')+X(nc.prioridade),bold:true,size:24,color:corGR,font:'Arial'})],spacing:{before:0,after:60}}),
+                      ],
+                      shading:{type:ShadingType.CLEAR,color:'auto',fill:bgGR},
+                      margins:{top:60,bottom:60,left:120,right:120},
+                    }),
+                  ]}),
+                ]})
+
+                // Bloco: Evidência Fotográfica
+                const fotoRows: any[] = [
+                  new TableRow({children:[cel('EVIDÊNCIA FOTOGRÁFICA',{bg:'1E3A8A',bold:true,span:2,color:'FFFFFF'})]}),
+                  new TableRow({children:[
+                    cel('FOTO Nº',{bg:'EEF2FF',bold:true,width:1200,size:14,color:'1E3A8A'}),
+                    cel('DATA DA VISTORIA',{bg:'EEF2FF',bold:true,width:TW-1200,size:14,color:'1E3A8A'}),
+                  ]}),
+                  new TableRow({children:[
+                    cel(X(nc.fotoNr),{width:1200}),
+                    cel(X(nc.dataVistoria),{width:TW-1200}),
                   ]}),
                 ]
                 if (nc.fotoBase64 && nc.fotoBase64.startsWith('data:image')) {
@@ -847,53 +878,46 @@ export async function POST(request: NextRequest) {
                       const buf = Buffer.from(m[2], 'base64')
                       const ext = m[1].includes('png') ? 'png' as const : 'jpg' as const
                       fotoRows.push(new TableRow({
-                        height: { value: 4000, rule: 'atLeast' as any },
+                        height:{value:4200,rule:'atLeast' as any},
                         children:[new TableCell({
-                          columnSpan: 2,
-                          children: [new Paragraph({
-                            children: [new ImageRun({ data: buf, transformation: { width: 500, height: 280 }, type: ext })],
-                            alignment: AlignmentType.CENTER,
-                            spacing: { before: 60, after: 60 },
+                          columnSpan:2,
+                          children:[new Paragraph({
+                            children:[new ImageRun({data:buf,transformation:{width:500,height:300},type:ext})],
+                            alignment:AlignmentType.CENTER,
+                            spacing:{before:80,after:80},
                           })],
-                          margins: { top: 60, bottom: 60, left: 80, right: 80 },
+                          margins:{top:80,bottom:80,left:80,right:80},
                         })],
                       }))
                     }
-                  } catch { fotoRows.push(new TableRow({children:[cel('[Foto não disponível]',{span:2,italics:true,align:AlignmentType.CENTER})]})) }
+                  } catch { /* sem foto */ }
                 } else {
-                  fotoRows.push(new TableRow({ height:{value:1500,rule:'atLeast' as any}, children:[cel('[Sem foto]',{span:2,italics:true,align:AlignmentType.CENTER})]}))
+                  fotoRows.push(new TableRow({
+                    height:{value:2400,rule:'atLeast' as any},
+                    children:[cel('[Sem foto disponível]',{span:2,italics:true,align:AlignmentType.CENTER,color:'9CA3AF'})],
+                  }))
                 }
-                const tabFoto = new Table({ width:{size:TW,type:WidthType.DXA}, rows: fotoRows })
+                const tabFoto = new Table({ width:{size:TW,type:WidthType.DXA}, rows:fotoRows })
 
-                // ── Bloco: NC e CP ────────────────────────────────────────────
-                const tabNCCP = new Table({ width:{size:TW,type:WidthType.DXA}, rows:[
-                  new TableRow({children:[cel(labelNC,{bg:'1E3A8A',span:2,bold:true})]}),
-                  new TableRow({children:[
-                    cel('NC:',{bg:'EEF2FF',bold:true,width:800}),
-                    cel(X(nc.nc||nc.anomalia),{width:TW-800}),
-                  ]}),
-                  new TableRow({children:[
-                    cel('Causa Provável:',{bg:'EEF2FF',bold:true,width:800}),
-                    cel(X(nc.cp),{width:TW-800}),
-                  ]}),
-                  new TableRow({children:[
-                    cel('Solução:',{bg:'EEF2FF',bold:true,width:800}),
-                    cel(X(nc.solucaoNC||nc.cp),{width:TW-800}),
-                  ]}),
-                  new TableRow({children:[cel(`✓ Homologado — ${X(nc.chaveInspetor||chaveInspetor)}`,{span:2,bg:'D1FAE5',align:AlignmentType.CENTER})]}),
+                // Bloco: Resultado da Análise
+                const tabNC = new Table({ width:{size:TW,type:WidthType.DXA}, rows:[
+                  new TableRow({children:[cel('RESULTADO DA ANÁLISE E AVALIAÇÃO',{bg:'1E3A8A',bold:true,span:2,color:'FFFFFF'})]}),
+                  new TableRow({children:[cel('DESCRIÇÃO DA NÃO CONFORMIDADE (NC)',{bg:'EEF2FF',bold:true,span:2,size:14,color:'1E3A8A'})]}),
+                  new TableRow({children:[cel(X(nc.nc||nc.anomalia||'—'),{span:2,minHeight:800})]}),
+                  new TableRow({children:[cel('DESCRIÇÃO DA CAUSA PROVÁVEL (CP)',{bg:'EEF2FF',bold:true,span:2,size:14,color:'1E3A8A'})]}),
+                  new TableRow({children:[cel(X(nc.cp||'—'),{span:2,minHeight:800})]}),
+                  new TableRow({children:[cel('SOLUÇÃO',{bg:'EEF2FF',bold:true,span:2,size:14,color:'1E3A8A'})]}),
+                  new TableRow({children:[cel(X(nc.solucaoNC||nc.cp||'—'),{span:2,minHeight:800})]}),
                 ]})
 
-                return [
-                  ...(idx > 0 ? [new Paragraph({children:[new PageBreak()]})] : []),
-                  tabIdent, par(''),
-                  tabNC, par(''),
-                  tabRisco, par(''),
-                  tabFoto, par(''),
-                  tabNCCP, par(''),
-                ]
+                const elems: any[] = []
+                if (idx > 0) elems.push(new Paragraph({children:[new PageBreak()]}))
+                elems.push(tabCab, par(''), tabIdent, par(''), tabMP, par(''), tabRisco, par(''), tabFoto, par(''), tabNC, par(''))
+                return elems
               })
           ),
-          // ANEXO 3
+
+        // ANEXO 3
           new Paragraph({children:[new PageBreak()]}),
           par(' Anexo 3 – Anotações de responsabilidade dos profissionais que atuaram nesta inspeção.',{bold:true}),
           par(''),
