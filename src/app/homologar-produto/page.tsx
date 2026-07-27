@@ -1,4 +1,13 @@
-"use client"
+"use cl
+
+  // Preview: criar blob URL quando o html do laudo é carregado
+  useEffect(() => {
+    if (!html) { setBlobUrl(''); return }
+    const blob = new Blob([html], { type: 'text/html;charset=utf-8' })
+    const url  = URL.createObjectURL(blob)
+    setBlobUrl(url)
+    return () => URL.revokeObjectURL(url)
+  }, [html])ient"
 export const dynamic = 'force-dynamic'
 import React, { Suspense, useEffect, useRef, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
@@ -50,6 +59,7 @@ function HomologarProdutoInner() {
 
   const [carregando,  setCarregando]  = useState(true)
   const [html,        setHtml]        = useState('')
+  const [blobUrl,     setBlobUrl]     = useState('')
   const [erroCarregar, setErroCarregar] = useState(false)
   const [gerandoDocx, setGerandoDocx] = useState(false)
   const [enviando,    setEnviando]    = useState(false)
@@ -364,6 +374,19 @@ function HomologarProdutoInner() {
         <input ref={inputPdfRef} type="file" accept="application/pdf"
           style={{ position: 'absolute', width: 1, height: 1, opacity: 0, overflow: 'hidden', pointerEvents: 'none' }}
           onChange={onArquivoPdfEscolhido} />
+
+        {blobUrl && (
+          <div style={{ border: '1px solid #c3d4f0', borderRadius: '6px', overflow: 'hidden', marginBottom: '4px' }}>
+            <div style={{ background: '#1E3A8A', color: '#fff', fontSize: '7.5pt', fontWeight: 700, padding: '3px 10px' }}>
+              Preview do documento
+            </div>
+            <iframe
+              src={blobUrl}
+              style={{ width: '100%', height: '800px', border: 'none', display: 'block' }}
+              title="Preview do laudo"
+            />
+          </div>
+        )}
 
         <div style={{ ...S.footer, gridTemplateColumns: '1fr 1fr 1fr' }}>
           <button style={{ ...S.btn, ...S.btnSec }} onClick={() => window.location.href = retorno}>
