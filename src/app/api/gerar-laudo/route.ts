@@ -456,10 +456,7 @@ ${nc.fotoBase64 && nc.fotoBase64.startsWith('data:image')
   : `<div style="border-top:1px solid #1E3A8A;padding:8pt;text-align:center;color:#9ab0d4;font-style:italic;font-size:8pt">[Foto Nº ${xmlEsc(nc.fotoNr)} — não disponível neste documento]</div>`
 }
 </div>`
-    }).join('')-align:center;margin-top:4pt"><img src="${nc.fotoBase64}" style="max-width:100%;max-height:160pt;border:1px solid #ccc" /></div>`
-  : `<div class="img-placeholder">[Foto Nº ${xmlEsc(nc.fotoNr)} — inserir ao revisar o documento]</div>`
-}
-</div>`).join('')
+    }).join('')
 
     // ── HTML COMPLETO ──────────────────────────────────────────────────────────
     const html = `<!DOCTYPE html>
