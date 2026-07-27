@@ -98,112 +98,42 @@ function descSistema(s: string): string {
 }
 
 const CSS = `
-  /* ── Reset e página ── */
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  @page { size: A4; margin: 14mm; }
-  body { font-family: Arial, sans-serif; font-size: 8.5pt; color: #222; background: #fff; line-height: 1.4; }
-
-  /* ── Títulos de seção (§3.1 do Design System) ── */
-  .titulo {
-    background: #1E3A8A; color: #fff; font-size: 10pt; font-weight: 700;
-    letter-spacing: .4px; padding: 8px 12px; margin-bottom: 14px;
-    margin-top: 10px;
-  }
-  .titulo-2 {
-    background: #2a52a8; color: #fff; font-size: 9pt; font-weight: 700;
-    padding: 5px 12px; margin-bottom: 10px; margin-top: 8px;
-  }
-
-  /* ── Bloco com cabeçalho (§3.2) ── */
-  .bloco { border: 1.5px solid #1E3A8A; overflow: hidden; margin-bottom: 14px; page-break-inside: avoid; }
-  .bloco-header { background: #1E3A8A; color: #fff; font-size: 9pt; font-weight: 700; padding: 6px 10px; }
-
-  /* ── Grade de campos (§3.3) ── */
-  .row { display: flex; border-top: 1px solid #1E3A8A; }
-  .row:first-of-type { border-top: none; }
-  .cell { flex: 1; border-right: 1px solid #1E3A8A; padding: 5px 8px; min-height: 42px; }
-  .cell:last-child { border-right: none; }
-  .cell label { display: block; font-size: 7pt; font-weight: 700; color: #1E3A8A; margin-bottom: 3px; }
-  .cell .val { font-size: 8.5pt; color: #222; line-height: 1.4; }
-  .cell-2 { flex: 2; }
-  .cell-3 { flex: 3; }
-  .cell-4 { flex: 4; }
-
-  /* ── Tabelas de dados (§3.4) ── */
-  table { width: 100%; border-collapse: collapse; font-size: 8pt; page-break-inside: avoid; margin: 4pt 0; }
-  th { background: #1E3A8A; color: #fff; font-size: 8pt; font-weight: 700;
-       padding: 5px 8px; border-right: 1px solid #4a6fa5; text-align: center; }
-  th:last-child { border-right: none; }
-  td { border-top: 1px solid #1E3A8A; border-right: 1px solid #1E3A8A;
-       padding: 5px 8px; font-size: 8pt; color: #222; vertical-align: middle; }
-  td:last-child { border-right: none; }
-  tr:nth-child(even) td { background: #f7f9ff; }
-
-  /* ── Item classificado a–f (§3.5) ── */
-  .item-row { display: flex; align-items: stretch; border-top: 1px solid #1E3A8A; min-height: 48px; }
-  .item-row:first-of-type { border-top: none; }
-  .item-letra { background: #1E3A8A; color: #fff; font-size: 10pt; font-weight: 700;
-                min-width: 32px; display: flex; align-items: center; justify-content: center; }
-  .item-criterio { flex: 1; padding: 7px 10px; font-size: 8pt; color: #1E3A8A;
-                   font-weight: 600; border-right: 1px solid #1E3A8A; }
-  .item-valor { width: 34%; padding: 7px 10px; font-size: 8.5pt; font-weight: 700;
-                display: flex; align-items: center; justify-content: center; }
-
-  /* ── Item de recomendação numerado (§3.6) ── */
-  .item-rec { display: flex; border-top: 1px solid #1E3A8A; min-height: 48px; }
-  .item-rec:first-of-type { border-top: none; }
-  .item-num { background: #EEF2FF; border-right: 1px solid #1E3A8A;
-              min-width: 30px; display: flex; align-items: center;
-              justify-content: center; font-size: 9pt; font-weight: 700; color: #1E3A8A; }
-  .item-texto { padding: 7px 10px; font-size: 8.5pt; color: #333; line-height: 1.5; flex: 1; }
-
-  /* ── Placeholder de imagem (§3.7) ── */
-  .foto-box { border: 1px solid #1E3A8A; height: 130px;
-              display: flex; align-items: center; justify-content: center;
-              color: #9ab0d4; font-size: 8pt; font-style: italic; }
-  .foto-box img { width: 100%; height: 130px; object-fit: cover; }
-
-  /* ── Badges (§4) ── */
-  .badge { display: inline-block; padding: 2px 8px; border-radius: 8px; font-size: 7.5pt; font-weight: 700; }
-  .b-alto    { background: #fee2e2; color: #991b1b; }
-  .b-medio   { background: #fef9c3; color: #854d0e; }
-  .b-baixo   { background: #dcfce7; color: #166534; }
-  .b-entregue { background: #dcfce7; color: #166534; }
-  .b-pendente { background: #fee2e2; color: #991b1b; }
-  .b-desn     { background: #f3f4f6; color: #6b7280; }
-  .b-conforme { background: #dcfce7; color: #166534; }
-  .b-nconfo   { background: #fee2e2; color: #991b1b; }
-  .b-na       { background: #f3f4f6; color: #6b7280; }
-  .bc-nivel  { background: #dbeafe; color: #1e40af; }
-  .bc-risco  { background: #fef9c3; color: #854d0e; }
-  .bc-desemp { background: #dcfce7; color: #166534; }
-  .bc-manut  { background: #f3e8ff; color: #6b21a8; }
-  .bc-uso    { background: #e0f2fe; color: #0369a1; }
-  .bc-global { background: #dcfce7; color: #166534; }
-
-  /* ── Layout ── */
-  .section { page-break-before: always; }
-  .section:first-child { page-break-before: auto; }
-  p { margin: 3pt 0; text-align: justify; }
-  ul { margin: 3pt 0 3pt 1cm; }
-  li { margin: 2pt 0; }
-  .bold { font-weight: bold; }
-  .it { font-style: italic; }
-  .centro { text-align: center; }
-
-  /* ── Capa ── */
-  .capa-header { background: #1E3A8A; padding: 20px; text-align: center; }
-  .capa-header h1 { color: #fff; font-size: 14pt; font-weight: 700; margin: 0; }
-  .capa-header p { color: #B5D4F4; font-size: 8pt; margin: 4px 0 0; }
-  .capa-body { padding: 30px 20px; }
-  .capa-titulo { font-size: 18pt; font-weight: 700; color: #1E3A8A; text-align: center; margin: 20px 0; border-top: 2px solid #1E3A8A; border-bottom: 2px solid #1E3A8A; padding: 12px 0; }
-  .capa-sub { font-size: 11pt; text-align: center; color: #333; margin: 8px 0; }
-  .assin { text-align: center; margin-top: 30pt; }
-
-  /* ── Cabeçalho/Rodapé documento ── */
-  .cab { border-bottom: 2px solid #1E3A8A; padding-bottom: 6px; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; }
-  .cab-titulo { font-size: 8pt; color: #1E3A8A; font-weight: 700; }
-  .rod { border-top: 1px solid #1E3A8A; padding-top: 4px; margin-top: 10px; font-size: 7pt; color: #555; text-align: center; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: Arial, sans-serif; font-size: 10pt; line-height: 1.5; color: #000; padding: 2cm 2cm 2cm 2.5cm; }
+.cab { text-align: center; margin-bottom: 10pt; padding-bottom: 4pt; border-bottom: 2px solid #1E3A8A; font-size: 12pt; color: #374151; white-space: pre-line; }
+.rod { margin-top: 10pt; padding-top: 4pt; border-top: 1px solid #ccc; font-size: 10pt; text-align: center; white-space: pre-line; color: #374151; }
+h1 { font-size: 11pt; font-weight: bold; margin: 14pt 0 2pt; }
+h2 { font-size: 10pt; font-weight: bold; margin: 10pt 0 2pt; }
+h3 { font-size: 10pt; font-weight: bold; margin: 8pt 0 2pt; }
+p  { margin: 4pt 0; text-align: justify; }
+ul { margin: 4pt 0 4pt 0.8cm; padding-left: 0; list-style: none; }
+li { margin-bottom: 3pt; text-align: justify; padding-left: 1.2em; text-indent: -1.2em; }
+li::before { content: "• "; }
+b { font-weight: bold; }
+.quebra { page-break-before: always; }
+table { width: 100%; border-collapse: collapse; margin: 4pt 0; font-size: 8.5pt; }
+th { background: #1E3A8A; color: #fff; padding: 4pt 6pt; font-weight: bold; text-align: left; border-right: 1px solid #4a6fa5; font-size: 8pt; }
+th:last-child { border-right: none; }
+td { border-top: 1px solid #1E3A8A; border-right: 1px solid #1E3A8A; padding: 4pt 6pt; color: #222; vertical-align: top; }
+td:last-child { border-right: none; }
+tr:nth-child(even) td { background: #f7f9ff; }
+.th-cab { background: #1E3A8A; color: #fff; font-weight: bold; font-size: 9pt; }
+.th-sub { background: #2a52a8; color: #fff; font-weight: bold; }
+.th-cin { background: #E5E7EB; font-weight: bold; }
+.label  { font-size: 7pt; font-weight: bold; color: #1E3A8A; display: block; margin-bottom: 2pt; }
+.badge  { display: inline-block; padding: 2px 8px; border-radius: 8px; font-size: 7.5pt; font-weight: bold; }
+.b-alto   { background: #fee2e2; color: #991b1b; }
+.b-medio  { background: #fef9c3; color: #854d0e; }
+.b-baixo  { background: #dcfce7; color: #166534; }
+.bc-nivel { background: #dbeafe; color: #1e40af; }
+.bc-risco { background: #fef9c3; color: #854d0e; }
+.bc-desemp{ background: #dcfce7; color: #166534; }
+.bc-manut { background: #f3e8ff; color: #6b21a8; }
+.bc-uso   { background: #e0f2fe; color: #0369a1; }
+.bc-global{ background: #dcfce7; color: #166534; }
+.foto-box { border: 1px solid #1E3A8A; height: 130px; text-align: center; padding: 40pt 10pt; color: #9ab0d4; font-style: italic; font-size: 8pt; overflow: hidden; }
+.foto-box img { width: 100%; height: 130px; object-fit: cover; display: block; }
+.ass { margin-top: 30pt; padding-top: 10pt; line-height: 1; }
 `
 
 // ─── POST handler ─────────────────────────────────────────────────────────────
@@ -350,15 +280,32 @@ export async function POST(request: NextRequest) {
 
     // ── Tabela 3.3 por tipo ──
     const tabela33 = tipoServico === '43' ? `
-<div class="bloco">
-  <div class="bloco-header">Resultado da Classificação do Imóvel</div>
-  <div class="item-row"><div class="item-letra">a)</div><div class="item-criterio">A execução da obra em relação à <strong>CONFORMIDADE CONSTRUTIVA</strong> foi classificada como:</div><div class="item-valor"><span class="badge bc-nivel">${xmlEsc(cl.nivel)||'—'}</span></div></div>
-  <div class="item-row"><div class="item-letra">b)</div><div class="item-criterio">A <strong>QUALIDADE DE ACABAMENTO</strong> do imóvel é classificada como:</div><div class="item-valor"><span class="badge bc-risco">${xmlEsc(cl.risco)||'—'}</span></div></div>
-  <div class="item-row"><div class="item-letra">c)</div><div class="item-criterio">Quanto ao uso, a <strong>FUNCIONALIDADE</strong> do imóvel:</div><div class="item-valor"><span class="badge bc-desemp">${xmlEsc(cl.desempenho)||'—'}</span></div></div>
-  <div class="item-row"><div class="item-letra">d)</div><div class="item-criterio">Quanto às condições de ocupação, a <strong>HABITABILIDADE</strong> pode ser considerada:</div><div class="item-valor"><span class="badge bc-manut">${xmlEsc(cl.manut)||'—'}</span></div></div>
-  <div class="item-row"><div class="item-letra">e)</div><div class="item-criterio">A análise do resultado consolidado sobre a <strong>CLASSE DO IMÓVEL</strong> resulta em:</div><div class="item-valor"><span class="badge bc-uso">${xmlEsc(cl.uso)||'—'}</span></div></div>
-  <div class="item-row"><div class="item-letra">f)</div><div class="item-criterio">Qual o <strong>GRAU DE SATISFAÇÃO NO RECEBIMENTO</strong> do imóvel:</div><div class="item-valor"><span class="badge bc-global">${xmlEsc(cl.desempGeral)||'—'}</span></div></div>
-</div>` : tipoServico === '44' ? `
+<table>
+  <tr><td colspan="2" class="th-cab">Resultado da Classificação do Imóvel</td></tr>
+  <tr><td style="width:66%"><b>a)</b> A execução da obra em relação à <b>CONFORMIDADE CONSTRUTIVA</b> foi classificada como:</td><td style="text-align:center"><span class="badge bc-nivel">${xmlEsc(cl.nivel)||'—'}</span></td></tr>
+  <tr><td><b>b)</b> A <b>QUALIDADE DE ACABAMENTO</b> do imóvel é classificada como:</td><td style="text-align:center"><span class="badge bc-risco">${xmlEsc(cl.risco)||'—'}</span></td></tr>
+  <tr><td><b>c)</b> Quanto ao uso, a <b>FUNCIONALIDADE</b> do imóvel:</td><td style="text-align:center"><span class="badge bc-desemp">${xmlEsc(cl.desempenho)||'—'}</span></td></tr>
+  <tr><td><b>d)</b> Quanto às condições de ocupação, a <b>HABITABILIDADE</b> pode ser considerada:</td><td style="text-align:center"><span class="badge bc-manut">${xmlEsc(cl.manut)||'—'}</span></td></tr>
+  <tr><td><b>e)</b> A análise do resultado consolidado sobre a <b>CLASSE DO IMÓVEL</b> resulta em:</td><td style="text-align:center"><span class="badge bc-uso">${xmlEsc(cl.uso)||'—'}</span></td></tr>
+  <tr><td><b>f)</b> Qual o <b>GRAU DE SATISFAÇÃO NO RECEBIMENTO</b> do imóvel:</td><td style="text-align:center"><span class="badge bc-global">${xmlEsc(cl.desempGeral)||'—'}</span></td></tr>
+</table>` : tipoServico === '44' ? `
+<table>
+  <tr><td colspan="2" class="th-cab">Resultado da Classificação da Fachada</td></tr>
+  <tr><td style="width:66%"><b>a)</b> Quanto ao <b>ESTADO DE CONSERVAÇÃO</b> da fachada pode ser classificado como:</td><td style="text-align:center"><span class="badge bc-nivel">${xmlEsc(cl.risco)||'—'}</span></td></tr>
+  <tr><td><b>b)</b> O histórico de <b>MANUTENÇÃO</b> da fachada:</td><td style="text-align:center"><span class="badge bc-manut">${xmlEsc(cl.manut)||'—'}</span></td></tr>
+  <tr><td><b>c)</b> A <b>AGRESSIVIDADE DO MEIO AMBIENTE</b> sobre a fachada é considerada:</td><td style="text-align:center"><span class="badge bc-risco">${xmlEsc(cl.desempenho)||'—'}</span></td></tr>
+  <tr><td><b>d)</b> O <b>RISCO DE QUEDA DE ELEMENTOS</b> da fachada é considerado:</td><td style="text-align:center"><span class="badge b-alto">${xmlEsc(cl.uso)||'—'}</span></td></tr>
+  <tr><td><b>e)</b> O <b>DESEMPENHO TÉCNICO DO SISTEMA</b> da fachada:</td><td style="text-align:center"><span class="badge bc-desemp">${xmlEsc(cl.desempGeral)||'—'}</span></td></tr>
+</table>` : `
+<table>
+  <tr><td colspan="2" class="th-cab">Resultado da Classificação da Edificação</td></tr>
+  <tr><td style="width:66%"><b>a)</b> Quanto ao <b>NÍVEL</b> da inspeção efetuada o imóvel foi classificado como INSPEÇÃO PREDIAL NÍVEL:</td><td style="text-align:center"><span class="badge bc-nivel">${xmlEsc(nivel)||'—'}</span></td></tr>
+  <tr><td><b>b)</b> Quanto ao <b>GRAU DE RISCO</b> o imóvel encontra-se classificado como de RISCO:</td><td style="text-align:center"><span class="badge bc-risco">${xmlEsc(cl.risco)||'—'}</span></td></tr>
+  <tr><td><b>c)</b> Quanto ao <b>DESEMPENHO</b> a classificação geral do imóvel foi classificada como:</td><td style="text-align:center"><span class="badge bc-desemp">${xmlEsc(cl.desempenho)||'—'}</span></td></tr>
+  <tr><td><b>d)</b> Quanto à <b>QUALIDADE DA MANUTENÇÃO</b> a edificação foi classificada como QUALIDADE QUE:</td><td style="text-align:center"><span class="badge bc-manut">${xmlEsc(cl.manut)||'—'}</span></td></tr>
+  <tr><td><b>e)</b> Quanto às <b>CONDIÇÕES DE USO</b> a edificação foi classificada como EDIFICAÇÃO DE USO:</td><td style="text-align:center"><span class="badge bc-uso">${xmlEsc(cl.uso)||'—'}</span></td></tr>
+  <tr><td><b>f)</b> Quanto ao <b>DESEMPENHO GERAL</b> a edificação foi classificada como:</td><td style="text-align:center"><span class="badge bc-global">${xmlEsc(cl.desempGeral)||'—'}</span></td></tr>
+</table>`
 <div class="bloco">
   <div class="bloco-header">Resultado da Classificação da Fachada</div>
   <div class="item-row"><div class="item-letra">a)</div><div class="item-criterio">Quanto ao <strong>ESTADO DE CONSERVAÇÃO</strong> da fachada pode ser classificado como:</div><div class="item-valor"><span class="badge bc-nivel">${xmlEsc(cl.risco)||'—'}</span></div></div>
@@ -468,68 +415,65 @@ export async function POST(request: NextRequest) {
 
     // ── Tabela 5 — Recomendações ──
     const tabela5 = `
-<div class="bloco">
-  <div class="bloco-header">Recomendações sobre Manutenção, Uso, Sustentabilidade e Gerais</div>
-  <div class="item-rec">
-    <div class="item-num">5.1</div>
-    <div class="item-texto"><strong>Avaliação e recomendações da manutenção.</strong><br>${xmlEsc(complemento?.rec51)||'<em>[A ser preenchido pelo responsável técnico]</em>'}</div>
-  </div>
-  <div class="item-rec">
-    <div class="item-num">5.2</div>
-    <div class="item-texto"><strong>Avaliação e recomendações do uso da edificação.</strong><br>${xmlEsc(complemento?.rec52)||'<em>[A ser preenchido pelo responsável técnico]</em>'}</div>
-  </div>
-  <div class="item-rec">
-    <div class="item-num">5.3</div>
-    <div class="item-texto"><strong>Avaliação e recomendações da sustentabilidade.</strong><br>${xmlEsc(complemento?.rec53)||'<em>[A ser preenchido pelo responsável técnico]</em>'}</div>
-  </div>
-  <div class="item-rec">
-    <div class="item-num">5.4</div>
-    <div class="item-texto"><strong>Outras avaliações e recomendações.</strong><br>${xmlEsc(complemento?.rec54)||'<em>[A ser preenchido pelo responsável técnico]</em>'}</div>
-  </div>
-</div>`
+<table>
+  <tr><td colspan="2" class="th-cab">Recomendações sobre Manutenção, Uso, Sustentabilidade e Gerais</td></tr>
+  <tr>
+    <td style="width:5%;text-align:center;background:#EEF2FF;font-weight:bold;color:#1E3A8A;vertical-align:middle">5.1</td>
+    <td><b>Avaliação e recomendações da manutenção.</b><br>${xmlEsc(complemento?.rec51)||'<i>[A ser preenchido pelo responsável técnico]</i>'}</td>
+  </tr>
+  <tr>
+    <td style="text-align:center;background:#EEF2FF;font-weight:bold;color:#1E3A8A;vertical-align:middle">5.2</td>
+    <td><b>Avaliação e recomendações do uso da edificação.</b><br>${xmlEsc(complemento?.rec52)||'<i>[A ser preenchido pelo responsável técnico]</i>'}</td>
+  </tr>
+  <tr>
+    <td style="text-align:center;background:#EEF2FF;font-weight:bold;color:#1E3A8A;vertical-align:middle">5.3</td>
+    <td><b>Avaliação e recomendações da sustentabilidade.</b><br>${xmlEsc(complemento?.rec53)||'<i>[A ser preenchido pelo responsável técnico]</i>'}</td>
+  </tr>
+  <tr>
+    <td style="text-align:center;background:#EEF2FF;font-weight:bold;color:#1E3A8A;vertical-align:middle">5.4</td>
+    <td><b>Outras avaliações e recomendações.</b><br>${xmlEsc(complemento?.rec54)||'<i>[A ser preenchido pelo responsável técnico]</i>'}</td>
+  </tr>
+</table>`
 
     // ── Anexo 2 — Formulários de vistoria ──
-    const anexo2 = (ncs ?? []).map((nc: any) => `
-<div style="page-break-inside:avoid;margin-bottom:10pt">
-<table>
+    const anexo2 = (ncs ?? []).map((nc: any) => {
+      const nomeS = (nc.sistema||'').slice(3).replace(/_/g,' ')
+      const pBadge = (p: string) => {
+        const cls = p==='Alta'?'b-alto':p==='Média'?'b-medio':'b-baixo'
+        return `<span class="badge ${cls}">${xmlEsc(p)}</span>`
+      }
+      return `
+<div style="page-break-inside:avoid;margin-bottom:16pt;border:1px solid #1E3A8A">
+<table style="margin:0">
   <tr>
-    <td colspan="4" class="th-azul">Relatório de Não Conformidade — Foto Nº ${xmlEsc(nc.fotoNr)}</td>
-  </tr>
-  <tr>
-    <td class="bold th-cinza">Sistema:</td>
-    <td colspan="3">${xmlEsc(nc.sistema)}</td>
-  </tr>
-  <tr>
-    <td class="bold th-cinza" style="width:20%">Subsistema:</td>
-    <td style="width:30%">${xmlEsc(nc.subsistema)}</td>
-    <td class="bold th-cinza" style="width:15%">Local:</td>
-    <td style="width:35%">${xmlEsc(nc.local)}${nc.complemento ? ' — '+xmlEsc(nc.complemento) : ''}</td>
-  </tr>
-  <tr>
-    <td class="bold th-cinza">Anomalia / Falha:</td>
-    <td colspan="3">${xmlEsc(nc.anomalia)}</td>
-  </tr>
-  <tr>
-    <td class="bold th-cinza">Grau de Risco:</td>
-    <td>${xmlEsc(nc.grauRisco)}</td>
-    <td class="bold th-cinza">Prioridade:</td>
-    <td class="bold">${xmlEsc(nc.prioridade)}</td>
-  </tr>
-  <tr>
-    <td class="bold th-cinza">Descrição da NC:</td>
-    <td colspan="3">${xmlEsc(nc.nc)}</td>
-  </tr>
-  <tr>
-    <td class="bold th-cinza">Causa Provável:</td>
-    <td colspan="3">${xmlEsc(nc.cp)}</td>
-  </tr>
-  <tr>
-    <td class="bold th-cinza">Data da Vistoria:</td>
-    <td colspan="3">${xmlEsc(nc.dataVistoria)}</td>
+    <td class="th-cab" style="width:20%"><span class="label" style="color:#B5D4F4">Foto Nº</span>${xmlEsc(nc.fotoNr)}</td>
+    <td class="th-cab" style="width:40%"><span class="label" style="color:#B5D4F4">Sistema</span>${xmlEsc(nomeS)}</td>
+    <td class="th-cab" style="width:20%"><span class="label" style="color:#B5D4F4">Data Vistoria</span>${xmlEsc(nc.dataVistoria)}</td>
+    <td class="th-cab" style="width:20%"><span class="label" style="color:#B5D4F4">Tipo Serviço</span>${xmlEsc(nc.tipoServico||tipoServico)}</td>
   </tr>
 </table>
-${nc.fotoBase64
-  ? `<div style="text-align:center;margin-top:4pt"><img src="${nc.fotoBase64}" style="max-width:100%;max-height:160pt;border:1px solid #ccc" /></div>`
+<table style="margin:0;border-top:1px solid #1E3A8A">
+  <tr>
+    <td style="width:25%"><span class="label">Subsistema</span>${xmlEsc(nc.subsistema)}</td>
+    <td style="width:25%"><span class="label">Anomalia</span>${xmlEsc(nc.anomalia)}</td>
+    <td style="width:25%"><span class="label">Local</span>${xmlEsc(nc.local)}${nc.complemento?' — '+xmlEsc(nc.complemento):''}</td>
+    <td style="width:12%"><span class="label">Grau Risco</span><b>${xmlEsc(nc.grauRisco)}</b></td>
+    <td style="width:13%"><span class="label">Prioridade</span>${pBadge(nc.prioridade)}</td>
+  </tr>
+  <tr>
+    <td colspan="3"><span class="label">Gravidade / Urgência / Abrangência / Exposição</span>${xmlEsc(nc.gravidade)||'—'} / ${xmlEsc(nc.urgencia)||'—'} / ${xmlEsc(nc.abrangencia)||'—'} / ${xmlEsc(nc.exposicao)||'—'}</td>
+    <td colspan="2"></td>
+  </tr>
+  <tr><td colspan="5"><span class="label">Não conformidade (NC)</span>${xmlEsc(nc.nc||nc.anomalia)}</td></tr>
+  <tr><td colspan="5"><span class="label">Causa provável (CP)</span>${xmlEsc(nc.cp)}</td></tr>
+  <tr><td colspan="5"><span class="label">Solução</span>${xmlEsc(nc.solucaoNC||nc.cp||'—')}</td></tr>
+</table>
+${nc.fotoBase64 && nc.fotoBase64.startsWith('data:image')
+  ? `<div style="text-align:center;padding:4pt;border-top:1px solid #1E3A8A"><img src="${nc.fotoBase64}" style="max-width:100%;max-height:200pt;object-fit:contain"></div>`
+  : `<div style="border-top:1px solid #1E3A8A;padding:8pt;text-align:center;color:#9ab0d4;font-style:italic;font-size:8pt">[Foto Nº ${xmlEsc(nc.fotoNr)} — não disponível neste documento]</div>`
+}
+</div>`
+    }).join('')-align:center;margin-top:4pt"><img src="${nc.fotoBase64}" style="max-width:100%;max-height:160pt;border:1px solid #ccc" /></div>`
   : `<div class="img-placeholder">[Foto Nº ${xmlEsc(nc.fotoNr)} — inserir ao revisar o documento]</div>`
 }
 </div>`).join('')
@@ -593,50 +537,47 @@ ${nc.fotoBase64
 <p>A inspeção apresentada neste laudo é o resultado de um exame "clínico geral" que avalia as condições globais do objeto em estudo e detecta a existência de problemas de conservação ou funcionamento, com base em uma análise fundamentalmente sensorial e efetuada por um profissional habilitado.</p>
 <p>A documentação da edificação solicitada pelo inspetor na reunião inicial foi analisada e avaliada, e o resultado fica registrado na planilha apresentada no Anexo 1 deste laudo.</p>
 
-<div class="titulo">1.1.- Características e localização ${tipoServico==='43'?'do Imóvel':'da Edificação'}.</div>
-<div class="bloco">
-  <div class="bloco-header">Características ${tipoServico==='43'?'do Imóvel':'da Edificação'}</div>
-  <div class="row">
-    <div class="cell cell-3"><label>${labelEst}</label><div class="val">${xmlEsc(estab.razao_social_nome)}</div></div>
-    <div class="cell"><label>${labelDoc}</label><div class="val">${fmtDoc(cnpjoucpf)}</div></div>
-    <div class="cell"><label>CEP</label><div class="val">${xmlEsc(estab.cep)}</div></div>
-  </div>
-  <div class="row">
-    <div class="cell cell-3"><label>Endereço</label><div class="val">${xmlEsc(estab.logradouro)}${estab.numero?', '+xmlEsc(estab.numero):''}${estab.complemento?' — '+xmlEsc(estab.complemento):''}</div></div>
-    <div class="cell cell-2"><label>Bairro</label><div class="val">${xmlEsc(estab.bairro)}</div></div>
-    <div class="cell"><label>Cidade / UF</label><div class="val">${xmlEsc(estab.cidade)}/${xmlEsc(estab.uf)}</div></div>
-  </div>
-  <div class="row">
-    <div class="cell cell-2"><label>Responsável</label><div class="val">${xmlEsc(estab.nome_responsavel)}</div></div>
-    <div class="cell"><label>Função</label><div class="val">${xmlEsc(estab.funcao_responsavel)}</div></div>
-    <div class="cell"><label>Telefone / WhatsApp</label><div class="val">${xmlEsc(estab.whatsapp)}</div></div>
-    <div class="cell cell-2"><label>e-Mail</label><div class="val">${xmlEsc(estab.email)}</div></div>
-  </div>
-  <div class="row">
-    <div class="cell"><label>Uso do Imóvel</label><div class="val">${xmlEsc(estab.uso_imovel)}</div></div>
-    <div class="cell"><label>Tipo</label><div class="val">${xmlEsc(estab.tipo_imovel)}</div></div>
-    <div class="cell"><label>Nº Pavimentos</label><div class="val">${xmlEsc(estab.numero_pavimentos)}</div></div>
-    <div class="cell"><label>Nº Unidades/Salas</label><div class="val">${xmlEsc(estab.numero_unidades_salas)}</div></div>
-    <div class="cell"><label>Área construída (m²)</label><div class="val">${xmlEsc(estab.area_construida)}</div></div>
-    <div class="cell"><label>Área terreno (m²)</label><div class="val">${xmlEsc(estab.area_terreno)}</div></div>
-  </div>
-  <div class="row">
-    <div class="cell"><label>Síntese da descrição da Edificação (Convenção ou Escritura)</label>
-      <div class="val">${xmlEsc(complemento?.sinteseEdif)}</div>
-    </div>
-  </div>
-</div>
-<div class="bloco">
-  <div class="bloco-header">Localização ${tipoServico==='43'?'do Imóvel':'da Edificação'}</div>
-  <div class="row">
-    <div class="cell"><label>Croqui de localização</label>
-      <div class="foto-box">${complemento?.pathCroqui?`<img src="__CROQUI__">`:'[Croqui — colar após baixar]'}</div>
-    </div>
-    <div class="cell"><label>Foto da fachada principal</label>
-      <div class="foto-box">${complemento?.pathFoto?`<img src="__FACHADA__">`:'[Foto fachada — inserir pelo inspetor]'}</div>
-    </div>
-  </div>
-</div>
+<h2>1.1.- Características e localização ${tipoServico==='43'?'do Imóvel':'da Edificação'}.</h2>
+<table>
+  <tr><td colspan="6" class="th-cab">Características ${tipoServico==='43'?'do Imóvel':'da Edificação'}</td></tr>
+  <tr>
+    <td colspan="2"><span class="label">${labelEst}</span>${xmlEsc(estab.razao_social_nome)}</td>
+    <td><span class="label">${labelDoc}</span>${fmtDoc(cnpjoucpf)}</td>
+    <td><span class="label">CEP</span>${xmlEsc(estab.cep)}</td>
+    <td colspan="2"></td>
+  </tr>
+  <tr>
+    <td colspan="3"><span class="label">Endereço</span>${xmlEsc(estab.logradouro)}${estab.numero?', '+xmlEsc(estab.numero):''}${estab.complemento?' — '+xmlEsc(estab.complemento):''}</td>
+    <td colspan="2"><span class="label">Bairro</span>${xmlEsc(estab.bairro)}</td>
+    <td><span class="label">Cidade/UF</span>${xmlEsc(estab.cidade)}/${xmlEsc(estab.uf)}</td>
+  </tr>
+  <tr>
+    <td colspan="2"><span class="label">Responsável</span>${xmlEsc(estab.nome_responsavel)}</td>
+    <td><span class="label">Função</span>${xmlEsc(estab.funcao_responsavel)}</td>
+    <td><span class="label">Tel/WhatsApp</span>${xmlEsc(estab.whatsapp)}</td>
+    <td colspan="2"><span class="label">e-Mail</span>${xmlEsc(estab.email)}</td>
+  </tr>
+  <tr>
+    <td><span class="label">Uso do Imóvel</span>${xmlEsc(estab.uso_imovel)}</td>
+    <td><span class="label">Tipo</span>${xmlEsc(estab.tipo_imovel)}</td>
+    <td><span class="label">Nº Pavimentos</span>${xmlEsc(estab.numero_pavimentos)}</td>
+    <td><span class="label">Nº Unidades</span>${xmlEsc(estab.numero_unidades_salas)}</td>
+    <td><span class="label">Área constr. m²</span>${xmlEsc(estab.area_construida)}</td>
+    <td><span class="label">Área terreno m²</span>${xmlEsc(estab.area_terreno)}</td>
+  </tr>
+  <tr><td colspan="6"><span class="label">Síntese da descrição da Edificação (Convenção ou Escritura)</span>${xmlEsc(complemento?.sinteseEdif)}</td></tr>
+</table>
+<table style="margin-top:6pt">
+  <tr><td colspan="2" class="th-cab">Localização ${tipoServico==='43'?'do Imóvel':'da Edificação'}</td></tr>
+  <tr>
+    <td style="width:50%"><span class="label">Croqui de localização</span>
+      ${complemento?.pathCroqui?`<div class="foto-box"><img src="__CROQUI__"></div>`:'<div class="foto-box">[Croqui — colar após baixar]</div>'}
+    </td>
+    <td style="width:50%"><span class="label">Foto da fachada principal</span>
+      ${complemento?.pathFoto?`<div class="foto-box"><img src="__FACHADA__"></div>`:'<div class="foto-box">[Foto fachada — inserir pelo inspetor]</div>'}
+    </td>
+  </tr>
+</table>
 
 <h2>1.2.- Objetivo.</h2>
 <p>${tipoServico==='44'
@@ -763,7 +704,13 @@ ${tabela5}
     <th class="th-cinza centro" style="width:20%">Situação</th>
     <th class="th-cinza" style="width:20%">Observações</th>
   </tr>
-  ${DOCS_ANEXO1.map(d => `<tr><td>${d}</td><td class="centro">—</td><td></td></tr>`).join('')}
+  ${DOCS_ANEXO1.map(d => {
+    const info = complemento?.docsAnexo1?.[d] ?? {situacao:'',resultado:''}
+    const sit = info.situacao || '—'
+    const res = info.resultado || '—'
+    const cls = sit==='Entregue'?'color:#166534;font-weight:bold':sit==='Pendente'?'color:#991b1b;font-weight:bold':'color:#6b7280'
+    return `<tr><td>${d}</td><td style="text-align:center;${cls}">${sit}</td><td style="text-align:center">${res}</td></tr>`
+  }).join('')}
 </table>
 <p style="font-size:8pt;margin-top:4pt"><em>Situação: Entregue; Pendente; Desnecessário — Resultado: Conforme; Não conforme; Não se aplica</em></p>
 </div>
