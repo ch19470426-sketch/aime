@@ -389,7 +389,6 @@ export async function POST(request: NextRequest) {
           const fim = getV(tds[2][1])
           if (desc) ativPlano.push({ descricao: desc, ini, fim })
         }
-        }
       }
     } catch (_e) { /* usa atividades padrão */ }
 
