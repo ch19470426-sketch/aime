@@ -260,7 +260,7 @@ function LaudoComplemento() {
         })
       })
       const data = await res.json()
-      if (data.texto) setSinteseEdif(data.texto); setSinteseTemp("")
+      if (data.texto) { setSinteseEdif(data.texto); setSinteseTemp('') }
       else setErro('IA não retornou resultado: ' + JSON.stringify(data).substring(0, 100))
     } catch (e) { setErro('Erro ao gerar síntese: ' + String(e)) }
     finally { setGerandoSintese(false) }
@@ -276,7 +276,7 @@ function LaudoComplemento() {
         body: JSON.stringify({ tipo: 'descricao_vistoria', dados: { informacoes: dadosVistoria, tipo_servico: tipoServico, nivel_inspecao: nivelInspecao } })
       })
       const data = await res.json()
-      if (data.texto) setDadosVistoria(data.texto); setDescVistoria(data.texto); setDescTemp("")
+      if (data.texto) { setDadosVistoria(data.texto); setDescVistoria(data.texto); setDescTemp('') }
       else setErro('IA não retornou resultado: ' + JSON.stringify(data).substring(0, 100))
     } catch (e) { setErro('Erro ao gerar descrição: ' + String(e)) }
     finally { setGerandoDesc(false) }
