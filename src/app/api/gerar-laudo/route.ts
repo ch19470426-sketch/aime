@@ -94,8 +94,8 @@ function descS(s:string): string { return DESC_SISTEMAS[s]||`Sistema: ${nomeS(s)
 
 // ─── CSS — Design System Brief §2–4 (copiado literalmente) ───────────────────
 const CSS = `
-/* §8 WeasyPrint base */
-@page { size: A4; margin: 14mm; }
+/* Impressão A4 */
+@page { size: A4; margin: 20mm 20mm 20mm 25mm; }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: Arial, sans-serif; color: #000; background: #fff; font-size: 9pt; line-height: 1.4; }
 
@@ -108,6 +108,15 @@ i, em { font-style: italic; }
 .section { page-break-before: always; }
 .no-break { page-break-inside: avoid; }
 .ass { margin-top: 40pt; text-align: center; }
+
+/* Print */
+@media print {
+  body { font-size: 9pt; }
+  .section { page-break-before: always; }
+  .no-break { page-break-inside: avoid; }
+  table { page-break-inside: avoid; }
+  .bloco { page-break-inside: avoid; }
+}
 
 /* Cabeçalho/rodapé do inspetor */
 .cab { text-align: center; padding-bottom: 4pt; border-bottom: 2px solid #1E3A8A; margin-bottom: 10pt; font-size: 9pt; color: #374151; white-space: pre-line; }
