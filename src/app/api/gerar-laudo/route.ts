@@ -95,7 +95,7 @@ function descS(s:string): string { return DESC_SISTEMAS[s]||`Sistema: ${nomeS(s)
 // ─── CSS — Design System Brief §2–4 (copiado literalmente) ───────────────────
 const CSS = `
 /* Impressão A4 */
-@page { size: A4; margin: 20mm 20mm 20mm 25mm; }
+@page { size: A4; margin: 25mm 20mm 20mm 25mm; }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: Arial, sans-serif; color: #000; background: #fff; font-size: 9pt; line-height: 1.4; }
 
@@ -156,6 +156,7 @@ tr:nth-child(even) td { background: #f7f9ff; }
 .th-cab { background: #1E3A8A !important; color: #fff !important; font-weight: 700; font-size: 9pt; }
 .th-sub { background: #2a52a8 !important; color: #fff !important; font-weight: 700; }
 
+.s41-bloco { page-break-before: avoid !important; }
 /* §3.5 — Item classificado */
 .item-row     { display: flex; align-items: stretch; border-top: 1px solid #1E3A8A; min-height: 48px; }
 .item-row:first-of-type { border-top: none; }
@@ -296,6 +297,25 @@ export async function POST(request: NextRequest) {
     const cabInspetor = xe(inspetor?.cabecalho_documentos) || titulo
     const rodInspetor = xe(inspetor?.rodape_documentos) || `${xe(inspetor?.nome_inspetor)} — ${xe(inspetor?.titulo_profissional)} — CREA/CAU ${xe(inspetor?.inscricao_crea_cau)}`
 
+    // ── Buscar endereço por CEP se logradouro vazio ─────────────────────────
+    if (estab && !estab.logradouro && estab.cep) {
+      try {
+        const cepNum = String(estab.cep).replace(/\D/g,'')
+        if (cepNum.length === 8) {
+          const vr = await fetch(`https://viacep.com.br/ws/${cepNum}/json/`)
+          const vd = await vr.json()
+          if (!vd.erro) {
+            estab = { ...estab,
+              logradouro: estab.logradouro || vd.logradouro || '',
+              bairro:     estab.bairro     || vd.bairro     || '',
+              cidade:     estab.cidade     || vd.localidade || '',
+              uf:         estab.uf         || vd.uf         || '',
+            }
+          }
+        }
+      } catch { /* segue sem endereço */ }
+    }
+
     // ── §3.3 Grade de campos — seção 1.1 ─────────────────────────────────────
     const S11 = `
 <div class="titulo">1.1 – Características e Localização ${tipoServico==='43'?'do Imóvel':'da Edificação'}</div>
@@ -354,12 +374,21 @@ export async function POST(request: NextRequest) {
       if (blobPlano) {
         const htmlPlano = await blobPlano.text()
         // Extrair linhas da tabela: <td style="text-align:justify...">DESC</td><td>INI</td><td>FIM</td>
-        const rgx = /<td[^>]*text-align:justify[^>]*>([^<]+)<\/td>\s*<td[^>]*>([^<]*)<\/td>\s*<td[^>]*>([^<]*)<\/td>/g
-        let m: RegExpExecArray | null
-        while ((m = rgx.exec(htmlPlano)) !== null) {
-          ativPlano.push({ descricao: m[1].trim(), ini: m[2].trim(), fim: m[3].trim() })
+        // Extrair atividades com datas do HTML do plano
+        // Padrão: <td text-align:justify>DESC</td> seguido de 2 tds com data ou input
+        const rgxRow = /<tr>(.*?)<\/tr>/gs
+        let mRow: RegExpExecArray | null
+        while ((mRow = rgxRow.exec(htmlPlano)) !== null) {
+          const rowHtml = mRow[1]
+          if (!rowHtml.includes('text-align:justify')) continue
+          const tds = [...rowHtml.matchAll(/<td[^>]*>(.*?)<\/td>/gs)]
+          if (tds.length < 3) continue
+          const desc = tds[0][1].replace(/<[^>]+>/g,'').trim()
+          const getV = (s: string) => { const v=s.match(/value="([^"]*)"/); return v?v[1].trim():s.replace(/<[^>]+>/g,'').trim() }
+          const ini = getV(tds[1][1])
+          const fim = getV(tds[2][1])
+          if (desc) ativPlano.push({ descricao: desc, ini, fim })
         }
-      }
     } catch { /* usa atividades padrão */ }
 
     // Atividades padrão (fallback quando plano não encontrado)
@@ -434,7 +463,7 @@ export async function POST(request: NextRequest) {
         return `<span class="badge ${cls}">${xe(p)}</span>`
       }
       return `
-<div class="bloco">
+<div class="bloco s41-bloco">
   <div class="bloco-header">${xe(nomeS(s))}</div>
   <div style="padding:5px 8px;border-bottom:1px solid #1E3A8A">
     <span style="font-size:7pt;font-weight:700;color:#1E3A8A">Descrição do sistema construtivo</span><br>
@@ -515,7 +544,7 @@ export async function POST(request: NextRequest) {
 </div>
 <div class="bloco">
   <div class="bloco-header">Distribuição de Anomalias por Prioridade</div>
-  <div style="display:flex;align-items:center;gap:24px;padding:12px 16px">
+  <div style="display:flex;align-items:center;justify-content:center;gap:32px;padding:16px">
     <svg width="160" height="160" viewBox="0 0 160 160" style="flex-shrink:0">
       ${(()=>{
         if(totT===0) return '<text x="80" y="85" text-anchor="middle" font-size="11" fill="#666">Sem dados</text>'
@@ -529,12 +558,12 @@ export async function POST(request: NextRequest) {
           return '<path d="M'+cx+','+cy+' L'+x1+','+y1+' A'+r+','+r+' 0 '+(e-s>0.5?1:0)+',1 '+x2+','+y2+' Z" fill="'+col+'"/>'
         }
         const pA=totA/totT,pM=totM/totT
-        return arc(0,pA,"#DC2626")+arc(pA,pA+pM,"#D97706")+arc(pA+pM,1,"#16A34A")
+        return arc(0,pA,"#CC0000")+arc(pA,pA+pM,"#E8A000")+arc(pA+pM,1,"#16A34A")
       })()}
     </svg>
     <div style="font-size:8.5pt;display:flex;flex-direction:column;gap:8px">
-      <div style="display:flex;align-items:center;gap:8px"><span style="display:inline-block;width:14px;height:14px;background:#DC2626;border-radius:2px"></span><span><b>Alta:</b> ${totA} (${pct(totA,totT)})</span></div>
-      <div style="display:flex;align-items:center;gap:8px"><span style="display:inline-block;width:14px;height:14px;background:#D97706;border-radius:2px"></span><span><b>Média:</b> ${totM} (${pct(totM,totT)})</span></div>
+      <div style="display:flex;align-items:center;gap:8px"><span style="display:inline-block;width:14px;height:14px;background:#CC0000;border-radius:2px"></span><span><b>Alta:</b> ${totA} (${pct(totA,totT)})</span></div>
+      <div style="display:flex;align-items:center;gap:8px"><span style="display:inline-block;width:14px;height:14px;background:#E8A000;border-radius:2px"></span><span><b>Média:</b> ${totM} (${pct(totM,totT)})</span></div>
       <div style="display:flex;align-items:center;gap:8px"><span style="display:inline-block;width:14px;height:14px;background:#16A34A;border-radius:2px"></span><span><b>Baixa:</b> ${totB} (${pct(totB,totT)})</span></div>
       <div style="border-top:1px solid #e5e7eb;padding-top:6px;margin-top:4px"><b>Total: ${totT} manifestações</b></div>
     </div>
@@ -827,12 +856,12 @@ ${S5}
 <p>O documento é entregue em mídia magnética.</p>
 <p style="border:1px solid #999;padding:6px;font-size:7.5pt;background:#f9f9f9"><b>Atenção:</b> O titular do direito autoral deste trabalho somente autoriza sua reprodução nos casos legais cabíveis, vedando sua cópia ou qualquer forma de reprodução que caracterize plágio ou represente utilização dos direitos exclusivos do autor, sendo que sua violação acarretará as penalidades civis e criminais previstas no art.184 do Código Penal Brasileiro e Lei nº 9.610.</p>
 
-<div class="ass">
-  <p style="text-align:center;font-size:8.5pt;color:#222">${xe(estab?.cidade)}/${xe(estab?.uf)}, ${dataHoje}</p>
-  <br><br><br>
-  <p style="text-align:center;font-size:8.5pt;color:#222">_______________________________________________</p>
-  <p style="text-align:center;font-size:8.5pt;font-weight:bold;color:#1E3A8A">${xe(inspetor?.nome_inspetor)} – Responsável Técnico</p>
-  <p style="text-align:center;font-size:8pt;color:#222">${xe(inspetor?.titulo_profissional)} — CREA/CAU ${xe(inspetor?.inscricao_crea_cau)}</p>
+<p style="text-align:right;font-size:9pt;font-weight:bold;color:#000;margin-top:20px">${xe(estab?.cidade)}/${xe(estab?.uf)}, ${dataHoje}</p>
+<div style="margin-top:40px">
+  <p style="font-size:8.5pt;color:#222">_______________________________________________</p>
+  <p style="font-size:8.5pt;font-weight:bold;color:#000">${xe(inspetor?.nome_inspetor)} — Responsável Técnico</p>
+  <p style="font-size:8pt;color:#222">${xe(inspetor?.titulo_profissional)} — CREA/CAU ${xe(inspetor?.inscricao_crea_cau)}</p>
+  ${inspetor?.especializacao?'<p style="font-size:8pt;color:#222">'+xe(inspetor.especializacao)+'</p>':''}
 </div>
 </div>
 
