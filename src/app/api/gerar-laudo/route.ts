@@ -95,7 +95,12 @@ function descS(s:string): string { return DESC_SISTEMAS[s]||`Sistema: ${nomeS(s)
 // ─── CSS — Design System Brief §2–4 (copiado literalmente) ───────────────────
 const CSS = `
 /* Impressão A4 */
-@page { size: A4; margin: 20mm 20mm 20mm 25mm; }
+@page           { size: A4; margin: 28mm 20mm 22mm 25mm; }
+@page capa      { margin: 0; }
+@page indice    { margin: 28mm 20mm 22mm 25mm; }
+/* Capa: sem cabeçalho nem rodapé */
+.pg-capa        { page: capa; page-break-after: always; }
+.pg-indice      { page: indice; page-break-after: always; }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: Arial, sans-serif; color: #000; background: #fff; font-size: 9pt; line-height: 1.4; }
 
@@ -108,6 +113,59 @@ i, em { font-style: italic; }
 .section { page-break-before: always; }
 .no-break { page-break-inside: avoid; }
 .ass { margin-top: 40pt; text-align: center; }
+
+/* ── CAPA ── */
+.capa {
+  width: 210mm; height: 297mm;
+  position: relative;
+  overflow: hidden;
+  background: #fff;
+  font-family: Arial, sans-serif;
+}
+.capa-barra {
+  position: absolute; left: 0; top: 0;
+  width: 22mm; height: 100%;
+  background: #44546A;
+}
+.capa-linha-topo {
+  position: absolute; top: 8mm; left: 22mm; right: 0;
+  height: 1.5px; background: #44546A;
+}
+.capa-linha-base {
+  position: absolute; bottom: 8mm; left: 22mm; right: 0;
+  height: 1.5px; background: #44546A;
+}
+.capa-seta {
+  position: absolute; left: 14mm; top: 50%;
+  transform: translateY(-60%);
+  width: 0; height: 0;
+  border-top: 20mm solid transparent;
+  border-bottom: 20mm solid transparent;
+  border-left: 28mm solid #4472C4;
+}
+.capa-titulo {
+  position: absolute; left: 50mm; top: 48%;
+  transform: translateY(-50%);
+  font-size: 16pt; font-weight: bold; color: #000;
+  line-height: 1.4;
+}
+.capa-local {
+  position: absolute; right: 20mm; bottom: 18mm;
+  font-size: 11pt; color: #000; text-align: right;
+}
+
+/* ── ÍNDICE ── */
+.indice-titulo {
+  font-size: 12pt; font-weight: bold; margin-bottom: 12pt;
+  border-bottom: 2px solid #1E3A8A; padding-bottom: 4pt;
+}
+.indice-item {
+  display: flex; align-items: baseline;
+  font-size: 9pt; margin-bottom: 4pt;
+}
+.indice-item.nivel2 { padding-left: 12pt; }
+.indice-num  { min-width: 28pt; font-weight: bold; color: #1E3A8A; }
+.indice-dots { flex: 1; border-bottom: 1px dotted #999; margin: 0 4pt 2pt; }
 
 /* Print */
 @media print {
@@ -620,19 +678,74 @@ ${foto}
         }).join('\n')
 
     // ── HTML COMPLETO ─────────────────────────────────────────────────────────
-    const html = `<!DOCTYPE html>
+    // Índice fixo (sem números de página — gerado automaticamente pelo browser)
+    const INDICE_ITENS = [
+      {n:'1.',    t:'Considerações Preliminares',       nivel:1},
+      {n:'1.1.-', t:'Características e localização da edificação', nivel:2},
+      {n:'1.2.-', t:'Objetivo',                        nivel:2},
+      {n:'1.3.-', t:'Plano de Trabalho',               nivel:2},
+      {n:'1.4.-', t:'Condições e limitações',          nivel:2},
+      {n:'2.',    t:'Metodologia adotada para o Trabalho de Autovistoria', nivel:1},
+      {n:'2.1.-', t:'Norma Brasileira para Inspeção Predial — NBR-16.747/2020', nivel:2},
+      {n:'2.2.-', t:'Norma de Inspeção Predial do IBAPE/2025', nivel:2},
+      {n:'2.3.-', t:'Critérios e Metodologia da Inspeção', nivel:2},
+      {n:'3.',    t:'Resultado da Vistoria Técnica e Classificação da Edificação', nivel:1},
+      {n:'3.1.-', t:'Descrição da Vistoria Técnica',   nivel:2},
+      {n:'3.2.-', t:'Resultado da Vistoria',           nivel:2},
+      {n:'3.3.-', t:'Resultado da Classificação da Edificação', nivel:2},
+      {n:'4.',    t:'Relação de Não Conformidades e Análise das Manifestações Patológicas', nivel:1},
+      {n:'4.1.-', t:'Relação de Não Conformidades e Soluções', nivel:2},
+      {n:'4.2.-', t:'Análise Estatística das Manifestações Patológicas', nivel:2},
+      {n:'5.',    t:'Recomendações sobre a Manutenção, Uso, Sustentabilidade e Gerais', nivel:1},
+      {n:'6.',    t:'Conclusão',                        nivel:1},
+      {n:'7.',    t:'Encerramento',                     nivel:1},
+      {n:'',      t:'Anexo 1 – Relação de Documentos Solicitados e Avaliados', nivel:1},
+      {n:'',      t:'Anexo 2 – Resultado da Vistoria', nivel:1},
+      {n:'',      t:'Anexo 3 – Anotações de Responsabilidade Técnica', nivel:1},
+    ]
+
+    const CAPA_HTML = \`
+<div class="pg-capa">
+<div class="capa">
+  <div class="capa-barra"></div>
+  <div class="capa-linha-topo"></div>
+  <div class="capa-linha-base"></div>
+  <div class="capa-seta"></div>
+  <div class="capa-titulo">
+    <div>${xe(titulo)}</div>
+    <div style="font-size:13pt;font-weight:normal;margin-top:4pt">${xe(estab?.razao_social_nome??'')}</div>
+  </div>
+  <div class="capa-local">
+    ${xe(estab?.cidade??'')}/${xe(estab?.uf??'')} — ${dataHoje}
+  </div>
+</div>
+</div>\`
+
+    const INDICE_HTML = \`
+<div class="pg-indice">
+  <div class="indice-titulo">ÍNDICE</div>
+  \${INDICE_ITENS.map(it=>\`
+  <div class="indice-item\${it.nivel===2?' nivel2':''}">
+    <span class="indice-num">\${xe(it.n)}</span>
+    <span>\${xe(it.t)}</span>
+    <span class="indice-dots"></span>
+  </div>\`).join('')}
+</div>\`
+
+    const html = \`<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<title>${titulo}</title>
-<style>${CSS}</style>
+<title>\${titulo}</title>
+<style>\${CSS}</style>
 </head>
 <body>
 
-${cabInspetor?`<div class="cab">${cabInspetor}</div>`:''}
+\${CAPA_HTML}
 
-<p style="text-align:right;font-size:8.5pt;color:#222;margin:0">${xe(estab?.cidade)}/${xe(estab?.uf)}, ${dataHoje}</p>
-<br><br><br><br><br>
+\${INDICE_HTML}
+
+\${cabInspetor?\`<div class="cab">\${cabInspetor}</div>\`:''}
 
 <div class="titulo">1.- Considerações Preliminares.</div>
 <p>Este ${titulo} é o documento completo resultante do trabalho executado na vistoria da edificação, análise, classificação e priorização das manifestações patológicas, conforme exigências da ABNT/NBR 16.747/2020 e legislação vigente.</p>
