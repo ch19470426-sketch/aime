@@ -744,16 +744,15 @@ ${foto}
 </div>
 </div>`
 
-    const INDICE_HTML = `
-<div class="pg-indice">
-  <div class="indice-titulo">ÍNDICE</div>
-  \${INDICE_ITENS.map(it=>`
-  <div class="indice-item\${it.nivel===2?' nivel2':''}">
-    <span class="indice-num">\${xe(it.n)}</span>
-    <span>\${xe(it.t)}</span>
-    <span class="indice-dots"></span>
-  </div>`).join('')}
-</div>`
+    const INDICE_HTML = '<div class="pg-indice"><div class="indice-titulo">ÍNDICE</div>' +
+      INDICE_ITENS.map(it =>
+        '<div class="indice-item' + (it.nivel===2?' nivel2':'') + '">' +
+        '<span class="indice-num">' + xe(it.n) + '</span>' +
+        '<span>' + xe(it.t) + '</span>' +
+        '<span class="indice-dots"></span>' +
+        '</div>'
+      ).join('') +
+      '</div>'
 
     const html = `<!DOCTYPE html>
 <html lang="pt-BR">
