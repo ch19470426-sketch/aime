@@ -414,9 +414,7 @@ export async function POST(request: NextRequest) {
       : 'Resultado da Classificação da Edificação'
 
     const S33 = `
-<div class="titulo">3.3 – ${titulo33}</div>
 <div class="bloco">
-  <div class="bloco-header">${titulo33}</div>
   ${itens33.map(([letra,desc,val,cls])=>`
   <div class="item-row">
     <div class="item-letra">${letra}</div>
@@ -777,7 +775,10 @@ ${S13}
 <div class="titulo">3.2.- Resultado da Vistoria.</div>
 <p>O resultado da vistoria, com imagens dos formulários de coleta de dados, é apresentado no Anexo 2 deste documento.</p>
 
+<div class="titulo">3.3.- Resultado da Classificação da Edificação.</div>
+<p>O resultado da classificação da edificação quanto ao nível de inspeção, grau de risco, desempenho, manutenção e uso foi efetuada seguindo a metodologia apresentada para execução deste trabalho e apresentada a seguir.</p>
 ${S33}
+<p>As Prioridades para aplicar as soluções de manutenção constam na relação apresentada no item 4. deste documento.</p>
 </div>
 
 <div class="section">
