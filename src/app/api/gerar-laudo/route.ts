@@ -727,7 +727,7 @@ ${foto}
       {n:'',      t:'Anexo 3 – Anotações de Responsabilidade Técnica', nivel:1},
     ]
 
-    const CAPA_HTML = \`
+    const CAPA_HTML = `
 <div class="pg-capa">
 <div class="capa">
   <div class="capa-barra"></div>
@@ -742,20 +742,20 @@ ${foto}
     ${xe(estab?.cidade??'')}/${xe(estab?.uf??'')} — ${dataHoje}
   </div>
 </div>
-</div>\`
+</div>`
 
-    const INDICE_HTML = \`
+    const INDICE_HTML = `
 <div class="pg-indice">
   <div class="indice-titulo">ÍNDICE</div>
-  \${INDICE_ITENS.map(it=>\`
+  \${INDICE_ITENS.map(it=>`
   <div class="indice-item\${it.nivel===2?' nivel2':''}">
     <span class="indice-num">\${xe(it.n)}</span>
     <span>\${xe(it.t)}</span>
     <span class="indice-dots"></span>
-  </div>\`).join('')}
-</div>\`
+  </div>`).join('')}
+</div>`
 
-    const html = \`<!DOCTYPE html>
+    const html = `<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -768,7 +768,7 @@ ${foto}
 
 \${INDICE_HTML}
 
-\${cabInspetor?\`<div class="cab">\${cabInspetor}</div>\`:''}
+\${cabInspetor?`<div class="cab">\${cabInspetor}</div>`:''}
 
 <div class="titulo">1.- Considerações Preliminares.</div>
 <p>Este ${titulo} é o documento completo resultante do trabalho executado na vistoria da edificação, análise, classificação e priorização das manifestações patológicas, conforme exigências da ABNT/NBR 16.747/2020 e legislação vigente.</p>
