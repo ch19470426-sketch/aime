@@ -206,30 +206,12 @@ function HomologarProdutoInner() {
   async function baixarEditavel() {
     setGerandoDocx(true)
     try {
-      // Laudos 41-44: usar rota especializada que gera DOCX profissional via pacote docx
+      // Laudos 41-44: imprimir HTML como PDF via iframe
       const ehLaudo = numServico >= 41 && numServico <= 44
       if (ehLaudo) {
-        // Buscar dados estruturados do laudo (JSON salvo junto com o HTML)
-        const nomeJson = nomeArquivo.replace(/\.html$/i, '_dados.json')
-        const resJson = await fetch(`/api/ler-documento?nome=${encodeURIComponent(nomeJson)}&pasta=documentos_inspetor`)
-        
-        let dadosLaudo: any = null
-        if (resJson.ok) {
-          const respJson = await resJson.json()
-          if (respJson.existe && respJson.html) {
-            try { dadosLaudo = JSON.parse(respJson.html) } catch { /* */ }
-          }
-        }
-        
-        if (!dadosLaudo) {
-          throw new Error('Dados do laudo não encontrados. Por favor regenere o laudo clicando em "Gerar Laudo" novamente.')
-        }
-
-        // Laudos 41-44: imprimir o HTML como PDF via iframe
         if (iframeRef.current?.contentWindow) {
           iframeRef.current.contentWindow.print()
         } else if (blobUrl) {
-          // fallback: abrir em nova aba para imprimir
           const w = window.open(blobUrl, '_blank')
           if (w) setTimeout(() => w.print(), 800)
         }
@@ -386,7 +368,7 @@ function HomologarProdutoInner() {
             Voltar
           </button>
           <button style={{ ...S.btn, ...S.btnSec, opacity: gerandoDocx ? 0.6 : 1 }} onClick={baixarEditavel} disabled={gerandoDocx}>
-            {gerandoDocx ? 'Gerando...' : (numServico >= 41 && numServico <= 44 ? 'Baixar PDF' : 'Baixar documento editável')}
+            {gerandoDocx ? 'Aguarde...' : (numServico >= 41 && numServico <= 44 ? '↓ Salvar como PDF' : 'Baixar documento editável')}
           </button>
           <button style={{ ...S.btn, ...S.btnPri, opacity: enviando ? 0.6 : 1 }}
             onClick={() => inputPdfRef.current?.click()} disabled={enviando}>
