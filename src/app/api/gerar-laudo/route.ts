@@ -118,6 +118,7 @@ i, em { font-style: italic; }
   .bloco { page-break-inside: avoid; }
 }
 
+table.tbl-plano { border: 1.5px solid #1E3A8A !important; }
 /* Cabeçalho/rodapé do inspetor */
 .cab { text-align: center; padding-bottom: 4pt; border-bottom: 2px solid #1E3A8A; margin-bottom: 10pt; font-size: 9pt; color: #374151; white-space: pre-line; }
 .rod { margin-top: 10pt; padding-top: 4pt; border-top: 1px solid #ccc; font-size: 8pt; text-align: center; white-space: pre-line; color: #374151; }
@@ -160,7 +161,7 @@ tr:nth-child(even) td { background: #f7f9ff; }
 .item-row:first-of-type { border-top: none; }
 .item-letra   { background: #1E3A8A; color: #fff; font-size: 10pt; font-weight: 700;
                 min-width: 32px; display: flex; align-items: center; justify-content: center; }
-.item-criterio{ flex: 1; padding: 7px 10px; font-size: 8pt; color: #1E3A8A;
+.item-criterio{ flex: 1; padding: 7px 10px; font-size: 8pt; color: #000;
                 font-weight: 600; border-right: 1px solid #1E3A8A; }
 .item-valor   { width: 34%; padding: 7px 10px; font-size: 8.5pt; font-weight: 700;
                 display: flex; align-items: center; justify-content: center; }
@@ -433,7 +434,7 @@ export async function POST(request: NextRequest) {
         return `<span class="badge ${cls}">${xe(p)}</span>`
       }
       return `
-<div class="bloco no-break">
+<div class="bloco">
   <div class="bloco-header">${xe(nomeS(s))}</div>
   <div style="padding:5px 8px;border-bottom:1px solid #1E3A8A">
     <span style="font-size:7pt;font-weight:700;color:#1E3A8A">Descrição do sistema construtivo</span><br>
@@ -513,42 +514,38 @@ export async function POST(request: NextRequest) {
   </div>
 </div>
 <div class="bloco">
-  <div class="bloco-header">Distribuição por Prioridade</div>
-  <table style="width:60%">
-    <tr>
-      <th style="text-align:left">Prioridade</th>
-      <th>Qtd</th><th>%</th><th style="width:80px">Referência de Cor</th>
-    </tr>
-    <tr>
-      <td>Alta (Imediata)</td>
-      <td style="text-align:center;font-weight:700">${totA}</td>
-      <td style="text-align:center">${pct(totA,totT)}</td>
-      <td style="background:#fee2e2">&nbsp;</td>
-    </tr>
-    <tr>
-      <td>Média (Curto Prazo)</td>
-      <td style="text-align:center;font-weight:700">${totM}</td>
-      <td style="text-align:center">${pct(totM,totT)}</td>
-      <td style="background:#fef9c3">&nbsp;</td>
-    </tr>
-    <tr>
-      <td>Baixa (Longo Prazo)</td>
-      <td style="text-align:center;font-weight:700">${totB}</td>
-      <td style="text-align:center">${pct(totB,totT)}</td>
-      <td style="background:#dcfce7">&nbsp;</td>
-    </tr>
-    <tr style="background:#EEF2FF">
-      <td style="font-weight:700">Total</td>
-      <td style="text-align:center;font-weight:700">${totT}</td>
-      <td style="text-align:center">100%</td>
-      <td>&nbsp;</td>
-    </tr>
-  </table>
+  <div class="bloco-header">Distribuição de Anomalias por Prioridade</div>
+  <div style="display:flex;align-items:center;gap:24px;padding:12px 16px">
+    <svg width="160" height="160" viewBox="0 0 160 160" style="flex-shrink:0">
+      ${(()=>{
+        if(totT===0) return '<text x="80" y="85" text-anchor="middle" font-size="11" fill="#666">Sem dados</text>'
+        const r=70,cx=80,cy=80
+        function arc(s:number,e:number,col:string):string{
+          if(e-s<=0)return ''
+          if(e-s>=1)return '<circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="'+col+'"/>'
+          const a1=(s*2-0.5)*Math.PI,a2=(e*2-0.5)*Math.PI
+          const x1=cx+r*Math.cos(a1),y1=cy+r*Math.sin(a1)
+          const x2=cx+r*Math.cos(a2),y2=cy+r*Math.sin(a2)
+          return '<path d="M'+cx+','+cy+' L'+x1+','+y1+' A'+r+','+r+' 0 '+(e-s>0.5?1:0)+',1 '+x2+','+y2+' Z" fill="'+col+'"/>'
+        }
+        const pA=totA/totT,pM=totM/totT
+        return arc(0,pA,"#DC2626")+arc(pA,pA+pM,"#D97706")+arc(pA+pM,1,"#16A34A")
+      })()}
+    </svg>
+    <div style="font-size:8.5pt;display:flex;flex-direction:column;gap:8px">
+      <div style="display:flex;align-items:center;gap:8px"><span style="display:inline-block;width:14px;height:14px;background:#DC2626;border-radius:2px"></span><span><b>Alta:</b> ${totA} (${pct(totA,totT)})</span></div>
+      <div style="display:flex;align-items:center;gap:8px"><span style="display:inline-block;width:14px;height:14px;background:#D97706;border-radius:2px"></span><span><b>Média:</b> ${totM} (${pct(totM,totT)})</span></div>
+      <div style="display:flex;align-items:center;gap:8px"><span style="display:inline-block;width:14px;height:14px;background:#16A34A;border-radius:2px"></span><span><b>Baixa:</b> ${totB} (${pct(totB,totT)})</span></div>
+      <div style="border-top:1px solid #e5e7eb;padding-top:6px;margin-top:4px"><b>Total: ${totT} manifestações</b></div>
+    </div>
+  </div>
 </div>`
 
     // ── §3.6 — Seção 5 Recomendações ─────────────────────────────────────────
     const S5 = `
 <div class="titulo">5.- Recomendações sobre a Manutenção, Uso, Sustentabilidade e Gerais.</div>
+<p>No decorrer do processo de autovistoria foi efetuada a análise da documentação, a vistoria na edificação, a classificação da edificação e das anomalias e falhas identificadas, o que possibilitou uma completa avaliação dos sistemas construtivos da edificação.</p>
+<p>A seguir estão registradas as recomendações para a manutenção, o uso, a sustentabilidade e outras consideradas pertinentes para este trabalho.</p>
 <div class="bloco">
   <div class="bloco-header">Recomendações Técnicas</div>
   <div class="item-rec">
@@ -800,15 +797,35 @@ ${S5}
 
 <div class="section">
 <div class="titulo">6.- Conclusão.</div>
-<p>Diante do exposto, a edificação vistoriada apresenta ${totT>0?`${totT} manifestações patológicas: ${totA} de prioridade Alta, ${totM} de prioridade Média e ${totB} de prioridade Baixa`:'ausência de manifestações patológicas relevantes'}.</p>
-<p>Recomendamos nova vistoria em prazo máximo de 5 anos.</p>
+<p>Diante do exposto neste documento, e após analisados todos os fatos observados que interferem ou possam vir a interferir com o assunto objeto deste laudo, concluímos:</p>
+<ul>
+  <li>A vistoria proporcionou a constatação de que, considerando a idade da construção, o imóvel ${totT>0?'<b>apresenta danos que requerem intervenção corretiva</b> segundo as prioridades definidas neste laudo':'<b>não apresenta</b> nenhum dano aparente que represente ameaça à sua solidez, no que se refere ao aspecto estrutural e contenções, pois não foram verificadas manifestações patológicas que possam vir a comprometer a sua estabilidade'}.</li>
+  <li>Verificou-se a ${totT>0?'<b>existência</b> de diversas anomalias como documentado neste laudo, as quais necessitam de intervenções corretivas a serem executadas segundo as prioridades definidas':'<b>não existência</b> de danos que possam comprometer a segurança da edificação'}.</li>
+  <li>Com o intuito de melhor orientar futuras ações de manutenção e conservação do imóvel, recomendamos a execução de nova autovistoria no prazo máximo de 5 anos, para reavaliar e atuar preventivamente na situação construtiva da edificação.</li>
+</ul>
 
 <div class="titulo">7.- Encerramento.</div>
+<p><b>7.1. Anexos:</b></p>
 <ul>
   <li>Anexo 1 – Relação de documentos solicitados e analisados;</li>
-  <li>Anexo 2 – Resultado da Vistoria (formulários homologados);</li>
-  <li>Anexo 3 – Anotações de Responsabilidade Técnica (ART/RRT).</li>
+  <li>Anexo 2 – Resultado da Vistoria;</li>
+  <li>Anexo 3 – Anotações de responsabilidade dos profissionais que atuaram nesta inspeção.</li>
 </ul>
+
+<p><b>7.2.- Declaração de conformidade com o Código de Ética.</b></p>
+<p>O signatário atesta que a presente autovistoria segue criteriosamente os seguintes princípios:</p>
+<ul>
+  <li>Os itens deste trabalho foram revisados pessoalmente pelo responsável técnico que elaborou o Laudo Autovistoria;</li>
+  <li>O responsável técnico não possui no presente, nem contempla para o futuro, interesse nos bens envolvidos neste trabalho;</li>
+  <li>O responsável técnico não tem inclinações nem interesse em relação a finalidade deste trabalho, tão pouco em relação a solicitação;</li>
+  <li>O trabalho encontra-se abrigado por absoluta confidencialidade, sendo garantido o sigilo perante terceiros quanto às razões que motivaram a presente contratação, bem como aos resultados alcançados;</li>
+  <li>Este trabalho foi elaborado em observância estrita aos princípios dos Códigos de Ética Profissional do CONFEA-Conselho Federal de Engenharia, Arquitetura e Agronomia e do IBAPE - Instituto Brasileiro de Avaliações e Perícias de Engenharia.</li>
+</ul>
+
+<p><b>7.3.- Termo de encerramento:</b></p>
+<p>O responsável técnico pela execução deste trabalho coloca-se ao inteiro dispor para esclarecimentos adicionais, caso necessários.</p>
+<p>O documento é entregue em mídia magnética.</p>
+<p style="border:1px solid #999;padding:6px;font-size:7.5pt;background:#f9f9f9"><b>Atenção:</b> O titular do direito autoral deste trabalho somente autoriza sua reprodução nos casos legais cabíveis, vedando sua cópia ou qualquer forma de reprodução que caracterize plágio ou represente utilização dos direitos exclusivos do autor, sendo que sua violação acarretará as penalidades civis e criminais previstas no art.184 do Código Penal Brasileiro e Lei nº 9.610.</p>
 
 <div class="ass">
   <p style="text-align:center;font-size:8.5pt;color:#222">${xe(estab?.cidade)}/${xe(estab?.uf)}, ${dataHoje}</p>
