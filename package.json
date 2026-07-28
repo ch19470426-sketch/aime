@@ -19,7 +19,7 @@
     "react-dom": "19.2.4",
     "docx": "^9.5.0",
     "puppeteer-core": "22.15.0",
-    "@sparticuz/chromium-min": "131.0.1"
+    "@sparticuz/chromium": "131.0.1"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
