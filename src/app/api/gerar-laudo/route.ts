@@ -97,7 +97,17 @@ const CSS = `
 /* §8 WeasyPrint base */
 @page { size: A4; margin: 14mm; }
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: Arial, sans-serif; color: #1E3A8A; background: #fff; font-size: 8.5pt; }
+body { font-family: Arial, sans-serif; color: #000; background: #fff; font-size: 9pt; line-height: 1.4; }
+
+p { margin: 4pt 0; text-align: justify; color: #000; }
+h1, h2, h3 { font-weight: bold; color: #000; margin: 10pt 0 4pt; }
+ul, ol { margin: 4pt 0 4pt 1cm; padding: 0; }
+li { margin-bottom: 2pt; text-align: justify; }
+b, strong { font-weight: bold; }
+i, em { font-style: italic; }
+.section { page-break-before: always; }
+.no-break { page-break-inside: avoid; }
+.ass { margin-top: 40pt; text-align: center; }
 
 /* Cabeçalho/rodapé do inspetor */
 .cab { text-align: center; padding-bottom: 4pt; border-bottom: 2px solid #1E3A8A; margin-bottom: 10pt; font-size: 9pt; color: #374151; white-space: pre-line; }
@@ -105,8 +115,8 @@ body { font-family: Arial, sans-serif; color: #1E3A8A; background: #fff; font-si
 
 /* §3.1 — Título de seção */
 .titulo {
-  background: #1E3A8A; color: #fff; font-size: 10pt; font-weight: 700;
-  letter-spacing: .4px; padding: 8px 12px; margin-bottom: 14px; margin-top: 10px;
+  font-size: 10pt; font-weight: 700; color: #000;
+  margin: 12pt 0 4pt; padding: 0;
 }
 
 /* §3.2 — Bloco com cabeçalho */
