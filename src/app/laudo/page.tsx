@@ -328,9 +328,7 @@ function LaudoComplemento() {
     setErro('')
     if (!sinteseEdif) { setErro('Gere ou preencha a síntese da edificação (item 1.1).'); return }
     if (!dadosVistoria) { setErro('Preencha a descrição da vistoria (item 3.1).'); return }
-    if (cfg.temClassificacao && (!risco || !desempenho || !manut || !uso || !desempGeral)) {
-      setErro('Preencha todos os campos da classificação da edificação (item 3.3).'); return
-    }
+    // validação 3.3 temporariamente desativada
     setEtapa('gerando')
     try {
       const slug = SLUG[tipoServico] ?? `laudo_${tipoServico}`
