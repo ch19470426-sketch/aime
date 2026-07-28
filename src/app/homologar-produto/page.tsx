@@ -206,15 +206,23 @@ function HomologarProdutoInner() {
   async function baixarEditavel() {
     setGerandoDocx(true)
     try {
-      // Laudos 41-44: baixar HTML como arquivo para abrir no browser e imprimir como PDF
+      // Laudos 41-44: gerar PDF via rota servidor (Puppeteer + Chromium)
       const ehLaudo = numServico >= 41 && numServico <= 44
       if (ehLaudo) {
-        if (!html) throw new Error('HTML do laudo não carregado.')
-        const blob = new Blob([html], { type: 'text/html;charset=utf-8' })
-        const url  = URL.createObjectURL(blob)
-        const a    = document.createElement('a')
-        a.href     = url
-        a.download = nomeAmigavel('html')
+        const res = await fetch('/api/gerar-laudo-pdf', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ nomeArquivo }),
+        })
+        if (!res.ok) {
+          const { erro } = await res.json().catch(() => ({ erro: 'Erro ao gerar PDF.' }))
+          throw new Error(erro)
+        }
+        const pdfBlob = await res.blob()
+        const url = URL.createObjectURL(pdfBlob)
+        const a   = document.createElement('a')
+        a.href    = url
+        a.download = nomeAmigavel('pdf')
         a.click()
         URL.revokeObjectURL(url)
         setGerandoDocx(false)
