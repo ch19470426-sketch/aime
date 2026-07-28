@@ -389,7 +389,9 @@ export async function POST(request: NextRequest) {
           const fim = getV(tds[2][1])
           if (desc) ativPlano.push({ descricao: desc, ini, fim })
         }
-    } catch { /* usa atividades padrão */ }
+        }
+      }
+    } catch (_e) { /* usa atividades padrão */ }
 
     // Atividades padrão (fallback quando plano não encontrado)
     const ATIV_DEFAULT = [
