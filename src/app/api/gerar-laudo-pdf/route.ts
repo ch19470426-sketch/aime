@@ -1,6 +1,4 @@
 // src/app/api/gerar-laudo-pdf/route.ts
-// AIMÊ — Converte HTML do laudo em PDF via Puppeteer + Chromium
-
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 export const maxDuration = 60
@@ -16,59 +14,62 @@ const supabase = createClient(
 export async function POST(request: NextRequest) {
   try {
     const { nomeArquivo } = await request.json()
-
     if (!nomeArquivo)
       return NextResponse.json({ erro: 'nomeArquivo obrigatório.' }, { status: 400 })
 
-    // Baixar o HTML do storage
+    // Baixar HTML do storage
     const { data: blob, error } = await supabase.storage
       .from('aime')
       .download(`documentos_inspetor/${nomeArquivo}`)
-
     if (error || !blob)
       return NextResponse.json({ erro: 'HTML não encontrado.' }, { status: 404 })
 
     const html = await blob.text()
 
-    // Injetar CSS de impressão A4 antes de converter
-    const htmlFinal = html.replace(
-      '</head>',
-      `<style>
-        @page { size: A4; margin: 25mm 20mm 20mm 25mm; }
-        body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-      </style></head>`
-    )
+    // Garantir CSS A4 com margens corretas
+    const htmlFinal = html.includes('@page')
+      ? html
+      : html.replace(
+          '</head>',
+          `<style>
+            @page { size: A4; margin: 25mm 20mm 20mm 25mm; }
+            body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+          </style></head>`
+        )
 
-    // Inicializar Puppeteer com Chromium
-    const chromium = (await import('@sparticuz/chromium-min')).default
+    // Chromium via @sparticuz/chromium (bundlado, sem dependências do sistema)
+    const chromium = (await import('@sparticuz/chromium')).default
     const puppeteer = (await import('puppeteer-core')).default
 
     const browser = await puppeteer.launch({
-      args: chromium.args,
+      args: [
+        ...chromium.args,
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage',
+      ],
       defaultViewport: chromium.defaultViewport,
-      executablePath: await chromium.executablePath(
-        'https://github.com/Sparticuz/chromium/releases/download/v131.0.1/chromium-v131.0.1-pack.tar'
-      ),
-      headless: true,
+      executablePath: await chromium.executablePath(),
+      headless: chromium.headless,
     })
 
-    const page = await browser.newPage()
-    await page.setContent(htmlFinal, { waitUntil: 'networkidle0' })
-
-    const pdf = await page.pdf({
-      format: 'A4',
-      printBackground: true,
-      margin: { top: '25mm', right: '20mm', bottom: '20mm', left: '25mm' },
-    })
-
-    await browser.close()
-
-    return new NextResponse(pdf, {
-      headers: {
-        'Content-Type': 'application/pdf',
-        'Content-Disposition': `attachment; filename="${nomeArquivo.replace('.html', '.pdf')}"`,
-      },
-    })
+    try {
+      const page = await browser.newPage()
+      await page.setContent(htmlFinal, { waitUntil: 'networkidle0', timeout: 30000 })
+      const pdf = await page.pdf({
+        format: 'A4',
+        printBackground: true,
+        margin: { top: '25mm', right: '20mm', bottom: '20mm', left: '25mm' },
+      })
+      return new NextResponse(pdf, {
+        headers: {
+          'Content-Type': 'application/pdf',
+          'Content-Disposition': `attachment; filename="${nomeArquivo.replace(/\.html$/i, '.pdf')}"`,
+        },
+      })
+    } finally {
+      await browser.close()
+    }
 
   } catch (err: any) {
     console.error('gerar-laudo-pdf:', err)
