@@ -785,7 +785,7 @@ ${S11}
     <th style="width:15%">Dt. Início</th>
     <th style="width:15%">Dt. Fim</th>
   </tr>
-  ${(ativPlano.length > 0 ? ativPlano : ATIVIDADES_PLANO.map(([,,a]) => ({descricao:a,ini:'',fim:''}))).map(a=>`<tr><td style="text-align:justify">${xe(a.descricao)}</td><td style="text-align:center">${xe(a.ini)}</td><td style="text-align:center">${xe(a.fim)}</td></tr>`).join('')}
+  ${(ativPlano.length > 0 ? ativPlano : ['Análise técnica inicial da edificação para conhecer as características básicas da edificação a ser estudada.','Entrevista Inicial para coletar dados históricos do prédio e pedido de documentos legais.','Entrega documentos pelo síndico para o inspetor predial e análise pelo inspetor.','Execução da vistoria com levantamento das anomalias e falhas e coleta de evidências fotográficas.','Elaboração laudo efetuando análise, classificação, recomendações e consolidação do documento.','Entrega do Laudo ao Síndico.'].map(a=>({descricao:a,ini:'',fim:''}))).map(a=>'<tr><td style="text-align:justify">'+xe(a.descricao)+'</td><td style="text-align:center">'+xe(a.ini)+'</td><td style="text-align:center">'+xe(a.fim)+'</td></tr>').join('')}
 </table>
 
 <div class="titulo">1.4.- Condições e limitações.</div>
