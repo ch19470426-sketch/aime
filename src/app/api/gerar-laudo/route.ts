@@ -243,7 +243,8 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
     const { cpfInspetor, chaveInspetor, cnpjoucpf, tipoServico,
-            estab, inspetor, ncs, nomeArquivo, complemento } = body
+            estab: estabRaw, inspetor, ncs, nomeArquivo, complemento } = body
+    let estab = estabRaw
 
     if (!cpfInspetor || !tipoServico || !nomeArquivo)
       return NextResponse.json({ erro: 'Parâmetros obrigatórios ausentes.' }, { status: 400 })
