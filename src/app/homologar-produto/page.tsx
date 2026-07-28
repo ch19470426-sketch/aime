@@ -210,14 +210,47 @@ function HomologarProdutoInner() {
       const ehLaudo = numServico >= 41 && numServico <= 44
       if (ehLaudo) {
         if (!html) throw new Error('HTML do laudo não carregado.')
-        // Inject print CSS + auto-print script
+
+        // Extrair texto do cabeçalho e rodapé já presentes no HTML
+        const mCab = html.match(/<div class="cab">([\s\S]*?)<\/div>/)
+        const mRod = html.match(/<div class="rod">([\s\S]*?)<\/div>/)
+        // Limpar tags HTML — manter só o texto
+        const cabTxt = mCab ? mCab[1].replace(/<[^>]+>/g, '').trim() : ''
+        const rodTxt = mRod ? mRod[1].replace(/<[^>]+>/g, '').trim() : ''
+
+        // CSS de impressão com cabeçalho e rodapé em todas as páginas
+        const printCss = `
+          @page {
+            size: A4;
+            margin: 28mm 20mm 22mm 25mm;
+            @top-center {
+              content: ${JSON.stringify(cabTxt || 'AIMÊ — Mapeamento Inteligente de Edificações e Equipamentos')};
+              font-family: Arial, sans-serif;
+              font-size: 8pt;
+              color: #374151;
+              border-bottom: 1.5px solid #1E3A8A;
+              padding-bottom: 3pt;
+              width: 100%;
+              text-align: center;
+            }
+            @bottom-center {
+              content: ${JSON.stringify(rodTxt || 'AIMÊ — Laudo Técnico')} ' — Pág. ' counter(page) ' de ' counter(pages);
+              font-family: Arial, sans-serif;
+              font-size: 7.5pt;
+              color: #374151;
+              border-top: 1px solid #ccc;
+              padding-top: 3pt;
+              width: 100%;
+              text-align: center;
+            }
+          }
+          body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+          /* Ocultar as divs cab/rod do body — estão no @page */
+          .cab, .rod { display: none !important; }
+        `
+
         const htmlPrint = html
-          .replace('</head>',
-            `<style>
-              @page { size: A4; margin: 25mm 20mm 20mm 25mm; }
-              body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-            </style></head>`
-          )
+          .replace('</head>', `<style>${printCss}</style></head>`)
           .replace('</body>',
             `<script>
               window.addEventListener('load', function() {
@@ -225,11 +258,11 @@ function HomologarProdutoInner() {
               });
             </script></body>`
           )
+
         const blob = new Blob([htmlPrint], { type: 'text/html;charset=utf-8' })
         const url  = URL.createObjectURL(blob)
         const win  = window.open(url, '_blank', 'width=900,height=700')
         if (!win) {
-          // fallback: download do HTML
           const a = document.createElement('a')
           a.href = url; a.download = nomeAmigavel('html'); a.click()
         }
