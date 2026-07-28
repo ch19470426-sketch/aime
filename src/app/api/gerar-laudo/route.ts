@@ -95,12 +95,7 @@ function descS(s:string): string { return DESC_SISTEMAS[s]||`Sistema: ${nomeS(s)
 // ─── CSS — Design System Brief §2–4 (copiado literalmente) ───────────────────
 const CSS = `
 /* Impressão A4 */
-@page           { size: A4; margin: 28mm 20mm 22mm 25mm; }
-@page capa      { margin: 0; }
-@page indice    { margin: 28mm 20mm 22mm 25mm; }
-/* Capa: sem cabeçalho nem rodapé */
-.pg-capa        { page: capa; page-break-after: always; }
-.pg-indice      { page: indice; page-break-after: always; }
+@page { size: A4; margin: 20mm 20mm 20mm 25mm; }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: Arial, sans-serif; color: #000; background: #fff; font-size: 9pt; line-height: 1.4; }
 
@@ -113,59 +108,6 @@ i, em { font-style: italic; }
 .section { page-break-before: always; }
 .no-break { page-break-inside: avoid; }
 .ass { margin-top: 40pt; text-align: center; }
-
-/* ── CAPA ── */
-.capa {
-  width: 210mm; height: 297mm;
-  position: relative;
-  overflow: hidden;
-  background: #fff;
-  font-family: Arial, sans-serif;
-}
-.capa-barra {
-  position: absolute; left: 0; top: 0;
-  width: 22mm; height: 100%;
-  background: #44546A;
-}
-.capa-linha-topo {
-  position: absolute; top: 8mm; left: 22mm; right: 0;
-  height: 1.5px; background: #44546A;
-}
-.capa-linha-base {
-  position: absolute; bottom: 8mm; left: 22mm; right: 0;
-  height: 1.5px; background: #44546A;
-}
-.capa-seta {
-  position: absolute; left: 14mm; top: 50%;
-  transform: translateY(-60%);
-  width: 0; height: 0;
-  border-top: 20mm solid transparent;
-  border-bottom: 20mm solid transparent;
-  border-left: 28mm solid #4472C4;
-}
-.capa-titulo {
-  position: absolute; left: 50mm; top: 48%;
-  transform: translateY(-50%);
-  font-size: 16pt; font-weight: bold; color: #000;
-  line-height: 1.4;
-}
-.capa-local {
-  position: absolute; right: 20mm; bottom: 18mm;
-  font-size: 11pt; color: #000; text-align: right;
-}
-
-/* ── ÍNDICE ── */
-.indice-titulo {
-  font-size: 12pt; font-weight: bold; margin-bottom: 12pt;
-  border-bottom: 2px solid #1E3A8A; padding-bottom: 4pt;
-}
-.indice-item {
-  display: flex; align-items: baseline;
-  font-size: 9pt; margin-bottom: 4pt;
-}
-.indice-item.nivel2 { padding-left: 12pt; }
-.indice-num  { min-width: 28pt; font-weight: bold; color: #1E3A8A; }
-.indice-dots { flex: 1; border-bottom: 1px dotted #999; margin: 0 4pt 2pt; }
 
 /* Print */
 @media print {
@@ -354,30 +296,7 @@ export async function POST(request: NextRequest) {
     const rodInspetor = xe(inspetor?.rodape_documentos) || `${xe(inspetor?.nome_inspetor)} — ${xe(inspetor?.titulo_profissional)} — CREA/CAU ${xe(inspetor?.inscricao_crea_cau)}`
 
     // ── §3.3 Grade de campos — seção 1.1 ─────────────────────────────────────
-        // ── Buscar atividades do plano de trabalho ──────────────────────────────
-    let ativPlano: {descricao:string; ini:string; fim:string}[] = []
-    try {
-      const tipoPlano = String(Number(tipoServico) - 20)
-      const nomePlano = `${chaveInspetor}_plano_${tipoPlano}_${cnpjoucpf}.html`
-      const { data: blobPlano } = await supabase.storage.from('aime')
-        .download(`documentos_inspetor/${nomePlano}`)
-      if (blobPlano) {
-        const htmlPlano = await blobPlano.text()
-        // Extrair linhas da tabela de atividades do HTML do plano
-        // Padrão: <td style="text-align:justify;font-size:10pt">DESCRICAO</td><td ...>DT_INI</td><td ...>DT_FIM</td>
-        const rgxAtiv = /<td[^>]*text-align:justify[^>]*>([^<]+)<\/td>\s*<td[^>]*>([^<]*)<\/td>\s*<td[^>]*>([^<]*)<\/td>/g
-        let mAtiv
-        while ((mAtiv = rgxAtiv.exec(htmlPlano)) !== null) {
-          ativPlano.push({
-            descricao: mAtiv[1].trim(),
-            ini: mAtiv[2].trim(),
-            fim: mAtiv[3].trim(),
-          })
-        }
-      }
-    } catch { /* usa atividades padrão */ }
-
-const S11 = `
+    const S11 = `
 <div class="titulo">1.1 – Características e Localização ${tipoServico==='43'?'do Imóvel':'da Edificação'}</div>
 <div class="bloco">
   <div class="bloco-header">Identificação e Características</div>
@@ -414,11 +333,11 @@ const S11 = `
   <div class="row">
     <div class="cell">
       <label>Croqui de localização</label>
-      <div class="foto-box">${srcCroqui?'<img src="'+srcCroqui+'">' :'[ croqui de localização ]'}</div>
+      <div class="foto-box">${srcCroqui?`<img src="${srcCroqui}">`:'[ croqui de localização ]'}</div>
     </div>
     <div class="cell">
       <label>Foto da fachada principal</label>
-      <div class="foto-box">${srcFachada?'<img src="'+srcFachada+'">'  :'[ foto da fachada principal ]'}</div>
+      <div class="foto-box">${srcFachada?`<img src="${srcFachada}">`:'[ foto da fachada principal ]'}</div>
     </div>
   </div>
 </div>`
@@ -701,73 +620,19 @@ ${foto}
         }).join('\n')
 
     // ── HTML COMPLETO ─────────────────────────────────────────────────────────
-    // Índice fixo (sem números de página — gerado automaticamente pelo browser)
-    const INDICE_ITENS = [
-      {n:'1.',    t:'Considerações Preliminares',       nivel:1},
-      {n:'1.1.-', t:'Características e localização da edificação', nivel:2},
-      {n:'1.2.-', t:'Objetivo',                        nivel:2},
-      {n:'1.3.-', t:'Plano de Trabalho',               nivel:2},
-      {n:'1.4.-', t:'Condições e limitações',          nivel:2},
-      {n:'2.',    t:'Metodologia adotada para o Trabalho de Autovistoria', nivel:1},
-      {n:'2.1.-', t:'Norma Brasileira para Inspeção Predial — NBR-16.747/2020', nivel:2},
-      {n:'2.2.-', t:'Norma de Inspeção Predial do IBAPE/2025', nivel:2},
-      {n:'2.3.-', t:'Critérios e Metodologia da Inspeção', nivel:2},
-      {n:'3.',    t:'Resultado da Vistoria Técnica e Classificação da Edificação', nivel:1},
-      {n:'3.1.-', t:'Descrição da Vistoria Técnica',   nivel:2},
-      {n:'3.2.-', t:'Resultado da Vistoria',           nivel:2},
-      {n:'3.3.-', t:'Resultado da Classificação da Edificação', nivel:2},
-      {n:'4.',    t:'Relação de Não Conformidades e Análise das Manifestações Patológicas', nivel:1},
-      {n:'4.1.-', t:'Relação de Não Conformidades e Soluções', nivel:2},
-      {n:'4.2.-', t:'Análise Estatística das Manifestações Patológicas', nivel:2},
-      {n:'5.',    t:'Recomendações sobre a Manutenção, Uso, Sustentabilidade e Gerais', nivel:1},
-      {n:'6.',    t:'Conclusão',                        nivel:1},
-      {n:'7.',    t:'Encerramento',                     nivel:1},
-      {n:'',      t:'Anexo 1 – Relação de Documentos Solicitados e Avaliados', nivel:1},
-      {n:'',      t:'Anexo 2 – Resultado da Vistoria', nivel:1},
-      {n:'',      t:'Anexo 3 – Anotações de Responsabilidade Técnica', nivel:1},
-    ]
-
-    const CAPA_HTML = `
-<div class="pg-capa">
-<div class="capa">
-  <div class="capa-barra"></div>
-  <div class="capa-linha-topo"></div>
-  <div class="capa-linha-base"></div>
-  <div class="capa-seta"></div>
-  <div class="capa-titulo">
-    <div>${xe(titulo)}</div>
-    <div style="font-size:13pt;font-weight:normal;margin-top:4pt">${xe(estab?.razao_social_nome??'')}</div>
-  </div>
-  <div class="capa-local">
-    ${xe(estab?.cidade??'')}/${xe(estab?.uf??'')} — ${dataHoje}
-  </div>
-</div>
-</div>`
-
-    const INDICE_HTML = '<div class="pg-indice"><div class="indice-titulo">ÍNDICE</div>' +
-      INDICE_ITENS.map(it =>
-        '<div class="indice-item' + (it.nivel===2?' nivel2':'') + '">' +
-        '<span class="indice-num">' + xe(it.n) + '</span>' +
-        '<span>' + xe(it.t) + '</span>' +
-        '<span class="indice-dots"></span>' +
-        '</div>'
-      ).join('') +
-      '</div>'
-
     const html = `<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<title>\${titulo}</title>
-<style>\${CSS}</style>
+<title>${titulo}</title>
+<style>${CSS}</style>
 </head>
 <body>
 
-\${CAPA_HTML}
+${cabInspetor?`<div class="cab">${cabInspetor}</div>`:''}
 
-\${INDICE_HTML}
-
-\${cabInspetor?'<div class="cab">'+cabInspetor+'</div>':''}
+<p style="text-align:right;font-size:8.5pt;color:#222;margin:0">${xe(estab?.cidade)}/${xe(estab?.uf)}, ${dataHoje}</p>
+<br><br><br><br><br>
 
 <div class="titulo">1.- Considerações Preliminares.</div>
 <p>Este ${titulo} é o documento completo resultante do trabalho executado na vistoria da edificação, análise, classificação e priorização das manifestações patológicas, conforme exigências da ABNT/NBR 16.747/2020 e legislação vigente.</p>
@@ -781,11 +646,18 @@ ${S11}
 <p>As etapas básicas desenvolvidas para a realização do presente trabalho constam na tabela que segue.</p>
 <table>
   <tr>
-    <th style="text-align:left;width:70%">Atividade</th>
-    <th style="width:15%">Dt. Início</th>
-    <th style="width:15%">Dt. Fim</th>
+    <th style="width:8%">Horas</th>
+    <th style="width:10%">Dias Úteis</th>
+    <th style="width:12%">Dt Início</th>
+    <th style="width:12%">Dt Fim</th>
+    <th style="text-align:left">Atividades</th>
   </tr>
-  ${(ativPlano.length > 0 ? ativPlano : ['Análise técnica inicial da edificação para conhecer as características básicas da edificação a ser estudada.','Entrevista Inicial para coletar dados históricos do prédio e pedido de documentos legais.','Entrega documentos pelo síndico para o inspetor predial e análise pelo inspetor.','Execução da vistoria com levantamento das anomalias e falhas e coleta de evidências fotográficas.','Elaboração laudo efetuando análise, classificação, recomendações e consolidação do documento.','Entrega do Laudo ao Síndico.'].map(a=>({descricao:a,ini:'',fim:''}))).map(a=>'<tr><td style="text-align:justify">'+xe(a.descricao)+'</td><td style="text-align:center">'+xe(a.ini)+'</td><td style="text-align:center">'+xe(a.fim)+'</td></tr>').join('')}
+  <tr><td style="text-align:center">2</td><td style="text-align:center">1</td><td></td><td></td><td>Análise técnica inicial da edificação</td></tr>
+  <tr><td style="text-align:center">3</td><td style="text-align:center">1</td><td></td><td></td><td>Entrevista inicial para coletar dados históricos e documentação necessária</td></tr>
+  <tr><td style="text-align:center">3</td><td style="text-align:center">3</td><td></td><td></td><td>Entrega de documentos pelo síndico e análise</td></tr>
+  <tr><td style="text-align:center">6</td><td style="text-align:center">5</td><td></td><td></td><td>Execução da vistoria com levantamento das anomalias e falhas</td></tr>
+  <tr><td style="text-align:center">34</td><td style="text-align:center">6</td><td></td><td></td><td>Elaboração do laudo com análise, classificação, recomendações e soluções</td></tr>
+  <tr><td style="text-align:center">1</td><td style="text-align:center">1</td><td></td><td></td><td>Entrega do laudo ao síndico ou responsável</td></tr>
 </table>
 
 <div class="titulo">1.4.- Condições e limitações.</div>
@@ -896,7 +768,7 @@ ${S5}
 
 <div class="section">
 <div class="titulo">6.- Conclusão.</div>
-<p>Diante do exposto, a edificação vistoriada apresenta ${totT>0?(totT+' manifestações patológicas: '+totA+' de prioridade Alta, '+totM+' de prioridade Média e '+totB+' de prioridade Baixa'):'ausência de manifestações patológicas relevantes'}.</p>
+<p>Diante do exposto, a edificação vistoriada apresenta ${totT>0?`${totT} manifestações patológicas: ${totA} de prioridade Alta, ${totM} de prioridade Média e ${totB} de prioridade Baixa`:'ausência de manifestações patológicas relevantes'}.</p>
 <p>Recomendamos nova vistoria em prazo máximo de 5 anos.</p>
 
 <div class="titulo">7.- Encerramento.</div>
@@ -927,10 +799,12 @@ ${A2}
 <div class="section">
 <div class="titulo">Anexo 3 – Anotações de Responsabilidade Técnica</div>
 <p>Inserir neste espaço a ART (Anotação de Responsabilidade Técnica) ou RRT (Registro de Responsabilidade Técnica) devidamente registrada no CREA ou CAU.</p>
-${srcArt?'<div style="margin-top:8px;text-align:center"><img src="'+srcArt+'" style="max-width:100%;border:1.5px solid #1E3A8A"></div>':'<div class="foto-box" style="height:200px;margin-top:8px">[ ART / RRT — inserir pelo responsável técnico ]</div>'}
+${srcArt
+  ?`<div style="margin-top:8px;text-align:center"><img src="${srcArt}" style="max-width:100%;border:1.5px solid #1E3A8A"></div>`
+  :`<div class="foto-box" style="height:200px;margin-top:8px">[ ART / RRT — inserir pelo responsável técnico ]</div>`}
 </div>
 
-${rodInspetor?'<div class="rod">'+rodInspetor+'</div>':''}
+${rodInspetor?`<div class="rod">${rodInspetor}</div>`:''}
 
 </body>
 </html>`
