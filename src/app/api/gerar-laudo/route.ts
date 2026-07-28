@@ -354,7 +354,30 @@ export async function POST(request: NextRequest) {
     const rodInspetor = xe(inspetor?.rodape_documentos) || `${xe(inspetor?.nome_inspetor)} — ${xe(inspetor?.titulo_profissional)} — CREA/CAU ${xe(inspetor?.inscricao_crea_cau)}`
 
     // ── §3.3 Grade de campos — seção 1.1 ─────────────────────────────────────
-    const S11 = `
+        // ── Buscar atividades do plano de trabalho ──────────────────────────────
+    let ativPlano: {descricao:string; ini:string; fim:string}[] = []
+    try {
+      const tipoPlano = String(Number(tipoServico) - 20)
+      const nomePlano = `${chaveInspetor}_plano_${tipoPlano}_${cnpjoucpf}.html`
+      const { data: blobPlano } = await supabase.storage.from('aime')
+        .download(`documentos_inspetor/${nomePlano}`)
+      if (blobPlano) {
+        const htmlPlano = await blobPlano.text()
+        // Extrair linhas da tabela de atividades do HTML do plano
+        // Padrão: <td style="text-align:justify;font-size:10pt">DESCRICAO</td><td ...>DT_INI</td><td ...>DT_FIM</td>
+        const rgxAtiv = /<td[^>]*text-align:justify[^>]*>([^<]+)<\/td>\s*<td[^>]*>([^<]*)<\/td>\s*<td[^>]*>([^<]*)<\/td>/g
+        let mAtiv
+        while ((mAtiv = rgxAtiv.exec(htmlPlano)) !== null) {
+          ativPlano.push({
+            descricao: mAtiv[1].trim(),
+            ini: mAtiv[2].trim(),
+            fim: mAtiv[3].trim(),
+          })
+        }
+      }
+    } catch { /* usa atividades padrão */ }
+
+const S11 = `
 <div class="titulo">1.1 – Características e Localização ${tipoServico==='43'?'do Imóvel':'da Edificação'}</div>
 <div class="bloco">
   <div class="bloco-header">Identificação e Características</div>
@@ -759,18 +782,11 @@ ${S11}
 <p>As etapas básicas desenvolvidas para a realização do presente trabalho constam na tabela que segue.</p>
 <table>
   <tr>
-    <th style="width:8%">Horas</th>
-    <th style="width:10%">Dias Úteis</th>
-    <th style="width:12%">Dt Início</th>
-    <th style="width:12%">Dt Fim</th>
-    <th style="text-align:left">Atividades</th>
+    <th style="text-align:left;width:70%">Atividade</th>
+    <th style="width:15%">Dt. Início</th>
+    <th style="width:15%">Dt. Fim</th>
   </tr>
-  <tr><td style="text-align:center">2</td><td style="text-align:center">1</td><td></td><td></td><td>Análise técnica inicial da edificação</td></tr>
-  <tr><td style="text-align:center">3</td><td style="text-align:center">1</td><td></td><td></td><td>Entrevista inicial para coletar dados históricos e documentação necessária</td></tr>
-  <tr><td style="text-align:center">3</td><td style="text-align:center">3</td><td></td><td></td><td>Entrega de documentos pelo síndico e análise</td></tr>
-  <tr><td style="text-align:center">6</td><td style="text-align:center">5</td><td></td><td></td><td>Execução da vistoria com levantamento das anomalias e falhas</td></tr>
-  <tr><td style="text-align:center">34</td><td style="text-align:center">6</td><td></td><td></td><td>Elaboração do laudo com análise, classificação, recomendações e soluções</td></tr>
-  <tr><td style="text-align:center">1</td><td style="text-align:center">1</td><td></td><td></td><td>Entrega do laudo ao síndico ou responsável</td></tr>
+  ${(ativPlano.length > 0 ? ativPlano : ATIVIDADES_PLANO.map(([,,a]) => ({descricao:a,ini:'',fim:''}))).map(a=>`<tr><td style="text-align:justify">${xe(a.descricao)}</td><td style="text-align:center">${xe(a.ini)}</td><td style="text-align:center">${xe(a.fim)}</td></tr>`).join('')}
 </table>
 
 <div class="titulo">1.4.- Condições e limitações.</div>
