@@ -414,11 +414,11 @@ const S11 = `
   <div class="row">
     <div class="cell">
       <label>Croqui de localização</label>
-      <div class="foto-box">${srcCroqui?`<img src="${srcCroqui}">`:'[ croqui de localização ]'}</div>
+      <div class="foto-box">${srcCroqui?'<img src="'+srcCroqui+'">' :'[ croqui de localização ]'}</div>
     </div>
     <div class="cell">
       <label>Foto da fachada principal</label>
-      <div class="foto-box">${srcFachada?`<img src="${srcFachada}">`:'[ foto da fachada principal ]'}</div>
+      <div class="foto-box">${srcFachada?'<img src="'+srcFachada+'">'  :'[ foto da fachada principal ]'}</div>
     </div>
   </div>
 </div>`
@@ -767,7 +767,7 @@ ${foto}
 
 \${INDICE_HTML}
 
-\${cabInspetor?`<div class="cab">\${cabInspetor}</div>`:''}
+\${cabInspetor?'<div class="cab">'+cabInspetor+'</div>':''}
 
 <div class="titulo">1.- Considerações Preliminares.</div>
 <p>Este ${titulo} é o documento completo resultante do trabalho executado na vistoria da edificação, análise, classificação e priorização das manifestações patológicas, conforme exigências da ABNT/NBR 16.747/2020 e legislação vigente.</p>
@@ -896,7 +896,7 @@ ${S5}
 
 <div class="section">
 <div class="titulo">6.- Conclusão.</div>
-<p>Diante do exposto, a edificação vistoriada apresenta ${totT>0?`${totT} manifestações patológicas: ${totA} de prioridade Alta, ${totM} de prioridade Média e ${totB} de prioridade Baixa`:'ausência de manifestações patológicas relevantes'}.</p>
+<p>Diante do exposto, a edificação vistoriada apresenta ${totT>0?(totT+' manifestações patológicas: '+totA+' de prioridade Alta, '+totM+' de prioridade Média e '+totB+' de prioridade Baixa'):'ausência de manifestações patológicas relevantes'}.</p>
 <p>Recomendamos nova vistoria em prazo máximo de 5 anos.</p>
 
 <div class="titulo">7.- Encerramento.</div>
@@ -927,12 +927,10 @@ ${A2}
 <div class="section">
 <div class="titulo">Anexo 3 – Anotações de Responsabilidade Técnica</div>
 <p>Inserir neste espaço a ART (Anotação de Responsabilidade Técnica) ou RRT (Registro de Responsabilidade Técnica) devidamente registrada no CREA ou CAU.</p>
-${srcArt
-  ?`<div style="margin-top:8px;text-align:center"><img src="${srcArt}" style="max-width:100%;border:1.5px solid #1E3A8A"></div>`
-  :`<div class="foto-box" style="height:200px;margin-top:8px">[ ART / RRT — inserir pelo responsável técnico ]</div>`}
+${srcArt?'<div style="margin-top:8px;text-align:center"><img src="'+srcArt+'" style="max-width:100%;border:1.5px solid #1E3A8A"></div>':'<div class="foto-box" style="height:200px;margin-top:8px">[ ART / RRT — inserir pelo responsável técnico ]</div>'}
 </div>
 
-${rodInspetor?`<div class="rod">${rodInspetor}</div>`:''}
+${rodInspetor?'<div class="rod">'+rodInspetor+'</div>':''}
 
 </body>
 </html>`
