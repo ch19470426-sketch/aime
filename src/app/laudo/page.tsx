@@ -537,7 +537,7 @@ function LaudoComplemento() {
                 <label style={S.label}>Descreva sinteticamente a edificação (Convenção ou Escritura) *</label>
                 <textarea style={{ ...S.textarea, backgroundColor: editandoSintese ? '#FFFBEB' : undefined, borderColor: editandoSintese ? '#F59E0B' : undefined }} maxLength={900} value={sinteseEdif}
                   onChange={e => setSinteseEdif(e.target.value)}
-                  placeholder="Preencha os campos acima e clique em Gerar com IA..." />
+                  placeholder="Insira uma breve descrição e a topologia da edificação, ou clique em ✦ Gerar para geração automática com IA..." />
                 <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
                   <div style={S.contagem}>{sinteseEdif.length}/900 caracteres</div>
                   {editandoSintese && <span style={{ fontSize:"10px", color:"#92400E" }}>✏️ Modo ajuste — edite e clique em Salvar</span>}
@@ -549,7 +549,7 @@ function LaudoComplemento() {
                     {gerandoSintese ? 'Gerando...' : '✦ Gerar'}
                   </button>
                   <button style={{ ...S.btnIA, backgroundColor: '#1E3A8A', opacity: sinteseEdif ? 1 : 0.35, cursor: sinteseEdif ? 'pointer' : 'not-allowed' }}
-                    onClick={() => { setSinteseEdif(sinteseEdif) }}
+                    onClick={() => { setEditandoSintese(false) }}
                     disabled={!sinteseEdif}>
                     Salvar
                   </button>
@@ -565,7 +565,7 @@ function LaudoComplemento() {
               <label style={S.label}>Descreva sinteticamente como foi realizada a vistoria</label>
               <textarea style={{ ...S.textarea, minHeight: "130px", backgroundColor: editandoDesc ? "#FFFBEB" : undefined, borderColor: editandoDesc ? "#F59E0B" : undefined }} maxLength={900} value={dadosVistoria}
                 onChange={e => setDadosVistoria(e.target.value)}
-                placeholder="Descreva o caminhamento efetuado, ocorrências e condições durante a vistoria. Ex: A vistoria foi efetuada de forma descendente, seguindo em ordem da cobertura para a casa de máquinas e térreo, reservatórios de água e área de serviço do SPDA; suas duas caixas de escadas e seus acessos por corredores; hall's dos elevadores e corredores dos pavimentos tipo; pavimentos de garagens, área de piscina ... houve ou não intercorrências, ..." />
+                placeholder="Insira uma breve descrição do caminhamento efetuado e ocorrências havidas durante a vistoria da edificação, ou clique em ✦ Gerar para geração automática com IA... Ex: A vistoria foi efetuada de forma descendente, seguindo em ordem da cobertura para a casa de máquinas e térreo, reservatórios de água e área de serviço do SPDA; suas duas caixas de escadas e seus acessos por corredores; hall's dos elevadores e corredores dos pavimentos tipo; pavimentos de garagens, área de piscina ... houve ou não intercorrências, ..." />
               <div style={S.contagem}>{dadosVistoria.length}/900 caracteres</div>
               
               <div style={{ display: "flex", justifyContent: "flex-end", gap: "6px", marginTop: "6px" }}>
@@ -574,7 +574,7 @@ function LaudoComplemento() {
                   {gerandoDesc ? 'Gerando...' : '✦ Gerar'}
                 </button>
                 <button style={{ ...S.btnIA, backgroundColor: '#1E3A8A', opacity: dadosVistoria ? 1 : 0.35, cursor: dadosVistoria ? 'pointer' : 'not-allowed' }}
-                  onClick={() => { setDescVistoria(dadosVistoria) }}
+                  onClick={() => { setDescVistoria(dadosVistoria); setEditandoDesc(false) }}
                   disabled={!dadosVistoria}>
                   Salvar
                 </button>
