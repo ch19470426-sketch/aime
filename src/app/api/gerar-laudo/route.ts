@@ -106,6 +106,7 @@ li { margin-bottom: 2pt; text-align: justify; }
 b, strong { font-weight: bold; }
 i, em { font-style: italic; }
 .section { page-break-before: always; }
+.no-page-break { page-break-before: auto !important; }
 .no-break { page-break-inside: avoid; }
 .ass { margin-top: 40pt; text-align: center; }
 
@@ -113,6 +114,7 @@ i, em { font-style: italic; }
 @media print {
   body { font-size: 9pt; }
   .section { page-break-before: always; }
+.no-page-break { page-break-before: auto !important; }
   .no-break { page-break-inside: avoid; }
   table { page-break-inside: avoid; }
   .bloco { page-break-inside: avoid; }
@@ -209,6 +211,7 @@ i { font-style: italic; }
 
 /* Quebra de página */
 .section { page-break-before: always; }
+.no-page-break { page-break-before: auto !important; }
 .section:first-child { page-break-before: auto; }
 .no-break { page-break-inside: avoid; }
 
@@ -299,7 +302,7 @@ export async function POST(request: NextRequest) {
     const rodInspetor = xe(inspetor?.rodape_documentos) || `${xe(inspetor?.nome_inspetor)} — ${xe(inspetor?.titulo_profissional)} — CREA/CAU ${xe(inspetor?.inscricao_crea_cau)}`
 
     // ── Buscar endereço por CEP se logradouro vazio ─────────────────────────
-    if (estab && !estab.logradouro && estab.cep) {
+    if (estab && estab.cep && (!estab.logradouro || String(estab.logradouro).trim()==="")) {
       try {
         const cepNum = String(estab.cep).replace(/\D/g,'')
         if (cepNum.length === 8) {
@@ -314,7 +317,7 @@ export async function POST(request: NextRequest) {
             }
           }
         }
-      } catch { /* segue sem endereço */ }
+      } catch (_e) { /* segue sem endereço */ }
     }
 
     // ── §3.3 Grade de campos — seção 1.1 ─────────────────────────────────────
@@ -377,7 +380,7 @@ export async function POST(request: NextRequest) {
         // Extrair linhas da tabela: <td style="text-align:justify...">DESC</td><td>INI</td><td>FIM</td>
         // Extrair atividades com datas do HTML do plano
         // Padrão: <td text-align:justify>DESC</td> seguido de 2 tds com data ou input
-        const rgxRow = /<tr>(.*?)<\/tr>/gs
+        const rgxRow = /<tr[^>]*>([\s\S]*?)<\/tr>/g
         let mRow: RegExpExecArray | null
         while ((mRow = rgxRow.exec(htmlPlano)) !== null) {
           const rowHtml = mRow[1]
@@ -501,6 +504,7 @@ export async function POST(request: NextRequest) {
     const maxT = Math.max(...stat.map(s=>s.t),1)
     const S42 = `
 <div class="titulo">4.2.- Análise Estatística das Manifestações Patológicas.</div>
+<p>A tabela que segue apresenta a estatística de ocorrências de manifestações patológicas por sistema construtivos e prioridades, onde se pode observar o comprometimento de cada um dos sistemas construtivos, possibilitando uma clara compreensão do estado da edificação e um adequado planejamento para execução das atividades de manutenções corretivas.</p>
 <div class="bloco">
   <div class="bloco-header">Estatística por Sistema Construtivo e Prioridade</div>
   <table>
@@ -809,7 +813,6 @@ ${S33}
 <p>As Prioridades para aplicar as soluções de manutenção constam na relação apresentada no item 4. deste documento.</p>
 </div>
 
-<div class="section">
 <div class="titulo">4.- Relação de Não Conformidades e Análise das Manifestações Patológicas.</div>
 
 <div class="titulo">4.1.- Relação de Não Conformidades e Soluções.</div>
@@ -822,11 +825,8 @@ ${S41||'<p><i>Nenhuma não conformidade registrada.</i></p>'}
 ${S42}
 </div>
 
-<div class="section">
 ${S5}
-</div>
 
-<div class="section">
 <div class="titulo">6.- Conclusão.</div>
 <p>Diante do exposto neste documento, e após analisados todos os fatos observados que interferem ou possam vir a interferir com o assunto objeto deste laudo, concluímos:</p>
 <ul>
@@ -858,8 +858,8 @@ ${S5}
 <p>O documento é entregue em mídia magnética.</p>
 <p style="border:1px solid #999;padding:6px;font-size:7.5pt;background:#f9f9f9"><b>Atenção:</b> O titular do direito autoral deste trabalho somente autoriza sua reprodução nos casos legais cabíveis, vedando sua cópia ou qualquer forma de reprodução que caracterize plágio ou represente utilização dos direitos exclusivos do autor, sendo que sua violação acarretará as penalidades civis e criminais previstas no art.184 do Código Penal Brasileiro e Lei nº 9.610.</p>
 
-<p style="text-align:right;font-size:9pt;font-weight:bold;color:#000;margin-top:20px">${xe(estab?.cidade)}/${xe(estab?.uf)}, ${dataHoje}</p>
-<div style="margin-top:40px">
+<p style="text-align:right;font-size:9pt;font-weight:bold;color:#000;margin-top:20px">${xe(estab?.cidade)||'[Município]'}/${xe(estab?.uf)||'UF'}, ${dataHoje}</p>
+<div style="margin-top:16px">
   <p style="font-size:8.5pt;color:#222">_______________________________________________</p>
   <p style="font-size:8.5pt;font-weight:bold;color:#000">${xe(inspetor?.nome_inspetor)} — Responsável Técnico</p>
   <p style="font-size:8pt;color:#222">${xe(inspetor?.titulo_profissional)} — CREA/CAU ${xe(inspetor?.inscricao_crea_cau)}</p>
