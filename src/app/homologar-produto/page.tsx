@@ -249,7 +249,9 @@ function HomologarProdutoInner() {
           .cab, .rod { display: none !important; }
         `
 
+        const nomeBase = nomeArquivo.replace(/\.html$/i, '')
         const htmlPrint = html
+          .replace(/<title>[^<]*<\/title>/, `<title>${nomeBase}</title>`)
           .replace('</head>', `<style>${printCss}</style></head>`)
           .replace('</body>',
             `<script>
@@ -264,7 +266,7 @@ function HomologarProdutoInner() {
         const win  = window.open(url, '_blank', 'width=900,height=700')
         if (!win) {
           const a = document.createElement('a')
-          a.href = url; a.download = nomeAmigavel('html'); a.click()
+          a.href = url; a.download = nomeArquivo.replace(/\.html$/i, '.html'); a.click()
         }
         setTimeout(() => URL.revokeObjectURL(url), 30000)
         setGerandoDocx(false)
@@ -401,7 +403,7 @@ function HomologarProdutoInner() {
           style={{ position: 'absolute', width: 1, height: 1, opacity: 0, overflow: 'hidden', pointerEvents: 'none' }}
           onChange={onArquivoPdfEscolhido} />
 
-        {blobUrl && (
+        {blobUrl && numServico < 41 && (
           <div style={{ border: '1px solid #c3d4f0', borderRadius: '6px', overflow: 'hidden', marginBottom: '8px' }}>
             <div style={{ background: '#1E3A8A', color: '#fff', fontSize: '7.5pt', fontWeight: 700, padding: '3px 10px' }}>
               Preview do documento
