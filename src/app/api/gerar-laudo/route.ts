@@ -342,6 +342,50 @@ export async function POST(request: NextRequest) {
   </div>
 </div>`
 
+    // ── §3.4 — Seção 1.3 Plano de Trabalho (REGISTRADO: sempre 3 colunas) ──────
+    // Buscar atividades do plano de trabalho homologado
+    let ativPlano: {descricao:string; ini:string; fim:string}[] = []
+    try {
+      const tipoPlano = String(Number(tipoServico) - 20)
+      const nomePlano = `${chaveInspetor}_plano_${tipoPlano}_${cnpjoucpf}.html`
+      const { data: blobPlano } = await supabase.storage.from('aime')
+        .download(`documentos_inspetor/${nomePlano}`)
+      if (blobPlano) {
+        const htmlPlano = await blobPlano.text()
+        // Extrair linhas da tabela: <td style="text-align:justify...">DESC</td><td>INI</td><td>FIM</td>
+        const rgx = /<td[^>]*text-align:justify[^>]*>([^<]+)<\/td>\s*<td[^>]*>([^<]*)<\/td>\s*<td[^>]*>([^<]*)<\/td>/g
+        let m: RegExpExecArray | null
+        while ((m = rgx.exec(htmlPlano)) !== null) {
+          ativPlano.push({ descricao: m[1].trim(), ini: m[2].trim(), fim: m[3].trim() })
+        }
+      }
+    } catch { /* usa atividades padrão */ }
+
+    // Atividades padrão (fallback quando plano não encontrado)
+    const ATIV_DEFAULT = [
+      'Análise técnica inicial da edificação para conhecer as características básicas da edificação a ser estudada.',
+      'Entrevista Inicial para coletar dados históricos do prédio e pedido de documentos legais.',
+      'Entrega documentos pelo síndico para o inspetor predial e análise pelo inspetor.',
+      'Execução da vistoria com levantamento das anomalias e falhas e coleta de evidências fotográficas.',
+      'Elaboração laudo efetuando análise, classificação, recomendações e consolidação do documento.',
+      'Entrega do Laudo ao Síndico.',
+    ]
+    const atividadesFinais = ativPlano.length > 0 ? ativPlano
+      : ATIV_DEFAULT.map(d => ({ descricao: d, ini: '', fim: '' }))
+
+    const S13 = `<table class="tbl-plano">
+  <tr>
+    <th style="text-align:left;width:70%">Atividade</th>
+    <th style="width:15%;text-align:center">Dt. Início</th>
+    <th style="width:15%;text-align:center">Dt. Fim</th>
+  </tr>
+  ${atividadesFinais.map(a =>
+    '<tr><td style="text-align:justify">' + xe(a.descricao) + '</td>' +
+    '<td style="text-align:center">' + xe(a.ini) + '</td>' +
+    '<td style="text-align:center">' + xe(a.fim) + '</td></tr>'
+  ).join('\n  ')}
+</table>`
+
     // ── §3.5 — Seção 3.3 Classificação ───────────────────────────────────────
     const itens33 = tipoServico==='43' ? [
       ['a)','A execução da obra em relação à <b>CONFORMIDADE CONSTRUTIVA</b> foi classificada como:',xe(cl.nivel),'bc-nivel'],
@@ -635,7 +679,10 @@ ${cabInspetor?`<div class="cab">${cabInspetor}</div>`:''}
 <br><br><br><br><br>
 
 <div class="titulo">1.- Considerações Preliminares.</div>
-<p>Este ${titulo} é o documento completo resultante do trabalho executado na vistoria da edificação, análise, classificação e priorização das manifestações patológicas, conforme exigências da ABNT/NBR 16.747/2020 e legislação vigente.</p>
+<p>Este ${titulo} é o documento completo resultante do trabalho executado na vistoria da edificação, análise, classificação e priorização das manifestações patológicas, conforme exigências da <i>ABNT NBR 16.747/2020 e NBR 15.</i>, recomendações da <i>Norma de Inspeção Predial do IBAPE de 2025</i> e legislação vigente.</p>
+<p>A inspeção apresentada neste laudo é o resultado de um exame "clínico geral" que avalia as condições globais do objeto em estudo e detecta a existência de problemas de conservação ou funcionamento, com base em uma análise fundamentalmente sensorial e efetuada por um profissional habilitado. Com base nesta análise, pode ocorrer a recomendação de contratação de ensaios especializadas ou outras ações para que se possa aprofundar e refinar o diagnóstico.</p>
+<p>A documentação da edificação solicitada pelo inspetor na reunião inicial foi analisada e avaliada, e o resultado fica registrado na planilha apresentada no Anexo 1 deste laudo.</p>
+
 
 ${S11}
 
@@ -644,21 +691,7 @@ ${S11}
 
 <div class="titulo">1.3.- Plano de Trabalho.</div>
 <p>As etapas básicas desenvolvidas para a realização do presente trabalho constam na tabela que segue.</p>
-<table>
-  <tr>
-    <th style="width:8%">Horas</th>
-    <th style="width:10%">Dias Úteis</th>
-    <th style="width:12%">Dt Início</th>
-    <th style="width:12%">Dt Fim</th>
-    <th style="text-align:left">Atividades</th>
-  </tr>
-  <tr><td style="text-align:center">2</td><td style="text-align:center">1</td><td></td><td></td><td>Análise técnica inicial da edificação</td></tr>
-  <tr><td style="text-align:center">3</td><td style="text-align:center">1</td><td></td><td></td><td>Entrevista inicial para coletar dados históricos e documentação necessária</td></tr>
-  <tr><td style="text-align:center">3</td><td style="text-align:center">3</td><td></td><td></td><td>Entrega de documentos pelo síndico e análise</td></tr>
-  <tr><td style="text-align:center">6</td><td style="text-align:center">5</td><td></td><td></td><td>Execução da vistoria com levantamento das anomalias e falhas</td></tr>
-  <tr><td style="text-align:center">34</td><td style="text-align:center">6</td><td></td><td></td><td>Elaboração do laudo com análise, classificação, recomendações e soluções</td></tr>
-  <tr><td style="text-align:center">1</td><td style="text-align:center">1</td><td></td><td></td><td>Entrega do laudo ao síndico ou responsável</td></tr>
-</table>
+${S13}
 
 <div class="titulo">1.4.- Condições e limitações.</div>
 <p>O ${titulo} segue as condições abaixo relacionadas, além de estar sujeito às seguintes limitações:</p>
@@ -668,7 +701,6 @@ ${S11}
   <li>O responsável técnico não assume responsabilidade sobre matéria alheia ao exercício profissional, estabelecido em leis, códigos e regulamentos.</li>
 </ul>
 
-<div class="section">
 <div class="titulo">2.- Metodologia adotada para o Trabalho de Autovistoria.</div>
 <p>A metodologia adotada para este trabalho segue as normas da ABNT, IBAPE e legislação estadual e municipal que regulamentam a autovistoria.</p>
 
@@ -732,7 +764,6 @@ ${S11}
 </ul>
 </div>
 
-<div class="section">
 <div class="titulo">3.- Resultado da Vistoria Técnica e Classificação da Edificação.</div>
 
 <div class="titulo">3.1.- Descrição da Vistoria Técnica.</div>
