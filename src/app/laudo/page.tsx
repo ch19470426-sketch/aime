@@ -546,11 +546,6 @@ function LaudoComplemento() {
                       ✓ Confirmar ajuste
                     </button>
                   )}
-                  <button style={{ ...S.btnIA, backgroundColor: "#6B7280", opacity: sinteseTemp ? 1 : 0.35, cursor: sinteseTemp ? "pointer" : "default" }}
-                    onClick={() => { if (sinteseTemp) { setSinteseEdif(sinteseTemp); setEditandoSintese(true); setSinteseTemp('') } }}
-                    disabled={!sinteseTemp}>
-                    Ajustar
-                  </button>
                 </div>
               </div>
             </div>
@@ -580,11 +575,6 @@ function LaudoComplemento() {
                   onClick={() => { if (descTemp) { setDescVistoria(descTemp); setDadosVistoria(descTemp); setDescTemp(''); setEditandoDesc(false) } }}
                   disabled={!descTemp}>
                   Salvar
-                </button>
-                <button style={{ ...S.btnIA, backgroundColor: "#6B7280", opacity: descTemp ? 1 : 0.35, cursor: descTemp ? "pointer" : "default" }}
-                  onClick={() => { if (descTemp) { setDadosVistoria(descTemp); setEditandoDesc(true); setDescTemp('') } }}
-                  disabled={!descTemp}>
-                  Ajustar
                 </button>
                 {editandoDesc && (
                   <button style={{ ...S.btnIA, backgroundColor: "#059669" }}
