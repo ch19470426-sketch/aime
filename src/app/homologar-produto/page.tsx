@@ -206,15 +206,19 @@ function HomologarProdutoInner() {
   async function baixarEditavel() {
     setGerandoDocx(true)
     try {
-      // Laudos 41-44: imprimir HTML como PDF via iframe
+      // Laudos 41-44: abrir HTML em nova aba e acionar impressão (salvar como PDF)
       const ehLaudo = numServico >= 41 && numServico <= 44
       if (ehLaudo) {
-        if (iframeRef.current?.contentWindow) {
-          iframeRef.current.contentWindow.print()
-        } else if (blobUrl) {
-          const w = window.open(blobUrl, '_blank')
-          if (w) setTimeout(() => w.print(), 800)
-        }
+        if (!html) throw new Error('HTML do laudo não carregado.')
+        // Injetar script de auto-print no HTML antes de abrir
+        const htmlComPrint = html.replace(
+          '</body>',
+          '<script>window.onload = function(){ setTimeout(function(){ window.print(); }, 500); }<\/script></body>'
+        )
+        const blob = new Blob([htmlComPrint], { type: 'text/html;charset=utf-8' })
+        const url  = URL.createObjectURL(blob)
+        window.open(url, '_blank')
+        setTimeout(() => URL.revokeObjectURL(url), 10000)
         setGerandoDocx(false)
         return
       }
