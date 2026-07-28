@@ -180,7 +180,25 @@ function LaudoComplemento() {
         })
         const dadosE = await resE.json()
         if (Array.isArray(dadosE) && dadosE.length > 0) {
-          setEstab(dadosE[0])
+          const e = dadosE[0]
+          setEstab(e)
+          // Se logradouro não preenchido mas CEP existe, buscar via ViaCEP
+          if (e.cep && !e.logradouro) {
+            try {
+              const cepNum = e.cep.replace(/\D/g, '')
+              const vr = await fetch(`https://viacep.com.br/ws/${cepNum}/json/`)
+              const vd = await vr.json()
+              if (!vd.erro) {
+                setEstab(prev => ({
+                  ...prev,
+                  logradouro: prev.logradouro || vd.logradouro || '',
+                  bairro:     prev.bairro     || vd.bairro     || '',
+                  cidade:     prev.cidade     || vd.localidade || '',
+                  uf:         prev.uf         || vd.uf         || '',
+                }))
+              }
+            } catch { /* segue sem endereço */ }
+          }
         }
         // Buscar responsável dos ativos (nome_responsavel está em ativos_a_vistoriar)
         const resA = await fetch(`${SUPA_URL}/rest/v1/ativos_a_vistoriar?cpf_inspetor=eq.${cpfInspetor}&cnpjoucpf=eq.${cnpjoucpf}&select=nome_responsavel,funcao_responsavel,uso_ativo,numero_pavimentos,numero_unidades_salas,area_construida,area_terreno&limit=1`, {
@@ -242,7 +260,7 @@ function LaudoComplemento() {
         })
       })
       const data = await res.json()
-      if (data.texto) setSinteseTemp(data.texto)
+      if (data.texto) setSinteseEdif(data.texto); setSinteseTemp("")
       else setErro('IA não retornou resultado: ' + JSON.stringify(data).substring(0, 100))
     } catch (e) { setErro('Erro ao gerar síntese: ' + String(e)) }
     finally { setGerandoSintese(false) }
@@ -258,7 +276,7 @@ function LaudoComplemento() {
         body: JSON.stringify({ tipo: 'descricao_vistoria', dados: { informacoes: dadosVistoria, tipo_servico: tipoServico, nivel_inspecao: nivelInspecao } })
       })
       const data = await res.json()
-      if (data.texto) setDescTemp(data.texto)
+      if (data.texto) setDadosVistoria(data.texto); setDescVistoria(data.texto); setDescTemp("")
       else setErro('IA não retornou resultado: ' + JSON.stringify(data).substring(0, 100))
     } catch (e) { setErro('Erro ao gerar descrição: ' + String(e)) }
     finally { setGerandoDesc(false) }
@@ -516,36 +534,22 @@ function LaudoComplemento() {
                 </div>
               </div>
               <div style={{ marginTop: "8px" }}>
-                <label style={S.label}>Descreva sinteticamente a edificação (Convenção ou Escritura) *</label>
+                <label style={S.label}>Insira uma breve descrição e a topologia da edificação... *</label>
                 <textarea style={{ ...S.textarea, backgroundColor: editandoSintese ? '#FFFBEB' : undefined, borderColor: editandoSintese ? '#F59E0B' : undefined }} maxLength={900} value={sinteseEdif}
                   onChange={e => setSinteseEdif(e.target.value)}
-                  placeholder="Preencha os campos acima e clique em Gerar com IA..." />
+                  placeholder="Insira uma breve descrição e a topologia da edificação para geração com IA, ou escreva diretamente..." />
                 <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
                   <div style={S.contagem}>{sinteseEdif.length}/900 caracteres</div>
                   {editandoSintese && <span style={{ fontSize:"10px", color:"#92400E" }}>✏️ Modo ajuste — edite e clique em Salvar</span>}
                 </div>
-                {sinteseTemp && (
-                  <div style={{ marginTop: "6px", padding: "8px", background: "#F0FFF4", border: "1px solid #6EE7B7", borderRadius: "6px" }}>
-                    <p style={{ fontSize: "10px", color: "#065F46", fontWeight: 600, marginBottom: "4px" }}>✦ Resultado da IA — revise e clique em Salvar para confirmar:</p>
-                    <p style={{ fontSize: "11px", color: "#374151", lineHeight: 1.5 }}>{sinteseTemp}</p>
-                  </div>
-                )}
+                
                 <div style={{ display: "flex", justifyContent: "flex-end", gap: "6px", marginTop: "6px" }}>
                   <button style={{ ...S.btnIA, opacity: gerandoSintese ? 0.7 : 1 }}
                     onClick={gerarSintese} disabled={gerandoSintese}>
                     {gerandoSintese ? 'Gerando...' : '✦ Gerar'}
                   </button>
-                  <button style={{ ...S.btnIA, backgroundColor: "#1E3A8A", opacity: sinteseTemp ? 1 : 0.35, cursor: sinteseTemp ? "pointer" : "default" }}
-                    onClick={() => { if (sinteseTemp) { setSinteseEdif(sinteseTemp); setSinteseTemp(''); setEditandoSintese(false) } }}
-                    disabled={!sinteseTemp}>
-                    Salvar
-                  </button>
-                  {editandoSintese && (
-                    <button style={{ ...S.btnIA, backgroundColor: "#059669" }}
-                      onClick={() => { setEditandoSintese(false) }}>
-                      ✓ Confirmar ajuste
-                    </button>
-                  )}
+                  
+                  
                 </div>
               </div>
             </div>
@@ -555,33 +559,19 @@ function LaudoComplemento() {
           <div style={S.bloco}>
             <div style={S.bHead}><span style={S.bTitle}>3.1 — Descrição da Vistoria Técnica</span></div>
             <div style={S.bBody}>
-              <label style={S.label}>Descreva sinteticamente como foi realizada a vistoria</label>
+              <label style={S.label}>Insira uma breve descrição do caminhamento efetuado para realização da vistoria e ocorrências havidas durante a vistoria da edificação...</label>
               <textarea style={{ ...S.textarea, minHeight: "130px", backgroundColor: editandoDesc ? "#FFFBEB" : undefined, borderColor: editandoDesc ? "#F59E0B" : undefined }} maxLength={900} value={dadosVistoria}
                 onChange={e => setDadosVistoria(e.target.value)}
                 placeholder="Ex: A vistoria foi efetuada de forma descendente, seguindo em ordem da cobertura para a casa de máquinas e térreo, reservatórios de água e área de serviço do SPDA; suas duas caixas de escadas e seus acessos por corredores; hall's dos elevadores e corredores dos pavimentos tipo; pavimentos de garagens, área de piscina ... houve ou não intercorrências, ..." />
               <div style={S.contagem}>{dadosVistoria.length}/900 caracteres</div>
-              {descTemp && (
-                <div style={{ marginTop: "6px", padding: "8px", background: "#F0FFF4", border: "1px solid #6EE7B7", borderRadius: "6px" }}>
-                  <p style={{ fontSize: "10px", color: "#065F46", fontWeight: 600, marginBottom: "4px" }}>✦ Resultado da IA — revise e clique em Salvar para confirmar:</p>
-                  <p style={{ fontSize: "11px", color: "#374151", lineHeight: 1.5 }}>{descTemp}</p>
-                </div>
-              )}
+              
               <div style={{ display: "flex", justifyContent: "flex-end", gap: "6px", marginTop: "6px" }}>
                 <button style={{ ...S.btnIA, opacity: gerandoDesc ? 0.7 : 1 }}
                   onClick={gerarDescricao} disabled={gerandoDesc || !dadosVistoria}>
                   {gerandoDesc ? 'Gerando...' : '✦ Gerar'}
                 </button>
-                <button style={{ ...S.btnIA, backgroundColor: "#1E3A8A", opacity: descTemp ? 1 : 0.35, cursor: descTemp ? "pointer" : "default" }}
-                  onClick={() => { if (descTemp) { setDescVistoria(descTemp); setDadosVistoria(descTemp); setDescTemp(''); setEditandoDesc(false) } }}
-                  disabled={!descTemp}>
-                  Salvar
-                </button>
-                {editandoDesc && (
-                  <button style={{ ...S.btnIA, backgroundColor: "#059669" }}
-                    onClick={() => { setDescVistoria(dadosVistoria); setEditandoDesc(false) }}>
-                    ✓ Confirmar ajuste
-                  </button>
-                )}
+                
+                
               </div>
             </div>
           </div>
