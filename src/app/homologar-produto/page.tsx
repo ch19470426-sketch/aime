@@ -206,25 +206,34 @@ function HomologarProdutoInner() {
   async function baixarEditavel() {
     setGerandoDocx(true)
     try {
-      // Laudos 41-44: gerar PDF via rota servidor (Puppeteer + Chromium)
+      // Laudos 41-44: abrir HTML em popup e imprimir como PDF (client-side)
       const ehLaudo = numServico >= 41 && numServico <= 44
       if (ehLaudo) {
-        const res = await fetch('/api/gerar-laudo-pdf', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ nomeArquivo }),
-        })
-        if (!res.ok) {
-          const { erro } = await res.json().catch(() => ({ erro: 'Erro ao gerar PDF.' }))
-          throw new Error(erro)
+        if (!html) throw new Error('HTML do laudo não carregado.')
+        // Inject print CSS + auto-print script
+        const htmlPrint = html
+          .replace('</head>',
+            `<style>
+              @page { size: A4; margin: 25mm 20mm 20mm 25mm; }
+              body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            </style></head>`
+          )
+          .replace('</body>',
+            `<script>
+              window.addEventListener('load', function() {
+                setTimeout(function() { window.print(); }, 600);
+              });
+            </script></body>`
+          )
+        const blob = new Blob([htmlPrint], { type: 'text/html;charset=utf-8' })
+        const url  = URL.createObjectURL(blob)
+        const win  = window.open(url, '_blank', 'width=900,height=700')
+        if (!win) {
+          // fallback: download do HTML
+          const a = document.createElement('a')
+          a.href = url; a.download = nomeAmigavel('html'); a.click()
         }
-        const pdfBlob = await res.blob()
-        const url = URL.createObjectURL(pdfBlob)
-        const a   = document.createElement('a')
-        a.href    = url
-        a.download = nomeAmigavel('pdf')
-        a.click()
-        URL.revokeObjectURL(url)
+        setTimeout(() => URL.revokeObjectURL(url), 30000)
         setGerandoDocx(false)
         return
       }
