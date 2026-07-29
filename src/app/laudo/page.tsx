@@ -215,7 +215,7 @@ function LaudoComplemento() {
             whatsapp:              a.whatsapp             || prev.whatsapp             || '',
             email:                 a.email                || prev.email                || '',
             // Características do imóvel — sempre dos ativos
-            tipo_imovel:           a.tipo_imovel          || prev.tipo_imovel          || '',
+            tipo_imovel:           a.tipo_imovel || a.tipo_de_ativo || a.tipo || prev.tipo_imovel || '',
             uso_imovel:            a.uso_ativo            || prev.uso_imovel           || '',
             numero_pavimentos:     a.numero_pavimentos    || prev.numero_pavimentos    || '',
             numero_unidades_salas: a.numero_unidades_salas|| prev.numero_unidades_salas|| '',
@@ -483,7 +483,7 @@ function LaudoComplemento() {
     body2:     { padding: "8px 12px" },
     bloco:     { border: "1px solid #E2E8F0", borderRadius: "8px", overflow: "hidden", marginBottom: "6px" },
     bHead:     { backgroundColor: "#1E3A8A", padding: "4px 12px" },
-    bTitle:    { color: "white", fontWeight: "bold" as const, fontSize: "13px", fontWeight: "bold" as const },
+    bTitle:    { color: "white", fontWeight: "bold" as const, fontSize: "14px" },
     bBody:     { padding: "5px 8px" },
     label:     { fontSize: "11px", fontWeight: "600" as const, color: "#374151", display: "block", marginBottom: "3px" },
     input:     { border: "1px solid #D1D5DB", borderRadius: "6px", padding: "6px 10px", fontSize: "12px", width: "100%", outline: "none", boxSizing: "border-box" as const },
@@ -603,9 +603,9 @@ function LaudoComplemento() {
             <div style={S.bHead}><span style={S.bTitle}>3.1 — Descrição da Vistoria Técnica</span></div>
             <div style={S.bBody}>
               <label style={S.label}>Descreva sinteticamente como foi realizada a vistoria</label>
-              <textarea style={{ ...S.textarea, minHeight: "130px", backgroundColor: editandoDesc ? "#FFFBEB" : undefined, borderColor: editandoDesc ? "#F59E0B" : undefined }} maxLength={900} value={dadosVistoria}
-                onChange={e => setDadosVistoria(e.target.value)}
-                placeholder="Insira uma breve descrição do caminhamento efetuado e ocorrências havidas durante a vistoria da edificação, ou clique em ✦ Gerar para geração automática com IA... Ex: A vistoria foi efetuada de forma descendente, seguindo em ordem da cobertura para a casa de máquinas e térreo, reservatórios de água e área de serviço do SPDA; suas duas caixas de escadas e seus acessos por corredores; hall's dos elevadores e corredores dos pavimentos tipo; pavimentos de garagens, área de piscina ... houve ou não intercorrências, ..." />
+              <textarea style={{ ...S.textarea, minHeight: "130px", backgroundColor: editandoDesc ? "#FFFBEB" : undefined, borderColor: editandoDesc ? "#F59E0B" : undefined }} maxLength={900} value={dadosVistoria} onChange={e => setDadosVistoria(e.target.value)} placeholder="Insira uma breve descrição do caminhamento efetuado e ocorrências havidas durante a vistoria da edificação..." />
+
+
               <div style={S.contagem}>{dadosVistoria.length}/900 caracteres</div>
               
               <div style={{ display: "flex", justifyContent: "flex-end", gap: "6px", marginTop: "6px" }}>
