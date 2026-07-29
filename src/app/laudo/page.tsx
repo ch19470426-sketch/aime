@@ -201,7 +201,7 @@ function LaudoComplemento() {
           }
         }
         // Buscar dados de ativos_a_vistoriar (responsável, tipo, características)
-        const resA = await fetch(`${SUPA_URL}/rest/v1/ativos_a_vistoriar?cpf_inspetor=eq.${cpfInspetor}&cnpjoucpf=eq.${cnpjoucpf.replace(/[.\-\/]/g,"")}&select=*`, {
+        const resA = await fetch(`${SUPA_URL}/rest/v1/ativos_a_vistoriar?cpf_inspetor=eq.${cpfInspetor}&cnpjoucpf=eq.${cnpjoucpf.replace(/\./g,"").replace(/-/g,"").replace(/\//g,"")}&select=*`, {
           headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` }
         })
         const dadosA = await resA.json()
