@@ -305,9 +305,9 @@ export async function POST(request: NextRequest) {
     const rodInspetor = xe(inspetor?.rodape_documentos) || `${xe(inspetor?.nome_inspetor)} — ${xe(inspetor?.titulo_profissional)} — CREA/CAU ${xe(inspetor?.inscricao_crea_cau)}`
 
     // ── Buscar endereço por CEP se logradouro vazio ─────────────────────────
-    if (estab?.cep) {
+    if (estab?.cep_estabelecimento || estab?.cep) {
       try {
-        const cepNum = String(estab.cep).replace(/\D/g,'')
+        const cepNum = String(estab.cep_estabelecimento || estab.cep || '').replace(/\D/g,'')
         if (cepNum.length === 8) {
           const vr = await fetch(`https://viacep.com.br/ws/${cepNum}/json/`)
           const vd = await vr.json()
@@ -331,7 +331,7 @@ export async function POST(request: NextRequest) {
   <div class="row">
     <div class="cell cell-3"><label>${labelEst}</label><div class="val">${xe(estab?.razao_social_nome)}</div></div>
     <div class="cell"><label>${labelDoc}</label><div class="val">${fmtDoc(cnpjoucpf)}</div></div>
-    <div class="cell"><label>CEP</label><div class="val">${xe(estab?.cep)}</div></div>
+    <div class="cell"><label>CEP</label><div class="val">${xe(estab?.cep_estabelecimento||estab?.cep)}</div></div>
   </div>
   <div class="row">
     <div class="cell cell-3"><label>Endereço</label><div class="val">${xe(estab?.logradouro)}${estab?.numero?', '+xe(estab.numero):''}${estab?.complemento?' — '+xe(estab.complemento):''}</div></div>
