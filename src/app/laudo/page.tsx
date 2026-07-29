@@ -161,9 +161,7 @@ function LaudoComplemento() {
     'Outorga e Licença de Estação de Tratamento de Efluentes',
     'Outorga e Licença de Poço Profundo de Captação de Água',
   ]
-  const [docsAnexo1, setDocsAnexo1] = useState<Record<string,{situacao:string,resultado:string}>>(
-    () => Object.fromEntries(DOCS_LISTA.map(d => [d, {situacao:'',resultado:''}]))
-  )
+  const [docsAnexo1, setDocsAnexo1] = useState<Record<string,{situacao:string,resultado:string}>>({}) // preenchido pelo plano
 
   const SUPA_URL = 'https://asgorarunzhiojqioxzq.supabase.co'
   const SUPA_KEY = 'sb_publishable_dH85HYKGxv3X0te627VfOw_OGaPoNMF'
@@ -183,9 +181,9 @@ function LaudoComplemento() {
           const e = dadosE[0]
           setEstab(e)
           // Buscar endereço pelo CEP sempre (sobrescreve campos do BD)
-          if (e.cep) {
+          if (e.cep || e.cep_estabelecimento) {
             try {
-              const cepNum = String(e.cep).replace(/\D/g, '')
+              const cepNum = String(e.cep_estabelecimento || e.cep || '').replace(/\D/g, '')
               if (cepNum.length === 8) {
                 const vr = await fetch(`https://viacep.com.br/ws/${cepNum}/json/`)
                 const vd = await vr.json()
@@ -231,7 +229,7 @@ function LaudoComplemento() {
           headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` }
         })
         const dadosI = await resI.json()
-        // Buscar documentos do plano de trabalho
+        // Buscar documentos do plano de trabalho via gerar-plano
         try {
           const SLUG_PLANO: Record<string,string> = {"41":"plano_autovistoria","42":"plano_inspecao","43":"plano_imovel_novo","44":"plano_fachada"}
           const slugP = SLUG_PLANO[String(tipoServico)] ?? "plano_autovistoria"
@@ -240,13 +238,24 @@ function LaudoComplemento() {
           if (resP.ok) {
             const dataP = await resP.json()
             if (dataP.existe && dataP.html) {
-              // Extrair lista de documentos do HTML do plano
-              const docMatches = [...dataP.html.matchAll(/<td[^>]*>([^<]{10,})<\/td>/g)]
-              const docsPlano = docMatches
+              const htmlPlano: string = dataP.html
+              // A tabela de documentos vem após "Documentos" no HTML do plano
+              // Cada doc está em: <td style="font-size:10pt">NOME</td>
+              // mas só na tabela de documentos (não atividades)
+              // Extrair a seção após o título de documentos
+              const secIdx = htmlPlano.search(/Documentos|Relação de Documentos/i)
+              const secHtml = secIdx >= 0 ? htmlPlano.slice(secIdx) : htmlPlano
+              // Pegar todas as células com texto longo (documentos têm nomes longos)
+              const tdMatches = [...secHtml.matchAll(/<td[^>]*font-size:10pt[^>]*>([^<]+)<\/td>/g)]
+              const docsPlano = tdMatches
                 .map((m: RegExpMatchArray) => m[1].trim())
-                .filter((d: string) => d.length > 5 && !d.match(/^(Situação|Resultado|Documento|Entregue|Conforme|Pendente)/i))
+                .filter((d: string) => 
+                  d.length > 8 && 
+                  !d.match(/^[\d]/) &&  // não é número (linha de atividade)
+                  !d.match(/^\d{2}\/\d{2}/) && // não é data
+                  !d.match(/^[—\-]$/)  // não é placeholder
+                )
               if (docsPlano.length > 0) {
-                // Inicializar docsAnexo1 com apenas os documentos do plano
                 setDocsAnexo1(Object.fromEntries(docsPlano.map((d: string) => [d, {situacao:'',resultado:''}])))
               }
             }
