@@ -682,69 +682,73 @@ export async function POST(request: NextRequest) {
     const A2 = (ncsComFoto??[]).length===0
       ? '<p><i>Nenhuma vistoria homologada encontrada para este serviço.</i></p>'
       : (ncsComFoto??[]).map((nc:any,idx:number)=>{
-          const ns  = xe((nc.sistema||'').slice(3).replace(/_/g,' '))
-          const grN = Number(nc.grauRisco)||0
-          const cor = grN>=64?'#CC0000':grN>=35?'#E8A000':'#16A34A'
-          const bg  = grN>=64?'#FEE2E2':grN>=35?'#FEF9C3':'#DCFCE7'
-          const pri = grN>=64?'▲ Alta':grN>=35?'■ Média':'▼ Baixa'
+          const ns   = xe((nc.sistema||'').slice(3).replace(/_/g,' '))
+          const grN  = Number(nc.grauRisco)||0
+          const cor  = grN>=64?'#CC0000':grN>=35?'#E8A000':'#16A34A'
+          const bg   = grN>=64?'#FEE2E2':grN>=35?'#FEF9C3':'#DCFCE7'
+          const pri  = grN>=64?'▲ Alta':grN>=35?'■ Média':'▼ Baixa'
+          const DESC_GRAV: Record<string,string> = {'Muito Alta':'Iminente risco à segurança','Alta':'Risco elevado à segurança','Moderada':'Risco moderado ao desempenho','Baixa':'Pequeno impacto estético','Muito Baixa':'Impacto mínimo'}
+          const DESC_URG:  Record<string,string> = {'Imediata':'Intervenção imediata','Brevemente':'Intervenção em curto prazo','Pode esperar':'Pode ser programada','Sem urgência':'Sem urgência definida'}
+          const DESC_ABR:  Record<string,string> = {'Sistema completo':'Todo o sistema afetado','Várias partes':'Diversas partes afetadas','Local':'Área localizada afetada','Única unidade':'Unidade isolada'}
+          const DESC_EXP:  Record<string,string> = {'Alta':'Exposição ambiental alta','Média':'Exposição ambiental média','Baixa':'Exposição ambiental baixa','Nenhuma':'Sem exposição ambiental'}
           const gDesc = DESC_GRAV[xe(nc.gravidade||'')] || xe(nc.gravidade||'')
           const uDesc = DESC_URG[xe(nc.urgencia||'')]   || xe(nc.urgencia||'')
           const aDesc = DESC_ABR[xe(nc.abrangencia||'')] || xe(nc.abrangencia||'')
           const eDesc = DESC_EXP[xe(nc.exposicao||'')]  || xe(nc.exposicao||'')
           const foto  = nc.fotoBase64?.startsWith('data:image')
-            ? \`<img src="\${nc.fotoBase64}" style="width:100%;max-height:120mm;object-fit:contain;display:block">\`
-            : \`<div style="height:60mm;background:#f1f5f9;border:1px dashed #c3d4f0;display:flex;align-items:center;justify-content:center;color:#94a3b8;font-size:7pt">[Sem foto]</div>\`
+            ? '<img src="'+nc.fotoBase64+'" style="width:100%;max-height:120mm;object-fit:contain;display:block">'
+            : '<div style="height:60mm;background:#f1f5f9;border:1px dashed #c3d4f0;display:flex;align-items:center;justify-content:center;color:#94a3b8;font-size:7pt">[Sem foto]</div>'
           const LBL = 'font-size:5.5pt;color:#4a6480;font-weight:700;display:block;text-transform:uppercase;margin-bottom:1px'
           const TD  = 'border:1px solid #dde5f0;padding:3px 6px;vertical-align:top'
           const TH  = 'background:#1E3A8A;color:#fff;font-weight:700;padding:4px 6px;font-size:7.5pt;text-transform:uppercase'
-          return \`\${idx>0?'<div style="page-break-before:always"></div>':''}
-<table style="width:100%;border-collapse:collapse;font-size:7.5pt;margin-bottom:0;outline:1px solid #1E3A8A">
-<tr><td colspan="4" style="\${TH}">Identificação</td></tr>
-<tr>
-  <td style="\${TD};width:32%"><span style="\${LBL}">CNPJ/CPF</span>\${xe(nc.cnpjoucpf||'')}</td>
-  <td colspan="3" style="\${TD}"><span style="\${LBL}">Razão Social / Nome</span>\${xe(nc.razaoSocial||estab?.razao_social_nome||'')}</td>
-</tr>
-<tr><td colspan="4" style="\${TH}">Manifestação Patológica</td></tr>
-<tr>
-  <td style="\${TD}"><span style="\${LBL}">Sistema</span>\${ns}</td>
-  <td style="\${TD}"><span style="\${LBL}">Subsistema</span>\${xe(nc.subsistema||'')}</td>
-  <td colspan="2" style="\${TD}"><span style="\${LBL}">Anomalia / Falha</span>\${xe(nc.anomalia||nc.nc||'')}</td>
-</tr>
-<tr>
-  <td style="\${TD}"><span style="\${LBL}">Origem</span>\${xe(nc.origem||nc.resultado||'')}</td>
-  <td style="\${TD}"><span style="\${LBL}">Local de Ocorrência</span>\${xe(nc.local||'')}</td>
-  <td colspan="2" style="\${TD}"><span style="\${LBL}">Complemento do Local</span>\${xe(nc.complemento||'')}</td>
-</tr>
-<tr><td colspan="4" style="\${TH}">Classificação de Risco</td></tr>
-<tr>
-  <td style="\${TD}"><span style="\${LBL}">Gravidade</span>\${gDesc}</td>
-  <td style="\${TD}"><span style="\${LBL}">Urgência</span>\${uDesc}</td>
-  <td style="\${TD}"><span style="\${LBL}">Abrangência</span>\${aDesc}</td>
-  <td style="\${TD}"><span style="\${LBL}">Exposição</span>\${eDesc}</td>
-</tr>
-<tr>
-  <td colspan="2" style="\${TD};background:\${bg};border-color:\${cor}">
-    <span style="\${LBL}">Grau de Risco</span>
-    <span style="font-size:16pt;font-weight:700;color:\${cor}">\${grN}</span>
-    <div style="height:3px;background:#e2e8f0;margin-top:2px;border-radius:1px">
-      <div style="height:3px;background:\${cor};width:\${Math.min(100,grN)}%;border-radius:1px"></div>
-    </div>
-  </td>
-  <td colspan="2" style="\${TD};background:\${bg};border-color:\${cor};text-align:center">
-    <span style="\${LBL}">Prioridade</span>
-    <span style="font-size:11pt;font-weight:700;color:\${cor}">\${pri}</span>
-  </td>
-</tr>
-<tr><td colspan="4" style="\${TH}">Evidência Fotográfica</td></tr>
-<tr>
-  <td style="\${TD};width:40%"><span style="\${LBL}">Foto Nº</span>\${xe(nc.fotoNr||'')}</td>
-  <td colspan="3" style="\${TD};text-align:right"><span style="\${LBL}">Data da Vistoria</span>\${xe(nc.dataVistoria||'')}</td>
-</tr>
-<tr><td colspan="4" style="\${TD};padding:4px">\${foto}</td></tr>
-<tr><td colspan="4" style="\${TH}">Resultado da Análise e Avaliação</td></tr>
-<tr><td colspan="4" style="\${TD}"><span style="\${LBL}">Descrição da Não Conformidade (NC)</span>\${xe(nc.nc||nc.anomalia||'')}</td></tr>
-<tr><td colspan="4" style="\${TD}"><span style="\${LBL}">Descrição da Causa Provável (CP)</span>\${xe(nc.cp||'')}</td></tr>
-</table>\`
+          const pb  = idx>0?'<div style="page-break-before:always"></div>':''
+          const bar = '<div style="height:3px;background:#e2e8f0;margin-top:2px;border-radius:1px"><div style="height:3px;background:'+cor+';width:'+Math.min(100,grN)+'%;border-radius:1px"></div></div>'
+          return pb +
+            '<table style="width:100%;border-collapse:collapse;font-size:7.5pt;margin-bottom:0;outline:1px solid #1E3A8A">' +
+            '<tr><td colspan="4" style="'+TH+'">Identificação</td></tr>' +
+            '<tr>' +
+              '<td style="'+TD+';width:32%"><span style="'+LBL+'">CNPJ/CPF</span>'+xe(nc.cnpjoucpf||'')+'</td>' +
+              '<td colspan="3" style="'+TD+'"><span style="'+LBL+'">Razão Social / Nome</span>'+xe(nc.razaoSocial||estab?.razao_social_nome||'')+'</td>' +
+            '</tr>' +
+            '<tr><td colspan="4" style="'+TH+'">Manifestação Patológica</td></tr>' +
+            '<tr>' +
+              '<td style="'+TD+'"><span style="'+LBL+'">Sistema</span>'+xe((nc.sistema||'').slice(3).replace(/_/g,' '))+'</td>' +
+              '<td style="'+TD+'"><span style="'+LBL+'">Subsistema</span>'+xe(nc.subsistema||'')+'</td>' +
+              '<td colspan="2" style="'+TD+'"><span style="'+LBL+'">Anomalia / Falha</span>'+xe(nc.anomalia||nc.nc||'')+'</td>' +
+            '</tr>' +
+            '<tr>' +
+              '<td style="'+TD+'"><span style="'+LBL+'">Origem</span>'+xe(nc.origem||nc.resultado||'')+'</td>' +
+              '<td style="'+TD+'"><span style="'+LBL+'">Local de Ocorrência</span>'+xe(nc.local||'')+'</td>' +
+              '<td colspan="2" style="'+TD+'"><span style="'+LBL+'">Complemento do Local</span>'+xe(nc.complemento||'')+'</td>' +
+            '</tr>' +
+            '<tr><td colspan="4" style="'+TH+'">Classificação de Risco</td></tr>' +
+            '<tr>' +
+              '<td style="'+TD+'"><span style="'+LBL+'">Gravidade</span>'+gDesc+'</td>' +
+              '<td style="'+TD+'"><span style="'+LBL+'">Urgência</span>'+uDesc+'</td>' +
+              '<td style="'+TD+'"><span style="'+LBL+'">Abrangência</span>'+aDesc+'</td>' +
+              '<td style="'+TD+'"><span style="'+LBL+'">Exposição</span>'+eDesc+'</td>' +
+            '</tr>' +
+            '<tr>' +
+              '<td colspan="2" style="'+TD+';background:'+bg+';border-color:'+cor+'">' +
+                '<span style="'+LBL+'">Grau de Risco</span>' +
+                '<span style="font-size:16pt;font-weight:700;color:'+cor+'">'+grN+'</span>' +
+                bar +
+              '</td>' +
+              '<td colspan="2" style="'+TD+';background:'+bg+';border-color:'+cor+';text-align:center">' +
+                '<span style="'+LBL+'">Prioridade</span>' +
+                '<span style="font-size:11pt;font-weight:700;color:'+cor+'">'+pri+'</span>' +
+              '</td>' +
+            '</tr>' +
+            '<tr><td colspan="4" style="'+TH+'">Evidência Fotográfica</td></tr>' +
+            '<tr>' +
+              '<td style="'+TD+';width:40%"><span style="'+LBL+'">Foto Nº</span>'+xe(nc.fotoNr||'')+'</td>' +
+              '<td colspan="3" style="'+TD+';text-align:right"><span style="'+LBL+'">Data da Vistoria</span>'+xe(nc.dataVistoria||'')+'</td>' +
+            '</tr>' +
+            '<tr><td colspan="4" style="'+TD+';padding:4px">'+foto+'</td></tr>' +
+            '<tr><td colspan="4" style="'+TH+'">Resultado da Análise e Avaliação</td></tr>' +
+            '<tr><td colspan="4" style="'+TD+'"><span style="'+LBL+'">Descrição da Não Conformidade (NC)</span>'+xe(nc.nc||nc.anomalia||'')+'</td></tr>' +
+            '<tr><td colspan="4" style="'+TD+'"><span style="'+LBL+'">Descrição da Causa Provável (CP)</span>'+xe(nc.cp||'')+'</td></tr>' +
+            '</table>'
         }).join('\n')
 
     // ── HTML COMPLETO ─────────────────────────────────────────────────────────
