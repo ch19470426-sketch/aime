@@ -483,7 +483,7 @@ function LaudoComplemento() {
     body2:     { padding: "8px 12px" },
     bloco:     { border: "1px solid #E2E8F0", borderRadius: "8px", overflow: "hidden", marginBottom: "6px" },
     bHead:     { backgroundColor: "#1E3A8A", padding: "4px 12px" },
-    bTitle:    { color: "white", fontWeight: "bold" as const, fontSize: "11px" },
+    bTitle:    { color: "white", fontWeight: "bold" as const, fontSize: "13px", fontWeight: "bold" as const },
     bBody:     { padding: "5px 8px" },
     label:     { fontSize: "11px", fontWeight: "600" as const, color: "#374151", display: "block", marginBottom: "3px" },
     input:     { border: "1px solid #D1D5DB", borderRadius: "6px", padding: "6px 10px", fontSize: "12px", width: "100%", outline: "none", boxSizing: "border-box" as const },
@@ -566,7 +566,15 @@ function LaudoComplemento() {
                 </div>
                 <div>
                   <label style={S.label}>Responsável pelo ativo</label>
-                  <input style={{ ...S.input, backgroundColor: '#F8FAFC' }} value={estab.nome_responsavel ?? ''} />
+                  <input style={{ ...S.input }} value={estab.nome_responsavel ?? ''} onChange={e => setEstab(prev=>({...prev,nome_responsavel:e.target.value}))} />
+                </div>
+                <div>
+                  <label style={S.label}>Função do responsável</label>
+                  <input style={{ ...S.input }} value={estab.funcao_responsavel ?? ''} onChange={e => setEstab(prev=>({...prev,funcao_responsavel:e.target.value}))} />
+                </div>
+                <div>
+                  <label style={S.label}>Tipo do ativo</label>
+                  <input style={{ ...S.input }} value={estab.tipo_imovel ?? ''} onChange={e => setEstab(prev=>({...prev,tipo_imovel:e.target.value}))} />
                 </div>
               </div>
               <div style={{ marginTop: "8px" }}>
