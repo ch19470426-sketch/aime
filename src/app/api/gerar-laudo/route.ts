@@ -664,69 +664,59 @@ export async function POST(request: NextRequest) {
       ? '<p><i>Nenhuma vistoria homologada encontrada para este serviço.</i></p>'
       : (ncsComFoto??[]).map((nc:any,idx:number)=>{
           const ns=xe((nc.sistema||'').slice(3).replace(/_/g,' '))
-          const corGR=Number(nc.grauRisco)>=64?'#DC2626':Number(nc.grauRisco)>=35?'#D97706':'#059669'
+          const sub=xe(nc.subsistema||'')
+          const corGR=Number(nc.grauRisco)>=64?'#CC0000':Number(nc.grauRisco)>=35?'#E8A000':'#16A34A'
+          const bgGR=Number(nc.grauRisco)>=64?'#FEE2E2':Number(nc.grauRisco)>=35?'#FEF9C3':'#DCFCE7'
+          const priLabel=Number(nc.grauRisco)>=64?'▲ Alta':Number(nc.grauRisco)>=35?'■ Média':'▼ Baixa'
           const foto=nc.fotoBase64&&nc.fotoBase64.startsWith('data:image')
-            ?`<img src="${nc.fotoBase64}" class="vfoto" alt="Foto ${xe(nc.fotoNr)}">`
-            :`<div style="height:90mm;background:#f1f5f9;border:2px dashed #c3d4f0;border-radius:5px;display:flex;align-items:center;justify-content:center;color:#94A3B8;font-size:7.5pt">Sem foto</div>`
+            ?`<img src="${nc.fotoBase64}" style="width:100%;max-height:160mm;object-fit:contain;display:block;margin-top:8px">`
+            :`<div style="height:80mm;background:#f1f5f9;border:2px dashed #c3d4f0;border-radius:4px;display:flex;align-items:center;justify-content:center;color:#94a3b8;margin-top:8px;font-size:8pt">[Sem foto]</div>`
           return `${idx>0?'<div style="page-break-before:always"></div>':''}
-
-
-<div class="vbody">
-<div class="vblk"><div class="vbt">Identificação</div><div class="vbb">
-<div class="vg2">
-<div class="vf"><label>${xe(nc.cnpjoucpf||'').length===11?'CPF':'CNPJ'}</label><span>${xe(nc.cnpjDisplay||nc.cnpjoucpf)}</span></div>
-<div class="vf"><label>Razão Social / Nome</label><span>${xe(nc.razaoSocial||estab?.razao_social_nome)}</span></div>
-</div>
-<div class="vg3">
-<div class="vf"><label>Tipo de serviço</label><span>${xe(nc.tipoServico||tipoServico)}</span></div>
-<div class="vf"><label>Data Vistoria</label><span>${xe(nc.dataVistoria)}</span></div>
-<div class="vf"><label>Chave Inspetor</label><span>${xe(nc.chaveInspetor||chaveInspetor)}</span></div>
-</div>
-</div></div>
-<div class="vblk"><div class="vbt">Anomalia / Não Conformidade</div><div class="vbb">
-<div class="vg2">
-<div class="vf"><label>Sistema</label><span>${ns}</span></div>
-<div class="vf"><label>Subsistema</label><span>${xe(nc.subsistema)}</span></div>
-</div>
-<div class="vf"><label>Anomalia</label><span>${xe(nc.anomalia)}</span></div>
-<div class="vg3">
-<div class="vf"><label>Origem</label><span>${xe(nc.origem||nc.resultado)}</span></div>
-<div class="vf"><label>Local</label><span>${xe(nc.local)}</span></div>
-<div class="vf"><label>Complemento</label><span>${xe(nc.complemento)}</span></div>
-</div>
-</div></div>
-<div class="vblk"><div class="vbt">Classificação de Risco</div><div class="vbb">
-<div class="vg4">
-<div class="vf"><label>Gravidade</label><span>${xe(nc.gravidade)}</span></div>
-<div class="vf"><label>Urgência</label><span>${xe(nc.urgencia)}</span></div>
-<div class="vf"><label>Abrangência</label><span>${xe(nc.abrangencia)}</span></div>
-<div class="vf"><label>Exposição</label><span>${xe(nc.exposicao)}</span></div>
-</div>
-<div class="vmet">
-<div class="vm" style="border-color:${corGR}">
-<span style="font-size:6.5pt;color:#4a6480;font-weight:600">Grau de Risco</span>
-<span style="font-size:13pt;font-weight:700;color:${corGR}">${xe(nc.grauRisco)}</span>
-</div>
-<div class="vm" style="border-color:${corGR};justify-content:center">
-<span style="font-size:6.5pt;color:#4a6480;font-weight:600">Prioridade</span>
-<span style="display:inline-flex;align-items:center;padding:2px 10px;border-radius:99px;font-size:7.5pt;font-weight:700;color:${corGR};border:1.5px solid ${corGR}">${xe(nc.prioridade)}</span>
-</div>
-</div>
-</div></div>
-<div class="vblk"><div class="vbt">Evidência Fotográfica</div><div class="vbb">
-<div class="vph">
-<div class="vf" style="width:60px"><label>Foto Nº</label><span style="text-align:center;color:#1E3A8A;font-weight:700">${xe(nc.fotoNr)}</span></div>
-<div class="vf" style="width:80px"><label>Data Vistoria</label><span style="text-align:center">${xe(nc.dataVistoria)}</span></div>
-</div>
-${foto}
-</div></div>
-<div class="vblk"><div class="vbt">Não Conformidade (NC)</div><div class="vbb">
-<div class="vf"><label>Não conformidade (NC)</label><span style="white-space:pre-wrap">${xe(nc.nc||nc.anomalia)}</span></div>
-<div class="vf"><label>Causa provável (CP)</label><span style="white-space:pre-wrap">${xe(nc.cp)}</span></div>
-<div class="vf"><label>Solução</label><span style="white-space:pre-wrap">${xe(nc.solucaoNC||nc.cp||'—')}</span></div>
-</div></div>
-
-</div>`
+<table style="width:100%;border-collapse:collapse;margin-bottom:0;font-size:8.5pt">
+  <tr><td colspan="4" style="background:#1E3A8A;color:#fff;font-weight:700;padding:5px 8px;font-size:8pt">IDENTIFICAÇÃO</td></tr>
+  <tr>
+    <td style="border:1px solid #c3d4f0;padding:4px 8px;width:30%"><span style="font-size:6.5pt;color:#4a6480;font-weight:700;display:block">CNPJ</span>${xe(nc.cnpjoucpf||'')}</td>
+    <td colspan="3" style="border:1px solid #c3d4f0;padding:4px 8px"><span style="font-size:6.5pt;color:#4a6480;font-weight:700;display:block">RAZÃO SOCIAL</span>${xe(nc.razaoSocial||estab?.razao_social_nome||'')}</td>
+  </tr>
+  <tr><td colspan="4" style="background:#1E3A8A;color:#fff;font-weight:700;padding:5px 8px;font-size:8pt">MANIFESTAÇÃO PATOLÓGICA</td></tr>
+  <tr>
+    <td style="border:1px solid #c3d4f0;padding:4px 8px"><span style="font-size:6.5pt;color:#4a6480;font-weight:700;display:block">SISTEMA</span>${ns}</td>
+    <td style="border:1px solid #c3d4f0;padding:4px 8px"><span style="font-size:6.5pt;color:#4a6480;font-weight:700;display:block">SUBSISTEMA</span>${sub}</td>
+    <td colspan="2" style="border:1px solid #c3d4f0;padding:4px 8px"><span style="font-size:6.5pt;color:#4a6480;font-weight:700;display:block">ANOMALIA / FALHA</span>${xe(nc.anomalia||nc.nc||'')}</td>
+  </tr>
+  <tr>
+    <td style="border:1px solid #c3d4f0;padding:4px 8px"><span style="font-size:6.5pt;color:#4a6480;font-weight:700;display:block">ORIGEM</span>${xe(nc.origem||nc.resultado||'')}</td>
+    <td style="border:1px solid #c3d4f0;padding:4px 8px"><span style="font-size:6.5pt;color:#4a6480;font-weight:700;display:block">LOCAL DE OCORRÊNCIA</span>${xe(nc.local||'')}</td>
+    <td colspan="2" style="border:1px solid #c3d4f0;padding:4px 8px"><span style="font-size:6.5pt;color:#4a6480;font-weight:700;display:block">COMPLEMENTO DO LOCAL</span>${xe(nc.complemento||'')}</td>
+  </tr>
+  <tr><td colspan="4" style="background:#1E3A8A;color:#fff;font-weight:700;padding:5px 8px;font-size:8pt">CLASSIFICAÇÃO DE RISCO</td></tr>
+  <tr>
+    <td style="border:1px solid #c3d4f0;padding:4px 8px"><span style="font-size:6.5pt;color:#4a6480;font-weight:700;display:block">GRAVIDADE</span>${xe(nc.gravidade||'')}</td>
+    <td style="border:1px solid #c3d4f0;padding:4px 8px"><span style="font-size:6.5pt;color:#4a6480;font-weight:700;display:block">URGÊNCIA</span>${xe(nc.urgencia||'')}</td>
+    <td style="border:1px solid #c3d4f0;padding:4px 8px"><span style="font-size:6.5pt;color:#4a6480;font-weight:700;display:block">ABRANGÊNCIA</span>${xe(nc.abrangencia||'')}</td>
+    <td style="border:1px solid #c3d4f0;padding:4px 8px"><span style="font-size:6.5pt;color:#4a6480;font-weight:700;display:block">EXPOSIÇÃO</span>${xe(nc.exposicao||'')}</td>
+  </tr>
+  <tr>
+    <td colspan="2" style="border:1px solid ${corGR};padding:8px;background:${bgGR}">
+      <span style="font-size:6.5pt;color:#4a6480;font-weight:700;display:block">GRAU DE RISCO</span>
+      <span style="font-size:18pt;font-weight:700;color:${corGR}">${xe(nc.grauRisco||'')}</span>
+      <div style="height:4px;background:#e2e8f0;border-radius:2px;margin-top:4px"><div style="height:4px;background:${corGR};border-radius:2px;width:${Math.min(100,Number(nc.grauRisco)||0)}%"></div></div>
+    </td>
+    <td colspan="2" style="border:1px solid ${corGR};padding:8px;background:${bgGR};text-align:center">
+      <span style="font-size:6.5pt;color:#4a6480;font-weight:700;display:block">PRIORIDADE</span>
+      <span style="font-size:12pt;font-weight:700;color:${corGR}">${priLabel}</span>
+    </td>
+  </tr>
+  <tr><td colspan="4" style="background:#1E3A8A;color:#fff;font-weight:700;padding:5px 8px;font-size:8pt">EVIDÊNCIA FOTOGRÁFICA</td></tr>
+  <tr>
+    <td style="border:1px solid #c3d4f0;padding:4px 8px;width:20%"><span style="font-size:6.5pt;color:#4a6480;font-weight:700;display:block">FOTO Nº</span>${xe(nc.fotoNr||'')}</td>
+    <td colspan="3" style="border:1px solid #c3d4f0;padding:4px 8px"><span style="font-size:6.5pt;color:#4a6480;font-weight:700;display:block">DATA DA VISTORIA</span>${xe(nc.dataVistoria||'')}</td>
+  </tr>
+  <tr><td colspan="4" style="border:1px solid #c3d4f0;padding:4px 8px">${foto}</td></tr>
+  <tr><td colspan="4" style="background:#1E3A8A;color:#fff;font-weight:700;padding:5px 8px;font-size:8pt">RESULTADO DA ANÁLISE E AVALIAÇÃO</td></tr>
+  <tr><td colspan="4" style="border:1px solid #c3d4f0;padding:4px 8px"><span style="font-size:6.5pt;color:#4a6480;font-weight:700;display:block">DESCRIÇÃO DA NÃO CONFORMIDADE (NC)</span><span style="white-space:pre-wrap">${xe(nc.nc||nc.anomalia||'')}</span></td></tr>
+  <tr><td colspan="4" style="border:1px solid #c3d4f0;padding:4px 8px"><span style="font-size:6.5pt;color:#4a6480;font-weight:700;display:block">DESCRIÇÃO DA CAUSA PROVÁVEL (CP)</span><span style="white-space:pre-wrap">${xe(nc.cp||'')}</span></td></tr>
+</table>`
         }).join('\n')
 
     // ── HTML COMPLETO ─────────────────────────────────────────────────────────
@@ -738,6 +728,7 @@ ${foto}
 <style>${CSS}</style>
 </head>
 <body>
+<br><br><br><br><br>
 ${cabInspetor?`<div class="cab">${cabInspetor}</div>`:''}
 
 
