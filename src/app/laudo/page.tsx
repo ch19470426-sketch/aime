@@ -231,6 +231,28 @@ function LaudoComplemento() {
           headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` }
         })
         const dadosI = await resI.json()
+        // Buscar documentos do plano de trabalho
+        try {
+          const SLUG_PLANO: Record<string,string> = {"41":"plano_autovistoria","42":"plano_inspecao","43":"plano_imovel_novo","44":"plano_fachada"}
+          const slugP = SLUG_PLANO[String(tipoServico)] ?? "plano_autovistoria"
+          const nomeP = `${chaveInspetor}_${cnpjoucpf}_${slugP}.html`
+          const resP = await fetch(`/api/ler-documento?nome=${encodeURIComponent(nomeP)}&pasta=documentos_inspetor`)
+          if (resP.ok) {
+            const dataP = await resP.json()
+            if (dataP.existe && dataP.html) {
+              // Extrair lista de documentos do HTML do plano
+              const docMatches = [...dataP.html.matchAll(/<td[^>]*>([^<]{10,})<\/td>/g)]
+              const docsPlano = docMatches
+                .map((m: RegExpMatchArray) => m[1].trim())
+                .filter((d: string) => d.length > 5 && !d.match(/^(Situação|Resultado|Documento|Entregue|Conforme|Pendente)/i))
+              if (docsPlano.length > 0) {
+                // Inicializar docsAnexo1 com apenas os documentos do plano
+                setDocsAnexo1(Object.fromEntries(docsPlano.map((d: string) => [d, {situacao:'',resultado:''}])))
+              }
+            }
+          }
+        } catch { /* usa lista padrão */ }
+
         if (Array.isArray(dadosI) && dadosI.length > 0) setInspetor(dadosI[0])
 
         // NCs das vistorias
@@ -553,11 +575,7 @@ function LaudoComplemento() {
                     onClick={gerarSintese} disabled={gerandoSintese}>
                     {gerandoSintese ? 'Gerando...' : '✦ Gerar'}
                   </button>
-                  <button style={{ ...S.btnIA, backgroundColor: '#1E3A8A', opacity: sinteseEdif ? 1 : 0.35, cursor: sinteseEdif ? 'pointer' : 'not-allowed' }}
-                    onClick={() => { setEditandoSintese(false) }}
-                    disabled={!sinteseEdif}>
-                    Salvar
-                  </button>
+
                 </div>
               </div>
             </div>
@@ -578,11 +596,7 @@ function LaudoComplemento() {
                   onClick={gerarDescricao} disabled={gerandoDesc || !dadosVistoria}>
                   {gerandoDesc ? 'Gerando...' : '✦ Gerar'}
                 </button>
-                <button style={{ ...S.btnIA, backgroundColor: '#1E3A8A', opacity: dadosVistoria ? 1 : 0.35, cursor: dadosVistoria ? 'pointer' : 'not-allowed' }}
-                  onClick={() => { setDescVistoria(dadosVistoria); setEditandoDesc(false) }}
-                  disabled={!dadosVistoria}>
-                  Salvar
-                </button>
+
               </div>
             </div>
           </div>
