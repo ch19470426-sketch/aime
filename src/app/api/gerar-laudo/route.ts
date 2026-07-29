@@ -95,7 +95,15 @@ function descS(s:string): string { return DESC_SISTEMAS[s]||`Sistema: ${nomeS(s)
 // ─── CSS — Design System Brief §2–4 (copiado literalmente) ───────────────────
 const CSS = `
 /* Impressão A4 */
-@page { size: A4; margin: 25mm 20mm 20mm 25mm; }
+@page {
+  size: A4; margin: 25mm 20mm 20mm 25mm;
+  @bottom-right {
+    content: "Pág. " counter(page) " / " counter(pages);
+    font-family: Arial, sans-serif;
+    font-size: 7.5pt;
+    color: #374151;
+  }
+}
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: Arial, sans-serif; color: #000; background: #fff; font-size: 9pt; line-height: 1.4; }
@@ -696,7 +704,7 @@ export async function POST(request: NextRequest) {
           const aDesc = DESC_ABR[xe(nc.abrangencia||'')] || xe(nc.abrangencia||'')
           const eDesc = DESC_EXP[xe(nc.exposicao||'')]  || xe(nc.exposicao||'')
           const foto  = nc.fotoBase64?.startsWith('data:image')
-            ? '<img src="'+nc.fotoBase64+'" style="width:100%;max-height:120mm;object-fit:contain;display:block">'
+            ? '<img src="'+nc.fotoBase64+'" style="width:98%;max-height:90mm;object-fit:contain;display:block;margin:0 auto">'
             : '<div style="height:60mm;background:#f1f5f9;border:1px dashed #c3d4f0;display:flex;align-items:center;justify-content:center;color:#94a3b8;font-size:7pt">[Sem foto]</div>'
           const LBL = 'font-size:5.5pt;color:#4a6480;font-weight:700;display:block;text-transform:uppercase;margin-bottom:1px'
           const TD  = 'border:1px solid #dde5f0;padding:3px 6px;vertical-align:top'
@@ -742,9 +750,9 @@ export async function POST(request: NextRequest) {
             '<tr><td colspan="4" style="'+TH+'">Evidência Fotográfica</td></tr>' +
             '<tr>' +
               '<td style="'+TD+';width:40%"><span style="'+LBL+'">Foto Nº</span>'+xe(nc.fotoNr||'')+'</td>' +
-              '<td colspan="3" style="'+TD+';text-align:right"><span style="'+LBL+'">Data da Vistoria</span>'+xe(nc.dataVistoria||'')+'</td>' +
+              '<td colspan="3" style="'+TD+';text-align:right"><span style="'+LBL+'">Data da Vistoria</span>'+xe(nc.dataVistoria||nc.data||'')+'</td>' +
             '</tr>' +
-            '<tr><td colspan="4" style="'+TD+';padding:4px">'+foto+'</td></tr>' +
+            '<tr><td colspan="4" style="'+TD+';padding:2px 4px">'+foto+'</td></tr>' +
             '<tr><td colspan="4" style="'+TH+'">Resultado da Análise e Avaliação</td></tr>' +
             '<tr><td colspan="4" style="'+TD+'"><span style="'+LBL+'">Descrição da Não Conformidade (NC)</span>'+xe(nc.nc||nc.anomalia||'')+'</td></tr>' +
             '<tr><td colspan="4" style="'+TD+'"><span style="'+LBL+'">Descrição da Causa Provável (CP)</span>'+xe(nc.cp||'')+'</td></tr>' +
@@ -768,7 +776,7 @@ ${cabInspetor?`<div class="cab">${cabInspetor}</div>`:''}
 
 
 <div class="titulo">1.- Considerações Preliminares.</div>
-<p>Este ${titulo} é o documento completo resultante do trabalho executado na vistoria da edificação, análise, classificação e priorização das manifestações patológicas, conforme exigências da <i>ABNT NBR 16.747/2020 e NBR 15.</i>, recomendações da <i>Norma de Inspeção Predial do IBAPE de 2025</i> e legislação vigente.</p>
+<p>Este ${titulo} é o documento completo resultante do trabalho executado na vistoria da edificação, análise, classificação e priorização das manifestações patológicas, conforme exigências da <i>ABNT NBR 16.747/2020 e NBR 15.575</i>, recomendações da <i>Norma de Inspeção Predial do IBAPE de 2025</i> e legislação vigente.</p>
 <p>A inspeção apresentada neste laudo é o resultado de um exame "clínico geral" que avalia as condições globais do objeto em estudo e detecta a existência de problemas de conservação ou funcionamento, com base em uma análise fundamentalmente sensorial e efetuada por um profissional habilitado. Com base nesta análise, pode ocorrer a recomendação de contratação de ensaios especializadas ou outras ações para que se possa aprofundar e refinar o diagnóstico.</p>
 <p>A documentação da edificação solicitada pelo inspetor na reunião inicial foi analisada e avaliada, e o resultado fica registrado na planilha apresentada no Anexo 1 deste laudo.</p>
 
@@ -919,14 +927,15 @@ ${S5}
 
   <p style="text-align:right;font-size:9pt;font-weight:bold;color:#000;margin-top:20px">${estab?.cidade?xe(estab.cidade)+'/'+xe(estab?.uf||'')+', ':''}${dataHoje}</p>
 <br>
-<br>
-<div style="margin-top:4px;line-height:1.1">
-  <p style="font-size:8.5pt;color:#222;margin:0;padding:0">_______________________________________________</p>
-  <p style="font-size:8.5pt;font-weight:bold;color:#000;margin:0;padding:0">${xe(inspetor?.nome_inspetor)} — Responsável Técnico</p>
-  <p style="font-size:8pt;color:#222;margin:0;padding:0">${xe(inspetor?.titulo_profissional)} — CREA/CAU ${xe(inspetor?.inscricao_crea_cau)}</p>
-  ${inspetor?.especializacao?'<p style="font-size:8pt;color:#222;margin:0;padding:0">'+xe(inspetor.especializacao)+'</p>':''}
-</div>
-</div>
+<p style="line-height:1;margin:0">&nbsp;</p>
+<p style="line-height:1;margin:0">&nbsp;</p>
+<p style="font-size:8pt;line-height:1;margin:0">[Assinatura digital]</p>
+<p style="line-height:1;margin:0;font-weight:bold">${xe(inspetor?.nome_inspetor)}</p>
+<p style="line-height:1;margin:0">${xe(inspetor?.titulo_profissional)} — CREA/CAU ${xe(inspetor?.inscricao_crea_cau)}</p>
+${inspetor?.especializacao?'<p style="line-height:1;margin:0">Especialista '+xe(inspetor.especializacao)+'</p>':''}
+<p style="line-height:1;margin:0">&nbsp;</p>
+<p style="line-height:1;margin:0">&nbsp;</p>
+<p style="line-height:1;margin:0">De acordo: _____________________ CPF: _______________ Data: ___/___/______</p>
 
 <div class="section">
 ${A1}
