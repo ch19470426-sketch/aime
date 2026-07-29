@@ -182,40 +182,47 @@ function LaudoComplemento() {
         if (Array.isArray(dadosE) && dadosE.length > 0) {
           const e = dadosE[0]
           setEstab(e)
-          // Se logradouro não preenchido mas CEP existe, buscar via ViaCEP
-          if (e.cep && !e.logradouro) {
+          // Buscar endereço pelo CEP sempre (sobrescreve campos do BD)
+          if (e.cep) {
             try {
-              const cepNum = e.cep.replace(/\D/g, '')
-              const vr = await fetch(`https://viacep.com.br/ws/${cepNum}/json/`)
-              const vd = await vr.json()
-              if (!vd.erro) {
-                setEstab(prev => ({
-                  ...prev,
-                  logradouro: prev.logradouro || vd.logradouro || '',
-                  bairro:     prev.bairro     || vd.bairro     || '',
-                  cidade:     prev.cidade     || vd.localidade || '',
-                  uf:         prev.uf         || vd.uf         || '',
-                }))
+              const cepNum = String(e.cep).replace(/\D/g, '')
+              if (cepNum.length === 8) {
+                const vr = await fetch(`https://viacep.com.br/ws/${cepNum}/json/`)
+                const vd = await vr.json()
+                if (!vd.erro) {
+                  setEstab(prev => ({
+                    ...prev,
+                    logradouro: vd.logradouro || prev.logradouro || '',
+                    bairro:     vd.bairro     || prev.bairro     || '',
+                    cidade:     vd.localidade || prev.cidade     || '',
+                    uf:         vd.uf         || prev.uf         || '',
+                  }))
+                }
               }
             } catch { /* segue sem endereço */ }
           }
         }
-        // Buscar responsável dos ativos (nome_responsavel está em ativos_a_vistoriar)
-        const resA = await fetch(`${SUPA_URL}/rest/v1/ativos_a_vistoriar?cpf_inspetor=eq.${cpfInspetor}&cnpjoucpf=eq.${cnpjoucpf}&select=nome_responsavel,funcao_responsavel,uso_ativo,numero_pavimentos,numero_unidades_salas,area_construida,area_terreno&limit=1`, {
+        // Buscar dados de ativos_a_vistoriar (responsável, tipo, características)
+        const resA = await fetch(`${SUPA_URL}/rest/v1/ativos_a_vistoriar?cpf_inspetor=eq.${cpfInspetor}&cnpjoucpf=eq.${cnpjoucpf}&select=*`, {
           headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` }
         })
         const dadosA = await resA.json()
-        if (Array.isArray(dadosA) && dadosA.length > 0 && dadosA[0].nome_responsavel) {
+        if (Array.isArray(dadosA) && dadosA.length > 0) {
+          const a = dadosA[0]
           setEstab(prev => ({
             ...prev,
-            nome_responsavel:    dadosA[0].nome_responsavel,
-            funcao_responsavel:  dadosA[0].funcao_responsavel,
-            // Se estab não tiver os campos de características, usar os do ativo
-            uso_imovel:          prev.uso_imovel          || dadosA[0].uso_ativo,
-            numero_pavimentos:   prev.numero_pavimentos   || dadosA[0].numero_pavimentos,
-            numero_unidades_salas: prev.numero_unidades_salas || dadosA[0].numero_unidades_salas,
-            area_construida:     prev.area_construida     || dadosA[0].area_construida,
-            area_terreno:        prev.area_terreno        || dadosA[0].area_terreno,
+            // Responsável sempre vem dos ativos
+            nome_responsavel:      a.nome_responsavel     || prev.nome_responsavel     || '',
+            funcao_responsavel:    a.funcao_responsavel   || prev.funcao_responsavel   || '',
+            whatsapp:              a.whatsapp             || prev.whatsapp             || '',
+            email:                 a.email                || prev.email                || '',
+            // Características do imóvel — sempre dos ativos
+            tipo_imovel:           a.tipo_imovel          || prev.tipo_imovel          || '',
+            uso_imovel:            a.uso_ativo            || prev.uso_imovel           || '',
+            numero_pavimentos:     a.numero_pavimentos    || prev.numero_pavimentos    || '',
+            numero_unidades_salas: a.numero_unidades_salas|| prev.numero_unidades_salas|| '',
+            area_construida:       a.area_construida      || prev.area_construida      || '',
+            area_terreno:          a.area_terreno         || prev.area_terreno         || '',
           }))
         }
 
