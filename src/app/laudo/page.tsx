@@ -571,7 +571,7 @@ function LaudoComplemento() {
               </div>
               <div style={{ marginTop: "8px" }}>
                 <label style={S.label}>Descreva sinteticamente a edificação (Convenção ou Escritura) *</label>
-                <textarea style={{ ...S.textarea, backgroundColor: editandoSintese ? '#FFFBEB' : undefined, borderColor: editandoSintese ? '#F59E0B' : undefined }} maxLength={900} value={sinteseEdif}
+                <textarea style={{ ...S.textarea, backgroundColor: editandoSintese ? '#FFFBEB' : undefined, borderColor: editandoSintese ? '#F59E0B' : undefined }} value={sinteseEdif} maxLength={900} value={sinteseEdif}
                   onChange={e => setSinteseEdif(e.target.value)}
                   placeholder="Insira uma breve descrição e a topologia da edificação, ou clique em ✦ Gerar para geração automática com IA..." />
                 <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
@@ -784,7 +784,7 @@ function LaudoComplemento() {
                   </tr>
                 </thead>
                 <tbody>
-                  {DOCS_LISTA.map((doc, i) => (
+                  {Object.keys(docsAnexo1).map((doc, i) => (
                     <tr key={doc} style={{ backgroundColor: i%2===0 ? '#F8FAFC' : 'white' }}>
                       <td style={{ padding:'3px 6px', borderBottom:'1px solid #E2E8F0' }}>{doc}</td>
                       <td style={{ padding:'2px 4px', borderBottom:'1px solid #E2E8F0' }}>
