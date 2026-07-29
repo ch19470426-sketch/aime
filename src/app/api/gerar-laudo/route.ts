@@ -930,12 +930,13 @@ ${S5}
 <p style="line-height:1;margin:0">&nbsp;</p>
 <p style="line-height:1;margin:0">&nbsp;</p>
 <p style="font-size:8pt;line-height:1;margin:0">[Assinatura digital]</p>
+<p style="line-height:1;margin:0">&nbsp;</p>
 <p style="line-height:1;margin:0;font-weight:bold">${xe(inspetor?.nome_inspetor)}</p>
 <p style="line-height:1;margin:0">${xe(inspetor?.titulo_profissional)} — CREA/CAU ${xe(inspetor?.inscricao_crea_cau)}</p>
 ${inspetor?.especializacao?'<p style="line-height:1;margin:0">Especialista '+xe(inspetor.especializacao)+'</p>':''}
 <p style="line-height:1;margin:0">&nbsp;</p>
 <p style="line-height:1;margin:0">&nbsp;</p>
-<p style="line-height:1;margin:0">De acordo: _____________________ CPF: _______________ Data: ___/___/______</p>
+
 
 <div class="section">
 ${A1}
