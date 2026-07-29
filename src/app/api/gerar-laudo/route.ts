@@ -302,7 +302,7 @@ export async function POST(request: NextRequest) {
     const rodInspetor = xe(inspetor?.rodape_documentos) || `${xe(inspetor?.nome_inspetor)} — ${xe(inspetor?.titulo_profissional)} — CREA/CAU ${xe(inspetor?.inscricao_crea_cau)}`
 
     // ── Buscar endereço por CEP se logradouro vazio ─────────────────────────
-    if (estab?.cep && !String(estab.logradouro||"").trim()) {
+    if (estab?.cep) {
       try {
         const cepNum = String(estab.cep).replace(/\D/g,'')
         if (cepNum.length === 8) {
@@ -371,18 +371,13 @@ export async function POST(request: NextRequest) {
     // Buscar atividades do plano de trabalho homologado
     let ativPlano: {descricao:string; ini:string; fim:string}[] = []
     try {
-      const tipoPlano = String(Number(tipoServico) - 20)
-      // Tentar múltiplos padrões de nome do plano
-      const nomesCandidatos = [
-        `${chaveInspetor}_plano_${tipoPlano}_${cnpjoucpf}.html`,
-        `${chaveInspetor}_plano_trabalho_${tipoPlano}_${cnpjoucpf}.html`,
-        `${chaveInspetor}_${cnpjoucpf}_plano_${tipoPlano}.html`,
-      ]
+      // Nome real do plano: chaveInspetor_cnpjoucpf_slug.html
+      const SLUG_PLANO: Record<string,string> = {"41":"plano_autovistoria","42":"plano_inspecao","43":"plano_imovel_novo","44":"plano_fachada"}
+      const slugPlano = SLUG_PLANO[String(tipoServico)] ?? "plano_autovistoria"
+      const nomePlanoReal = `${chaveInspetor}_${cnpjoucpf}_${slugPlano}.html`
       let blobPlano = null
-      for (const nome of nomesCandidatos) {
-        const { data: b } = await supabase.storage.from('aime').download(`documentos_inspetor/${nome}`)
-        if (b) { blobPlano = b; break }
-      }
+      const { data: bP } = await supabase.storage.from("aime").download(`documentos_inspetor/${nomePlanoReal}`)
+      if (bP) blobPlano = bP
       if (blobPlano) {
         const htmlPlano = await (blobPlano as Blob).text()
         // Extrair linhas da tabela: <td style="text-align:justify...">DESC</td><td>INI</td><td>FIM</td>
