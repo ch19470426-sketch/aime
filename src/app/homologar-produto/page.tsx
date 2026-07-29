@@ -222,7 +222,7 @@ function HomologarProdutoInner() {
         const printCss = `
           @page {
             size: A4;
-            margin: 28mm 20mm 22mm 25mm;
+            margin: 25mm 20mm 20mm 25mm;
             @top-center {
               content: ${JSON.stringify(cabTxt || 'AIMÊ — Mapeamento Inteligente de Edificações e Equipamentos')};
               font-family: Arial, sans-serif;
