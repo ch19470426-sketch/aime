@@ -201,7 +201,7 @@ function LaudoComplemento() {
           }
         }
         // Buscar dados de ativos_a_vistoriar (responsável, tipo, características)
-        const resA = await fetch(`${SUPA_URL}/rest/v1/ativos_a_vistoriar?cpf_inspetor=eq.${cpfInspetor}&cnpjoucpf=eq.${cnpjoucpf}&select=*`, {
+        const resA = await fetch(`${SUPA_URL}/rest/v1/ativos_a_vistoriar?cpf_inspetor=eq.${cpfInspetor}&cnpjoucpf=eq.${cnpjoucpf.replace(/[.\-\/]/g,"")}&select=*`, {
           headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` }
         })
         const dadosA = await resA.json()
@@ -595,12 +595,12 @@ function LaudoComplemento() {
             <div style={S.bHead}><span style={S.bTitle}>3.1 — Descrição da Vistoria Técnica</span></div>
             <div style={S.bBody}>
               <label style={S.label}>Descreva sinteticamente como foi realizada a vistoria</label>
-              <textarea style={{ ...S.textarea, minHeight: "130px", backgroundColor: editandoDesc ? "#FFFBEB" : undefined, borderColor: editandoDesc ? "#F59E0B" : undefined }} maxLength={900} value={dadosVistoria} onChange={e => setDadosVistoria(e.target.value)} placeholder="Insira uma breve descrição do caminhamento efetuado e ocorrências havidas durante a vistoria da edificação..." />
-
-
-              <div style={S.contagem}>{dadosVistoria.length}/900 caracteres</div>
-              
-              <div style={{ display: "flex", justifyContent: "flex-end", gap: "6px", marginTop: "6px" }}>
+              <textarea style={{ ...S.textarea, minHeight: '130px', backgroundColor: editandoDesc ? '#FFFBEB' : undefined, borderColor: editandoDesc ? '#F59E0B' : undefined }}
+                value={dadosVistoria}
+                maxLength={900}
+                onChange={e => setDadosVistoria(e.target.value)}
+                placeholder="Descreva o caminhamento efetuado e ocorrências havidas durante a vistoria..."
+              ></textarea>
                 <button style={{ ...S.btnIA, opacity: gerandoDesc ? 0.7 : 1 }}
                   onClick={gerarDescricao} disabled={gerandoDesc || !dadosVistoria}>
                   {gerandoDesc ? 'Gerando...' : '✦ Gerar'}
