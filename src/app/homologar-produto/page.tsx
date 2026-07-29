@@ -261,19 +261,16 @@ function HomologarProdutoInner() {
             </script></body>`
           )
 
+        // Abrir em nova aba para impressão como PDF
         const blob = new Blob([htmlPrint], { type: 'text/html;charset=utf-8' })
         const url  = URL.createObjectURL(blob)
-        // Sempre abrir em nova aba — download direto como fallback
-        const win = window.open(url, '_blank')
-        if (!win) {
-          // Popup bloqueado — fazer download do HTML
-          const a = document.createElement('a')
-          a.href = url
-          a.download = nomeBase + '.html'
-          document.body.appendChild(a)
-          a.click()
-          document.body.removeChild(a)
-        }
+        const a = document.createElement('a')
+        a.href = url
+        a.target = '_blank'
+        a.rel = 'noopener'
+        document.body.appendChild(a)
+        a.click()
+        document.body.removeChild(a)
         setTimeout(() => URL.revokeObjectURL(url), 60000)
         setGerandoDocx(false)
         return
