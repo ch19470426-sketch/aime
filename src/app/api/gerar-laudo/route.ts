@@ -115,7 +115,7 @@ i, em { font-style: italic; }
   body { font-size: 9pt; }
   .section { page-break-before: always; }
   .no-break { page-break-inside: avoid; }
-  table { page-break-inside: auto; }
+  table { page-break-inside: auto; outline: 1.5px solid #1E3A8A; }
   .bloco { page-break-inside: auto; }
   p { page-break-inside: avoid; }
 }
@@ -147,7 +147,7 @@ table.tbl-plano { border: 1.5px solid #1E3A8A !important; }
 .cell-4 { flex: 4; }
 
 /* §3.4 — Tabela de dados */
-table { width: 100%; border-collapse: collapse; margin-bottom: 10px; page-break-inside: avoid; outline: 1.5px solid #1E3A8A; }
+table { width: 100%; border-collapse: collapse; margin-bottom: 10px; page-break-inside: auto; outline: 1.5px solid #1E3A8A; }
 th { background: #1E3A8A; color: #fff; font-size: 8pt; font-weight: 700;
      padding: 5px 8px; border-right: 1px solid #4a6fa5; text-align: center; }
 th:last-child { border-right: none; }
@@ -712,8 +712,8 @@ ${foto}
 
 ${cabInspetor?`<div class="cab">${cabInspetor}</div>`:''}
 
-<p style="text-align:right;font-size:8.5pt;color:#222;margin:0">${xe(estab?.cidade)}/${xe(estab?.uf)}, ${dataHoje}</p>
-<br><br><br>
+
+
 
 <div class="titulo">1.- Considerações Preliminares.</div>
 <p>Este ${titulo} é o documento completo resultante do trabalho executado na vistoria da edificação, análise, classificação e priorização das manifestações patológicas, conforme exigências da <i>ABNT NBR 16.747/2020 e NBR 15.</i>, recomendações da <i>Norma de Inspeção Predial do IBAPE de 2025</i> e legislação vigente.</p>
