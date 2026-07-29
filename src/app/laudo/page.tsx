@@ -568,14 +568,6 @@ function LaudoComplemento() {
                   <label style={S.label}>Responsável pelo ativo</label>
                   <input style={{ ...S.input }} value={estab.nome_responsavel ?? ''} onChange={e => setEstab(prev=>({...prev,nome_responsavel:e.target.value}))} />
                 </div>
-                <div>
-                  <label style={S.label}>Função do responsável</label>
-                  <input style={{ ...S.input }} value={estab.funcao_responsavel ?? ''} onChange={e => setEstab(prev=>({...prev,funcao_responsavel:e.target.value}))} />
-                </div>
-                <div>
-                  <label style={S.label}>Tipo do ativo</label>
-                  <input style={{ ...S.input }} value={estab.tipo_imovel ?? ''} onChange={e => setEstab(prev=>({...prev,tipo_imovel:e.target.value}))} />
-                </div>
               </div>
               <div style={{ marginTop: "8px" }}>
                 <label style={S.label}>Descreva sinteticamente a edificação (Convenção ou Escritura) *</label>
