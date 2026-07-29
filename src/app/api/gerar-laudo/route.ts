@@ -626,13 +626,20 @@ export async function POST(request: NextRequest) {
       <th style="width:21%">Situação</th>
       <th style="text-align:left;width:21%">Resultado</th>
     </tr>
-    ${DOCS_ANEXO1.map(d=>{
-      const info=(complemento?.docsAnexo1??{})[d]??{situacao:'',resultado:''}
+    ${Object.keys(complemento?.docsAnexo1??{}).length>0
+      ? Object.keys(complemento.docsAnexo1).map(d=>{
+      const info=(complemento.docsAnexo1??{})[d]??{situacao:'',resultado:''}
       const sit=info.situacao||'—'
       const res=info.resultado||'—'
       const cls=sit==='Entregue'?'b-entregue':sit==='Pendente'?'b-pendente':'b-desn'
       const clsR=res==='Conforme'?'b-conforme':res==='Não conforme'?'b-nconfo':res==='Não se aplica'?'b-na':''
       return `<tr><td>${d}</td><td style="text-align:center"><span class="badge ${cls}">${sit}</span></td><td><span class="${clsR?'badge '+clsR:''}">${res}</span></td></tr>`
+    }).join('')
+      : DOCS_ANEXO1.map(d=>{
+      const info=(complemento?.docsAnexo1??{})[d]??{situacao:'',resultado:''}
+      const sit=info.situacao||'—'
+      const res=info.resultado||'—'
+      return `<tr><td>${d}</td><td style="text-align:center">${sit}</td><td>${res}</td></tr>`
     }).join('')}
   </table>
 </div>`
@@ -662,8 +669,8 @@ export async function POST(request: NextRequest) {
             ?`<img src="${nc.fotoBase64}" class="vfoto" alt="Foto ${xe(nc.fotoNr)}">`
             :`<div style="height:90mm;background:#f1f5f9;border:2px dashed #c3d4f0;border-radius:5px;display:flex;align-items:center;justify-content:center;color:#94A3B8;font-size:7.5pt">Sem foto</div>`
           return `${idx>0?'<div style="page-break-before:always"></div>':''}
-<div class="vhdr"><h1>AIMÊ — Vistoria Homologada</h1><p>${xe(nc.tipoServico||tipoServico)}</p></div>
-<div class="vdiv"></div>
+
+
 <div class="vbody">
 <div class="vblk"><div class="vbt">Identificação</div><div class="vbb">
 <div class="vg2">
@@ -718,7 +725,7 @@ ${foto}
 <div class="vf"><label>Causa provável (CP)</label><span style="white-space:pre-wrap">${xe(nc.cp)}</span></div>
 <div class="vf"><label>Solução</label><span style="white-space:pre-wrap">${xe(nc.solucaoNC||nc.cp||'—')}</span></div>
 </div></div>
-<div class="vstamp"><span>✓ Homologado — ${xe(nc.chaveInspetor||chaveInspetor)}</span></div>
+
 </div>`
         }).join('\n')
 
