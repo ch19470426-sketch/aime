@@ -263,12 +263,18 @@ function HomologarProdutoInner() {
 
         const blob = new Blob([htmlPrint], { type: 'text/html;charset=utf-8' })
         const url  = URL.createObjectURL(blob)
-        const win  = window.open(url, '_blank', 'width=900,height=700')
+        // Sempre abrir em nova aba — download direto como fallback
+        const win = window.open(url, '_blank')
         if (!win) {
+          // Popup bloqueado — fazer download do HTML
           const a = document.createElement('a')
-          a.href = url; a.download = nomeArquivo.replace(/\.html$/i, '.html'); a.click()
+          a.href = url
+          a.download = nomeBase + '.html'
+          document.body.appendChild(a)
+          a.click()
+          document.body.removeChild(a)
         }
-        setTimeout(() => URL.revokeObjectURL(url), 30000)
+        setTimeout(() => URL.revokeObjectURL(url), 60000)
         setGerandoDocx(false)
         return
       }
