@@ -263,8 +263,6 @@ function HomologarProdutoInner() {
 
         const blob = new Blob([htmlPrint], { type: 'text/html;charset=utf-8' })
         const url  = URL.createObjectURL(blob)
-        // Orientar o inspetor antes de abrir o diálogo
-        alert('O laudo será aberto em nova aba.\n\nNo diálogo de impressão que aparecer:\n1. Em "Destino" ou "Impressora", selecione "Salvar como PDF"\n2. Clique em "Salvar"\n3. Escolha a pasta onde deseja salvar o arquivo\n\nO nome do arquivo será: ' + nomeBase)
         const win  = window.open(url, '_blank', 'width=900,height=700')
         if (!win) {
           const a = document.createElement('a')
