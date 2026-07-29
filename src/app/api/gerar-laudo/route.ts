@@ -616,7 +616,8 @@ export async function POST(request: NextRequest) {
 
     // ── Anexo 1 — Documentos ─────────────────────────────────────────────────
     const A1 = `
-<div class="titulo">Anexo 1 – Documentação da Edificação Solicitada</div>
+<div class="titulo" style="text-align:center">Anexo 1 – Documentação da Edificação Solicitada</div>
+<br>
 <div class="bloco">
   <div class="bloco-header">Relação de Documentos Solicitados para Análise e Avaliação</div>
   <table>
@@ -636,10 +637,25 @@ export async function POST(request: NextRequest) {
   </table>
 </div>`
 
+    // ── Anexo 2 — buscar fotos faltantes das vistorias homologadas ────────────
+    const ncsComFoto = await Promise.all((ncs??[]).map(async (nc:any) => {
+      if (nc.fotoBase64?.startsWith('data:image')) return nc
+      if (!nc._arquivo) return nc
+      try {
+        const { data: blob } = await supabase.storage.from('aime')
+          .download(`vistorias_homologadas/${nc._arquivo}`)
+        if (!blob) return nc
+        const html = await blob.text()
+        const m = html.match(/<img[^>]+src="(data:image[^"]+)"/)
+        if (m) return { ...nc, fotoBase64: m[1] }
+      } catch { /* sem foto */ }
+      return nc
+    }))
+
     // ── Anexo 2 — Formulários idênticos ao HTML homologado ────────────────────
-    const A2 = (ncs??[]).length===0
+    const A2 = (ncsComFoto??[]).length===0
       ? '<p><i>Nenhuma vistoria homologada encontrada para este serviço.</i></p>'
-      : (ncs??[]).map((nc:any,idx:number)=>{
+      : (ncsComFoto??[]).map((nc:any,idx:number)=>{
           const ns=xe((nc.sistema||'').slice(3).replace(/_/g,' '))
           const corGR=Number(nc.grauRisco)>=64?'#DC2626':Number(nc.grauRisco)>=35?'#D97706':'#059669'
           const foto=nc.fotoBase64&&nc.fotoBase64.startsWith('data:image')
@@ -715,7 +731,6 @@ ${foto}
 <style>${CSS}</style>
 </head>
 <body>
-
 ${cabInspetor?`<div class="cab">${cabInspetor}</div>`:''}
 
 
@@ -888,12 +903,14 @@ ${A1}
 </div>
 
 <div class="section">
-<div class="titulo">Anexo 2 – Resultado da Vistoria</div>
+<div class="titulo" style="text-align:center">Anexo 2 – Resultado da Vistoria</div>
+<br>
 ${A2}
 </div>
 
 <div class="section">
-<div class="titulo">Anexo 3 – Anotações de Responsabilidade Técnica</div>
+<div class="titulo" style="text-align:center">Anexo 3 – Anotações de Responsabilidade Técnica</div>
+<br>
 <p>Inserir neste espaço a ART (Anotação de Responsabilidade Técnica) ou RRT (Registro de Responsabilidade Técnica) devidamente registrada no CREA ou CAU.</p>
 ${srcArt
   ?`<div style="margin-top:8px;text-align:center"><img src="${srcArt}" style="max-width:100%;border:1.5px solid #1E3A8A"></div>`
