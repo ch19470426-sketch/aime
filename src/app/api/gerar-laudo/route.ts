@@ -96,7 +96,7 @@ function descS(s:string): string { return DESC_SISTEMAS[s]||`Sistema: ${nomeS(s)
 const CSS = `
 /* Impressão A4 */
 @page { size: A4; margin: 25mm 20mm 20mm 25mm; }
-@page { margin-top: 25mm; margin-bottom: 20mm; }
+
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: Arial, sans-serif; color: #000; background: #fff; font-size: 9pt; line-height: 1.4; }
 
@@ -117,7 +117,10 @@ i, em { font-style: italic; }
   .no-break { page-break-inside: avoid; }
   table { page-break-inside: auto; outline: 1.5px solid #1E3A8A; }
   .bloco { page-break-inside: auto; }
-  p { page-break-inside: avoid; orphans: 3; widows: 3; }
+  p { page-break-inside: avoid; orphans: 4; widows: 4; }
+  p + .bloco { page-break-before: avoid; }
+  .titulo + p + .bloco { page-break-before: avoid; }
+  .titulo + .bloco { page-break-before: avoid; }
 }
 
 table.tbl-plano { border: 1.5px solid #1E3A8A !important; }
@@ -310,10 +313,10 @@ export async function POST(request: NextRequest) {
           const vd = await vr.json()
           if (!vd.erro) {
             estab = { ...estab,
-              logradouro: estab.logradouro || vd.logradouro || '',
-              bairro:     estab.bairro     || vd.bairro     || '',
-              cidade:     estab.cidade     || vd.localidade || '',
-              uf:         estab.uf         || vd.uf         || '',
+              logradouro: vd.logradouro || estab.logradouro || '',
+              bairro:     vd.bairro || estab.bairro || '',
+              cidade:     vd.localidade || estab.cidade || '',
+              uf:         vd.uf || estab.uf || '',
             }
           }
         }
@@ -869,7 +872,7 @@ ${S5}
 <p>O documento é entregue em mídia magnética.</p>
 <p style="border:1px solid #999;padding:6px;font-size:7.5pt;background:#f9f9f9"><b>Atenção:</b> O titular do direito autoral deste trabalho somente autoriza sua reprodução nos casos legais cabíveis, vedando sua cópia ou qualquer forma de reprodução que caracterize plágio ou represente utilização dos direitos exclusivos do autor, sendo que sua violação acarretará as penalidades civis e criminais previstas no art.184 do Código Penal Brasileiro e Lei nº 9.610.</p>
 
-  <p style="text-align:right;font-size:9pt;font-weight:bold;color:#000;margin-top:20px">${xe(estab?.cidade)||''} ${(xe(estab?.cidade))?'/ '+xe(estab?.uf)+',':''}${dataHoje}</p>
+  <p style="text-align:right;font-size:9pt;font-weight:bold;color:#000;margin-top:20px">${estab?.cidade?xe(estab.cidade)+'/'+xe(estab?.uf||'')+', ':''}${dataHoje}</p>
 <br>
 <br>
 <div style="margin-top:4px;line-height:1.1">
