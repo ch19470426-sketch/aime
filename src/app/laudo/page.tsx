@@ -244,10 +244,10 @@ function LaudoComplemento() {
               // Cada doc está em: <td style="font-size:10pt">NOME</td>
               // mas só na tabela de documentos (não atividades)
               // Extrair a seção após o título de documentos
-              const secIdx = htmlPlano.search(/Documentos|Relação de Documentos/i)
+              const secIdx = htmlPlano.search(new RegExp("Documentos|Rela.+o de Documentos", "i"))
               const secHtml = secIdx >= 0 ? htmlPlano.slice(secIdx) : htmlPlano
               // Pegar todas as células com texto longo (documentos têm nomes longos)
-              const tdMatches = [...secHtml.matchAll(/<td[^>]*font-size:10pt[^>]*>([^<]+)<\/td>/g)]
+              const tdMatches = [...secHtml.matchAll(new RegExp('<td[^>]*font-size:10pt[^>]*>([^<]+)<\\/td>', 'g'))]
               const docsPlano = tdMatches
                 .map((m: RegExpMatchArray) => m[1].trim())
                 .filter((d: string) => 
