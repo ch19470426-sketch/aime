@@ -117,7 +117,7 @@ i, em { font-style: italic; }
   .no-break { page-break-inside: avoid; }
   table { page-break-inside: auto; outline: 1.5px solid #1E3A8A; }
   .bloco { page-break-inside: auto; }
-  p { page-break-inside: avoid; }
+  p { page-break-inside: avoid; orphans: 3; widows: 3; }
 }
 
 table.tbl-plano { border: 1.5px solid #1E3A8A !important; }
@@ -132,7 +132,7 @@ table.tbl-plano { border: 1.5px solid #1E3A8A !important; }
 }
 
 /* §3.2 — Bloco com cabeçalho */
-.bloco        { border: 1.5px solid #1E3A8A; overflow: hidden; margin-bottom: 14px; page-break-inside: avoid; }
+.bloco        { border: 1.5px solid #1E3A8A; overflow: hidden; margin-bottom: 14px; page-break-inside: auto; outline: 1.5px solid #1E3A8A; }
 .bloco-header { background: #1E3A8A; color: #fff; font-size: 9pt; font-weight: 700; padding: 6px 10px; }
 
 /* §3.3 — Grade de campos */
@@ -719,8 +719,6 @@ ${cabInspetor?`<div class="cab">${cabInspetor}</div>`:''}
 
 
 
-
-
 <div class="titulo">1.- Considerações Preliminares.</div>
 <p>Este ${titulo} é o documento completo resultante do trabalho executado na vistoria da edificação, análise, classificação e priorização das manifestações patológicas, conforme exigências da <i>ABNT NBR 16.747/2020 e NBR 15.</i>, recomendações da <i>Norma de Inspeção Predial do IBAPE de 2025</i> e legislação vigente.</p>
 <p>A inspeção apresentada neste laudo é o resultado de um exame "clínico geral" que avalia as condições globais do objeto em estudo e detecta a existência de problemas de conservação ou funcionamento, com base em uma análise fundamentalmente sensorial e efetuada por um profissional habilitado. Com base nesta análise, pode ocorrer a recomendação de contratação de ensaios especializadas ou outras ações para que se possa aprofundar e refinar o diagnóstico.</p>
@@ -871,8 +869,10 @@ ${S5}
 <p>O documento é entregue em mídia magnética.</p>
 <p style="border:1px solid #999;padding:6px;font-size:7.5pt;background:#f9f9f9"><b>Atenção:</b> O titular do direito autoral deste trabalho somente autoriza sua reprodução nos casos legais cabíveis, vedando sua cópia ou qualquer forma de reprodução que caracterize plágio ou represente utilização dos direitos exclusivos do autor, sendo que sua violação acarretará as penalidades civis e criminais previstas no art.184 do Código Penal Brasileiro e Lei nº 9.610.</p>
 
-  <p style="text-align:right;font-size:9pt;font-weight:bold;color:#000;margin-top:20px">${([xe(estab?.cidade),xe(estab?.uf)].filter(x=>!!x).join('/'))}${estab?.cidade?', ':''}${dataHoje}</p>
-<div style="margin-top:12px;line-height:1.2">
+  <p style="text-align:right;font-size:9pt;font-weight:bold;color:#000;margin-top:20px">${xe(estab?.cidade)||''} ${(xe(estab?.cidade))?'/ '+xe(estab?.uf)+',':''}${dataHoje}</p>
+<br>
+<br>
+<div style="margin-top:4px;line-height:1.1">
   <p style="font-size:8.5pt;color:#222;margin:0;padding:0">_______________________________________________</p>
   <p style="font-size:8.5pt;font-weight:bold;color:#000;margin:0;padding:0">${xe(inspetor?.nome_inspetor)} — Responsável Técnico</p>
   <p style="font-size:8pt;color:#222;margin:0;padding:0">${xe(inspetor?.titulo_profissional)} — CREA/CAU ${xe(inspetor?.inscricao_crea_cau)}</p>
