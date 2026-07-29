@@ -566,7 +566,7 @@ function LaudoComplemento() {
                 </div>
                 <div>
                   <label style={S.label}>Responsável pelo ativo</label>
-                  <input style={{ ...S.input, backgroundColor: '#F8FAFC' }} value={estab.nome_responsavel ?? ''} readOnly />
+                  <input style={{ ...S.input, backgroundColor: '#F8FAFC' }} value={estab.nome_responsavel ?? ''} />
                 </div>
               </div>
               <div style={{ marginTop: "8px" }}>
