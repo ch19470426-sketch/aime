@@ -201,7 +201,7 @@ function LaudoComplemento() {
           }
         }
         // Buscar dados de ativos_a_vistoriar (responsável, tipo, características)
-        const cnpjLimpo = cnpjoucpf.replace(/\D/g, '')
+        const cnpjLimpo = cnpjoucpf.replace(/\D/g, "")
         const resA = await fetch(`${SUPA_URL}/rest/v1/ativos_a_vistoriar?cpf_inspetor=eq.${cpfInspetor}&cnpjoucpf=eq.${cnpjLimpo}&select=*`, {
           headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` }
         })
@@ -244,17 +244,17 @@ function LaudoComplemento() {
               // Cada doc está em: <td style="font-size:10pt">NOME</td>
               // mas só na tabela de documentos (não atividades)
               // Extrair a seção após o título de documentos
-              const secIdx = htmlPlano.search(new RegExp("Documentos|Rela.+o de Documentos", "i"))
+              const secIdx = (htmlPlano.toLowerCase().indexOf("documentos"))
               const secHtml = secIdx >= 0 ? htmlPlano.slice(secIdx) : htmlPlano
               // Pegar todas as células com texto longo (documentos têm nomes longos)
-              const tdMatches = [...secHtml.matchAll(new RegExp('<td[^>]*font-size:10pt[^>]*>([^<]+)<\\/td>', 'g'))]
+              const tdMatches = (()=>{ const r=[]; let s=secHtml; while(s.indexOf("<td")>=0){ const a=s.indexOf("font-size:10pt"); if(a<0)break; const b=s.indexOf(">",a)+1; const e=s.indexOf("</td>",b); if(e<0)break; r.push([s,s.slice(b,e)]); s=s.slice(e+5); } return r; })()
               const docsPlano = tdMatches
                 .map((m: RegExpMatchArray) => m[1].trim())
                 .filter((d: string) => 
                   d.length > 8 && 
-                  !d.match(new RegExp('^[0-9]')) &&
-                  !(d.length === 10 && d[2] === '/') &&
-                  !d.match(new RegExp('^[\u2014-]$'))
+                  !("0123456789".includes(d[0])) &&
+                  !(d.length >= 5 && "0123456789".includes(d[0]) && d[2] === "/") &&
+                  !(d === "—" || d === "-")
                 )
               if (docsPlano.length > 0) {
                 setDocsAnexo1(Object.fromEntries(docsPlano.map((d: string) => [d, {situacao:'',resultado:''}])))
@@ -596,12 +596,18 @@ function LaudoComplemento() {
             <div style={S.bHead}><span style={S.bTitle}>3.1 — Descrição da Vistoria Técnica</span></div>
             <div style={S.bBody}>
               <label style={S.label}>Descreva sinteticamente como foi realizada a vistoria</label>
-              <textarea style={{ ...S.textarea, minHeight: '130px', backgroundColor: editandoDesc ? '#FFFBEB' : undefined, borderColor: editandoDesc ? '#F59E0B' : undefined }}
+              <textarea
+                style={{ ...S.textarea, minHeight: '130px', backgroundColor: editandoDesc ? '#FFFBEB' : undefined, borderColor: editandoDesc ? '#F59E0B' : undefined }}
                 value={dadosVistoria}
                 maxLength={900}
                 onChange={e => setDadosVistoria(e.target.value)}
-                placeholder="Descreva o caminhamento efetuado e ocorrências havidas durante a vistoria..."
+                placeholder="Descreva o caminhamento efetuado e ocorrências havidas..."
               ></textarea>
+
+
+              <div style={S.contagem}>{dadosVistoria.length}/900 caracteres</div>
+              
+              <div style={{ display: "flex", justifyContent: "flex-end", gap: "6px", marginTop: "6px" }}>
                 <button style={{ ...S.btnIA, opacity: gerandoDesc ? 0.7 : 1 }}
                   onClick={gerarDescricao} disabled={gerandoDesc || !dadosVistoria}>
                   {gerandoDesc ? 'Gerando...' : '✦ Gerar'}
