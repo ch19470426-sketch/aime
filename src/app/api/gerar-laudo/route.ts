@@ -358,11 +358,11 @@ export async function POST(request: NextRequest) {
   <div class="row">
     <div class="cell">
       <label>Croqui de localização</label>
-      <div class="foto-box">${srcCroqui?`<img src="${srcCroqui}">`:'[ croqui de localização ]'}</div>
+      <div class="foto-box">${srcCroqui?'<img src="'+srcCroqui+'" style="width:100%;height:100%;object-fit:cover">'  :'[ croqui de localização ]'}</div>
     </div>
     <div class="cell">
       <label>Foto da fachada principal</label>
-      <div class="foto-box">${srcFachada?`<img src="${srcFachada}">`:'[ foto da fachada principal ]'}</div>
+      <div class="foto-box">${srcFachada?'<img src="'+srcFachada+'" style="width:100%;height:100%;object-fit:cover">':'[ foto da fachada principal ]'}</div>
     </div>
   </div>
 </div>`
@@ -372,11 +372,19 @@ export async function POST(request: NextRequest) {
     let ativPlano: {descricao:string; ini:string; fim:string}[] = []
     try {
       const tipoPlano = String(Number(tipoServico) - 20)
-      const nomePlano = `${chaveInspetor}_plano_${tipoPlano}_${cnpjoucpf}.html`
-      const { data: blobPlano } = await supabase.storage.from('aime')
-        .download(`documentos_inspetor/${nomePlano}`)
+      // Tentar múltiplos padrões de nome do plano
+      const nomesCandidatos = [
+        `${chaveInspetor}_plano_${tipoPlano}_${cnpjoucpf}.html`,
+        `${chaveInspetor}_plano_trabalho_${tipoPlano}_${cnpjoucpf}.html`,
+        `${chaveInspetor}_${cnpjoucpf}_plano_${tipoPlano}.html`,
+      ]
+      let blobPlano = null
+      for (const nome of nomesCandidatos) {
+        const { data: b } = await supabase.storage.from('aime').download(`documentos_inspetor/${nome}`)
+        if (b) { blobPlano = b; break }
+      }
       if (blobPlano) {
-        const htmlPlano = await blobPlano.text()
+        const htmlPlano = await (blobPlano as Blob).text()
         // Extrair linhas da tabela: <td style="text-align:justify...">DESC</td><td>INI</td><td>FIM</td>
         // Extrair atividades com datas do HTML do plano
         // Padrão: <td text-align:justify>DESC</td> seguido de 2 tds com data ou input
@@ -715,6 +723,9 @@ ${cabInspetor?`<div class="cab">${cabInspetor}</div>`:''}
 
 
 
+
+
+
 <div class="titulo">1.- Considerações Preliminares.</div>
 <p>Este ${titulo} é o documento completo resultante do trabalho executado na vistoria da edificação, análise, classificação e priorização das manifestações patológicas, conforme exigências da <i>ABNT NBR 16.747/2020 e NBR 15.</i>, recomendações da <i>Norma de Inspeção Predial do IBAPE de 2025</i> e legislação vigente.</p>
 <p>A inspeção apresentada neste laudo é o resultado de um exame "clínico geral" que avalia as condições globais do objeto em estudo e detecta a existência de problemas de conservação ou funcionamento, com base em uma análise fundamentalmente sensorial e efetuada por um profissional habilitado. Com base nesta análise, pode ocorrer a recomendação de contratação de ensaios especializadas ou outras ações para que se possa aprofundar e refinar o diagnóstico.</p>
@@ -828,9 +839,9 @@ ${S33}
 <p>A prioridade para manutenção de cada uma das não conformidades foi obtida pelo grau de risco (0 a 100), calculado com base nos parâmetros: gravidade, urgência, tendência e exposição ao risco.</p>
 <p>Quanto a definição das prioridades foi adotado o critério: grau de risco superior a 64 pontos, prioridade ALTA; grau de risco menor que 65 pontos e maior que 34 pontos, prioridade MÉDIA; grau de risco menor que 35 pontos, prioridade BAIXA.</p>
 ${S41||'<p><i>Nenhuma não conformidade registrada.</i></p>'}
+</div>
 
 ${S42}
-</div>
 
 ${S5}
 
@@ -865,12 +876,12 @@ ${S5}
 <p>O documento é entregue em mídia magnética.</p>
 <p style="border:1px solid #999;padding:6px;font-size:7.5pt;background:#f9f9f9"><b>Atenção:</b> O titular do direito autoral deste trabalho somente autoriza sua reprodução nos casos legais cabíveis, vedando sua cópia ou qualquer forma de reprodução que caracterize plágio ou represente utilização dos direitos exclusivos do autor, sendo que sua violação acarretará as penalidades civis e criminais previstas no art.184 do Código Penal Brasileiro e Lei nº 9.610.</p>
 
-<p style="text-align:right;font-size:9pt;font-weight:bold;color:#000;margin-top:20px">${xe(estab?.cidade)||''}${estab?.cidade?'/':''}${xe(estab?.uf)||''}${(estab?.cidade||estab?.uf)?', ':''}${dataHoje}</p>
-<div style="margin-top:12px">
-  <p style="font-size:8.5pt;color:#222">_______________________________________________</p>
-  <p style="font-size:8.5pt;font-weight:bold;color:#000">${xe(inspetor?.nome_inspetor)} — Responsável Técnico</p>
-  <p style="font-size:8pt;color:#222">${xe(inspetor?.titulo_profissional)} — CREA/CAU ${xe(inspetor?.inscricao_crea_cau)}</p>
-  ${inspetor?.especializacao?'<p style="font-size:8pt;color:#222">'+xe(inspetor.especializacao)+'</p>':''}
+  <p style="text-align:right;font-size:9pt;font-weight:bold;color:#000;margin-top:20px">${([xe(estab?.cidade),xe(estab?.uf)].filter(x=>!!x).join('/'))}${estab?.cidade?', ':''}${dataHoje}</p>
+<div style="margin-top:12px;line-height:1.2">
+  <p style="font-size:8.5pt;color:#222;margin:0;padding:0">_______________________________________________</p>
+  <p style="font-size:8.5pt;font-weight:bold;color:#000;margin:0;padding:0">${xe(inspetor?.nome_inspetor)} — Responsável Técnico</p>
+  <p style="font-size:8pt;color:#222;margin:0;padding:0">${xe(inspetor?.titulo_profissional)} — CREA/CAU ${xe(inspetor?.inscricao_crea_cau)}</p>
+  ${inspetor?.especializacao?'<p style="font-size:8pt;color:#222;margin:0;padding:0">'+xe(inspetor.especializacao)+'</p>':''}
 </div>
 </div>
 
