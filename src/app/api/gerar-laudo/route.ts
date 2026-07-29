@@ -704,8 +704,8 @@ export async function POST(request: NextRequest) {
           const aDesc = DESC_ABR[xe(nc.abrangencia||'')] || xe(nc.abrangencia||'')
           const eDesc = DESC_EXP[xe(nc.exposicao||'')]  || xe(nc.exposicao||'')
           const foto  = nc.fotoBase64?.startsWith('data:image')
-            ? '<img src="'+nc.fotoBase64+'" style="width:98%;max-height:90mm;object-fit:contain;display:block;margin:0 auto">'
-            : '<div style="height:60mm;background:#f1f5f9;border:1px dashed #c3d4f0;display:flex;align-items:center;justify-content:center;color:#94a3b8;font-size:7pt">[Sem foto]</div>'
+            ? '<img src="'+nc.fotoBase64+'" style="width:100%;max-height:110mm;object-fit:contain;display:block">'
+            : '<div style="height:70mm;background:#f1f5f9;border:1px dashed #c3d4f0;display:flex;align-items:center;justify-content:center;color:#94a3b8;font-size:7pt">[Sem foto]</div>'
           const LBL = 'font-size:5.5pt;color:#4a6480;font-weight:700;display:block;text-transform:uppercase;margin-bottom:1px'
           const TD  = 'border:1px solid #dde5f0;padding:3px 6px;vertical-align:top'
           const TH  = 'background:#1E3A8A;color:#fff;font-weight:700;padding:4px 6px;font-size:7.5pt;text-transform:uppercase'
@@ -752,7 +752,7 @@ export async function POST(request: NextRequest) {
               '<td style="'+TD+';width:40%"><span style="'+LBL+'">Foto Nº</span>'+xe(nc.fotoNr||'')+'</td>' +
               '<td colspan="3" style="'+TD+';text-align:right"><span style="'+LBL+'">Data da Vistoria</span>'+xe(nc.dataVistoria||nc.data||'')+'</td>' +
             '</tr>' +
-            '<tr><td colspan="4" style="'+TD+';padding:2px 4px">'+foto+'</td></tr>' +
+            '<tr><td colspan="4" style="'+TD+';padding:4px 2px">'+foto+'</td></tr>' +
             '<tr><td colspan="4" style="'+TH+'">Resultado da Análise e Avaliação</td></tr>' +
             '<tr><td colspan="4" style="'+TD+'"><span style="'+LBL+'">Descrição da Não Conformidade (NC)</span>'+xe(nc.nc||nc.anomalia||'')+'</td></tr>' +
             '<tr><td colspan="4" style="'+TD+'"><span style="'+LBL+'">Descrição da Causa Provável (CP)</span>'+xe(nc.cp||'')+'</td></tr>' +
