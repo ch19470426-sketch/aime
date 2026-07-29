@@ -201,7 +201,7 @@ function LaudoComplemento() {
           }
         }
         // Buscar dados de ativos_a_vistoriar (responsável, tipo, características)
-        const resA = await fetch(`${SUPA_URL}/rest/v1/ativos_a_vistoriar?cpf_inspetor=eq.${cpfInspetor}&cnpjoucpf=eq.${cnpjoucpf.replace(/\./g,"").replace(/-/g,"").replace(/\//g,"")}&select=*`, {
+        const resA = await fetch(`${SUPA_URL}/rest/v1/ativos_a_vistoriar?cpf_inspetor=eq.${cpfInspetor}&cnpjoucpf=eq.${cnpjoucpf.split('.').join('').split('-').join('').split('/').join(''))}&select=*`, {
           headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` }
         })
         const dadosA = await resA.json()
@@ -251,9 +251,9 @@ function LaudoComplemento() {
                 .map((m: RegExpMatchArray) => m[1].trim())
                 .filter((d: string) => 
                   d.length > 8 && 
-                  !d.match(/^[\d]/) &&  // não é número (linha de atividade)
-                  !d.match(/^\d{2}\/\d{2}/) && // não é data
-                  !d.match(/^[—\-]$/)  // não é placeholder
+                  !d.match(new RegExp('^[0-9]')) &&  // não é número
+                  !d.match(new RegExp('^[0-9]{2}/[0-9]{2}')) && // não é data
+                  !d.match(new RegExp('^[\u2014\\-]$'))  // não é placeholder
                 )
               if (docsPlano.length > 0) {
                 setDocsAnexo1(Object.fromEntries(docsPlano.map((d: string) => [d, {situacao:'',resultado:''}])))
