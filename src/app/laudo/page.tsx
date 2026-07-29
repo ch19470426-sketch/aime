@@ -252,9 +252,9 @@ function LaudoComplemento() {
                 .map((m: RegExpMatchArray) => m[1].trim())
                 .filter((d: string) => 
                   d.length > 8 && 
-                  !d.match(new RegExp('^[0-9]')) &&  // não é número
-                  !d.match(new RegExp('^[0-9]{2}/[0-9]{2}')) && // não é data
-                  !d.match(new RegExp('^[\u2014\\-]$'))  // não é placeholder
+                  !d.match(new RegExp('^[0-9]')) &&
+                  !(d.length === 10 && d[2] === '/') &&
+                  !d.match(new RegExp('^[\u2014-]$'))
                 )
               if (docsPlano.length > 0) {
                 setDocsAnexo1(Object.fromEntries(docsPlano.map((d: string) => [d, {situacao:'',resultado:''}])))
