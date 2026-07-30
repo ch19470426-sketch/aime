@@ -794,12 +794,12 @@ export async function POST(request: NextRequest) {
     const CAPA_HTML = `
 <div class='pg-capa' style='counter-reset:page 0'>
   <div style='height:1cm;background:#fff;flex-shrink:0'></div>
-  <div style='background:#1E3A8A;height:5.6mm;flex-shrink:0'></div>
-  <div style='text-align:center;padding:10mm 0 0;flex-shrink:0'>${logoTag}</div>
-  <div style='flex:1;min-height:20mm'></div>
+  <div style='background:#1E3A8A;height:8mm;flex-shrink:0'></div>
+  <div style='text-align:center;padding:10mm 0 0;flex-shrink:0;margin-bottom:16mm'>${logoTag}</div>
+  <div style='flex:1'></div>
   <div style='text-align:center;padding:0 20mm;flex-shrink:0'>
     <div style='font-size:8pt;color:#6B7280;letter-spacing:3px;text-transform:uppercase;margin-bottom:6pt'>LAUDO T&Eacute;CNICO</div>
-    <div style='font-size:18pt;font-weight:900;color:#1E3A8A;line-height:1.2;margin-bottom:8pt'>${titulo}</div>
+    <div style='font-size:18pt;font-weight:900;color:#1E3A8A;line-height:1.2;margin-bottom:2pt'>${titulo}</div>
     <div style='font-size:13pt;font-weight:700;color:#374151;margin-bottom:4pt'>${xe(estab?.razao_social_nome||estab?.razao_social||'')}</div>
     <div style='font-size:9pt;color:#374151;text-align:center'>${xe(estab?.logradouro||'')}${estab?.numero_imovel?', '+xe(estab.numero_imovel):''} &mdash; ${xe(estab?.cidade||'')}/${xe(estab?.uf||'')}</div>
   </div>
@@ -822,23 +822,26 @@ export async function POST(request: NextRequest) {
       {n:'1.2.-', pg:'3', t:'Objetivo',                                                      nivel:2},
       {n:'1.3.-', pg:'3', t:'Plano de Trabalho',                                             nivel:2},
       {n:'1.4.-', pg:'4', t:'Condições e limitações',                                        nivel:2},
-      {n:'2.', pg:'5',    t:'Metodologia adotada para o Trabalho de Autovistoria',           nivel:1},
-      {n:'2.1.-', pg:'5', t:'Norma Brasileira para Inspeção Predial — NBR-16.747/2020',     nivel:2},
+      {n:'2.', pg:'4',    t:'Metodologia adotada para o Trabalho de Autovistoria',           nivel:1},
+      {n:'2.1.-', pg:'4', t:'Norma Brasileira para Inspeção Predial — NBR-16.747/2020',     nivel:2},
       {n:'2.2.-', pg:'5', t:'Norma de Inspeção Predial do IBAPE/2025',                      nivel:2},
-      {n:'2.3.-', pg:'6', t:'Critérios e Metodologia da Inspeção',                          nivel:2},
-      {n:'3.', pg:'7',    t:'Resultado da Vistoria Técnica e Classificação da Edificação',  nivel:1},
-      {n:'3.1.-', pg:'7', t:'Descrição da Vistoria Técnica',                                nivel:2},
-      {n:'3.2.-', pg:'8', t:'Resultado da Vistoria',                                        nivel:2},
-      {n:'3.3.-', pg:'9', t:'Resultado da Classificação da Edificação',                     nivel:2},
-      {n:'4.', pg:'10',    t:'Relação de Não Conformidades e Soluções',                      nivel:1},
-      {n:'4.1.-', pg:'10', t:'Relação de Não Conformidades e Soluções por Sistema',          nivel:2},
-      {n:'4.2.-', pg:'12', t:'Análise Estatística das Manifestações Patológicas',            nivel:2},
-      {n:'5.', pg:'13',    t:'Recomendações sobre a Manutenção, Uso, Sustentabilidade',      nivel:1},
-      {n:'6.', pg:'14',    t:'Conclusão',                                                     nivel:1},
-      {n:'7.', pg:'15',    t:'Encerramento',                                                  nivel:1},
+      {n:'2.3.-', pg:'5', t:'Critérios e Metodologia da Inspeção',                          nivel:2},
+      {n:'3.', pg:'6',    t:'Resultado da Vistoria Técnica e Classificação da Edificação',  nivel:1},
+      {n:'3.1.-', pg:'6', t:'Descrição da Vistoria Técnica',                                nivel:2},
+      {n:'3.2.-', pg:'7', t:'Resultado da Vistoria',                                        nivel:2},
+      {n:'3.3.-', pg:'8', t:'Resultado da Classificação da Edificação',                     nivel:2},
+      {n:'4.', pg:'9',    t:'Relação de Não Conformidades e Soluções',                      nivel:1},
+      {n:'4.1.-', pg:'9', t:'Relação de Não Conformidades e Soluções por Sistema',          nivel:2},
+      {n:'4.2.-', pg:'11', t:'Análise Estatística das Manifestações Patológicas',            nivel:2},
+      {n:'5.', pg:'12',    t:'Recomendações sobre a Manutenção, Uso, Sustentabilidade',      nivel:1},
+      {n:'6.', pg:'13',    t:'Conclusão',                                                     nivel:1},
+      {n:'7.', pg:'14',    t:'Encerramento',                                                  nivel:1},
+      {n:'7.1.-', pg:'14', t:'Anexos',                                                             nivel:2},
+      {n:'7.2.-', pg:'14', t:'Declaração de Conformidade com o Código de Ética',                  nivel:2},
+      {n:'7.3.-', pg:'15', t:'Termo de Encerramento',                                             nivel:2},
       {n:'Anexo 1', pg:'16', t:'Documentação da Edificação Solicitada',                      nivel:1},
       {n:'Anexo 2', pg:'17', t:'Resultado da Vistoria',                                      nivel:1},
-      {n:'Anexo 3', pg:'18', t:'Anotações de Responsabilidade Técnica',                      nivel:1},
+      {n:'Anexo 3', pg:'19', t:'Anotações de Responsabilidade Técnica',                      nivel:1},
     ]
     const INDICE_HTML = '<div class="pg-indice">' +
       '<div class="indice-titulo">ÍNDICE</div>' +
