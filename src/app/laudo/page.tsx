@@ -253,18 +253,25 @@ function LaudoComplemento() {
               // Cada doc está em: <td style="font-size:10pt">NOME</td>
               // mas só na tabela de documentos (não atividades)
               // Extrair a seção após o título de documentos
-              const secIdx = (htmlPlano.toLowerCase().indexOf("documentos"))
-              const secHtml = secIdx >= 0 ? htmlPlano.slice(secIdx) : htmlPlano
-              // Pegar todas as células com texto longo (documentos têm nomes longos)
-              const tdMatches = (()=>{ const r=[]; let s=secHtml; while(s.indexOf("<td")>=0){ const a=s.indexOf("font-size:10pt"); if(a<0)break; const b=s.indexOf(">",a)+1; const e=s.indexOf("</td>",b); if(e<0)break; r.push([s,s.slice(b,e)]); s=s.slice(e+5); } return r; })()
-              const docsPlano = tdMatches
-                .map((m: RegExpMatchArray) => m[1].trim())
-                .filter((d: string) => 
-                  d.length > 8 &&
-                  !d.includes('<') &&
-                  !("0123456789".includes(d[0])) &&
-                  !(d === '—' || d === '-')
-                )
+              // Extrair da tabela com id="tbDocs" (tabela de documentos do plano)
+              const tbIdx = htmlPlano.indexOf('id="tbDocs"')
+              const tbHtml = tbIdx >= 0 ? htmlPlano.slice(tbIdx) : htmlPlano.slice(htmlPlano.toLowerCase().indexOf("tbdocs"))
+              // Pegar textos dos <td> da tabela de documentos (primeira coluna)
+              const docsPlano: string[] = []
+              let s = tbHtml
+              while (s.indexOf("<td") >= 0) {
+                const a = s.indexOf("font-size:10pt")
+                if (a < 0) break
+                const b = s.indexOf(">", a) + 1
+                const e = s.indexOf("</td>", b)
+                if (e < 0) break
+                const txt = s.slice(b, e).replace(/<[^>]+>/g, "").trim()
+                // Só aceitar texto puro sem HTML e que parece nome de documento
+                if (txt.length > 5 && !txt.includes("<") && !"0123456789".includes(txt[0]) && txt !== "—") {
+                  docsPlano.push(txt)
+                }
+                s = s.slice(e + 5)
+              }
               if (docsPlano.length > 0) {
                 setDocsAnexo1(Object.fromEntries(docsPlano.map((d: string) => [d, {situacao:'',resultado:''}])))
               }
