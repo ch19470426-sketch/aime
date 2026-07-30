@@ -790,24 +790,24 @@ export async function POST(request: NextRequest) {
     const logoB64 = inspetor?.logo_base64 || ''
     const logoTag = logoB64 ? `<img src="${logoB64}" style="max-height:28mm;max-width:80mm">` : `<div style="font-size:14pt;font-weight:900;color:#1E3A8A">${xe(inspetor?.cabecalho_documentos||'AIMÊ')}</div>`
     const CAPA_HTML = `
-<div class="pg-capa">
+<div class="pg-capa" style="counter-reset:page 0">
 <div class="capa-barra"></div>
 <div class="capa-logo">${logoTag}</div>
-<div style="flex:1"></div>
+<div style="flex:2"></div>
 <div class="capa-titulo">
   <div style="font-size:8pt;color:#6B7280;letter-spacing:2px;text-transform:uppercase;margin-bottom:8pt">LAUDO TÉCNICO</div>
   <h1>${titulo}</h1>
-  <h2>${xe(estab?.razao_social_nome||estab?.razao_social||'')} </h2>
+  <h2>${xe(estab?.razao_social_nome||estab?.razao_social||'')}</h2>
+  <p style='font-size:9pt;color:#374151;margin-top:8pt'>${xe(estab?.logradouro||'')}${estab?.numero_imovel?', '+xe(estab.numero_imovel):''} &mdash; ${xe(estab?.cidade||'')}/${xe(estab?.uf||'')}</p>
 </div>
+<div style="flex:3"></div>
 <div class="capa-linha"></div>
 <div class="capa-dados">
   <b>Inspetor Responsável:</b> ${xe(inspetor?.nome_inspetor)}<br>
-  <b>Título Profissional:</b> ${tituloIns} — ${siglaIns} ${numIns}<br>
-  ${inspetor?.especializacao ? "<b>Especialidade:</b> " + xe(inspetor.especializacao) + "<br>" : ""}
-  <b>Endereço:</b> ${xe(estab?.logradouro||'')}${estab?.numero_imovel?", "+xe(estab.numero_imovel):""}, ${xe(estab?.bairro||'')} — ${xe(estab?.cidade||'')}/${xe(estab?.uf||'')} — CEP ${xe(estab?.cep_estabelecimento||'')} <br>
+  <b>Título Profissional:</b> ${tituloIns} &mdash; ${siglaIns} ${numIns}<br>
+  ${inspetor?.especializacao ? '<b>Especialidade:</b> Especialista ' + xe(inspetor.especializacao) + '<br>' : ''}
   <b>Data:</b> ${dataHoje}
 </div>
-<div class="capa-rodape">${xe(inspetor?.rodape_documentos||'AIMÊ — Mapeamento Inteligente de Edificações e Equipamentos')}</div>
 </div>`
 
     // ── ÍNDICE ───────────────────────────────────────────────────────────────
@@ -860,6 +860,7 @@ ${INDICE_HTML}
 </div>
 <div class="section">
 ${cabInspetor?`<div class="cab">${cabInspetor}</div>`:''}
+<br><br><br><br><br>
 
 
 
