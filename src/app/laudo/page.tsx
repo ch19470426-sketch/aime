@@ -252,10 +252,9 @@ function LaudoComplemento() {
               // A tabela de documentos vem após "Documentos" no HTML do plano
               // Cada doc está em: <td style="font-size:10pt">NOME</td>
               // mas só na tabela de documentos (não atividades)
-              // Extrair a seção após o título de documentos
-              // Extrair documentos da tabela tbDocs
-              // Cada linha tem: <td style="font-size:10pt">NOME</td><td><select...>
-              // Pegar todos os <td> cujo CONTEUDO é texto puro (não tem <)
+              // Encontrar tabela de documentos (id="tbDocs") e extrair nomes
+              const tbIdx = htmlPlano.indexOf('id="tbDocs"')
+              const tbHtml = tbIdx >= 0 ? htmlPlano.slice(tbIdx) : htmlPlano
               const docsPlano: string[] = []
               let s = tbHtml
               while (s.indexOf("<td") >= 0) {
@@ -265,7 +264,6 @@ function LaudoComplemento() {
                 const endTd = s.indexOf("</td>", tdClose)
                 if (endTd < 0) break
                 const inner = s.slice(tdClose + 1, endTd).trim()
-                // Aceitar só texto puro (sem tags HTML) com tamanho razoável
                 if (inner.length > 5 && !inner.includes("<") && inner !== "—" && inner !== "-") {
                   docsPlano.push(inner)
                 }
