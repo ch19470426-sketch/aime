@@ -172,6 +172,7 @@ tr:nth-child(even) td { background: #f7f9ff; }
 .s41-bloco { page-break-before: avoid !important; }
 /* Capa */
 .pg-capa { page-break-after: always; display: flex; flex-direction: column; min-height: 247mm; }
+@page :first { @top-center{content:none} @bottom-center{content:none} @bottom-left{content:none} @bottom-right{content:none} }
 .capa-barra { background: #1E3A8A; height: 8mm; width: 100%; margin-bottom: 0; }
 .capa-logo  { text-align: center; padding: 20mm 0 10mm; }
 .capa-logo img { max-height: 30mm; }
@@ -187,7 +188,7 @@ tr:nth-child(even) td { background: #f7f9ff; }
 .pg-indice { page-break-after: always; padding-top: 10mm; }
 .indice-titulo { font-size: 14pt; font-weight: 900; color: #1E3A8A; text-align: center; margin-bottom: 12mm; letter-spacing: 2px; }
 .indice-item { display: flex; align-items: baseline; padding: 3pt 0; border-bottom: 1px dotted #c3d4f0; font-size: 9pt; }
-.indice-item.nivel2 { padding-left: 12pt; font-size: 8.5pt; color: #374151; }
+.indice-item { display: flex; align-items: baseline; padding: 3pt 0; font-size: 9pt; }
 .indice-num  { min-width: 30pt; font-weight: 700; color: #1E3A8A; flex-shrink: 0; }
 .indice-dots { flex: 1; }
 
