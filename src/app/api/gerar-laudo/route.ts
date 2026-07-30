@@ -1049,7 +1049,7 @@ ${A2}
 <div class="section">
 <div class="titulo" style="text-align:center">Anexo 3 – Anotações de Responsabilidade Técnica</div>
 <br>
-<p>Inserir neste espaço a ART (Anotação de Responsabilidade Técnica) ou RRT (Registro de Responsabilidade Técnica) devidamente registrada no CREA ou CAU.</p>
+
 ${srcArt
   ?`<div style="margin-top:8px;text-align:center"><img src="${srcArt}" style="max-width:100%;border:1.5px solid #1E3A8A"></div>`
   :`<div class="foto-box" style="height:200px;margin-top:8px">[ ART / RRT — inserir pelo responsável técnico ]</div>`}
