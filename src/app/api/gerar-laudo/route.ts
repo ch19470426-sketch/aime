@@ -641,7 +641,7 @@ export async function POST(request: NextRequest) {
       const res=info.resultado||'—'
       const cls=sit==='Entregue'?'b-entregue':sit==='Pendente'?'b-pendente':'b-desn'
       const clsR=res==='Conforme'?'b-conforme':res==='Não conforme'?'b-nconfo':res==='Não se aplica'?'b-na':''
-      return `<tr><td style="word-break:break-word;white-space:normal;max-width:200px">${d}</td><td style="text-align:center"><span class="badge ${cls}">${sit}</span></td><td><span class="${clsR?'badge '+clsR:''}">${res}</span></td></tr>`
+      return `<tr><td style="word-break:break-word;white-space:normal">${d}</td><td style="text-align:center"><span class="badge ${cls}">${sit}</span></td><td><span class="${clsR?'badge '+clsR:''}">${res}</span></td></tr>`
     }).join('')
       : DOCS_ANEXO1.map(d=>{
       const info=(complemento?.docsAnexo1??{})[d]??{situacao:'',resultado:''}
@@ -703,7 +703,7 @@ export async function POST(request: NextRequest) {
           const ev = String(nc.exposicao||'')
           const eDesc = EXP_MAP[ev] || ev || '—'
           const foto  = nc.fotoBase64?.startsWith('data:image')
-            ? '<img src="'+nc.fotoBase64+'" style="max-width:96%;max-height:120mm;object-fit:contain;display:block;margin:0 auto">'
+            ? '<img src="'+nc.fotoBase64+'" style="width:100%;max-height:115mm;object-fit:contain;display:block">'
             : '<div style="height:70mm;background:#f1f5f9;border:1px dashed #c3d4f0;display:flex;align-items:center;justify-content:center;color:#94a3b8;font-size:7pt">[Sem foto]</div>'
           const LBL = 'font-size:5.5pt;color:#4a6480;font-weight:700;display:block;text-transform:uppercase;margin-bottom:1px'
           const TD  = 'border:1px solid #dde5f0;padding:3px 6px;vertical-align:top'
