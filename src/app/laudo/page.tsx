@@ -260,11 +260,10 @@ function LaudoComplemento() {
               const docsPlano = tdMatches
                 .map((m: RegExpMatchArray) => m[1].trim())
                 .filter((d: string) => 
-                  d.length > 8 && 
+                  d.length > 8 &&
+                  !d.includes('<') &&
                   !("0123456789".includes(d[0])) &&
-                  !(d.length >= 5 && "0123456789".includes(d[0]) && d[2] === "/") &&
-                  !(d === "—" || d === "-")
-                )
+                  !(d === '—' || d === '-')
               if (docsPlano.length > 0) {
                 setDocsAnexo1(Object.fromEntries(docsPlano.map((d: string) => [d, {situacao:'',resultado:''}])))
               }
