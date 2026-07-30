@@ -201,11 +201,20 @@ function LaudoComplemento() {
           }
         }
         // Buscar dados de ativos_a_vistoriar (responsável, tipo, características)
+        // Buscar dados de ativos_a_vistoriar (responsável, tipo, características)
         const cnpjLimpo = cnpjoucpf.replace(/\D/g, "")
-        const resA = await fetch(`${SUPA_URL}/rest/v1/ativos_a_vistoriar?cpf_inspetor=eq.${cpfInspetor}&cnpjoucpf=eq.${cnpjLimpo}&select=*`, {
+        // Tentar com cnpj, fallback sem cnpj
+        let resA = await fetch(`${SUPA_URL}/rest/v1/ativos_a_vistoriar?cpf_inspetor=eq.${cpfInspetor}&cnpjoucpf=eq.${cnpjLimpo}&select=*&limit=1`, {
           headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` }
         })
-        const dadosA = await resA.json()
+        let dadosA = await resA.json()
+        // Fallback: buscar qualquer ativo do inspetor se não encontrou pelo cnpj
+        if (!Array.isArray(dadosA) || dadosA.length === 0) {
+          resA = await fetch(`${SUPA_URL}/rest/v1/ativos_a_vistoriar?cpf_inspetor=eq.${cpfInspetor}&select=*&limit=1`, {
+            headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` }
+          })
+          dadosA = await resA.json()
+        }
         if (Array.isArray(dadosA) && dadosA.length > 0) {
           const a = dadosA[0]
           setEstab(prev => ({
