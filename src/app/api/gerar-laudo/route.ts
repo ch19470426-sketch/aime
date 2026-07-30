@@ -641,13 +641,13 @@ export async function POST(request: NextRequest) {
       const res=info.resultado||'—'
       const cls=sit==='Entregue'?'b-entregue':sit==='Pendente'?'b-pendente':'b-desn'
       const clsR=res==='Conforme'?'b-conforme':res==='Não conforme'?'b-nconfo':res==='Não se aplica'?'b-na':''
-      return `<tr><td style="word-break:break-word">${d}</td><td style="text-align:center"><span class="badge ${cls}">${sit}</span></td><td><span class="${clsR?'badge '+clsR:''}">${res}</span></td></tr>`
+      return `<tr><td style="word-break:break-word;white-space:normal;max-width:200px">${d}</td><td style="text-align:center"><span class="badge ${cls}">${sit}</span></td><td><span class="${clsR?'badge '+clsR:''}">${res}</span></td></tr>`
     }).join('')
       : DOCS_ANEXO1.map(d=>{
       const info=(complemento?.docsAnexo1??{})[d]??{situacao:'',resultado:''}
       const sit=info.situacao||'—'
       const res=info.resultado||'—'
-      return `<tr><td style="word-break:break-word">${d}</td><td style="text-align:center">${sit}</td><td>${res}</td></tr>`
+      return `<tr><td style="word-break:break-word;white-space:normal;max-width:200px">${d}</td><td style="text-align:center">${sit}</td><td>${res}</td></tr>`
     }).join('')}
   </table>
 </div>`
@@ -699,12 +699,12 @@ export async function POST(request: NextRequest) {
           const DESC_URG:  Record<string,string> = {'Imediata':'Intervenção imediata','Brevemente':'Intervenção em curto prazo','Pode esperar':'Pode ser programada','Sem urgência':'Sem urgência definida'}
           const DESC_ABR:  Record<string,string> = {'Sistema completo':'Todo o sistema afetado','Várias partes':'Diversas partes afetadas','Local':'Área localizada afetada','Única unidade':'Unidade isolada'}
           const DESC_EXP:  Record<string,string> = {'Alta':'Exposição ambiental alta','Média':'Exposição ambiental média','Baixa':'Exposição ambiental baixa','Nenhuma':'Sem exposição ambiental'}
-          const gDesc = DESC_GRAV[xe(nc.gravidade||'')] || xe(nc.gravidade||'')
-          const uDesc = DESC_URG[xe(nc.urgencia||'')]   || xe(nc.urgencia||'')
-          const aDesc = DESC_ABR[xe(nc.abrangencia||'')] || xe(nc.abrangencia||'')
-          const eDesc = DESC_EXP[xe(nc.exposicao||'')]  || xe(nc.exposicao||'')
+          const gDesc = DESC_GRAV[(xe(nc.gravidade||'')).trim()] || xe(nc.gravidade||'')
+          const uDesc = DESC_URG[(xe(nc.urgencia||'')).trim()] || xe(nc.urgencia||'')
+          const aDesc = DESC_ABR[(xe(nc.abrangencia||'')).trim()] || xe(nc.abrangencia||'')
+          const eDesc = DESC_EXP[(xe(nc.exposicao||'')).trim()] || xe(nc.exposicao||'')
           const foto  = nc.fotoBase64?.startsWith('data:image')
-            ? '<img src="'+nc.fotoBase64+'" style="width:100%;width:100%;height:130mm;object-fit:cover;display:block">'
+            ? '<img src="'+nc.fotoBase64+'" style="max-width:96%;max-height:120mm;object-fit:contain;display:block;margin:0 auto">'
             : '<div style="height:70mm;background:#f1f5f9;border:1px dashed #c3d4f0;display:flex;align-items:center;justify-content:center;color:#94a3b8;font-size:7pt">[Sem foto]</div>'
           const LBL = 'font-size:5.5pt;color:#4a6480;font-weight:700;display:block;text-transform:uppercase;margin-bottom:1px'
           const TD  = 'border:1px solid #dde5f0;padding:3px 6px;vertical-align:top'
@@ -931,7 +931,6 @@ ${S5}
 <p style="line-height:1;margin:0">&nbsp;</p>
 <p style="font-size:8pt;line-height:1;margin:0">[Assinatura digital]</p>
 <p style="line-height:1;margin:0">&nbsp;</p>
-<p style="line-height:1;margin:0;font-weight:bold">${xe(inspetor?.nome_inspetor)}</p>
 <p style="line-height:1;margin:0;font-weight:bold">${xe(inspetor?.nome_inspetor)}</p>
 <p style="line-height:1;margin:0">${xe(inspetor?.titulo_profissional)}</p>
 <p style="line-height:1;margin:0">&nbsp;</p>
