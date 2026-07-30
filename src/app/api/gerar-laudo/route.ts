@@ -170,6 +170,27 @@ tr:nth-child(even) td { background: #f7f9ff; }
 .th-sub { background: #2a52a8 !important; color: #fff !important; font-weight: 700; }
 
 .s41-bloco { page-break-before: avoid !important; }
+/* Capa */
+.pg-capa { page-break-after: always; display: flex; flex-direction: column; min-height: 247mm; }
+.capa-barra { background: #1E3A8A; height: 8mm; width: 100%; margin-bottom: 0; }
+.capa-logo  { text-align: center; padding: 20mm 0 10mm; }
+.capa-logo img { max-height: 30mm; }
+.capa-titulo { text-align: center; margin-top: auto; padding: 0 20mm; }
+.capa-titulo h1 { font-size: 18pt; font-weight: 900; color: #1E3A8A; line-height: 1.2; margin-bottom: 6pt; }
+.capa-titulo h2 { font-size: 13pt; font-weight: 700; color: #374151; margin-bottom: 20pt; }
+.capa-linha { border-top: 2px solid #1E3A8A; margin: 0 20mm; }
+.capa-dados { padding: 10mm 20mm; font-size: 9.5pt; color: #222; line-height: 1.8; }
+.capa-dados b { color: #1E3A8A; }
+.capa-rodape { margin-top: auto; padding: 8mm 20mm; text-align: center; font-size: 8pt; color: #6B7280; border-top: 1px solid #ddd; }
+
+/* Índice */
+.pg-indice { page-break-after: always; padding-top: 10mm; }
+.indice-titulo { font-size: 14pt; font-weight: 900; color: #1E3A8A; text-align: center; margin-bottom: 12mm; letter-spacing: 2px; }
+.indice-item { display: flex; align-items: baseline; padding: 3pt 0; border-bottom: 1px dotted #c3d4f0; font-size: 9pt; }
+.indice-item.nivel2 { padding-left: 12pt; font-size: 8.5pt; color: #374151; }
+.indice-num  { min-width: 30pt; font-weight: 700; color: #1E3A8A; flex-shrink: 0; }
+.indice-dots { flex: 1; }
+
 /* §3.5 — Item classificado */
 .item-row     { display: flex; align-items: stretch; border-top: 1px solid #1E3A8A; min-height: 48px; }
 .item-row:first-of-type { border-top: none; }
@@ -765,6 +786,66 @@ export async function POST(request: NextRequest) {
     const tituloIns = (inspetor?.titulo_profissional||'').replace(/(CREA|CAU|CRECI)[\s-]*/gi,'').trim()
     const numIns = (inspetor?.inscricao_crea_cau||'').replace(/^(CREA|CAU|CRECI)[\s-]*/gi,'').trim()
 
+    // ── CAPA ─────────────────────────────────────────────────────────────────
+    const logoB64 = inspetor?.logo_base64 || ''
+    const logoTag = logoB64 ? `<img src="${logoB64}" style="max-height:28mm;max-width:80mm">` : `<div style="font-size:14pt;font-weight:900;color:#1E3A8A">${xe(inspetor?.cabecalho_documentos||'AIMÊ')}</div>`
+    const CAPA_HTML = `
+<div class="pg-capa">
+<div class="capa-barra"></div>
+<div class="capa-logo">${logoTag}</div>
+<div style="flex:1"></div>
+<div class="capa-titulo">
+  <div style="font-size:8pt;color:#6B7280;letter-spacing:2px;text-transform:uppercase;margin-bottom:8pt">LAUDO TÉCNICO</div>
+  <h1>${titulo}</h1>
+  <h2>${xe(estab?.razao_social_nome||estab?.razao_social||'')} </h2>
+</div>
+<div class="capa-linha"></div>
+<div class="capa-dados">
+  <b>Inspetor Responsável:</b> ${xe(inspetor?.nome_inspetor)}<br>
+  <b>Título Profissional:</b> ${tituloIns} — ${siglaIns} ${numIns}<br>
+  ${inspetor?.especializacao ? "<b>Especialidade:</b> " + xe(inspetor.especializacao) + "<br>" : ""}
+  <b>Endereço:</b> ${xe(estab?.logradouro||'')}${estab?.numero_imovel?", "+xe(estab.numero_imovel):""}, ${xe(estab?.bairro||'')} — ${xe(estab?.cidade||'')}/${xe(estab?.uf||'')} — CEP ${xe(estab?.cep_estabelecimento||'')} <br>
+  <b>Data:</b> ${dataHoje}
+</div>
+<div class="capa-rodape">${xe(inspetor?.rodape_documentos||'AIMÊ — Mapeamento Inteligente de Edificações e Equipamentos')}</div>
+</div>`
+
+    // ── ÍNDICE ───────────────────────────────────────────────────────────────
+    const INDICE_ITENS = [
+      {n:'1.',    t:'Considerações Preliminares',                                   nivel:1},
+      {n:'1.1.-', t:'Características e Localização da Edificação',                  nivel:2},
+      {n:'1.2.-', t:'Objetivo',                                                      nivel:2},
+      {n:'1.3.-', t:'Plano de Trabalho',                                             nivel:2},
+      {n:'1.4.-', t:'Condições e limitações',                                        nivel:2},
+      {n:'2.',    t:'Metodologia adotada para o Trabalho de Autovistoria',           nivel:1},
+      {n:'2.1.-', t:'Norma Brasileira para Inspeção Predial — NBR-16.747/2020',     nivel:2},
+      {n:'2.2.-', t:'Norma de Inspeção Predial do IBAPE/2025',                      nivel:2},
+      {n:'2.3.-', t:'Critérios e Metodologia da Inspeção',                          nivel:2},
+      {n:'3.',    t:'Resultado da Vistoria Técnica e Classificação da Edificação',  nivel:1},
+      {n:'3.1.-', t:'Descrição da Vistoria Técnica',                                nivel:2},
+      {n:'3.2.-', t:'Resultado da Vistoria',                                        nivel:2},
+      {n:'3.3.-', t:'Resultado da Classificação da Edificação',                     nivel:2},
+      {n:'4.',    t:'Relação de Não Conformidades e Soluções',                      nivel:1},
+      {n:'4.1.-', t:'Relação de Não Conformidades e Soluções por Sistema',          nivel:2},
+      {n:'4.2.-', t:'Análise Estatística das Manifestações Patológicas',            nivel:2},
+      {n:'5.',    t:'Recomendações sobre a Manutenção, Uso, Sustentabilidade',      nivel:1},
+      {n:'6.',    t:'Conclusão',                                                     nivel:1},
+      {n:'7.',    t:'Encerramento',                                                  nivel:1},
+      {n:'Anexo 1', t:'Documentação da Edificação Solicitada',                      nivel:1},
+      {n:'Anexo 2', t:'Resultado da Vistoria',                                      nivel:1},
+      {n:'Anexo 3', t:'Anotações de Responsabilidade Técnica',                      nivel:1},
+    ]
+    const INDICE_HTML = '<div class="pg-indice">' +
+      '<div class="indice-titulo">ÍNDICE</div>' +
+      INDICE_ITENS.map(it =>
+        '<div class="indice-item' + (it.nivel===2?' nivel2':'') + '">' +
+        '<span class="indice-num">' + xe(it.n) + '</span>' +
+        '<span>' + xe(it.t) + '</span>' +
+        '<span class="indice-dots"></span>' +
+        '</div>'
+      ).join('') +
+      '</div>'
+
     const html = `<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -773,7 +854,11 @@ export async function POST(request: NextRequest) {
 <style>${CSS}</style>
 </head>
 <body>
-<br><br><br><br><br>
+${CAPA_HTML}
+<div class="section">
+${INDICE_HTML}
+</div>
+<div class="section">
 ${cabInspetor?`<div class="cab">${cabInspetor}</div>`:''}
 
 
@@ -939,6 +1024,7 @@ ${S5}
 <p style="line-height:1;margin:0">${tituloIns} — ${siglaIns} ${numIns}</p>
 ${inspetor?.especializacao ? '<p style="line-height:1;margin:0">Especialista ' + xe(inspetor.especializacao) + '</p>' : ''}
 
+</div>
 
 <div class="section">
 ${A1}
