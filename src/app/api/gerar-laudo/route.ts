@@ -133,7 +133,7 @@ i, em { font-style: italic; }
 
 table.tbl-plano { border: 1.5px solid #1E3A8A !important; }
 /* Cabeçalho/rodapé do inspetor */
-.cab { text-align: center; padding-bottom: 4pt; border-bottom: 2px solid #1E3A8A; margin-bottom: 10pt; font-size: 9pt; color: #374151; white-space: pre-line; }
+.cab { text-align: center; font-weight: bold; padding-bottom: 4pt; border-bottom: 2px solid #1E3A8A; margin-bottom: 10pt; font-size: 9pt; color: #374151; white-space: pre-line; }
 .rod { margin-top: 10pt; padding-top: 4pt; border-top: 1px solid #ccc; font-size: 8pt; text-align: center; white-space: pre-line; color: #374151; }
 
 /* §3.1 — Título de seção */
@@ -172,7 +172,8 @@ tr:nth-child(even) td { background: #f7f9ff; }
 .s41-bloco { page-break-before: avoid !important; }
 /* Capa */
 .pg-capa { page-break-after:always; display:flex; flex-direction:column; height:297mm; box-sizing:border-box; }
-@page :first { margin:0; @top-center{content:none} @bottom-center{content:none} @bottom-left{content:none} @bottom-right{content:none} }
+@page :first { margin:0 !important; }
+.pg-capa { counter-reset: page 0; }
 .capa-barra { background: #1E3A8A; height: 8mm; width: 100%; margin-bottom: 0; }
 .capa-logo  { text-align: center; padding: 20mm 0 10mm; }
 .capa-logo img { max-height: 30mm; }
@@ -793,9 +794,7 @@ export async function POST(request: NextRequest) {
     const CAPA_HTML = `
 <div class='pg-capa' style='counter-reset:page 0'>
   <div style='height:1cm;background:#fff;flex-shrink:0'></div>
-  <div style='background:#1E3A8A;padding:8mm 20mm;flex-shrink:0;text-align:center'>
-    <span style='color:#fff;font-size:10pt;letter-spacing:1px'>${xe(inspetor?.cabecalho_documentos||'AIMÊ &mdash; Mapeamento Inteligente de Edifica&ccedil;&otilde;es e Equipamentos')}</span>
-  </div>
+  <div style='background:#1E3A8A;height:5.6mm;flex-shrink:0'></div>
   <div style='text-align:center;padding:10mm 0 0;flex-shrink:0'>${logoTag}</div>
   <div style='flex:1;min-height:20mm'></div>
   <div style='text-align:center;padding:0 20mm;flex-shrink:0'>
@@ -812,7 +811,7 @@ export async function POST(request: NextRequest) {
     ${inspetor?.especializacao ? '<b style="color:#1E3A8A">Especialidade:</b> Especialista ' + xe(inspetor.especializacao) + '<br>' : ''}
     <b style='color:#1E3A8A'>Data:</b> ${dataHoje}
   </div>
-  <div style='background:#1E3A8A;height:12mm;flex-shrink:0'></div>
+  <div style='background:#1E3A8A;height:8mm;flex-shrink:0'></div>
   <div style='height:1cm;background:#fff;flex-shrink:0'></div>
 </div>`
 
@@ -823,23 +822,23 @@ export async function POST(request: NextRequest) {
       {n:'1.2.-', pg:'3', t:'Objetivo',                                                      nivel:2},
       {n:'1.3.-', pg:'3', t:'Plano de Trabalho',                                             nivel:2},
       {n:'1.4.-', pg:'4', t:'Condições e limitações',                                        nivel:2},
-      {n:'2.', pg:'4',    t:'Metodologia adotada para o Trabalho de Autovistoria',           nivel:1},
-      {n:'2.1.-', pg:'4', t:'Norma Brasileira para Inspeção Predial — NBR-16.747/2020',     nivel:2},
+      {n:'2.', pg:'5',    t:'Metodologia adotada para o Trabalho de Autovistoria',           nivel:1},
+      {n:'2.1.-', pg:'5', t:'Norma Brasileira para Inspeção Predial — NBR-16.747/2020',     nivel:2},
       {n:'2.2.-', pg:'5', t:'Norma de Inspeção Predial do IBAPE/2025',                      nivel:2},
-      {n:'2.3.-', pg:'5', t:'Critérios e Metodologia da Inspeção',                          nivel:2},
-      {n:'3.', pg:'6',    t:'Resultado da Vistoria Técnica e Classificação da Edificação',  nivel:1},
-      {n:'3.1.-', pg:'6', t:'Descrição da Vistoria Técnica',                                nivel:2},
-      {n:'3.2.-', pg:'7', t:'Resultado da Vistoria',                                        nivel:2},
-      {n:'3.3.-', pg:'7', t:'Resultado da Classificação da Edificação',                     nivel:2},
-      {n:'4.', pg:'8',    t:'Relação de Não Conformidades e Soluções',                      nivel:1},
-      {n:'4.1.-', pg:'8', t:'Relação de Não Conformidades e Soluções por Sistema',          nivel:2},
-      {n:'4.2.-', pg:'9', t:'Análise Estatística das Manifestações Patológicas',            nivel:2},
-      {n:'5.', pg:'10',    t:'Recomendações sobre a Manutenção, Uso, Sustentabilidade',      nivel:1},
-      {n:'6.', pg:'11',    t:'Conclusão',                                                     nivel:1},
-      {n:'7.', pg:'12',    t:'Encerramento',                                                  nivel:1},
-      {n:'Anexo 1', pg:'13', t:'Documentação da Edificação Solicitada',                      nivel:1},
-      {n:'Anexo 2', pg:'14', t:'Resultado da Vistoria',                                      nivel:1},
-      {n:'Anexo 3', pg:'15', t:'Anotações de Responsabilidade Técnica',                      nivel:1},
+      {n:'2.3.-', pg:'6', t:'Critérios e Metodologia da Inspeção',                          nivel:2},
+      {n:'3.', pg:'7',    t:'Resultado da Vistoria Técnica e Classificação da Edificação',  nivel:1},
+      {n:'3.1.-', pg:'7', t:'Descrição da Vistoria Técnica',                                nivel:2},
+      {n:'3.2.-', pg:'8', t:'Resultado da Vistoria',                                        nivel:2},
+      {n:'3.3.-', pg:'9', t:'Resultado da Classificação da Edificação',                     nivel:2},
+      {n:'4.', pg:'10',    t:'Relação de Não Conformidades e Soluções',                      nivel:1},
+      {n:'4.1.-', pg:'10', t:'Relação de Não Conformidades e Soluções por Sistema',          nivel:2},
+      {n:'4.2.-', pg:'12', t:'Análise Estatística das Manifestações Patológicas',            nivel:2},
+      {n:'5.', pg:'13',    t:'Recomendações sobre a Manutenção, Uso, Sustentabilidade',      nivel:1},
+      {n:'6.', pg:'14',    t:'Conclusão',                                                     nivel:1},
+      {n:'7.', pg:'15',    t:'Encerramento',                                                  nivel:1},
+      {n:'Anexo 1', pg:'16', t:'Documentação da Edificação Solicitada',                      nivel:1},
+      {n:'Anexo 2', pg:'17', t:'Resultado da Vistoria',                                      nivel:1},
+      {n:'Anexo 3', pg:'18', t:'Anotações de Responsabilidade Técnica',                      nivel:1},
     ]
     const INDICE_HTML = '<div class="pg-indice">' +
       '<div class="indice-titulo">ÍNDICE</div>' +
