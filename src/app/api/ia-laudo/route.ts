@@ -158,6 +158,14 @@ INSTRUÇÕES:
     })
 
     const data = await response.json()
+    // Verificar erro da API Anthropic
+    if (data.error) {
+      console.error('Anthropic API error:', JSON.stringify(data.error))
+      return NextResponse.json({ erro: 'Erro da API IA: ' + (data.error.message || JSON.stringify(data.error)) }, { status: 500 })
+    }
+    if (!response.ok) {
+      return NextResponse.json({ erro: 'API IA retornou status ' + response.status + ': ' + JSON.stringify(data) }, { status: 500 })
+    }
     const textoRaw = data.content?.map((c: any) => c.text || '').join('') ?? ''
     // Remover formatação markdown que a IA pode incluir
     const texto = textoRaw
