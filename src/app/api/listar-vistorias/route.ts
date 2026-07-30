@@ -45,6 +45,7 @@ function parsearHtml(html: string, nome: string): any {
     anomalia:    campo(html, 'Anomalia') || campo(html, 'Não conformidade \\(NC\\)'),
     local:       campo(html, 'Local'),
     complemento: campo(html, 'Complemento'),
+    origem:      campo(html, 'Origem'),
     gravidade:   campo(html, 'Gravidade'),
     urgencia:    campo(html, 'Urgência') || campo(html, 'Urgencia'),
     abrangencia: campo(html, 'Abrangência') || campo(html, 'Abrangencia'),
