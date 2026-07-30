@@ -342,7 +342,7 @@ export async function POST(request: NextRequest) {
     <div class="cell"><label>CEP</label><div class="val">${xe(estab?.cep_estabelecimento||estab?.cep)}</div></div>
   </div>
   <div class="row">
-    <div class="cell cell-3"><label>Endereço</label><div class="val">${xe(estab?.logradouro)}${estab?.numero?', '+xe(estab.numero):''}${estab?.complemento?' — '+xe(estab.complemento):''}</div></div>
+    <div class="cell cell-3"><label>Endereço</label><div class="val">${xe(estab?.logradouro)}${estab?.numero_imovel?', '+xe(estab.numero_imovel):''}${estab?.complemento?' — '+xe(estab.complemento):''}</div></div>
     <div class="cell cell-2"><label>Bairro</label><div class="val">${xe(estab?.bairro)}</div></div>
     <div class="cell"><label>Cidade / UF</label><div class="val">${xe(estab?.cidade)}/${xe(estab?.uf)}</div></div>
   </div>
