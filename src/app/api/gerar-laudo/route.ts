@@ -703,8 +703,8 @@ export async function POST(request: NextRequest) {
           const ev = String(nc.exposicao||'')
           const eDesc = EXP_MAP[ev] || ev || '—'
           const foto  = nc.fotoBase64?.startsWith('data:image')
-            ? '<img src="'+nc.fotoBase64+'" style="max-width:100%;max-height:115mm;object-fit:contain;display:block;margin:0 auto">'
             ? '<img src="'+nc.fotoBase64+'" style="width:50%;max-height:110mm;object-fit:contain;display:block;margin:0 auto">'
+            : '<div style="height:60mm;background:#f1f5f9;border:1px dashed #c3d4f0;display:flex;align-items:center;justify-content:center;color:#94a3b8;font-size:7pt">[Sem foto]</div>'
           const LBL = 'font-size:5.5pt;color:#4a6480;font-weight:700;display:block;text-transform:uppercase;margin-bottom:1px'
           const TD  = 'border:1px solid #dde5f0;padding:3px 6px;vertical-align:top'
           const TH  = 'background:#1E3A8A;color:#fff;font-weight:700;padding:4px 6px;font-size:7.5pt;text-transform:uppercase'
