@@ -253,21 +253,17 @@ function LaudoComplemento() {
               // Cada doc está em: <td style="font-size:10pt">NOME</td>
               // mas só na tabela de documentos (não atividades)
               // Extrair a seção após o título de documentos
-              // Extrair da tabela com id="tbDocs" (tabela de documentos do plano)
-              const tbIdx = htmlPlano.indexOf('id="tbDocs"')
-              const tbHtml = tbIdx >= 0 ? htmlPlano.slice(tbIdx) : htmlPlano.slice(htmlPlano.toLowerCase().indexOf("tbdocs"))
-              // Pegar textos dos <td> da tabela de documentos (primeira coluna)
+              // Extrair documentos: pegar <td style="font-size:10pt">NOME</td> (1a coluna)
               const docsPlano: string[] = []
+              const MARKER = '<td style="font-size:10pt">'
               let s = tbHtml
-              while (s.indexOf("<td") >= 0) {
-                const a = s.indexOf("font-size:10pt")
-                if (a < 0) break
-                const b = s.indexOf(">", a) + 1
+              while (s.indexOf(MARKER) >= 0) {
+                const a = s.indexOf(MARKER)
+                const b = a + MARKER.length
                 const e = s.indexOf("</td>", b)
                 if (e < 0) break
-                const txt = s.slice(b, e).replace(/<[^>]+>/g, "").trim()
-                // Só aceitar texto puro sem HTML e que parece nome de documento
-                if (txt.length > 5 && !txt.includes("<") && !"0123456789".includes(txt[0]) && txt !== "—") {
+                const txt = s.slice(b, e).trim()
+                if (txt.length > 3 && !txt.includes("<") && txt !== "—") {
                   docsPlano.push(txt)
                 }
                 s = s.slice(e + 5)
