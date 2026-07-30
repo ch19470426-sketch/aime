@@ -171,8 +171,8 @@ tr:nth-child(even) td { background: #f7f9ff; }
 
 .s41-bloco { page-break-before: avoid !important; }
 /* Capa */
-.pg-capa { page-break-after: always; display: flex; flex-direction: column; min-height: 247mm; }
-@page :first { @top-center{content:none} @bottom-center{content:none} @bottom-left{content:none} @bottom-right{content:none} }
+.pg-capa { page-break-after:always; display:flex; flex-direction:column; height:297mm; box-sizing:border-box; }
+@page :first { margin:0; @top-center{content:none} @bottom-center{content:none} @bottom-left{content:none} @bottom-right{content:none} }
 .capa-barra { background: #1E3A8A; height: 8mm; width: 100%; margin-bottom: 0; }
 .capa-logo  { text-align: center; padding: 20mm 0 10mm; }
 .capa-logo img { max-height: 30mm; }
@@ -187,7 +187,7 @@ tr:nth-child(even) td { background: #f7f9ff; }
 /* Índice */
 .pg-indice { page-break-after: always; padding-top: 10mm; }
 .indice-titulo { font-size: 14pt; font-weight: 900; color: #1E3A8A; text-align: center; margin-bottom: 12mm; letter-spacing: 2px; }
-.indice-item { display: flex; align-items: baseline; padding: 3pt 0; border-bottom: 1px dotted #c3d4f0; font-size: 9pt; }
+
 .indice-item { display: flex; align-items: baseline; padding: 3pt 0; font-size: 9pt; }
 .indice-num  { min-width: 30pt; font-weight: 700; color: #1E3A8A; flex-shrink: 0; }
 .indice-dots { flex: 1; }
@@ -791,50 +791,55 @@ export async function POST(request: NextRequest) {
     const logoB64 = inspetor?.logo_base64 || ''
     const logoTag = logoB64 ? `<img src="${logoB64}" style="max-height:28mm;max-width:80mm">` : `<div style="font-size:14pt;font-weight:900;color:#1E3A8A">${xe(inspetor?.cabecalho_documentos||'AIMÊ')}</div>`
     const CAPA_HTML = `
-<div class="pg-capa" style="counter-reset:page 0">
-<div class="capa-barra"></div>
-<div class="capa-logo">${logoTag}</div>
-<div style="flex:2"></div>
-<div class="capa-titulo">
-  <div style="font-size:8pt;color:#6B7280;letter-spacing:2px;text-transform:uppercase;margin-bottom:8pt">LAUDO TÉCNICO</div>
-  <h1>${titulo}</h1>
-  <h2>${xe(estab?.razao_social_nome||estab?.razao_social||'')}</h2>
-  <p style='font-size:9pt;color:#374151;margin-top:8pt'>${xe(estab?.logradouro||'')}${estab?.numero_imovel?', '+xe(estab.numero_imovel):''} &mdash; ${xe(estab?.cidade||'')}/${xe(estab?.uf||'')}</p>
-</div>
-<div style="flex:3"></div>
-<div class="capa-linha"></div>
-<div class="capa-dados">
-  <b>Inspetor Responsável:</b> ${xe(inspetor?.nome_inspetor)}<br>
-  <b>Título Profissional:</b> ${tituloIns} &mdash; ${siglaIns} ${numIns}<br>
-  ${inspetor?.especializacao ? '<b>Especialidade:</b> Especialista ' + xe(inspetor.especializacao) + '<br>' : ''}
-  <b>Data:</b> ${dataHoje}
-</div>
+<div class='pg-capa' style='counter-reset:page 0'>
+  <div style='height:1cm;background:#fff;flex-shrink:0'></div>
+  <div style='background:#1E3A8A;padding:8mm 20mm;flex-shrink:0;text-align:center'>
+    <span style='color:#fff;font-size:10pt;letter-spacing:1px'>${xe(inspetor?.cabecalho_documentos||'AIMÊ &mdash; Mapeamento Inteligente de Edifica&ccedil;&otilde;es e Equipamentos')}</span>
+  </div>
+  <div style='text-align:center;padding:10mm 0 0;flex-shrink:0'>${logoTag}</div>
+  <div style='flex:1;min-height:20mm'></div>
+  <div style='text-align:center;padding:0 20mm;flex-shrink:0'>
+    <div style='font-size:8pt;color:#6B7280;letter-spacing:3px;text-transform:uppercase;margin-bottom:6pt'>LAUDO T&Eacute;CNICO</div>
+    <div style='font-size:18pt;font-weight:900;color:#1E3A8A;line-height:1.2;margin-bottom:8pt'>${titulo}</div>
+    <div style='font-size:13pt;font-weight:700;color:#374151;margin-bottom:4pt'>${xe(estab?.razao_social_nome||estab?.razao_social||'')}</div>
+    <div style='font-size:9pt;color:#374151;text-align:center'>${xe(estab?.logradouro||'')}${estab?.numero_imovel?', '+xe(estab.numero_imovel):''} &mdash; ${xe(estab?.cidade||'')}/${xe(estab?.uf||'')}</div>
+  </div>
+  <div style='flex:2'></div>
+  <div style='border-top:2px solid #1E3A8A;margin:0 20mm;flex-shrink:0'></div>
+  <div style='padding:8mm 20mm;font-size:9.5pt;color:#222;line-height:1.9;flex-shrink:0'>
+    <b style='color:#1E3A8A'>Inspetor Respons&aacute;vel:</b> ${xe(inspetor?.nome_inspetor)}<br>
+    <b style='color:#1E3A8A'>T&iacute;tulo Profissional:</b> ${tituloIns} &mdash; ${siglaIns} ${numIns}<br>
+    ${inspetor?.especializacao ? '<b style="color:#1E3A8A">Especialidade:</b> Especialista ' + xe(inspetor.especializacao) + '<br>' : ''}
+    <b style='color:#1E3A8A'>Data:</b> ${dataHoje}
+  </div>
+  <div style='background:#1E3A8A;height:12mm;flex-shrink:0'></div>
+  <div style='height:1cm;background:#fff;flex-shrink:0'></div>
 </div>`
 
     // ── ÍNDICE ───────────────────────────────────────────────────────────────
     const INDICE_ITENS = [
-      {n:'1.',    t:'Considerações Preliminares',                                   nivel:1},
-      {n:'1.1.-', t:'Características e Localização da Edificação',                  nivel:2},
-      {n:'1.2.-', t:'Objetivo',                                                      nivel:2},
-      {n:'1.3.-', t:'Plano de Trabalho',                                             nivel:2},
-      {n:'1.4.-', t:'Condições e limitações',                                        nivel:2},
-      {n:'2.',    t:'Metodologia adotada para o Trabalho de Autovistoria',           nivel:1},
-      {n:'2.1.-', t:'Norma Brasileira para Inspeção Predial — NBR-16.747/2020',     nivel:2},
-      {n:'2.2.-', t:'Norma de Inspeção Predial do IBAPE/2025',                      nivel:2},
-      {n:'2.3.-', t:'Critérios e Metodologia da Inspeção',                          nivel:2},
-      {n:'3.',    t:'Resultado da Vistoria Técnica e Classificação da Edificação',  nivel:1},
-      {n:'3.1.-', t:'Descrição da Vistoria Técnica',                                nivel:2},
-      {n:'3.2.-', t:'Resultado da Vistoria',                                        nivel:2},
-      {n:'3.3.-', t:'Resultado da Classificação da Edificação',                     nivel:2},
-      {n:'4.',    t:'Relação de Não Conformidades e Soluções',                      nivel:1},
-      {n:'4.1.-', t:'Relação de Não Conformidades e Soluções por Sistema',          nivel:2},
-      {n:'4.2.-', t:'Análise Estatística das Manifestações Patológicas',            nivel:2},
-      {n:'5.',    t:'Recomendações sobre a Manutenção, Uso, Sustentabilidade',      nivel:1},
-      {n:'6.',    t:'Conclusão',                                                     nivel:1},
-      {n:'7.',    t:'Encerramento',                                                  nivel:1},
-      {n:'Anexo 1', t:'Documentação da Edificação Solicitada',                      nivel:1},
-      {n:'Anexo 2', t:'Resultado da Vistoria',                                      nivel:1},
-      {n:'Anexo 3', t:'Anotações de Responsabilidade Técnica',                      nivel:1},
+      {n:'1.', pg:'2',    t:'Considerações Preliminares',                                   nivel:1},
+      {n:'1.1.-', pg:'2', t:'Características e Localização da Edificação',                  nivel:2},
+      {n:'1.2.-', pg:'3', t:'Objetivo',                                                      nivel:2},
+      {n:'1.3.-', pg:'3', t:'Plano de Trabalho',                                             nivel:2},
+      {n:'1.4.-', pg:'4', t:'Condições e limitações',                                        nivel:2},
+      {n:'2.', pg:'4',    t:'Metodologia adotada para o Trabalho de Autovistoria',           nivel:1},
+      {n:'2.1.-', pg:'4', t:'Norma Brasileira para Inspeção Predial — NBR-16.747/2020',     nivel:2},
+      {n:'2.2.-', pg:'5', t:'Norma de Inspeção Predial do IBAPE/2025',                      nivel:2},
+      {n:'2.3.-', pg:'5', t:'Critérios e Metodologia da Inspeção',                          nivel:2},
+      {n:'3.', pg:'6',    t:'Resultado da Vistoria Técnica e Classificação da Edificação',  nivel:1},
+      {n:'3.1.-', pg:'6', t:'Descrição da Vistoria Técnica',                                nivel:2},
+      {n:'3.2.-', pg:'7', t:'Resultado da Vistoria',                                        nivel:2},
+      {n:'3.3.-', pg:'7', t:'Resultado da Classificação da Edificação',                     nivel:2},
+      {n:'4.', pg:'8',    t:'Relação de Não Conformidades e Soluções',                      nivel:1},
+      {n:'4.1.-', pg:'8', t:'Relação de Não Conformidades e Soluções por Sistema',          nivel:2},
+      {n:'4.2.-', pg:'9', t:'Análise Estatística das Manifestações Patológicas',            nivel:2},
+      {n:'5.', pg:'10',    t:'Recomendações sobre a Manutenção, Uso, Sustentabilidade',      nivel:1},
+      {n:'6.', pg:'11',    t:'Conclusão',                                                     nivel:1},
+      {n:'7.', pg:'12',    t:'Encerramento',                                                  nivel:1},
+      {n:'Anexo 1', pg:'13', t:'Documentação da Edificação Solicitada',                      nivel:1},
+      {n:'Anexo 2', pg:'14', t:'Resultado da Vistoria',                                      nivel:1},
+      {n:'Anexo 3', pg:'15', t:'Anotações de Responsabilidade Técnica',                      nivel:1},
     ]
     const INDICE_HTML = '<div class="pg-indice">' +
       '<div class="indice-titulo">ÍNDICE</div>' +
@@ -843,6 +848,7 @@ export async function POST(request: NextRequest) {
         '<span class="indice-num">' + xe(it.n) + '</span>' +
         '<span>' + xe(it.t) + '</span>' +
         '<span class="indice-dots"></span>' +
+        '<span style="min-width:24pt;text-align:right;color:#1E3A8A;font-weight:700">' + (it.pg||'') + '</span>' +
         '</div>'
       ).join('') +
       '</div>'
