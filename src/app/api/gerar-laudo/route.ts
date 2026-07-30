@@ -759,6 +759,12 @@ export async function POST(request: NextRequest) {
         }).join('\n')
 
     // ── HTML COMPLETO ─────────────────────────────────────────────────────────
+    // Helpers para assinatura (igual ao gerar-plano)
+    const siglaIns = (inspetor?.titulo_profissional||'').toLowerCase().includes('arquitet') ? 'CAU'
+      : (inspetor?.titulo_profissional||'').toLowerCase().includes('corretor') ? 'CRECI' : 'CREA'
+    const tituloIns = (inspetor?.titulo_profissional||'').replace(/(CREA|CAU|CRECI)[\s-]*/gi,'').trim()
+    const numIns = (inspetor?.inscricao_crea_cau||'').replace(/^(CREA|CAU|CRECI)[\s-]*/gi,'').trim()
+
     const html = `<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -930,7 +936,7 @@ ${S5}
 <p style="font-size:8pt;line-height:1;margin:0">[Assinatura digital]</p>
 <p style="line-height:1;margin:0">&nbsp;</p>
 <p style="line-height:1;margin:0"><strong>${xe(inspetor?.nome_inspetor)}</strong></p>
-<p style="line-height:1;margin:0">${xe(inspetor?.titulo_profissional)}${inspetor?.inscricao_crea_cau ? ' — ' + xe(inspetor.inscricao_crea_cau) : ''}</p>
+<p style="line-height:1;margin:0">${tituloIns} — ${siglaIns} ${numIns}</p>
 ${inspetor?.especializacao ? '<p style="line-height:1;margin:0">Especialista ' + xe(inspetor.especializacao) + '</p>' : ''}
 
 
