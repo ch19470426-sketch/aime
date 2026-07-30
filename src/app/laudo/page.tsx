@@ -216,10 +216,10 @@ function LaudoComplemento() {
             whatsapp:              a.whatsapp             || prev.whatsapp             || '',
             email:                 a.email                || prev.email                || '',
             // Características do imóvel — sempre dos ativos
-            tipo_imovel:           a.tipo_imovel || a.tipo_de_ativo || a.tipo || prev.tipo_imovel || '',
+            tipo_imovel:           a.tipo_ativo || a.tipo_imovel || prev.tipo_imovel || '',
             uso_imovel:            a.uso_ativo            || prev.uso_imovel           || '',
-            numero_pavimentos:     a.numero_pavimentos    || prev.numero_pavimentos    || '',
-            numero_unidades_salas: a.numero_unidades_salas|| prev.numero_unidades_salas|| '',
+            numero_pavimentos:     a.nr_pavimentos || a.numero_pavimentos || prev.numero_pavimentos || '',
+            numero_unidades_salas: a.nr_unidades || a.numero_unidades_salas || prev.numero_unidades_salas || '',
             area_construida:       a.area_construida      || prev.area_construida      || '',
             area_terreno:          a.area_terreno         || prev.area_terreno         || '',
           }))
@@ -568,18 +568,6 @@ function LaudoComplemento() {
                 <div>
                   <label style={S.label}>Responsável pelo ativo</label>
                   <input style={{ ...S.input }} value={estab.nome_responsavel ?? ''} onChange={e => setEstab(prev=>({...prev,nome_responsavel:e.target.value}))} />
-                </div>
-                <div>
-                  <label style={S.label}>Telefone / WhatsApp</label>
-                  <input style={{ ...S.input, backgroundColor: '#F8FAFC' }} value={estab.whatsapp ?? ''} readOnly />
-                </div>
-                <div>
-                  <label style={S.label}>e-Mail</label>
-                  <input style={{ ...S.input, backgroundColor: '#F8FAFC' }} value={estab.email ?? ''} readOnly />
-                </div>
-                <div>
-                  <label style={S.label}>Tipo do Imóvel / Ativo</label>
-                  <input style={{ ...S.input, backgroundColor: '#F8FAFC' }} value={estab.tipo_imovel ?? ''} readOnly />
                 </div>
               </div>
               <div style={{ marginTop: "8px" }}>
