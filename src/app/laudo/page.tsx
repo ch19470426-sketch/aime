@@ -253,20 +253,23 @@ function LaudoComplemento() {
               // Cada doc está em: <td style="font-size:10pt">NOME</td>
               // mas só na tabela de documentos (não atividades)
               // Extrair a seção após o título de documentos
-              // Extrair documentos: pegar <td style="font-size:10pt">NOME</td> (1a coluna)
+              // Extrair documentos da tabela tbDocs
+              // Cada linha tem: <td style="font-size:10pt">NOME</td><td><select...>
+              // Pegar todos os <td> cujo CONTEUDO é texto puro (não tem <)
               const docsPlano: string[] = []
-              const MARKER = '<td style="font-size:10pt">'
               let s = tbHtml
-              while (s.indexOf(MARKER) >= 0) {
-                const a = s.indexOf(MARKER)
-                const b = a + MARKER.length
-                const e = s.indexOf("</td>", b)
-                if (e < 0) break
-                const txt = s.slice(b, e).trim()
-                if (txt.length > 3 && !txt.includes("<") && txt !== "—") {
-                  docsPlano.push(txt)
+              while (s.indexOf("<td") >= 0) {
+                const tdStart = s.indexOf("<td")
+                const tdClose = s.indexOf(">", tdStart)
+                if (tdClose < 0) break
+                const endTd = s.indexOf("</td>", tdClose)
+                if (endTd < 0) break
+                const inner = s.slice(tdClose + 1, endTd).trim()
+                // Aceitar só texto puro (sem tags HTML) com tamanho razoável
+                if (inner.length > 5 && !inner.includes("<") && inner !== "—" && inner !== "-") {
+                  docsPlano.push(inner)
                 }
-                s = s.slice(e + 5)
+                s = s.slice(endTd + 5)
               }
               if (docsPlano.length > 0) {
                 setDocsAnexo1(Object.fromEntries(docsPlano.map((d: string) => [d, {situacao:'',resultado:''}])))
