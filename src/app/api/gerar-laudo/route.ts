@@ -704,7 +704,7 @@ export async function POST(request: NextRequest) {
           const eDesc = EXP_MAP[ev] || ev || '—'
           const foto  = nc.fotoBase64?.startsWith('data:image')
             ? '<img src="'+nc.fotoBase64+'" style="max-width:100%;max-height:115mm;object-fit:contain;display:block;margin:0 auto">'
-            : '<div style="height:70mm;background:#f1f5f9;border:1px dashed #c3d4f0;display:flex;align-items:center;justify-content:center;color:#94a3b8;font-size:7pt">[Sem foto]</div>'
+            ? '<img src="'+nc.fotoBase64+'" style="width:50%;max-height:110mm;object-fit:contain;display:block;margin:0 auto">'
           const LBL = 'font-size:5.5pt;color:#4a6480;font-weight:700;display:block;text-transform:uppercase;margin-bottom:1px'
           const TD  = 'border:1px solid #dde5f0;padding:3px 6px;vertical-align:top'
           const TH  = 'background:#1E3A8A;color:#fff;font-weight:700;padding:4px 6px;font-size:7.5pt;text-transform:uppercase'
@@ -928,6 +928,7 @@ ${S5}
 <p style="line-height:1;margin:0">&nbsp;</p>
 <p style="line-height:1;margin:0">&nbsp;</p>
 <p style="font-size:8pt;line-height:1;margin:0">[Assinatura digital]</p>
+<p style="line-height:1;margin:0">&nbsp;</p>
 <p style="line-height:1;margin:0"><strong>${xe(inspetor?.nome_inspetor)}</strong></p>
 <p style="line-height:1;margin:0">${xe(inspetor?.titulo_profissional)}</p>
 ${inspetor?.especializacao ? '<p style="line-height:1;margin:0">' + xe(inspetor.especializacao) + '</p>' : ''}
