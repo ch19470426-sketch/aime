@@ -64,8 +64,10 @@ const menuGrupos = [
     { codigo: 37, label: "Vistoria NR-12" },
     { codigo: 38, label: "Vistoria NR-13" },
   ]},
-  { grupo: "Laudos", itens: [
+  { grupo: "Homologar Vistoria", itens: [
     { codigo: 40, label: "Homologar vistoria" },
+  ]},
+  { grupo: "Laudos", itens: [
     { codigo: 41, label: "Laudo Autovistoria" },
     { codigo: 42, label: "Laudo Inspeção" },
     { codigo: 43, label: "Laudo Imóvel Novo" },
@@ -193,7 +195,7 @@ export default function Dashboard() {
 
   const { bannerProps, orienta } = useBanner()
   const [tipoServico, setTipoServico] = useState<number | null>(null)
-  const [grupoAberto, setGrupoAberto] = useState<string | null>("Vistorias")
+  const [grupoAberto, setGrupoAberto] = useState<string | null>(null)
   const [documento, setDocumento] = useState("")
   const [estadoDoc, setEstadoDoc] = useState<"aguardando" | "verificando" | "nao_cadastrado" | "erro">("aguardando")
   const [msgErro, setMsgErro] = useState("")
