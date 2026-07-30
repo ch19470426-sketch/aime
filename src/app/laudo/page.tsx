@@ -264,7 +264,7 @@ function LaudoComplemento() {
                 const endTd = s.indexOf("</td>", tdClose)
                 if (endTd < 0) break
                 const inner = s.slice(tdClose + 1, endTd).trim()
-                if (inner.length > 5 && !inner.includes("<") && inner !== "—" && inner !== "-") {
+                if (inner.length > 5 && !inner.includes("<") && inner !== "—" && inner !== "-" && !inner.startsWith("⚠")) {
                   docsPlano.push(inner)
                 }
                 s = s.slice(endTd + 5)
