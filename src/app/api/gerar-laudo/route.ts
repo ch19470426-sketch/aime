@@ -668,23 +668,22 @@ export async function POST(request: NextRequest) {
     }))
 
     // ── Anexo 2 — Formulários idênticos ao HTML homologado ────────────────────
-    // Descrições dos parâmetros de classificação de risco
-    const DESC_GRAV: Record<string,string> = {
-      'Muito Alta':'Iminente risco à segurança ou colapso', 'Alta':'Risco elevado à segurança',
-      'Moderada':'Risco moderado ao desempenho', 'Baixa':'Pequeno impacto estético',
-      'Muito Baixa':'Impacto mínimo',
+    // Descrições dos parâmetros: valores salvos como número (1-5) pelo hook da vistoria
+    // Gravidade: 1=Estética, 2=Leve, 3=Moderada, 4=Alta, 5=Crítica
+    // Urgência: 1=Pode aguardar, 3=Planejar, 5=Imediata
+    // Abrangência: 1=Ponto isolado, 3=Vários pontos, 5=Sistema completo
+    // Exposição: 1=Baixa, 3=Média, 5=Alta
+    const GRAV_MAP: Record<string,string> = {
+      '1':'Estética','2':'Leve','3':'Moderada','4':'Alta','5':'Crítica',
     }
-    const DESC_URG: Record<string,string> = {
-      'Imediata':'Intervenção imediata necessária', 'Brevemente':'Intervenção em curto prazo',
-      'Pode esperar':'Pode ser programada', 'Sem urgência':'Sem urgência definida',
+    const URG_MAP: Record<string,string> = {
+      '1':'Pode aguardar','2':'Pode aguardar','3':'Planejar','4':'Planejar','5':'Imediata',
     }
-    const DESC_ABR: Record<string,string> = {
-      'Sistema completo':'Todo o sistema afetado', 'Várias partes':'Diversas partes afetadas',
-      'Local':'Área localizada afetada', 'Única unidade':'Unidade isolada',
+    const ABR_MAP: Record<string,string> = {
+      '1':'Ponto isolado','2':'Ponto isolado','3':'Vários pontos','4':'Vários pontos','5':'Sistema completo',
     }
-    const DESC_EXP: Record<string,string> = {
-      'Alta':'Exposição ambiental alta', 'Média':'Exposição ambiental média',
-      'Baixa':'Exposição ambiental baixa', 'Nenhuma':'Sem exposição ambiental',
+    const EXP_MAP: Record<string,string> = {
+      '1':'Baixa','2':'Baixa','3':'Média','4':'Média','5':'Alta',
     }
 
     const A2 = (ncsComFoto??[]).length===0
@@ -693,6 +692,7 @@ export async function POST(request: NextRequest) {
           const ns   = xe((nc.sistema||'').slice(3).replace(/_/g,' '))
           const grN  = Number(nc.grauRisco)||0
           const cor  = grN>=64?'#CC0000':grN>=35?'#E8A000':'#16A34A'
+          const cor  = grN>=64?'#CC0000':grN>=35?'#E8A000':'#16A34A'
           const bg   = grN>=64?'#FEE2E2':grN>=35?'#FEF9C3':'#DCFCE7'
           const pri  = grN>=64?'▲ Alta':grN>=35?'■ Média':'▼ Baixa'
           const DESC_GRAV: Record<string,string> = {'Muito Alta':'Iminente risco à segurança','Alta':'Risco elevado à segurança','Moderada':'Risco moderado ao desempenho','Baixa':'Pequeno impacto estético','Muito Baixa':'Impacto mínimo'}
@@ -700,10 +700,14 @@ export async function POST(request: NextRequest) {
           const DESC_ABR:  Record<string,string> = {'Sistema completo':'Todo o sistema afetado','Várias partes':'Diversas partes afetadas','Local':'Área localizada afetada','Única unidade':'Unidade isolada'}
           const DESC_EXP:  Record<string,string> = {'Alta':'Exposição ambiental alta','Média':'Exposição ambiental média','Baixa':'Exposição ambiental baixa','Nenhuma':'Sem exposição ambiental'}
           const gDesc = DESC_GRAV[(xe(nc.gravidade||'')).trim()] || xe(nc.gravidade||'')
-          const uDesc = DESC_URG[(xe(nc.urgencia||'')).trim()] || xe(nc.urgencia||'')
-          const aDesc = DESC_ABR[(xe(nc.abrangencia||'')).trim()] || xe(nc.abrangencia||'')
-          const eDesc = DESC_EXP[(xe(nc.exposicao||'')).trim()] || xe(nc.exposicao||'')
-          const foto  = nc.fotoBase64?.startsWith('data:image')
+          const gv = String(nc.gravidade||'')
+          const gDesc = GRAV_MAP[gv] || gv || '—'
+          const uv = String(nc.urgencia||'')
+          const uDesc = URG_MAP[uv] || uv || '—'
+          const av = String(nc.abrangencia||'')
+          const aDesc = ABR_MAP[av] || av || '—'
+          const ev = String(nc.exposicao||'')
+          const eDesc = EXP_MAP[ev] || ev || '—'
             ? '<img src="'+nc.fotoBase64+'" style="max-width:96%;max-height:120mm;object-fit:contain;display:block;margin:0 auto">'
             : '<div style="height:70mm;background:#f1f5f9;border:1px dashed #c3d4f0;display:flex;align-items:center;justify-content:center;color:#94a3b8;font-size:7pt">[Sem foto]</div>'
           const LBL = 'font-size:5.5pt;color:#4a6480;font-weight:700;display:block;text-transform:uppercase;margin-bottom:1px'
