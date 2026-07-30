@@ -53,7 +53,7 @@ function parsearHtml(html: string, nome: string): any {
     grauRisco:   campoM(html, 'Grau de Risco'),
     prioridade:  campoM(html, 'Prioridade'),
     fotoNr:      campo(html, 'Foto Nº') || campo(html, 'Foto N') || nome.match(/_(\d+)\.html$/)?.[1] || '',
-    dataVistoria:campo(html, 'Data Vistoria') || campo(html, 'Data'),
+    dataVistoria:campo(html, 'Data Vistoria') || campo(html, 'Data da Vistoria') || campo(html, 'DATA DA VISTORIA') || campo(html, 'Data') || '',
     nc:          campo(html, 'Não conformidade \\(NC\\)'),
     cp:          campo(html, 'Causa provável') || campo(html, 'Causa provavel'),
     fotoBase64:  html.match(/<img[^>]+src="(data:image[^"]+)"/)?.[1] ?? '',
