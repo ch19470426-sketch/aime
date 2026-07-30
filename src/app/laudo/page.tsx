@@ -213,13 +213,13 @@ function LaudoComplemento() {
             // Responsável sempre vem dos ativos
             nome_responsavel:      a.nome_responsavel     || prev.nome_responsavel     || '',
             funcao_responsavel:    a.funcao_responsavel   || prev.funcao_responsavel   || '',
-            whatsapp:              a.whatsapp             || prev.whatsapp             || '',
-            email:                 a.email                || prev.email                || '',
+            whatsapp:              a.whatsapp_responsavel  || prev.whatsapp             || '',
+            email:                 a.email_responsavel     || prev.email                || '',
             // Características do imóvel — sempre dos ativos
             tipo_imovel:           a.tipo_ativo || a.tipo_imovel || prev.tipo_imovel || '',
             uso_imovel:            a.uso_ativo            || prev.uso_imovel           || '',
-            numero_pavimentos:     a.nr_pavimentos || a.numero_pavimentos || prev.numero_pavimentos || '',
-            numero_unidades_salas: a.nr_unidades || a.numero_unidades_salas || prev.numero_unidades_salas || '',
+            numero_pavimentos:     a.numero_pavimentos     || prev.numero_pavimentos    || '',
+            numero_unidades_salas: a.numero_unidades_salas || prev.numero_unidades_salas|| '',
             area_construida:       a.area_construida      || prev.area_construida      || '',
             area_terreno:          a.area_terreno         || prev.area_terreno         || '',
           }))
