@@ -490,7 +490,7 @@ function LaudoComplemento() {
 
   // ── Estilos ──
   const S = {
-    body:      { backgroundColor: "#E8EEF7", minHeight: "100vh", display: "flex", alignItems: "flex-start", justifyContent: "center", padding: "16px" },
+    body:      { backgroundColor: "#E8EEF7", minHeight: "100vh", display: "flex", alignItems: "flex-start", justifyContent: "center", padding: "10px" },
     card:      { backgroundColor: "white", borderRadius: "16px", boxShadow: "0 4px 24px rgba(0,0,0,0.12)", width: "100%", maxWidth: "860px", overflow: "hidden" },
     header:    { backgroundColor: "#1E3A8A", padding: "8px 16px", display: "flex", alignItems: "center", gap: "12px" },
     divider:   { height: "2px", backgroundColor: "#1E3A8A" },
@@ -498,8 +498,8 @@ function LaudoComplemento() {
     bloco:     { border: "1px solid #E2E8F0", borderRadius: "8px", overflow: "hidden", marginBottom: "6px" },
     bHead:     { backgroundColor: "#1E3A8A", padding: "4px 12px" },
     bTitle:    { color: "white", fontWeight: "bold" as const, fontSize: "14px" },
-    bBody:     { padding: "5px 8px" },
-    label:     { fontSize: "11px", fontWeight: "600" as const, color: "#374151", display: "block", marginBottom: "3px" },
+    bBody:     { padding: "3px 6px" },
+    label:     { fontSize: "10px", fontWeight: "600" as const, color: "#374151", display: "block", marginBottom: "3px" },
     input:     { border: "1px solid #D1D5DB", borderRadius: "6px", padding: "6px 10px", fontSize: "12px", width: "100%", outline: "none", boxSizing: "border-box" as const },
     textarea:  { border: "1px solid #D1D5DB", borderRadius: "6px", padding: "5px 8px", fontSize: "12px", width: "100%", outline: "none", boxSizing: "border-box" as const, resize: "vertical" as const, minHeight: "96px" },
     btn:       { padding: "8px 20px", borderRadius: "50px", border: "none", backgroundColor: "#1E3A8A", color: "white", fontWeight: "600" as const, fontSize: "12px", cursor: "pointer" },
