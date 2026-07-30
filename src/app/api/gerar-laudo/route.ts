@@ -926,15 +926,12 @@ ${S5}
 <p style="border:1px solid #999;padding:6px;font-size:7.5pt;background:#f9f9f9"><b>Atenção:</b> O titular do direito autoral deste trabalho somente autoriza sua reprodução nos casos legais cabíveis, vedando sua cópia ou qualquer forma de reprodução que caracterize plágio ou represente utilização dos direitos exclusivos do autor, sendo que sua violação acarretará as penalidades civis e criminais previstas no art.184 do Código Penal Brasileiro e Lei nº 9.610.</p>
 
   <p style="text-align:right;font-size:9pt;font-weight:bold;color:#000;margin-top:20px">${estab?.cidade?xe(estab.cidade)+'/'+xe(estab?.uf||'')+', ':''}${dataHoje}</p>
-<br>
 <p style="line-height:1;margin:0">&nbsp;</p>
 <p style="line-height:1;margin:0">&nbsp;</p>
 <p style="font-size:8pt;line-height:1;margin:0">[Assinatura digital]</p>
-<p style="line-height:1;margin:0">&nbsp;</p>
-<p style="line-height:1;margin:0;font-weight:bold">${xe(inspetor?.nome_inspetor)}</p>
+<p style="line-height:1;margin:0"><strong>${xe(inspetor?.nome_inspetor)}</strong></p>
 <p style="line-height:1;margin:0">${xe(inspetor?.titulo_profissional)}</p>
-<p style="line-height:1;margin:0">&nbsp;</p>
-<p style="line-height:1;margin:0">&nbsp;</p>
+${inspetor?.especializacao ? '<p style="line-height:1;margin:0">' + xe(inspetor.especializacao) + '</p>' : ''}
 
 
 <div class="section">
