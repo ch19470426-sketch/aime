@@ -695,11 +695,6 @@ export async function POST(request: NextRequest) {
           const cor  = grN>=64?'#CC0000':grN>=35?'#E8A000':'#16A34A'
           const bg   = grN>=64?'#FEE2E2':grN>=35?'#FEF9C3':'#DCFCE7'
           const pri  = grN>=64?'▲ Alta':grN>=35?'■ Média':'▼ Baixa'
-          const DESC_GRAV: Record<string,string> = {'Muito Alta':'Iminente risco à segurança','Alta':'Risco elevado à segurança','Moderada':'Risco moderado ao desempenho','Baixa':'Pequeno impacto estético','Muito Baixa':'Impacto mínimo'}
-          const DESC_URG:  Record<string,string> = {'Imediata':'Intervenção imediata','Brevemente':'Intervenção em curto prazo','Pode esperar':'Pode ser programada','Sem urgência':'Sem urgência definida'}
-          const DESC_ABR:  Record<string,string> = {'Sistema completo':'Todo o sistema afetado','Várias partes':'Diversas partes afetadas','Local':'Área localizada afetada','Única unidade':'Unidade isolada'}
-          const DESC_EXP:  Record<string,string> = {'Alta':'Exposição ambiental alta','Média':'Exposição ambiental média','Baixa':'Exposição ambiental baixa','Nenhuma':'Sem exposição ambiental'}
-          const gDesc = DESC_GRAV[(xe(nc.gravidade||'')).trim()] || xe(nc.gravidade||'')
           const gv = String(nc.gravidade||'')
           const gDesc = GRAV_MAP[gv] || gv || '—'
           const uv = String(nc.urgencia||'')
