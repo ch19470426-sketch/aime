@@ -233,15 +233,21 @@ function HomologarProdutoInner() {
               width: 100%;
               text-align: center;
             }
-            @bottom-center {
-              content: ${JSON.stringify(rodTxt || 'AIMÊ — Laudo Técnico')} ' — Pág. ' counter(page) ' de ' counter(pages);
+            @bottom-left {
+              content: ${JSON.stringify(rodTxt || '')};
               font-family: Arial, sans-serif;
               font-size: 7.5pt;
               color: #374151;
               border-top: 1px solid #ccc;
               padding-top: 3pt;
-              width: 100%;
-              text-align: center;
+            }
+            @bottom-right {
+              content: 'Pág. ' counter(page);
+              font-family: Arial, sans-serif;
+              font-size: 7.5pt;
+              color: #374151;
+              border-top: 1px solid #ccc;
+              padding-top: 3pt;
             }
           }
           body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
