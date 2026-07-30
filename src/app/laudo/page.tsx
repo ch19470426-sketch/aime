@@ -264,6 +264,7 @@ function LaudoComplemento() {
                   !d.includes('<') &&
                   !("0123456789".includes(d[0])) &&
                   !(d === '—' || d === '-')
+                )
               if (docsPlano.length > 0) {
                 setDocsAnexo1(Object.fromEntries(docsPlano.map((d: string) => [d, {situacao:'',resultado:''}])))
               }
