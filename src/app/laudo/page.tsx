@@ -569,6 +569,18 @@ function LaudoComplemento() {
                   <label style={S.label}>Responsável pelo ativo</label>
                   <input style={{ ...S.input }} value={estab.nome_responsavel ?? ''} onChange={e => setEstab(prev=>({...prev,nome_responsavel:e.target.value}))} />
                 </div>
+                <div>
+                  <label style={S.label}>Telefone / WhatsApp</label>
+                  <input style={{ ...S.input, backgroundColor: '#F8FAFC' }} value={estab.whatsapp ?? ''} readOnly />
+                </div>
+                <div>
+                  <label style={S.label}>e-Mail</label>
+                  <input style={{ ...S.input, backgroundColor: '#F8FAFC' }} value={estab.email ?? ''} readOnly />
+                </div>
+                <div>
+                  <label style={S.label}>Tipo do Imóvel / Ativo</label>
+                  <input style={{ ...S.input, backgroundColor: '#F8FAFC' }} value={estab.tipo_imovel ?? ''} readOnly />
+                </div>
               </div>
               <div style={{ marginTop: "8px" }}>
                 <label style={S.label}>Descreva sinteticamente a edificação (Convenção ou Escritura) *</label>
@@ -597,13 +609,13 @@ function LaudoComplemento() {
             <div style={S.bBody}>
               <label style={S.label}>Descreva sinteticamente como foi realizada a vistoria</label>
               <textarea
-                style={{ ...S.textarea, minHeight: '130px', backgroundColor: editandoDesc ? '#FFFBEB' : undefined, borderColor: editandoDesc ? '#F59E0B' : undefined }}
+              <textarea
+                style={S.textarea}
                 value={dadosVistoria}
-                maxLength={900}
+                rows={6}
                 onChange={e => setDadosVistoria(e.target.value)}
-                placeholder="Descreva o caminhamento efetuado e ocorrências havidas..."
+                placeholder="Descreva o caminhamento efetuado e ocorrências havidas durante a vistoria..."
               ></textarea>
-
 
               <div style={S.contagem}>{dadosVistoria.length}/900 caracteres</div>
               
