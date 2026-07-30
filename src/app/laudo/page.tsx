@@ -609,7 +609,6 @@ function LaudoComplemento() {
             <div style={S.bBody}>
               <label style={S.label}>Descreva sinteticamente como foi realizada a vistoria</label>
               <textarea
-              <textarea
                 style={S.textarea}
                 value={dadosVistoria}
                 rows={6}
