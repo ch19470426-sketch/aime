@@ -48,7 +48,7 @@ const SUBTIPOS: Record<string, string[]> = {
 }
 
 const FLUIDOS = ['Classe A','Classe B','Classe C','Classe D','Vapor','Ar comprimido','GLP','Nitrogênio','Outro']
-const USOS = ['Produção','Transporte','Residencial','Comercial','Industrial','Institucional','Misto']
+const USOS = ['Produção/processo','Transporte','Residencial','Comercial','Industrial','Institucional','Misto']
 const FUNCOES = ['Administrador','Síndico','Proprietário']
 
 function fmtCNPJ(v: string): string {
