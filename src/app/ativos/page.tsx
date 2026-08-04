@@ -1,6 +1,7 @@
 "use client"
 export const dynamic = 'force-dynamic'
-import { useState, useEffect } from "react"
+import { useState, useEffect, Suspense } from "react"
+import { useSearchParams } from "next/navigation"
 import Image from "next/image"
 
 const tiposAtivo: Record<string, string[]> = {
@@ -50,15 +51,21 @@ const formInicial = {
   volume: "",
 }
 
-export default function AtivosVistoriar() {
+function AtivosVistoriarInner() {
+  const searchParams = useSearchParams()
+  const cpfUrl  = searchParams.get('cpf_inspetor') ?? ''
+  const cnpjUrl = searchParams.get('cnpjoucpf')    ?? ''
+  const tipoUrl = searchParams.get('tipo_servico') ?? ''
   const [form, setForm] = useState({ ...formInicial })
   const [sucesso, setSucesso] = useState(false)
 
   const hoje = new Date().toLocaleDateString("pt-BR")
 
+  // Resetar form quando params da URL mudarem (nova navegação)
   useEffect(() => {
-    setForm(f => ({ ...f, data_cadastro: hoje }))
-  }, [])
+    setForm({ ...formInicial, data_cadastro: hoje, cpf_inspetor: cpfUrl, cnpjoucpf: cnpjUrl, tipo_servico: tipoUrl })
+    setSucesso(false)
+  }, [cpfUrl, cnpjUrl, tipoUrl])
 
   const maskCPF = (v: string) => v.replace(/\D/g,"").slice(0,11).replace(/(\d{3})(\d)/,"$1.$2").replace(/(\d{3})(\d)/,"$1.$2").replace(/(\d{3})(\d{1,2})$/,"$1-$2")
   const maskCNPJ = (v: string) => {
@@ -408,4 +415,8 @@ export default function AtivosVistoriar() {
       </div>
     </div>
   )
+}
+
+export default function AtivosVistoriar() {
+  return <Suspense><AtivosVistoriarInner /></Suspense>
 }
