@@ -168,11 +168,11 @@ function AtivosVistoriarInner() {
                   <div style={grid4}>
                     <div>
                       <label style={labelStyle}>CPF do Inspetor *</label>
-                      <input name="cpf_inspetor" value={form.cpf_inspetor} onChange={handleChange} placeholder="000.000.000-00" required style={{...inputStyle, textAlign:"center"}} />
+                      <input name="cpf_inspetor" maxLength={11} value={form.cpf_inspetor} onChange={handleChange} placeholder="000.000.000-00" required style={{...inputStyle, textAlign:"center"}} />
                     </div>
                     <div>
                       <label style={labelStyle}>CNPJ / CPF Estabelecimento *</label>
-                      <input name="cnpjoucpf" value={form.cnpjoucpf} onChange={handleChange} placeholder="00.000.000/0000-00" required style={{...inputStyle, textAlign:"center"}} />
+                      <input name="cnpjoucpf" maxLength={18} value={form.cnpjoucpf} onChange={handleChange} placeholder="00.000.000/0000-00" required style={{...inputStyle, textAlign:"center"}} />
                     </div>
                     <div>
                       <label style={labelStyle}>Tipo de Servico *</label>
@@ -210,11 +210,11 @@ function AtivosVistoriarInner() {
                     </div>
                     <div>
                       <label style={labelStyle}>Tag Ativo / Nr Serie *</label>
-                      <input name="tag_ativo" value={form.tag_ativo} onChange={handleChange} placeholder="Ex: TQ-101" required readOnly={tagReadonly} style={tagReadonly ? readonlyStyle : inputStyle} />
+                      <input name="tag_ativo" maxLength={24} value={form.tag_ativo} onChange={handleChange} placeholder="Ex: TQ-101" required readOnly={tagReadonly} style={tagReadonly ? readonlyStyle : inputStyle} />
                     </div>
                     <div>
                       <label style={labelStyle}>Finalidade da Vistoria *</label>
-                      <input name="finalidade" value={form.finalidade} onChange={handleChange} placeholder="Descreva" required style={inputStyle} />
+                      <input name="finalidade" maxLength={32} value={form.finalidade} onChange={handleChange} placeholder="Descreva" required style={inputStyle} />
                     </div>
                     <div>
                       <label style={labelStyle}>Data Inicio de Operacao *</label>
@@ -224,11 +224,11 @@ function AtivosVistoriarInner() {
                   <div style={{...grid4, marginBottom:"12px"}}>
                     <div>
                       <label style={labelStyle}>CPF do Responsavel</label>
-                      <input name="cpf_responsavel" value={form.cpf_responsavel} onChange={handleChange} placeholder="000.000.000-00" style={inputStyle} />
+                      <input name="cpf_responsavel" maxLength={11} value={form.cpf_responsavel} onChange={handleChange} placeholder="000.000.000-00" style={inputStyle} />
                     </div>
                     <div>
                       <label style={labelStyle}>Nome do Responsavel *</label>
-                      <input name="nome_responsavel" value={form.nome_responsavel} onChange={handleChange} placeholder="Nome completo" required style={inputStyle} />
+                      <input name="nome_responsavel" maxLength={48} value={form.nome_responsavel} onChange={handleChange} placeholder="Nome completo" required style={inputStyle} />
                     </div>
                     <div>
                       <label style={labelStyle}>Funcao do Responsavel *</label>
@@ -243,7 +243,7 @@ function AtivosVistoriarInner() {
                       <label style={labelStyle}>Uso do Ativo *</label>
                       <select name="uso_ativo" value={form.uso_ativo} onChange={handleChange} required style={inputStyle}>
                         <option value="">Selecione...</option>
-                        <option>Producao / processo</option>
+                        <option>Produção</option>
                         <option>Transporte</option>
                         <option>Residencial</option>
                         <option>Comercial</option>
@@ -256,11 +256,11 @@ function AtivosVistoriarInner() {
                   <div style={grid2}>
                     <div>
                       <label style={labelStyle}>WhatsApp do Responsavel *</label>
-                      <input name="whatsapp" value={form.whatsapp} onChange={handleChange} placeholder="(00) 00000-0000" required style={inputStyle} />
+                      <input name="whatsapp" maxLength={11} value={form.whatsapp} onChange={handleChange} placeholder="(00) 00000-0000" required style={inputStyle} />
                     </div>
                     <div>
                       <label style={labelStyle}>E-mail do Responsavel *</label>
-                      <input name="email" type="email" value={form.email} onChange={handleChange} placeholder="responsavel@email.com" required style={inputStyle} />
+                      <input name="email" maxLength={32} type="email" value={form.email} onChange={handleChange} placeholder="responsavel@email.com" required style={inputStyle} />
                     </div>
                   </div>
                 </div>
@@ -328,7 +328,7 @@ function AtivosVistoriarInner() {
                       </div>
                       <div>
                         <label style={labelStyle}>Fabricante / Marca *</label>
-                        <input name="fabricante" value={form.fabricante} onChange={handleChange} placeholder="Ex: Atlas Schindler" required style={inputStyle} />
+                        <input name="fabricante" maxLength={48} value={form.fabricante} onChange={handleChange} placeholder="Ex: Atlas Schindler" required style={inputStyle} />
                       </div>
                       <div>
                         <label style={labelStyle}>Subtipo *</label>
@@ -355,7 +355,7 @@ function AtivosVistoriarInner() {
                       {["37","38"].includes(ts) && (
                         <div>
                           <label style={labelStyle}>Fabricante / Marca *</label>
-                          <input name="fabricante" value={form.fabricante} onChange={handleChange} placeholder="Ex: WEG" required style={inputStyle} />
+                          <input na maxLength={48}me="fabricante" value={form.fabricante} onChange={handleChange} placeholder="Ex: WEG" required style={inputStyle} />
                         </div>
                       )}
                       <div>
