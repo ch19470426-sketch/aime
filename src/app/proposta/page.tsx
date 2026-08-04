@@ -321,6 +321,24 @@ function PropostaInner() {
       })
       const data = await res.json()
       if (data.sucesso) {
+        // Registrar no histórico de valores
+        try {
+          const uf = municipioUF.includes('/') ? municipioUF.split('/').pop()?.trim().slice(0,2) : ''
+          const valorNum = parseFloat((valor||'0').replace(/\./g,'').replace(',','.')) || 0
+          const prazoNum = parseInt(prazo||'0') || 0
+          await fetch('/api/registrar-historico', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              data_hora: new Date().toISOString(),
+              tipo_servico: String(tipoServico),
+              cnpjoucpf: cnpjoucpf.replace(/[.\-\/]/g,'').slice(0,14),
+              valor_servico: valorNum,
+              prazo_execucao: prazoNum,
+              uf_estabelecimento: uf,
+            })
+          })
+        } catch { /* histórico não crítico */ }
         window.location.href = `/homologar-produto?cpf_inspetor=${cpfInspetor}&chave_inspetor=${chaveInspetor}&cnpjoucpf=${cnpjoucpf}&tipo_servico=${tipoServico}&nome_arquivo=${encodeURIComponent(nomeArq)}&titulo=${encodeURIComponent(titulo)}`
       } else {
         informa('Erro', data.erro ?? 'Não foi possível salvar.')
