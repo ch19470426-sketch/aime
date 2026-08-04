@@ -263,7 +263,10 @@ function HomologarProdutoInner() {
           .replace('</head>', `<style>${printCss}</style></head>`)
           .replace('</body>',
             `<script>
+              var _n = ` + JSON.stringify(nomeBase) + `;
+              document.title = _n;
               window.addEventListener('load', function() {
+                document.title = _n;
                 setTimeout(function() { window.print(); }, 600);
               });
             </script></body>`
