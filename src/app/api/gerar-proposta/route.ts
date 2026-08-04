@@ -393,9 +393,11 @@ ${(insp.cabecalho_documentos || TITULO_TIPO[tipoServico]) ? `<div class="cab">${
 <p>&nbsp;</p>
 <p style="text-align:justify;margin:6pt 0">${c.apresentacao.replace(/\*\*([^*]+)\*\*/g,'<b>$1</b>').replace(/\*([^*]+)\*/g,'<i>$1</i>').replace(/^#+\s*/gm,'').trim()}</p>
 
-<p style="text-align:center;margin:0;line-height:1"><i>"Segurança e valorização do imóvel é resultado da adequada manutenção</i></p>
-<p style="text-align:center;margin:0;line-height:1"><i>e customização dos ambientes na busca de maior conforto e modernidade".</i></p>
 
+<div style="text-align:center;margin:14pt 0;font-style:italic;color:#374151">
+<p style="margin:0;line-height:1.5"><i>"Segurança e valorização do imóvel é resultado da adequada manutenção</i></p>
+<p style="margin:0;line-height:1.5"><i>e customização dos ambientes na busca de maior conforto e modernidade".</i></p>
+</div>
 <p style="text-align:justify;margin:6pt 0">O serviço será executado para o(a) <b>${razaoSocial}</b>, localizado na(o) <b>${endereco}</b>.</p>
 
 <h2 style="font-size:10pt;font-weight:bold">1.- Objetivo.</h2>
