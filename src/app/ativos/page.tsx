@@ -228,8 +228,8 @@ export default function AtivosVistoriar() {
                       <select name="funcao_responsavel" value={form.funcao_responsavel} onChange={handleChange} required style={inputStyle}>
                         <option value="">Selecione...</option>
                         <option>Administrador</option>
-                        <option>Sindico</option>
-                        <option>Proprietario</option>
+                        <option>Síndico</option>
+                        <option>Proprietário</option>
                       </select>
                     </div>
                     <div>
