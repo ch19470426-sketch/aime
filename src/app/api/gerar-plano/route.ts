@@ -567,7 +567,7 @@ export async function POST(request: NextRequest) {
     const css = [
       '* { box-sizing: border-box; margin: 0; padding: 0; }',
       'body { font-family: Arial, sans-serif; font-size: 10pt; line-height: 1.5; color: #000; padding: 16px 24px; max-width: 100%; }' ,
-      '.cab { text-align: center; margin-bottom: 10pt; padding-bottom: 4pt; border-bottom: 2px solid #1E3A8A; font-size: 12pt; color: #374151; white-space: pre-line; }',
+      '.cab { text-align: center; font-size: 10pt; font-weight: bold; margin-bottom: 10pt; padding-bottom: 4pt; border-bottom: 2px solid #1E3A8A; font-size: 12pt; color: #374151; white-space: pre-line; }',
       'h1 { font-size: 13pt; font-weight: bold; color: #1E3A8A; text-align: center; margin: 12pt 0 4pt; }',
       'h2 { font-size: 11pt; font-weight: bold; color: #1E3A8A; margin: 14pt 0 6pt; }',
       'p { margin: 4pt 0; text-align: justify; }',
@@ -590,10 +590,10 @@ export async function POST(request: NextRequest) {
     partes.push('</head><body>')
     partes.push('<div id="msgBanner" style="display:none;position:fixed;top:16px;left:50%;transform:translateX(-50%);background:#1E3A8A;color:#fff;padding:10px 24px;border-radius:8px;font-size:10pt;font-family:Arial;z-index:999;box-shadow:0 4px 12px rgba(0,0,0,0.3)"></div>')
     partes.push('<div class="cab">' + (insp.cabecalho_documentos || plano.titulo) + '</div>')
+    partes.push('<p style="line-height:1;margin:0">&nbsp;</p>')
     partes.push('<p style="text-align:right;margin:0;line-height:1">' + municipio + ', ' + dataHoje + '</p>')
     partes.push('<p style="line-height:1;margin:0">&nbsp;</p>')
-    partes.push('<p style="line-height:1;margin:0">&nbsp;</p>')
-    partes.push('<p style="text-align:center;font-size:11pt;font-weight:bold;margin:0;line-height:1">' + plano.titulo + '</p>')
+    partes.push('<p style="text-align:center;font-size:10pt;font-weight:bold;margin:0;line-height:1">' + plano.titulo + '</p>')
     partes.push('<p style="line-height:1;margin:0">&nbsp;</p>')
     partes.push('<p style="line-height:1;margin:0">&nbsp;</p>')
     partes.push('<table style="width:640px"><tr><td style="border:none;padding:0"><strong>Estabelecimento:</strong> ' + est.razao_social_nome + '</td><td style="border:none;padding:0;text-align:right"><strong>CNPJ/CPF:</strong> ' + fmtCNPJ(cnpjoucpf) + '</td></tr><tr><td colspan="2" style="border:none;padding:0"><strong>Endereço:</strong> ' + endereco + '</td></tr></table>')
@@ -610,6 +610,7 @@ export async function POST(request: NextRequest) {
     partes.push('<p style="line-height:1;margin:0">&nbsp;</p>')
     partes.push('<p style="line-height:1;margin:0">&nbsp;</p>')
     partes.push('<p style="font-size:8pt;line-height:1;margin:0">[Assinatura digital]</p>')
+    partes.push('<p style="line-height:1;margin:0">&nbsp;</p>')
     partes.push('<p style="line-height:1;margin:0"><strong>' + insp.nome_inspetor + '</strong></p>')
     partes.push('<p style="line-height:1;margin:0">' + tituloLimpo(insp.titulo_profissional) + ' — ' + siglaConselho + ' ' + numLimpo(insp.inscricao_crea_cau) + '</p>')
     if (insp.especializacao) partes.push('<p style="line-height:1;margin:0">Especialista ' + insp.especializacao + '</p>')
