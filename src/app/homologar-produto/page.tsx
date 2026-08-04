@@ -206,8 +206,8 @@ function HomologarProdutoInner() {
   async function baixarEditavel() {
     setGerandoDocx(true)
     try {
-      // Laudos 41-44: abrir HTML em popup e imprimir como PDF (client-side)
-      const ehLaudo = numServico >= 41 && numServico <= 44
+      // Todos os documentos: abrir HTML em nova aba para imprimir como PDF
+      const ehLaudo = true  // sempre PDF
       if (ehLaudo) {
         if (!html) throw new Error('HTML do laudo não carregado.')
 
@@ -304,7 +304,7 @@ function HomologarProdutoInner() {
       URL.revokeObjectURL(url)
     } catch (erro) {
       console.error('Erro ao gerar documento Word:', erro)
-      informa('Erro', erro instanceof Error ? erro.message : 'Não foi possível gerar o documento editável. Tente novamente.')
+      informa('Erro', erro instanceof Error ? erro.message : 'Não foi possível gerar o PDF. Tente novamente.')
     } finally {
       setGerandoDocx(false)
     }
