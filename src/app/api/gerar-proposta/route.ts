@@ -315,7 +315,8 @@ body {
   margin-bottom: 10pt;
   padding-bottom: 4pt;
   border-bottom: 2px solid #1E3A8A;
-  font-size: 12pt;
+  font-size: 10pt;
+  font-weight: bold;
   color: #374151;
   white-space: pre-line;
 }
@@ -333,9 +334,9 @@ body {
   color: #374151;
 }
 h2 {
-  font-size: 11pt;
+  font-size: 10pt;
   font-weight: bold;
-  margin: 16pt 0 6pt;
+  margin: 14pt 0 4pt;
 }
 p {
   margin: 6pt 0;
