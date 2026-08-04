@@ -240,7 +240,7 @@ function Tela31Inner() {
           sistema, subsistema, anomalia,
           local: local || 'Instalação',
           complemento, origem,
-          abrangencia: abrangencia || 'Local',
+          abrangencia: descProbabilidade || 'Local',
           resultado,
         })
       })
