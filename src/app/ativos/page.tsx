@@ -243,7 +243,7 @@ function AtivosVistoriarInner() {
                       <label style={labelStyle}>Uso do Ativo *</label>
                       <select name="uso_ativo" value={form.uso_ativo} onChange={handleChange} required style={inputStyle}>
                         <option value="">Selecione...</option>
-                        <option>Produção</option>
+                        <option>Produção/processo</option>
                         <option>Transporte</option>
                         <option>Residencial</option>
                         <option>Comercial</option>
