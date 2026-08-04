@@ -48,8 +48,8 @@ const SUBTIPOS: Record<string, string[]> = {
 }
 
 const FLUIDOS = ['Classe A','Classe B','Classe C','Classe D','Vapor','Ar comprimido','GLP','Nitrogênio','Outro']
-const USOS = ['Produção/processo','Transporte','Residencial','Comercial','Industrial','Institucional','Misto']
-const FUNCOES = ['Administrador','Responsável','Síndico','Proprietário']
+const USOS = ['Produção','Transporte','Residencial','Comercial','Industrial','Institucional','Misto']
+const FUNCOES = ['Administrador','Síndico','Proprietário']
 
 function fmtCNPJ(v: string): string {
   if (v.length === 14) return v.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5')
