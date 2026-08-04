@@ -257,7 +257,7 @@ function HomologarProdutoInner() {
           body > * { max-width: 100% !important; width: 100% !important; box-shadow: none !important; border-radius: 0 !important; }
         `
 
-        const nomeBase = nomeArquivo.replace(/\.html$/i, '')
+        const nomeBase = nomeAmigavel('pdf')
         const htmlPrint = html
           .replace(/<title>[^<]*<\/title>/, `<title>${nomeBase}</title>`)
           .replace('</head>', `<style>${printCss}</style></head>`)
