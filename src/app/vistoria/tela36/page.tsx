@@ -90,7 +90,7 @@ function Tela31Inner() {
   const [sistema,        setSistema]         = useState('')
   const [subsistema,     setSubsistema]      = useState('')
   const [anomalia,       setAnomalia]        = useState('')
-  const [origem,         setOrigem]          = useState('')
+  const [origem,         setOrigem]          = useState('Funcional')
   const [local,          setLocal]           = useState('')
   const [complemento,    setComplemento]     = useState('')
   const [resultado,      setResultado]        = useState('')
@@ -120,7 +120,7 @@ function Tela31Inner() {
   const abrNum  = VALOR_GUT[`probabilidade:${descProbabilidade}`]   ?? 0
   const expNum  = VALOR_GUT[`exposicaorisco:${descExposicaoRisco}`] ?? 0
   const grauRisco = (gravNum && urgNum && abrNum && expNum) ? calcularGR(gravNum, urgNum, abrNum, expNum) : 0
-  const prioridade = grauRisco >= 75 ? 'Muito alta' : grauRisco >= 50 ? 'Alta' : grauRisco >= 30 ? 'Média' : grauRisco > 0 ? 'Baixa' : '—'
+  const prioridade = grauRisco > 80 ? 'Muito Alta' : grauRisco >= 50 ? 'Alta' : grauRisco >= 30 ? 'Média' : 'Baixa'
   const corGR = grauRisco >= 64 ? '#E24B4A' : grauRisco >= 35 ? '#E8A000' : '#1A7A3C'
 
   // Listas filtradas
@@ -558,6 +558,15 @@ function Tela31Inner() {
           </div>
 
           {erroValidacao && <div style={{ color: '#DC2626', fontSize: '8pt', textAlign: 'center', marginTop: '4px', marginBottom: '4px', padding: '4px 8px', background: '#FEF2F2', borderRadius: '4px' }}>⚠️ {erroValidacao}</div>}
+                    <div style={S.block}>
+            <div style={S.blockTitle}>Causa Provável (CP)</div>
+            <div style={S.blockBody}>
+              <Field label="Causa provável (CP)">
+                <textarea style={{ ...S.input, ...S.textarea, backgroundColor: "#F8FAFC", color: "#374151" }} value={cp} onChange={e => setCp(e.target.value)} placeholder="Descreva a causa provável da manifestação patológica..." />
+              </Field>
+            </div>
+          </div>
+
           {erroSave && <div style={{ color: '#CC0000', fontSize: '8pt', textAlign: 'center', marginBottom: '6px' }}>⚠️ {erroSave}</div>}
 
           {/* FOOTER */}
