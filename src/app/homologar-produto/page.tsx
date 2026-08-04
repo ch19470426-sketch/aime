@@ -250,9 +250,11 @@ function HomologarProdutoInner() {
               padding-top: 3pt;
             }
           }
-          body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+          body { -webkit-print-color-adjust: exact; print-color-adjust: exact; margin: 0 !important; padding: 0 !important; }
           /* Ocultar as divs cab/rod do body — estão no @page */
           .cab, .rod { display: none !important; }
+          /* Garantir que o conteúdo use toda a largura disponível */
+          body > * { max-width: 100% !important; width: 100% !important; box-shadow: none !important; border-radius: 0 !important; }
         `
 
         const nomeBase = nomeArquivo.replace(/\.html$/i, '')
@@ -403,7 +405,7 @@ function HomologarProdutoInner() {
         <div style={S.block}>
           <div style={{ padding: '12px' }}>
             <p style={{ fontSize: '8.5pt', color: '#374151', lineHeight: 1.5 }}>
-              Baixe o documento, revise, ajuste e o complemente (o inspetor é quem responde em juízo), assine digitalmente e faça upload para armazenamento no AIMÊ e continuidade do processo.
+              Baixe o documento, revise e o assine digitalmente. Após faça upload para rastreabilidade e armazenamento no AIMÊ e continuidade do processo.
             </p>
           </div>
         </div>
@@ -431,11 +433,11 @@ function HomologarProdutoInner() {
             Voltar
           </button>
           <button style={{ ...S.btn, ...S.btnSec, opacity: gerandoDocx ? 0.6 : 1 }} onClick={baixarEditavel} disabled={gerandoDocx}>
-            {gerandoDocx ? 'Aguarde...' : (numServico >= 41 && numServico <= 44 ? '↓ Salvar como PDF' : 'Baixar documento editável')}
+            {gerandoDocx ? 'Aguarde...' : '↓ Salvar como PDF'}
           </button>
           <button style={{ ...S.btn, ...S.btnPri, opacity: enviando ? 0.6 : 1 }}
             onClick={() => inputPdfRef.current?.click()} disabled={enviando}>
-            {enviando ? 'Enviando...' : 'Salvar PDF no AIMÊ'}
+            {enviando ? 'Enviando...' : '↑ Salvar PDF no AIMÊ'}
           </button>
         </div>
 
