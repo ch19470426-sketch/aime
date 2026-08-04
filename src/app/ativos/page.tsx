@@ -237,6 +237,7 @@ function AtivosVistoriarInner() {
                         <option>Administrador</option>
                         <option>Síndico</option>
                         <option>Proprietário</option>
+                        <option>Responsável</option>
                       </select>
                     </div>
                     <div>
