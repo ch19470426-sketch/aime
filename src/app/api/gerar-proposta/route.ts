@@ -377,6 +377,7 @@ i { font-style: italic; }
 
 ${(insp.cabecalho_documentos || TITULO_TIPO[tipoServico]) ? `<div class="cab">${insp.cabecalho_documentos || TITULO_TIPO[tipoServico]}</div>` : ''}
 
+<p>&nbsp;</p>
 <p style="text-align:right;margin:0;line-height:1">${municipio}, ${dataHoje}</p>
 <p>&nbsp;</p>
 <p>&nbsp;</p>
@@ -431,6 +432,7 @@ ${md2html(cp.rescisao)}
 <p style="text-align:justify;margin:6pt 0">Atenciosamente,</p>
 <p>&nbsp;</p>
 <p style="margin:0;line-height:1;font-size:8pt">[Assinatura digital]</p>
+<p>&nbsp;</p>
 <p style="margin:0;line-height:1"><b>${insp.nome_inspetor}</b></p>
 <p style="margin:0;line-height:1">${tituloLimpo(insp.titulo_profissional)} — ${conselho(insp.titulo_profissional)} ${numLimpo(insp.inscricao_crea_cau)}</p>
 ${insp.especializacao ? `<p style="margin:0;line-height:1">Especialista ${insp.especializacao}</p>` : ''}
