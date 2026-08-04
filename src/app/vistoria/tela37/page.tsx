@@ -231,20 +231,28 @@ function Tela31Inner() {
     if (!sistema || !subsistema || !anomalia) return
     setFeedbackIA('⏳ Analisando requisito normativo...')
     await delay(400)
-    setFeedbackIA('⏳ Gerando descrição da não conformidade...')
+    setFeedbackIA('⏳ Gerando não conformidade e causa provável...')
     try {
       const res = await fetch('/api/gerar-nc-cp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ sistema, subsistema, anomalia, local: local || 'Instalação', complemento, origem: 'Funcional', abrangencia: descProbabilidade || 'Possível' })
+        body: JSON.stringify({
+          sistema, subsistema, anomalia,
+          local: local || 'Instalação',
+          complemento, origem,
+          abrangencia: abrangencia || 'Local',
+          resultado,
+        })
       })
       if (!res.ok) throw new Error('Status: ' + res.status)
       const data = await res.json()
       const ncVal = data.nc || data.nao_conformidade || ''
+      const cpVal = data.cp || data.causa_provavel || ''
       if (ncVal) setNc(ncVal)
-      setFeedbackIA('✅ Não conformidade gerada com sucesso!')
+      if (cpVal) setCp(cpVal)
+      setFeedbackIA('✅ NC e CP gerados com sucesso!')
     } catch(e) {
-      setFeedbackIA('⚠️ Erro ao gerar NC: ' + String(e))
+      setFeedbackIA('⚠️ Erro ao gerar NC/CP: ' + String(e))
     }
   }
 
