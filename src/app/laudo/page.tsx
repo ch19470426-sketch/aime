@@ -263,7 +263,7 @@ function LaudoComplemento() {
         const dadosI = await resI.json()
         // Buscar documentos do plano de trabalho via gerar-plano
         try {
-          const SLUG_PLANO: Record<string,string> = {"41":"plano_autovistoria","42":"plano_inspecao","43":"plano_imovel_novo","44":"plano_fachada"}
+          const SLUG_PLANO: Record<string,string> = {"41":"plano_autovistoria","42":"plano_inspecao","43":"plano_imovel_novo","44":"plano_fachada","45":"plano_elevador","46":"plano_nr10","47":"plano_nr12","48":"plano_nr13"}
           const slugP = SLUG_PLANO[String(tipoServico)] ?? "plano_autovistoria"
           const nomeP = `${chaveInspetor}_${cnpjoucpf}_${slugP}.html`
           const resP = await fetch(`/api/ler-documento?nome=${encodeURIComponent(nomeP)}&pasta=documentos_inspetor`)
