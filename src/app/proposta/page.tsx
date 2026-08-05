@@ -27,6 +27,7 @@ interface Estabelecimento {
   cep_estabelecimento: string
   numero_imovel: string
   complemento: string
+  uso_estabelecimento?: string
 }
 
 interface Inspetor {
@@ -133,6 +134,7 @@ function PropostaInner() {
   const [cep,         setCep]         = useState('')
   const [numero,      setNumero]      = useState('')
   const [complemento, setComplemento] = useState('')
+  const [usoEstab,    setUsoEstab]    = useState('')
 
   // Campos da proposta
   const [valor,  setValor]  = useState('')
@@ -222,6 +224,7 @@ function PropostaInner() {
         cep_estabelecimento: cep.trim(),
         numero_imovel: numero.trim(),
         complemento: complemento?.trim() ?? null,
+        uso_estabelecimento: usoEstab || null,
         tipo_id: 1,
         ...(isUpdate ? {} : { data_cadastro: new Date().toISOString().split('T')[0] })
       }
