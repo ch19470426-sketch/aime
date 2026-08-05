@@ -487,7 +487,7 @@ function LaudoComplemento() {
             classificacao: { nivel: nivelInspecao, risco, desempenho, manut, uso, desempGeral, nrManut, nrOp, nrFisico, nrSeg, nrDoc },
             rec51, rec52, rec53, rec54, rec55,
             recsSistema,
-        })
+          }
       })
       const data = await res.json()
       if (!res.ok || data.erro) { setErro(data.erro ?? 'Erro ao gerar laudo.'); setEtapa('complemento'); return }
