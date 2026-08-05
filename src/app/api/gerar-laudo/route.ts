@@ -333,53 +333,44 @@ export async function POST(request: NextRequest) {
     const titulo   = TITULO[tipoServico] ?? 'Laudo Técnico'
     const nivel    = complemento?.nivelInspecao ?? cl.nivel ?? ''
     const labelDoc = cnpjoucpf?.length === 11 ? 'CPF' : 'CNPJ'
-    // ── GERADOR PARA LAUDOS NR (45-48) ──────────────────────────────────────────
+    // ── GERADOR PARA LAUDOS NR (45-48) — fiel aos templates docx ────────────────
     if (ehNR) {
       const clNR     = complemento?.classificacao ?? {}
-      // nrManut pode vir direto do complemento (payload novo) ou do clNR (payload antigo)
       const nrManut  = complemento?.nrManut  ?? clNR.nrManut  ?? ''
       const nrOp     = complemento?.nrOp     ?? clNR.nrOp     ?? ''
       const nrFisico = complemento?.nrFisico ?? clNR.nrFisico ?? ''
       const nrSeg    = complemento?.nrSeg    ?? clNR.nrSeg    ?? ''
       const nrDoc    = complemento?.nrDoc    ?? clNR.nrDoc    ?? ''
-      // Recomendações 5.1-5.5
       const rec51NR  = complemento?.rec51 ?? ''
       const rec52NR  = complemento?.rec52 ?? ''
       const rec53NR  = complemento?.rec53 ?? ''
       const rec54NR  = complemento?.rec54 ?? ''
       const rec55NR  = complemento?.rec55 ?? ''
-      const dataHojeNR = new Date().toLocaleDateString('pt-BR', {day:'2-digit',month:'long',year:'numeric'})
+      const dataHojeNR = new Date().toLocaleDateString('pt-BR', {day:'2-digit', month:'long', year:'numeric'})
 
-      // ── Títulos individualizados por norma ──────────────────────────────────
-      const TITULO_NR: Record<string,string> = {
-        '45': 'Inspeção de Elevadores',
-        '46': 'Inspeção das Instalações Elétricas — NR-10',
-        '47': 'Inspeção de Máquinas e Equipamentos — NR-12',
-        '48': 'Inspeção de Caldeiras, Vasos de Pressão e Tubulações — NR-13',
+      // ── Textos individualizados por tipo ────────────────────────────────────
+      const is45 = tipoServico === '45'
+      const is46 = tipoServico === '46'
+      const is47 = tipoServico === '47'
+      const is48 = tipoServico === '48'
+
+      const TITULO_DOC: Record<string,string> = {
+        '45': 'Laudo de Inspeção em Elevador',
+        '46': 'Laudo de Inspeção Elétrica – NR10',
+        '47': 'Laudo de Inspeção de Máquinas e Equipamentos – NR12',
+        '48': 'Laudo de Inspeção em Caldeiras, Vasos de Pressão, Tubulações e Tanques – NR13',
       }
-      const NORMA_NR: Record<string,string> = {
-        '45': 'ABNT NBR 16.858-1 / NR-12',
-        '46': 'NR-10 / NBR 5410',
-        '47': 'NR-12 / NBR ISO 12100',
-        '48': 'NR-13 / ASME',
+      const TITULO_11: Record<string,string> = {
+        '45': '1.1.- Características da Edificação e dos Elevadores.',
+        '46': '1.1.- Características do Estabelecimento.',
+        '47': '1.1.- Características do Estabelecimento.',
+        '48': '1.1.- Características do Estabelecimento.',
       }
-      const NOME_ATIVO_NR: Record<string,string> = {
-        '45': 'Elevadores',
-        '46': 'Instalações Elétricas',
-        '47': 'Máquinas e Equipamentos',
-        '48': 'Caldeiras, Vasos e Tubulações',
-      }
-      const TITULO_1_NR: Record<string,string> = {
-        '45': '1.- Considerações Preliminares.',
-        '46': '1.- Considerações Preliminares.',
-        '47': '1.- Considerações Preliminares.',
-        '48': '1.- Considerações Preliminares.',
-      }
-      const TITULO_11_NR: Record<string,string> = {
-        '45': '1.1.- Características e Localização da Edificação e dos Elevadores.',
-        '46': '1.1.- Características e Localização do Estabelecimento.',
-        '47': '1.1.- Características e Localização do Estabelecimento.',
-        '48': '1.1.- Características e Localização do Estabelecimento.',
+      const TITULO_12: Record<string,string> = {
+        '45': '1.2.- Objetivo.',
+        '46': '1.2.- Objetivo e Escopo.',
+        '47': '1.2.- Objetivo e Escopo.',
+        '48': '1.2.- Objetivo e Escopo.',
       }
       const AGENDA_LABEL: Record<string,string> = {
         '45': 'Inspetor e Síndico',
@@ -387,181 +378,326 @@ export async function POST(request: NextRequest) {
         '47': 'Inspetor e Responsável',
         '48': 'Inspetor e Responsável',
       }
-      const ENTREGA_LABEL: Record<string,string> = {
-        '45': 'elevador ao proprietário',
-        '46': 'das instalações ao responsável',
-        '47': 'das instalações ao responsável',
-        '48': 'das instalações ao responsável',
+      const NOME_ATIVO: Record<string,string> = {
+        '45': 'Elevadores',
+        '46': 'Instalações Elétricas – NR10',
+        '47': 'Máquinas e Equipamentos – NR12',
+        '48': 'Caldeiras, Vasos, Tubulações e Tanques – NR13',
+      }
+      const TITULO_41: Record<string,string> = {
+        '45': 'Relação de Não Conformidades - Elevadores',
+        '46': 'Relação de Não Conformidades - Sistemas Elétricos NR10',
+        '47': 'Relação de Não Conformidades – Máquinas e Equipamentos NR12',
+        '48': 'Relação de Não Conformidades – Caldeiras, Vasos, Tubulações e Tanques - NR13',
       }
 
-      // ── Objetivos individualizados (conforme template) ──────────────────────
-      const OBJETIVO_NR: Record<string,string> = {
-        '45': 'Realização de Inspeção em Elevadores, com verificação completa das condições de manutenção, operação, estado físico, segurança e documentação, segundo os procedimentos estabelecidos pela ABNT NBR 16.858-1 e NR-12, com a finalidade de garantir a proteção aos usuários e assegurar a confiabilidade operacional das instalações.',
-        '46': 'Realização de Inspeção nas Instalações Elétricas, com verificação completa das condições de manutenção, operação, estado físico, segurança e documentação, segundo os requisitos estabelecidos pela NR-10 e NBR 5410, com a finalidade de garantir a proteção ao trabalhador e a integridade das instalações.',
-        '47': 'Realização de Inspeção em Máquinas e Equipamentos, com verificação completa das condições de manutenção, operação, estado físico, segurança e documentação, segundo os requisitos estabelecidos pela NR-12 e NBR/ISO 12100, com a finalidade de garantir a segurança dos trabalhadores e a confiabilidade operacional dos equipamentos.',
-        '48': 'Realização de Inspeção em Caldeiras, Vasos de Pressão, Tubulações e Tanques, com verificação completa das condições de manutenção, operação, estado físico, segurança e documentação, segundo os requisitos estabelecidos pela NR-13 e normas ASME aplicáveis, com a finalidade de prevenir acidentes e assegurar a integridade dos equipamentos.',
+      // ── Item 1 — Considerações Preliminares ────────────────────────────────
+      const ITEM1: Record<string,string> = {
+        '45': 'Este Laudo de Inspeção em Elevador é o documento completo resultante do trabalho executado pela inspeção nos equipamentos, resultado da vistoria, análise, classificação e priorização das anomalias e falhas, conforme exigências da NBR 16.858 (série), metodologia da NBR 16.747 ajustada, normas complementares e demais legislações aplicáveis.\n\nA inspeção apresentada neste laudo é o resultado de um exame "clínico geral" que avalia as condições globais do objeto em estudo e detecta a existência de problemas de conservação ou funcionamento, com base em uma análise fundamentalmente sensorial e efetuada por um profissional habilitado. Com base nesta análise, pode ocorrer a recomendação de contratação de ensaios especializados ou outras ações para que se possa aprofundar e refinar o diagnóstico.\n\nA documentação da edificação solicitada pelo inspetor na reunião inicial é analisada e avaliada, e o resultado fica registrado na planilha apresentada no Anexo 1 deste laudo.',
+        '46': 'Este Laudo de Inspeção em Instalações Elétricas é o documento completo resultante do trabalho executado pela inspeção nas instalações, vistoria, análise, classificação e priorização dos requisitos normativos, conforme exigências da NR-10 e metodologia da NBR 16.747 ajustada, normas complementares e demais legislações aplicáveis.\n\nO apresentado neste laudo é o resultado de um exame "clínico geral" que avalia as condições globais do objeto em estudo no domínio da segurança do trabalho e da conformidade regulatória. Detecta a existência de não conformidades, com base em uma análise fundamentalmente sensorial e efetuada por um profissional habilitado. Com base nesta análise, pode ocorrer a recomendação de contratação de ensaios especializados ou outras ações para que se possa aprofundar e refinar o diagnóstico.\n\nA documentação solicitada pelo inspetor na reunião inicial é analisada e avaliada, e o resultado fica registrado na planilha apresentada no Anexo 1 deste laudo.',
+        '47': 'Este Laudo de Inspeção em Máquinas e Equipamentos é o documento completo resultante do trabalho executado pela inspeção nas instalações, vistoria, análise, classificação e priorização dos requisitos normativos, conforme exigências da NR-12 e metodologia da NBR 16.747 ajustada, normas complementares e demais legislações aplicáveis.\n\nO apresentado neste laudo é o resultado de um exame "clínico geral" que avalia as condições globais do objeto em estudo no domínio da segurança do trabalho e da conformidade regulatória. Detecta a existência de não conformidades, com base em uma análise fundamentalmente sensorial e efetuada por um profissional habilitado. Com base nesta análise, pode ocorrer a recomendação de contratação de ensaios especializados ou outras ações para que se possa aprofundar e refinar o diagnóstico.\n\nA documentação solicitada pelo inspetor na reunião inicial é analisada e avaliada, e o resultado fica registrado na planilha apresentada no Anexo 1 deste laudo.',
+        '48': 'Este Laudo de Inspeção em Caldeiras, Vasos de Pressão, Tubulações e Tanques é o documento completo resultante do trabalho executado pela inspeção nas instalações, vistoria, análise, classificação e priorização dos requisitos normativos, conforme exigências da NR-13 e metodologia da NBR 16.747 ajustada, normas complementares e demais legislações aplicáveis.\n\nO apresentado neste laudo é o resultado de um exame "clínico geral" que avalia as condições globais do objeto em estudo no domínio da segurança do trabalho e da conformidade regulatória. Detecta a existência de não conformidades, com base em uma análise fundamentalmente sensorial e efetuada por um profissional habilitado. Com base nesta análise, pode ocorrer a recomendação de contratação de ensaios especializados ou outras ações para que se possa aprofundar e refinar o diagnóstico.\n\nA documentação solicitada pelo inspetor na reunião inicial é analisada e avaliada, e o resultado fica registrado na planilha apresentada no Anexo 1 deste laudo.',
       }
 
-      // ── Metodologias individualizadas ───────────────────────────────────────
-      const METODOLOGIA_NR: Record<string,string> = {
-        '45': 'O trabalho será desenvolvido segundo a metodologia estabelecida pela ABNT NBR 16.858-1 (Elevadores de Passageiros e Monta-Cargas), complementada pela NR-12. O método de trabalho compreende: entrevista inicial com o responsável; inspeção visual e funcional dos componentes; verificação de documentação técnica; análise das condições de manutenção e segurança; classificação das não conformidades por grau de prioridade (A+, A, M, B) e elaboração do laudo técnico.',
-        '46': 'O trabalho será desenvolvido segundo a metodologia regulamentada pela NR-10 (Segurança em Instalações e Serviços em Eletricidade), complementada pela NBR 5410. O método de trabalho compreende: entrevista inicial com o responsável; análise documental (PIE); inspeção visual das instalações; verificação de dispositivos de proteção e medições elétricas quando aplicável; classificação das não conformidades por grau de prioridade (A+, A, M, B) e elaboração do laudo técnico.',
-        '47': 'O trabalho será desenvolvido segundo a metodologia regulamentada pela NR-12 (Segurança no Trabalho em Máquinas e Equipamentos), complementada pela NBR/ISO 12100. O método de trabalho compreende: entrevista inicial com o responsável; inventário de máquinas; análise de riscos; inspeção visual e funcional; verificação de dispositivos de segurança e proteções; análise de documentação técnica; classificação das não conformidades por grau de prioridade (A+, A, M, B) e elaboração do laudo técnico.',
-        '48': 'O trabalho será desenvolvido segundo a metodologia regulamentada pela NR-13 (Caldeiras, Vasos de Pressão, Tubulações e Tanques Metálicos de Armazenamento), complementada por normas ASME aplicáveis. O método de trabalho compreende: entrevista inicial com o responsável; inspeção visual e instrumental dos equipamentos; verificação de válvulas de segurança e instrumentação; análise de documentação técnica (prontuários); classificação das não conformidades por grau de prioridade (A+, A, M, B) e elaboração do laudo técnico.',
+      // ── Item 1.2 — Objetivo e Escopo ──────────────────────────────────────
+      const OBJETIVO: Record<string,string> = {
+        '45': 'Avaliar as condições de segurança, operação e desempenho do sistema de transporte vertical, verificando a conformidade com as normas técnicas e requisitos legais, identificando falhas, desgastes e riscos operacionais, visando garantir segurança dos usuários, assegurar a confiabilidade operacional e subsidiar a manutenção e modernização dos equipamentos.',
+        '46': 'O presente Laudo Técnico tem por objetivo avaliar as condições de segurança das instalações elétricas da unidade identificada em estudo, verificando a conformidade com os requisitos da Norma Regulamentadora NR-10 – Segurança em Instalações e Serviços em Eletricidade, bem como com as normas técnicas da ABNT aplicáveis.\n\nA inspeção abrange o seguinte escopo:\n- Prontuário das instalações elétricas e documentação técnica\n- Medidas de controle do risco elétrico (proteção contra contatos diretos e indiretos)\n- Sistema de aterramento e equipotencialização\n- Quadros de distribuição, circuitos e dispositivos de proteção\n- Sistema de proteção contra descargas atmosféricas (SPDA)\n- Sinalização de segurança elétrica\n- Procedimentos de bloqueio e etiquetagem (LOTO elétrico)\n- Equipamentos de Proteção Individual (EPI) e coletivo (EPC) elétricos\n- Habilitação e qualificação dos trabalhadores expostos ao risco elétrico\n- Manutenção das instalações elétricas',
+        '47': 'O presente Laudo Técnico tem por objetivo avaliar as condições de segurança das máquinas e equipamentos instalados na unidade em estudo, verificando a conformidade com os requisitos estabelecidos pela Norma Regulamentadora NR-12 – Segurança no Trabalho em Máquinas e Equipamentos, suas Anexos e normas técnicas complementares.\n\nEste laudo abrange a inspeção visual, funcional e documental dos seguintes aspectos:\n- Proteções físicas fixas e móveis das zonas de perigo\n- Dispositivos de segurança (intertravamentos, sensores, cortinas de luz, etc.)\n- Dispositivos de partida, parada e emergência\n- Sistemas elétricos das máquinas\n- Ergonomia e condições do posto de trabalho\n- Documentação técnica (prontuário, manuais, análise de risco)\n- Capacitação e habilitação dos operadores\n- Procedimentos de bloqueio e etiquetagem (LOTO)\n- Sinalização de segurança e EPI',
+        '48': 'O presente Laudo Técnico tem por objetivo avaliar as condições de segurança de Caldeiras, Vasos de Pressão, Tubulações e Tanques da unidade em estudo, verificando a conformidade com os requisitos da Norma Regulamentadora NR-13 – Caldeiras, Vasos de Pressão, Tubulações e Tanques Metálicos de Armazenamento, bem como com as normas técnicas da ABNT aplicáveis.\n\nA inspeção abrange os seguintes escopos:\n- Prontuário e documentação técnica dos equipamentos\n- Caldeiras a vapor: categoria, dispositivos de segurança e operação\n- Vasos de pressão: classificação, inspeções e dispositivos de segurança\n- Tubulações de processo: identificação, suportes e ensaios\n- Tanques metálicos de armazenamento: contenção, SPDA e proteção catódica\n- Dispositivos de segurança: válvulas de alívio, manômetros e pressostatos\n- Habilitação e capacitação de operadores\n- EPI, EPC e sinalização de segurança\n- Plano de manutenção e registros de inspeção',
       }
 
-      // ── Texto item 1 (Considerações Preliminares) ───────────────────────────
-      const ITEM1_NR: Record<string,string> = {
-        '45': 'Este Laudo de Inspeção de Elevadores é o documento técnico resultante da inspeção realizada nos elevadores do estabelecimento indicado no item 1.1, com análise, classificação e priorização das não conformidades identificadas com base nos requisitos normativos da ABNT NBR 16.858-1 e NR-12.',
-        '46': 'Este Laudo de Inspeção das Instalações Elétricas é o documento técnico resultante da inspeção realizada nas instalações elétricas do estabelecimento indicado no item 1.1, com análise, classificação e priorização das não conformidades identificadas com base nos requisitos normativos da NR-10 e NBR 5410.',
-        '47': 'Este Laudo de Inspeção de Máquinas e Equipamentos é o documento técnico resultante da inspeção realizada nas máquinas e equipamentos do estabelecimento indicado no item 1.1, com análise, classificação e priorização das não conformidades identificadas com base nos requisitos normativos da NR-12 e NBR/ISO 12100.',
-        '48': 'Este Laudo de Inspeção de Caldeiras, Vasos de Pressão e Tubulações é o documento técnico resultante da inspeção realizada nos equipamentos do estabelecimento indicado no item 1.1, com análise, classificação e priorização das não conformidades identificadas com base nos requisitos normativos da NR-13 e normas ASME aplicáveis.',
+      // ── Item 2.1 — Base normativa ──────────────────────────────────────────
+      const NORMA21: Record<string,string> = {
+        '45': '<li><b>Norma principal.</b> ABNT NBR 16.858 (série) – Elevadores elétricos de passageiros.</li><li><b>Estrutura da série (resumo técnico):</b> 16.858-1 – Requisitos de segurança; 16.858-2 – Regras para componentes; 16.858-3/4 – Ensaios e verificações; 16.858-5 – Operação e manutenção; 16.858-6 – Acessibilidade; 16.858-7 – Modernização de elevadores existentes.</li><li><b>Normas complementares:</b> ABNT NBR NM 207 / NM 313 – segurança em elevadores; NR-12 – segurança em máquinas e equipamentos; Normas do Corpo de Bombeiros (acessos, emergência).</li>',
+        '46': '<li><b>Norma principal:</b> Ministério do Trabalho e Emprego – NR-10.</li><li><b>Normas complementares:</b> NBR 5410 – baixa tensão; NBR 14039 – média tensão; NBR 5419 – SPDA.</li>',
+        '47': '<li><b>Norma principal:</b> Ministério do Trabalho e Emprego – NR-12.</li><li><b>Normas complementares:</b> NBR/ISO 12100 – análise de risco; NBR 14153 – segurança de máquinas.</li>',
+        '48': '<li><b>Norma principal:</b> Ministério do Trabalho e Emprego – NR-13.</li><li><b>Normas complementares:</b> ASME (referência internacional); Normas ABNT específicas (quando aplicável).</li>',
       }
 
-      const nomeAtivo  = NOME_ATIVO_NR[tipoServico] ?? 'Ativos'
-      const normaBase  = NORMA_NR[tipoServico] ?? ''
-      const objTexto   = OBJETIVO_NR[tipoServico] ?? ''
-      const metTexto   = METODOLOGIA_NR[tipoServico] ?? ''
-      const item1Texto = ITEM1_NR[tipoServico] ?? ''
-      const titulo11   = TITULO_11_NR[tipoServico] ?? '1.1.- Características e Localização do Estabelecimento.'
+      // ── Item 2.2 — Metodologia ─────────────────────────────────────────────
+      const METODOLOGIA22: Record<string,string> = {
+        '45': 'O método empregado consiste em verificar e analisar a documentação dos elevadores, obter informações com o responsável pela edificação, vistoriar os equipamentos e efetuar testes operacionais para o escopo do trabalho, classificar as anomalias e falhas constatadas, registrar as não conformidades e as evidências por imagens, classificar e analisar as anomalias e falhas quanto a origem e ao grau de risco, definir prioridades de manutenção, apresentar recomendações técnicas, e elaborar o laudo técnico com os tópicos necessários, visando mitigar os problemas detectados.<br><br>O planejamento da vistoria inicia com uma entrevista com o responsável pela edificação, abordando características e aspectos cotidianos, além da solicitação da documentação para análise.',
+        '46': 'O método empregado consiste em verificar e analisar a documentação das instalações elétricas, obter informações com o responsável pela instalação, vistoriar os componentes elétricos e efetuar testes operacionais para o escopo do trabalho, classificar os requisitos normativos, registrar as não conformidades e as evidências por imagens, classificar os requisitos quanto ao grau de risco, definir prioridades, apresentar sugestões, recomendações técnicas e elaborar o laudo técnico com os tópicos necessários, visando mitigar os problemas detectados.<br><br>A inspeção foi conduzida por profissional legalmente habilitado, por meio das seguintes técnicas:<ul><li>Inspeção visual das instalações, quadros, barramentos, condutores e dispositivos de proteção;</li><li>Verificação funcional dos dispositivos de proteção (disjuntores, DRs, DPSs, fusíveis);</li><li>Medições elétricas: resistência de isolamento, aterramento, continuidade e queda de tensão;</li><li>Análise documental: prontuário, projetos, ART/RRT, histórico de manutenção e treinamentos;</li><li>Verificação da sinalização de segurança e controle de acesso às instalações elétricas;</li><li>Registro fotográfico das conformidades e não conformidades identificadas;</li><li>Aplicação de checklist estruturado baseado nos itens da NR-10 e ABNT NBR 5410.</li></ul>',
+        '47': 'O método empregado consiste em verificar e analisar a documentação das máquinas e equipamentos, obter informações com o responsável pela instalação, vistoriar máquinas e equipamentos para o escopo do trabalho, classificar as anomalias e falhas constatadas, registrar as não conformidades e as evidências por imagens, classificar e analisar as anomalias e falhas quanto a conformidade e ao grau de risco, efetuar testes funcionais, definir prioridades de manutenção, apresentar recomendações técnicas e elaborar o laudo técnico com os tópicos necessários, visando mitigar os problemas detectados.<br><br>A inspeção foi realizada por profissional habilitado, por meio de:<ul><li>Inspeção visual das proteções, dispositivos de segurança, sinalização e condições gerais;</li><li>Verificação funcional dos dispositivos de parada de emergência e intertravamentos;</li><li>Análise documental: prontuário, manuais, registros de manutenção e treinamentos;</li><li>Verificação das condições ergonômicas do posto de trabalho;</li><li>Registro fotográfico das conformidades e não conformidades identificadas;</li><li>Aplicação de checklist estruturado com referência aos itens da NR-12.</li></ul>',
+        '48': 'O método empregado consiste em verificar e analisar a documentação de caldeiras, vasos de pressão, tubulações e tanques, obter informações com o responsável pela instalação, efetuar a vistoria para o escopo do trabalho, classificar as anomalias e falhas constatadas, registrar as não conformidades e as evidências por imagens, classificar e analisar os requisitos normativos quanto a conformidade e ao grau de risco, efetuar testes funcionais, definir prioridades de manutenção, apresentar recomendações técnicas e elaborar o laudo técnico com os tópicos necessários, visando mitigar os problemas detectados.<br><br>A inspeção foi conduzida por profissional legalmente habilitado (Engenheiro com registro ativo no CREA), por meio das seguintes técnicas:<ul><li>Inspeção visual interna e externa dos equipamentos (quando aplicável e dentro do prazo);</li><li>Verificação funcional dos dispositivos de segurança (válvulas, pressostatos, manômetros);</li><li>Análise documental: prontuários, ART/RRT, histórico de manutenção, certificados de calibração;</li><li>Verificação de habilitação e registros de treinamento dos operadores;</li><li>Registro fotográfico de conformidades e não conformidades identificadas;</li><li>Aplicação de checklist estruturado baseado nos itens da NR-13 e normas ABNT aplicáveis.</li></ul>',
+      }
+
+      // ── Item 2.3 — Critérios ───────────────────────────────────────────────
+      const PRAZOS: Record<string,string[]> = {
+        '45': ['até 90 dias', 'até 45 dias', 'até 10 dias', 'Correção imediata'],
+        '46': ['até 60 dias', 'até 30 dias', 'até 5 dias', 'Interdição e bloqueio elétrico imediato (LOTO)'],
+        '47': ['até 60 dias', 'até 30 dias', 'até 5 dias', 'Interdição e bloqueio elétrico imediato (LOTO)'],
+        '48': ['até 60 dias', 'até 30 dias', 'até 5 dias', 'Interdição e bloqueio elétrico imediato (LOTO)'],
+      }
+      const prazos = PRAZOS[tipoServico] ?? PRAZOS['46']
+
+      // ── Item 6 — Conclusão ─────────────────────────────────────────────────
+      const CONCLUSAO: Record<string,string> = {
+        '45': 'Diante do exposto neste documento, e após analisados todos os fatos observados que interferem ou possam vir a interferir com o assunto objeto deste laudo, concluímos:\n\nA inspeção proporcionou a constatação de que, considerando a situação encontrada, os elevadores encontram-se <b><aptos para uso / aptos com restrições para uso / inaptos para uso></b>.',
+        '46': 'Diante do exposto neste documento, e após analisados todos os fatos observados que interferem ou possam vir a interferir com o assunto objeto deste laudo, as medidas corretivas descritas deverão ser adotadas, priorizando os itens com prioridade Muito Alta e Alta, que representam risco imediato à segurança dos trabalhadores e à integridade das instalações.',
+        '47': 'Diante do exposto neste documento, e após analisados todos os fatos observados que interferem ou possam vir a interferir com o assunto objeto deste laudo, as medidas corretivas descritas deverão ser adotadas, priorizando os itens com prioridade Muito Alta e Alta, que representam risco imediato à segurança dos trabalhadores e à integridade dos equipamentos.',
+        '48': 'Diante do exposto neste documento, e após analisados todos os fatos observados que interferem ou possam vir a interferir com o assunto objeto deste laudo, as medidas corretivas descritas deverão ser adotadas, priorizando os itens com prioridade Muito Alta e Alta, que representam risco imediato à segurança dos trabalhadores e à integridade dos equipamentos.',
+      }
+
       const agendaLabel = AGENDA_LABEL[tipoServico] ?? 'Inspetor e Responsável'
-      const entregaLabel = ENTREGA_LABEL[tipoServico] ?? 'das instalações ao responsável'
+      const titulo11    = TITULO_11[tipoServico] ?? '1.1.- Características do Estabelecimento.'
+      const titulo12    = TITULO_12[tipoServico] ?? '1.2.- Objetivo e Escopo.'
+      const nomeAtivo   = NOME_ATIVO[tipoServico] ?? 'Ativos'
+      const titulo41    = TITULO_41[tipoServico] ?? 'Relação de Não Conformidades'
 
-      // ── BLOCO 1.1 — Características ─────────────────────────────────────────
-      const show45 = tipoServico === '45'
-      // ── BLOCO 1.1 fiel ao template 95-98 ────────────────────────────────────
-      const labelInst = show45 ? 'Condomínio' : 'Razão Social'
-      const labelTelW  = show45 ? 'Telefone contato' : 'Whatsapp'
-      const labelFinal = show45 ? 'Finalidade da vistoria' : 'Finalidade da inspeção'
-      const labelDesc  = show45
-        ? 'Síntese da descrição da edificação seguindo a convenção ou escritura de compra:'
+      // ── CSS helper ─────────────────────────────────────────────────────────
+      const TH11 = 'background:#1E3A8A;color:#fff;padding:4px 8px;font-size:8.5pt;font-weight:700;border:1px solid #1E3A8A'
+      const TD11 = 'border:1px solid #c3d4f0;padding:4px 8px;font-size:8.5pt;vertical-align:top'
+      const TDS  = 'border:1px solid #c3d4f0;padding:3px 6px;font-size:8pt;vertical-align:top'
+
+      // ── BLOCO 1.1 ──────────────────────────────────────────────────────────
+      // Tabela características — fiel ao template
+      const labelInst  = is45 ? 'Condomínio' : 'Razão social'
+      const labelTelW  = is45 ? 'Telefone contato' : 'Whatsapp'
+      const labelFinal = is45 ? 'Finalidade da vistoria' : 'Finalidade da inspeção'
+      const labelDesc  = is45
+        ? 'Síntese da descrição da edificação seguindo a convenção:'
         : 'Descrição sintética da instituição:'
-      const TD11 = 'border:1px solid #dde5f0;padding:4px 8px;font-size:8.5pt;vertical-align:top'
 
-      const S11_rows = [
-        '<tr style="background:#f1f5f9"><td colspan="6" style="padding:4px 8px;font-weight:700;color:#1E3A8A;font-size:8.5pt">' + (show45 ? 'Características da Edificação e Elevadores' : 'Características da Instituição:') + '</td></tr>',
-        '<tr>' +
-          '<td style="' + TD11 + ';width:30%"><b>' + labelInst + ':</b><br>' + xe(estab?.razao_social_nome) + '</td>' +
-          '<td style="' + TD11 + ';width:15%"><b>' + labelDoc + ':</b><br>' + xe(cnpjoucpf) + '</td>' +
-          '<td style="' + TD11 + ';width:15%"><b>CEP:</b><br>' + xe(estab?.cep_estabelecimento||estab?.cep) + '</td>' +
-        '</tr>',
-        '<tr>' +
-          '<td style="' + TD11 + ';width:45%" colspan="2"><b>Endereço:</b><br>' + xe(estab?.logradouro) + (estab?.numero_imovel ? ', ' + xe(estab.numero_imovel) : '') + '</td>' +
-          '<td style="' + TD11 + ';width:20%"><b>Bairro:</b><br>' + xe(estab?.bairro) + '</td>' +
-          '<td style="' + TD11 + ';width:20%"><b>Cidade e UF:</b><br>' + xe(estab?.cidade) + ' / ' + xe(estab?.uf) + '</td>' +
-        '</tr>',
-        '<tr>' +
-          '<td style="' + TD11 + '"><b>CPF responsável:</b><br>' + xe(estab?.cpf_responsavel) + '</td>' +
-          '<td style="' + TD11 + '" colspan="2"><b>Nome do responsável:</b><br>' + xe(estab?.nome_responsavel) + '</td>' +
-          '<td style="' + TD11 + '"><b>Função do responsável:</b><br>' + xe(estab?.funcao_responsavel) + '</td>' +
-        '</tr>',
-        '<tr>' +
-          '<td style="' + TD11 + '" colspan="2"><b>' + labelTelW + ':</b><br>' + xe(estab?.whatsapp) + '</td>' +
-          '<td style="' + TD11 + '" colspan="2"><b>eMail contato:</b><br>' + xe(estab?.email) + '</td>' +
-          '<td style="' + TD11 + '"><b>' + labelFinal + ':</b><br>' + xe(estab?.finalidade_vistoria||'—') + '</td>' +
-        '</tr>',
-      ].join('')
-
-      // Linha extra tipo 45: uso, tipo imóvel, nº pavimentos, nº elevadores
-      const S11_extra45 = show45
+      const linhaExtra45 = is45
         ? '<tr>' +
-            '<td style="' + TD11 + '"><b>Uso Edificação:</b><br>' + xe(estab?.uso_imovel||'—') + '</td>' +
-            '<td style="' + TD11 + '"><b>Tipo imóvel:</b><br>' + xe(estab?.tipo_imovel||'—') + '</td>' +
-            '<td style="' + TD11 + '"><b>Nr pavimentos:</b><br>' + xe(estab?.numero_pavimentos||'—') + '</td>' +
-            '<td style="' + TD11 + '"><b>Nr elevadores:</b><br>' + xe(estab?.nr_elevadores||'—') + '</td>' +
+            '<td style="' + TD11 + '"><b>Uso Edificação:</b> ' + xe(estab?.uso_imovel||'') + '</td>' +
+            '<td style="' + TD11 + '"><b>Tipo imóvel:</b> ' + xe(estab?.tipo_imovel||'') + '</td>' +
+            '<td style="' + TD11 + '"><b>Nr pavimentos:</b> ' + xe(estab?.numero_pavimentos||'') + '</td>' +
+            '<td style="' + TD11 + '"><b>Nr elevadores:</b> ' + xe(estab?.nr_elevadores||estab?.numero_unidades_salas||'') + '</td>' +
           '</tr>'
         : ''
 
-      // Síntese gerada por IA (descVistoria da tela)
-      const S11_sintese = '<tr><td style="' + TD11 + '" colspan="5"><b>' + labelDesc + '</b><br>' +
-        '<div style="min-height:20mm;text-align:justify">' + xe(complemento?.sinteseEdif||'—') + '</div></td></tr>'
+      const tabelaCaract =
+        '<table style="width:100%;border-collapse:collapse">' +
+        '<tr><td colspan="3" style="' + TH11 + '">' + (is45 ? 'Características da Edificação e Elevadores' : 'Características do Estabelecimento') + '</td></tr>' +
+        '<tr><td colspan="3" style="' + TD11 + ';background:#f1f5f9"><b>' + (is45 ? 'Identificação e características da edificação:' : 'Características do Estabelecimento:') + '</b></td></tr>' +
+        '<tr>' +
+          '<td style="' + TD11 + ';width:40%"><b>' + labelInst + ':</b><br>' + xe(estab?.razao_social_nome) + '</td>' +
+          '<td style="' + TD11 + ';width:30%"><b>' + labelDoc + ':</b><br>' + xe(cnpjoucpf) + '</td>' +
+          '<td style="' + TD11 + ';width:30%"><b>CEP:</b><br>' + xe(estab?.cep_estabelecimento||estab?.cep) + '</td>' +
+        '</tr>' +
+        '<tr>' +
+          '<td style="' + TD11 + '"><b>Endereço:</b><br>' + xe(estab?.logradouro) + (estab?.numero_imovel?', '+xe(estab.numero_imovel):'') + '</td>' +
+          '<td style="' + TD11 + '"><b>Bairro:</b><br>' + xe(estab?.bairro) + '</td>' +
+          '<td style="' + TD11 + '"><b>Cidade e UF:</b><br>' + xe(estab?.cidade) + '/' + xe(estab?.uf) + '</td>' +
+        '</tr>' +
+        '<tr>' +
+          '<td style="' + TD11 + '"><b>CPF responsável:</b><br>' + xe(estab?.cpf_responsavel) + '</td>' +
+          '<td style="' + TD11 + '"><b>Nome do responsável:</b><br>' + xe(estab?.nome_responsavel) + '</td>' +
+          '<td style="' + TD11 + '"><b>Função do responsável:</b><br>' + xe(estab?.funcao_responsavel) + '</td>' +
+        '</tr>' +
+        '<tr>' +
+          '<td style="' + TD11 + '"><b>' + labelTelW + ':</b><br>' + xe(estab?.whatsapp) + '</td>' +
+          '<td style="' + TD11 + '"><b>eMail contato:</b><br>' + xe(estab?.email) + '</td>' +
+          '<td style="' + TD11 + '"><b>' + labelFinal + ':</b><br>' + xe(estab?.finalidade_vistoria||'') + '</td>' +
+        '</tr>' +
+        linhaExtra45 +
+        '<tr><td colspan="3" style="' + TD11 + '"><b>' + labelDesc + '</b><br>' +
+          '<div style="min-height:28mm;text-align:justify;padding:4px 0">' + xe(complemento?.sinteseEdif||'') + '</div>' +
+        '</td></tr>' +
+        (is45
+          ? '<tr><td colspan="3" style="' + TH11 + '">Identificação dos Elevadores</td></tr>' +
+            '<tr>' +
+              '<td style="' + TH11.replace('background:#1E3A8A;color:#fff', 'background:#e8eef7;color:#1E3A8A') + '">TAG/Número:</td>' +
+              '<td style="' + TH11.replace('background:#1E3A8A;color:#fff', 'background:#e8eef7;color:#1E3A8A') + '">Fabricante/Marca:</td>' +
+              '<td style="' + TH11.replace('background:#1E3A8A;color:#fff', 'background:#e8eef7;color:#1E3A8A') + '">Capacidade kg: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Nr paradas:</td>' +
+            '</tr>' +
+            (Array.isArray(estab?.ativos) && estab.ativos.length > 0
+              ? estab.ativos.map((a:any) =>
+                  '<tr>' +
+                  '<td style="' + TD11 + '">' + xe(a.tag||a.tag_ativo_nr_serie||'') + '</td>' +
+                  '<td style="' + TD11 + '">' + xe(a.fabricante||a.fabricante_marca||'') + '</td>' +
+                  '<td style="' + TD11 + '">' + xe(a.capacidade||a.capacidade_potencia||'') + '</td>' +
+                  '</tr>'
+                ).join('')
+              : '<tr><td colspan="3" style="' + TD11 + '"><i>Cadastrar ativos (elevadores) no plano de trabalho.</i></td></tr>')
+          : '') +
+        '</table>'
 
-      // Tabela de ativos (tipo 45) — origem: ativos_a_vistoriar do plano
-      const S11_ativos45 = show45
-        ? '<tr style="background:#f1f5f9"><td colspan="5" style="padding:4px 8px;font-weight:700;color:#1E3A8A;font-size:8.5pt">Relação de Ativos a Vistoriar</td></tr>' +
-          '<tr style="background:#1E3A8A;color:#fff">' +
-            '<td style="padding:3px 6px">TAG/Número</td>' +
-            '<td style="padding:3px 6px">Fabricante/Marca</td>' +
-            '<td style="padding:3px 6px">Capacidade kg</td>' +
-            '<td style="padding:3px 6px">Nr paradas</td>' +
+      // Tabela localização (croqui + foto)
+      const tabelaLocal =
+        '<table style="width:100%;border-collapse:collapse;margin-top:6pt">' +
+        '<tr><td colspan="2" style="' + TH11 + '">Localização do Estabelecimento</td></tr>' +
+        '<tr>' +
+          '<td style="' + TD11 + ';width:50%;min-height:65mm;padding:4px">' +
+            (complemento?.croquiBase64?.startsWith('data:image')
+              ? '<img src="' + complemento.croquiBase64 + '" style="width:100%;max-height:65mm;object-fit:contain">'
+              : '<div style="min-height:65mm;display:flex;align-items:center;justify-content:center;color:#94a3b8;font-size:8pt;border:1px dashed #c3d4f0">[Croqui de localização Maps]</div>') +
+          '</td>' +
+          '<td style="' + TD11 + ';width:50%;min-height:65mm;padding:4px">' +
+            (complemento?.fotoCapa?.startsWith('data:image')
+              ? '<img src="' + complemento.fotoCapa + '" style="width:100%;max-height:65mm;object-fit:contain">'
+              : '<div style="min-height:65mm;display:flex;align-items:center;justify-content:center;color:#94a3b8;font-size:8pt;border:1px dashed #c3d4f0">[Foto da fachada principal]</div>') +
+          '</td>' +
+        '</tr>' +
+        '</table>'
+
+      // Tabela ativos para 46/47/48 (campos plano de trabalho)
+      const tabelaAtivos4648 = !is45
+        ? '<p style="margin:8pt 0 4pt;font-weight:700;color:#1E3A8A;font-size:8.5pt">Relação de Ativos a Vistoriar</p>' +
+          '<table style="width:100%;border-collapse:collapse">' +
+          '<tr>' +
+            '<td style="' + TH11 + '">Tipo ativo</td>' +
+            '<td style="' + TH11 + '">Tag/Nº Série</td>' +
+            '<td style="' + TH11 + '">Dt. Início Op.</td>' +
+            '<td style="' + TH11 + '">Uso ativo</td>' +
+            '<td style="' + TH11 + '">Subtipo</td>' +
+            '<td style="' + TH11 + '">Tensão/Pressão kV/kPa</td>' +
+            '<td style="' + TH11 + '">Fabricante</td>' +
+            '<td style="' + TH11 + '">Capacidade/Potência</td>' +
+            '<td style="' + TH11 + '">Fluido/Classe</td>' +
+            '<td style="' + TH11 + '">Vol. Interno</td>' +
           '</tr>' +
           (Array.isArray(estab?.ativos) && estab.ativos.length > 0
             ? estab.ativos.map((a:any) =>
-                '<tr><td style="' + TD11 + '">' + xe(a.tag||a.tag_ativo_nr_serie||'—') + '</td>' +
-                '<td style="' + TD11 + '">' + xe(a.fabricante||a.fabricante_marca||'—') + '</td>' +
-                '<td style="' + TD11 + '">' + xe(a.capacidade||a.capacidade_potencia||'—') + '</td>' +
-                '<td style="' + TD11 + '">' + xe(a.paradas||'—') + '</td></tr>'
+                '<tr>' +
+                '<td style="' + TDS + '">' + xe(a.tipo_ativo||a.tipo||'') + '</td>' +
+                '<td style="' + TDS + '">' + xe(a.tag_ativo_nr_serie||a.tag||'') + '</td>' +
+                '<td style="' + TDS + '">' + xe(a.data_inicio_operacao||'') + '</td>' +
+                '<td style="' + TDS + '">' + xe(a.uso_ativo||'') + '</td>' +
+                '<td style="' + TDS + '">' + xe(a.subtipo||'') + '</td>' +
+                '<td style="' + TDS + '">' + xe(a.tensao_pressao_kv_kpa||'') + '</td>' +
+                '<td style="' + TDS + '">' + xe(a.fabricante_marca||'') + '</td>' +
+                '<td style="' + TDS + '">' + xe(a.capacidade_potencia||'') + '</td>' +
+                '<td style="' + TDS + '">' + xe(a.fluido_classe_fluido||'') + '</td>' +
+                '<td style="' + TDS + '">' + xe(a.volume_interno_m3||'') + '</td>' +
+                '</tr>'
               ).join('')
-            : '<tr><td colspan="4" style="' + TD11 + '"><i>Nenhum ativo cadastrado no plano.</i></td></tr>')
+            : '<tr><td colspan="10" style="' + TDS + ';color:#9a3412;font-style:italic">Cadastrar ativos no plano de trabalho deste serviço.</td></tr>') +
+          '</table>'
         : ''
-
-      // Localização: croqui + foto
-      const S11_local =
-        '<tr style="background:#f1f5f9"><td colspan="5" style="padding:4px 8px;font-weight:700;color:#1E3A8A;font-size:8.5pt">Localização do Estabelecimento</td></tr>' +
-        '<tr>' +
-          '<td style="' + TD11 + '" colspan="2">' +
-            (complemento?.croquiBase64?.startsWith('data:image')
-              ? '<img src="' + complemento.croquiBase64 + '" style="width:100%;max-height:60mm;object-fit:contain">'
-              : '<div style="min-height:55mm;background:#f8fafc;border:1px dashed #c3d4f0;display:flex;align-items:center;justify-content:center;color:#94a3b8;font-size:8pt">[Croqui de Localização Maps]</div>') +
-          '</td>' +
-          '<td style="' + TD11 + '" colspan="2">' +
-            (complemento?.fotoCapa?.startsWith('data:image')
-              ? '<img src="' + complemento.fotoCapa + '" style="width:100%;max-height:60mm;object-fit:contain">'
-              : '<div style="min-height:55mm;background:#f8fafc;border:1px dashed #c3d4f0;display:flex;align-items:center;justify-content:center;color:#94a3b8;font-size:8pt">[Foto Fachada Principal]</div>') +
-          '</td>' +
-        '</tr>'
 
       const S11 =
         '<div class="titulo">' + titulo11 + '</div>' +
         '<div class="section">' +
-        '<table style="width:100%;border-collapse:collapse;font-size:8.5pt">' +
-        S11_rows + S11_extra45 + S11_sintese + S11_ativos45 + S11_local +
+        tabelaCaract +
+        tabelaLocal +
+        tabelaAtivos4648 +
+        '<p style="text-align:justify;font-size:8.5pt;margin:6pt 0">A documentação solicitada foi analisada e avaliada e o resultado encontra-se registrado no documento apresentado no Anexo 1 deste laudo.</p>' +
+        '</div>'
+
+      // ── BLOCO 3.1 ──────────────────────────────────────────────────────────
+      const S31 =
+        '<div class="titulo">3.1.- Descrição da Vistoria Técnica.</div>' +
+        '<div class="section">' +
+        '<table style="width:100%;border-collapse:collapse">' +
+        '<tr><td style="' + TH11 + '">Descrição da Realização da Vistoria</td></tr>' +
+        '<tr><td style="' + TD11 + ';min-height:40mm"><div style="min-height:35mm;text-align:justify;white-space:pre-wrap">' +
+        xe(complemento?.descVistoria||complemento?.dadosVistoria||'') + '</div></td></tr>' +
         '</table>' +
-        '</div>'
-      // ── BLOCO 3.1 — Descrição da Realização da Vistoria ─────────────────────
-      const S31 = '<div class="titulo">3.1.- Descrição da Realização da Vistoria Técnica.</div>' +
-        '<div class="section">' +
-        '  <div class="bloco">' +
-        '    <div class="bloco-header">Descrição da Realização da Vistoria</div>' +
-        '    <div class="row"><div class="cell cell-4"><div class="val" style="min-height:40mm;white-space:pre-wrap;text-align:justify">' + xe(complemento?.descVistoria || complemento?.dadosVistoria || '—') + '</div></div></div>' +
-        '  </div>' +
+        '<p style="text-align:justify;margin:6pt 0">O resultado da vistoria é apresentado num conjunto de formulários, contendo o sistema e subsistema, requisitos normativos com suas classificações, priorizações, localizações, descrição das não conformidades, sugestões e a respectiva evidência fotográfica.</p>' +
         '</div>'
 
-      // ── BLOCO 3.3 — Resultado da Classificação ──────────────────────────────
-      const CRITERIOS = [
-        { nome: 'Manutenção',        questao: 'A manutenção garante a confiabilidade nas instalações/equipamentos?', val: nrManut  },
-        { nome: 'Operação',          questao: 'A instalação pode operar com segurança?',                              val: nrOp     },
-        { nome: 'Condições Físicas', questao: 'As máquinas apresentam condições físicas adequadas?',                  val: nrFisico },
-        { nome: 'Segurança',         questao: 'Os dispositivos de proteção atendem aos requisitos da NR?',            val: nrSeg    },
-        { nome: 'Documentação',      questao: 'A documentação técnica atende à NR?',                                  val: nrDoc    },
-      ]
-      const cor33 = (v:string) =>
+      // ── BLOCO 3.3 ──────────────────────────────────────────────────────────
+      const COR33 = (v:string) =>
         ['Garante','Plena','Excelente','Plenamente','Completa'].includes(v) ? '#16A34A' :
-        ['Não garante','Interditada','Péssima','Não atende','Inexistente'].includes(v) ? '#CC0000' : '#E8A000'
+        ['Não garante','Interditada','Insegura','Péssima','Crítica','Não atende','Inexistentes','Ausente'].includes(v) ? '#CC0000' :
+        v ? '#E8A000' : '#374151'
 
-      const S33 = '<div class="titulo">3.3.- Resultado da Classificação.</div>' +
+      const CRITERIOS33 = [
+        { c: 'Manutenção',        q: 'A manutenção garante a confiabilidade nas instalações?',              val: nrManut  },
+        { c: 'Operação',          q: 'A instalação pode operar com segurança?',                              val: nrOp     },
+        { c: 'Condições Físicas', q: 'As máquinas apresentam condições físicas adequadas para operação segura?', val: nrFisico },
+        { c: 'Segurança',         q: 'Os dispositivos de proteção atendem aos requisitos normativos?',       val: nrSeg    },
+        { c: 'Documentação',      q: 'A documentação técnica atende à NR?',                                  val: nrDoc    },
+      ]
+
+      const S33 =
+        '<div class="titulo">3.3.- Resultado da Classificação da Instalação.</div>' +
         '<div class="section">' +
-        '  <div class="bloco">' +
-        '    <table style="width:100%;border-collapse:collapse;font-size:8.5pt">' +
-        '      <tr style="background:#1E3A8A;color:#fff">' +
-        '        <th style="padding:5px 8px;text-align:left;width:18%">Critério</th>' +
-        '        <th style="padding:5px 8px;text-align:left;width:44%">Questão Norteadora</th>' +
-        '        <th style="padding:5px 8px;text-align:center;width:19%">Parâmetros de Avaliação</th>' +
-        '        <th style="padding:5px 8px;text-align:center;width:19%">Resultado</th>' +
-        '      </tr>' +
-        CRITERIOS.map(c =>
-          '      <tr style="border-bottom:1px solid #e2e8f0">' +
-          '<td style="padding:4px 8px;font-weight:700">' + c.nome + '</td>' +
-          '<td style="padding:4px 8px">' + c.questao + '</td>' +
-          '<td style="padding:4px 8px;text-align:center">' + (c.val || '—') + '</td>' +
-          '<td style="padding:4px 8px;text-align:center;font-weight:700;color:' + cor33(c.val) + '">' + (c.val || '—') + '</td>' +
+        '<p style="text-align:justify;margin-bottom:6pt">O resultado da classificação das instalações seguindo a metodologia apresentada para execução deste trabalho é apresentada a seguir.</p>' +
+        '<table style="width:100%;border-collapse:collapse">' +
+        '<tr>' +
+          '<td style="' + TH11 + ';width:18%">Critério</td>' +
+          '<td style="' + TH11 + ';width:52%">Questão Norteadora</td>' +
+          '<td style="' + TH11 + ';width:30%;text-align:center">Parâmetros de Avaliação</td>' +
+        '</tr>' +
+        CRITERIOS33.map(r =>
+          '<tr>' +
+          '<td style="' + TD11 + ';font-weight:700">' + r.c + '</td>' +
+          '<td style="' + TD11 + '">' + r.q + '</td>' +
+          '<td style="' + TD11 + ';text-align:center;font-weight:700;color:' + COR33(r.val) + '">' + (r.val || '—') + '</td>' +
           '</tr>'
         ).join('') +
-        '    </table>' +
-        '  </div>' +
+        '</table>' +
+        '<p style="margin:6pt 0;font-size:8.5pt">As <b>Prioridades</b> para aplicar as ações corretivas constam na relação apresentada no item 4. deste documento.</p>' +
         '</div>'
 
-      // ── Estatística 4.2 ─────────────────────────────────────────────────────
+      // ── BLOCO 4.1 ──────────────────────────────────────────────────────────
+      // Tabela cabeçalho por tipo (45 tem Tag/Tipo/Sistema; 46/47/48 têm Tag/Sistema)
+      const cabecalho41 = is45
+        ? '<td style="' + TH11 + '">Tag/Nº Série:</td><td style="' + TH11 + '">Tipo ativo:</td><td style="' + TH11 + '">Sistema:</td>'
+        : '<td style="' + TH11 + '" colspan="2">Tag/Nº Série:</td><td style="' + TH11 + '">Sistema:</td>'
+
+      // Agrupar NCs por sistema
+      const ncsPorSistema41: Record<string, any[]> = {}
+      for (const nc of (ncs ?? [])) {
+        const sis = (nc.sistema||'').trim() || 'Geral'
+        if (!ncsPorSistema41[sis]) ncsPorSistema41[sis] = []
+        ncsPorSistema41[sis].push(nc)
+      }
+
+      const S41_blocos = Object.keys(ncsPorSistema41).length === 0
+        ? '<tr><td colspan="6" style="' + TD11 + ';color:#9a3412;font-style:italic">Nenhuma não conformidade registrada.</td></tr>'
+        : Object.entries(ncsPorSistema41).map(([sis, ncsSis]) => {
+            const tagEx = ncsSis[0]?.cnpjoucpf || ''
+            const tipoEx = ncsSis[0]?.tipoAtivo || ''
+            const sisNome = sis.length > 2 ? sis.slice(3).replace(/_/g,' ') : sis
+            return (
+              '<tr>' + (is45
+                ? '<td style="' + TD11 + '">' + xe(ncsSis[0]?.tag||tagEx) + '</td>' +
+                  '<td style="' + TD11 + '">' + xe(tipoEx) + '</td>'
+                : '<td style="' + TD11 + '" colspan="2">' + xe(ncsSis[0]?.tag||tagEx) + '</td>') +
+              '<td style="' + TD11 + '">' + xe(sisNome) + '</td>' +
+              '</tr>' +
+              '<tr><td colspan="3" style="' + TD11 + ';background:#f1f5f9"><b>Descrição do sistema:</b><br>' +
+                xe(ncsSis[0]?.sistemaDesc||'') + '</td></tr>' +
+              '<tr><td colspan="3" style="' + TD11 + '"><b>Recomendação para o sistema:</b><br>' +
+                xe(ncsSis[0]?.solucao||ncsSis[0]?.recomendacao||'') + '</td></tr>' +
+              '<tr>' +
+                '<td style="' + TH11 + '">Foto</td>' +
+                '<td style="' + TH11 + '">Não Conformidade</td>' +
+                '<td style="' + TH11 + '">Local</td>' +
+              '</tr>' +
+              '<tr>' +
+                '<td style="' + TH11 + '">G Risco</td>' +
+                '<td style="' + TH11 + '">Prioridade</td>' +
+                '<td style="' + TH11 + '">Sugestões</td>' +
+              '</tr>' +
+              ncsSis.map(nc => {
+                const grN = Number(nc.grauRisco)||0
+                const corP = grN > 80 ? '#CC0000' : grN >= 50 ? '#E8A000' : '#16A34A'
+                const priP = grN > 80 ? 'Muito Alta' : grN >= 50 ? 'Alta' : grN >= 30 ? 'Média' : 'Baixa'
+                return '<tr>' +
+                  '<td style="' + TDS + ';text-align:center">' + xe(nc.fotoNr||'') + '</td>' +
+                  '<td style="' + TDS + '">' + xe(nc.nc||nc.anomalia||'') + '</td>' +
+                  '<td style="' + TDS + '">' + xe(nc.local||'') + '</td>' +
+                  '</tr>' +
+                  '<tr>' +
+                  '<td style="' + TDS + ';text-align:center;font-weight:700;color:' + corP + '">' + grN + '</td>' +
+                  '<td style="' + TDS + ';font-weight:700;color:' + corP + '">' + priP + '</td>' +
+                  '<td style="' + TDS + '">' + xe(nc.solucao||nc.cp||'') + '</td>' +
+                  '</tr>'
+              }).join('')
+            )
+          }).join('<tr><td colspan="3" style="border:none;height:6pt"></td></tr>')
+
+      const S41 =
+        '<div class="titulo">4.1.- Relação de Não Conformidades e Soluções.</div>' +
+        '<div class="section">' +
+        '<p style="text-align:justify">Neste item é apresentado, de forma clara e concisa, o conjunto de requisitos normativos identificados na vistoria, suas localizações e o número da foto no respectivo formulário de vistoria. Na tabela constam as prioridades para retificação dos problemas de cada um dos componentes, visando mitigar os riscos e garantir a conformidade e eficiência dos equipamentos, segundo normas técnicas vigentes.</p>' +
+        '<p style="text-align:justify">A prioridade para manutenção de cada uma das não conformidades foi obtida pelo grau de risco (0 a 100), calculado com base nos parâmetros: gravidade (40%); abrangência (30%); urgência (20%); e exposição (10%); observado no requisito normativo.</p>' +
+        '<p style="text-align:justify">Quanto à definição das prioridades foi adotado o critério: grau de risco superior a 80 pontos, prioridade <b>Muito Alta</b>; grau de risco menor que 80 pontos e maior que 49 pontos, prioridade <b>Alta</b>; grau de risco menor que 50 pontos e maior que 29 pontos, prioridade <b>Média</b>; grau de risco inferior a 30 pontos, prioridade <b>Baixa</b>.</p>' +
+        '<table style="width:100%;border-collapse:collapse">' +
+        '<tr><td colspan="3" style="' + TH11 + '">' + titulo41 + '</td></tr>' +
+        '<tr>' + cabecalho41 + '</tr>' +
+        S41_blocos +
+        '</table>' +
+        '</div>'
+
+      // ── BLOCO 4.2 Estatística ──────────────────────────────────────────────
       const SISTEMAS_NR = [
         '01_Documentação Técnica','02_Capacitação','03_Quadros Elétricos',
         '04_Cabos e Condutores','05_Proteção Elétrica','06_Sistema de Aterramento',
@@ -569,82 +705,136 @@ export async function POST(request: NextRequest) {
         '10_SPDA','11_Procedimentos Segurança','12_Manutenção'
       ]
       const stat42 = SISTEMAS_NR.map(s => {
-        const arr = (ncs ?? []).filter((n:any) => (n.sistema||'').startsWith(s.slice(0,2)))
-        const aM  = arr.filter((n:any) => Number(n.grauRisco) > 80).length
-        const aA  = arr.filter((n:any) => Number(n.grauRisco) >= 50 && Number(n.grauRisco) <= 80).length
-        const m   = arr.filter((n:any) => Number(n.grauRisco) >= 30 && Number(n.grauRisco) < 50).length
-        const b   = arr.filter((n:any) => Number(n.grauRisco) < 30 && Number(n.grauRisco) > 0).length
-        const t   = aM + aA + m + b
-        return { s, aM, aA, m, b, t }
+        const prefix = s.slice(0,2)
+        const arr = (ncs ?? []).filter((n:any) => (n.sistema||'').startsWith(prefix))
+        const aM = arr.filter((n:any) => Number(n.grauRisco) > 80).length
+        const aA = arr.filter((n:any) => Number(n.grauRisco) >= 50 && Number(n.grauRisco) <= 80).length
+        const mM = arr.filter((n:any) => Number(n.grauRisco) >= 30 && Number(n.grauRisco) < 50).length
+        const bB = arr.filter((n:any) => Number(n.grauRisco) < 30 && Number(n.grauRisco) > 0).length
+        const t  = aM + aA + mM + bB
+        return { s, aM, aA, mM, bB, t }
       })
-      const totStat = { aM: stat42.reduce((s:number,r)=>s+r.aM,0), aA: stat42.reduce((s:number,r)=>s+r.aA,0), m: stat42.reduce((s:number,r)=>s+r.m,0), b: stat42.reduce((s:number,r)=>s+r.b,0), t: stat42.reduce((s:number,r)=>s+r.t,0) }
-      const TH42 = 'background:#1E3A8A;color:#fff;padding:3px 6px;text-align:center;font-size:7.5pt'
-      const TD42 = 'padding:3px 6px;text-align:center;border-bottom:1px solid #e2e8f0;font-size:8pt'
+      const tot42 = {
+        aM: stat42.reduce((a,r)=>a+r.aM,0), aA: stat42.reduce((a,r)=>a+r.aA,0),
+        mM: stat42.reduce((a,r)=>a+r.mM,0), bB: stat42.reduce((a,r)=>a+r.bB,0),
+        t:  stat42.reduce((a,r)=>a+r.t, 0)
+      }
+      const pct = (n:number, t:number) => t > 0 ? Math.round(n/t*100)+'%' : ''
+      const TH42 = 'background:#1E3A8A;color:#fff;padding:3px 5px;text-align:center;font-size:7.5pt;border:1px solid #1E3A8A'
+      const TD42 = 'padding:3px 5px;text-align:center;border:1px solid #c3d4f0;font-size:8pt'
 
-      const S42 = '<div class="titulo">4.2.- Análise Estatística das Não Conformidades.</div>' +
-        '<div class="section"><div class="bloco">' +
-        '<div class="bloco-header">Estatística de Requisitos Normativos por Sistema e Prioridade — ' + nomeAtivo + '</div>' +
-        '<table style="width:100%;border-collapse:collapse;font-size:8pt">' +
-        '<tr><th style="' + TH42 + ';text-align:left;width:30%">Sistema</th>' +
-        '<th style="' + TH42 + '" colspan="8">Requisitos Normativos Não Conformes</th>' +
-        '<th style="' + TH42 + '">Sub total</th><th style="' + TH42 + '">%</th></tr>' +
-        '<tr><th style="' + TH42 + ';text-align:left">—</th>' +
-        '<th style="' + TH42 + '">A+</th><th style="' + TH42 + '">%</th>' +
-        '<th style="' + TH42 + '">A</th><th style="' + TH42 + '">%</th>' +
-        '<th style="' + TH42 + '">M</th><th style="' + TH42 + '">%</th>' +
-        '<th style="' + TH42 + '">B</th><th style="' + TH42 + '">%</th>' +
-        '<th style="' + TH42 + '">—</th><th style="' + TH42 + '">—</th></tr>' +
-        stat42.map(r => {
-          const tt = totStat.t || 1
-          return '<tr><td style="' + TD42 + ';text-align:left">' + r.s + '</td>' +
-            '<td style="' + TD42 + '">' + (r.aM || '') + '</td><td style="' + TD42 + '">' + (r.aM ? Math.round(r.aM/tt*100)+'%' : '') + '</td>' +
-            '<td style="' + TD42 + '">' + (r.aA || '') + '</td><td style="' + TD42 + '">' + (r.aA ? Math.round(r.aA/tt*100)+'%' : '') + '</td>' +
-            '<td style="' + TD42 + '">' + (r.m || '') + '</td><td style="' + TD42 + '">' + (r.m ? Math.round(r.m/tt*100)+'%' : '') + '</td>' +
-            '<td style="' + TD42 + '">' + (r.b || '') + '</td><td style="' + TD42 + '">' + (r.b ? Math.round(r.b/tt*100)+'%' : '') + '</td>' +
-            '<td style="' + TD42 + ';font-weight:700">' + (r.t || '') + '</td>' +
-            '<td style="' + TD42 + '">' + (r.t ? Math.round(r.t/tt*100)+'%' : '') + '</td></tr>'
-        }).join('') +
-        '<tr style="background:#f1f5f9;font-weight:700"><td style="' + TD42 + ';text-align:left">Total de ocorrências</td>' +
-        '<td style="' + TD42 + '">' + totStat.aM + '</td><td style="' + TD42 + '">' + (totStat.t ? Math.round(totStat.aM/totStat.t*100)+'%' : '—') + '</td>' +
-        '<td style="' + TD42 + '">' + totStat.aA + '</td><td style="' + TD42 + '">' + (totStat.t ? Math.round(totStat.aA/totStat.t*100)+'%' : '—') + '</td>' +
-        '<td style="' + TD42 + '">' + totStat.m + '</td><td style="' + TD42 + '">' + (totStat.t ? Math.round(totStat.m/totStat.t*100)+'%' : '—') + '</td>' +
-        '<td style="' + TD42 + '">' + totStat.b + '</td><td style="' + TD42 + '">' + (totStat.t ? Math.round(totStat.b/totStat.t*100)+'%' : '—') + '</td>' +
-        '<td style="' + TD42 + '">' + totStat.t + '</td><td style="' + TD42 + '">100%</td></tr>' +
+      const S42 =
+        '<div class="titulo">4.2.- Análise Estatística das Manifestações Patológicas.</div>' +
+        '<div class="section">' +
+        '<p style="text-align:justify">A tabela que segue apresenta a estatística de ocorrências de requisitos normativos não conformes identificados na instalação, e classificados por sistema e prioridades, onde se pode observar a situação de cada um dos sistemas, possibilitando uma clara compreensão do estado das instalações e um adequado planejamento para execução das atividades corretivas.</p>' +
+        '<table style="width:100%;border-collapse:collapse">' +
+        '<tr>' +
+          '<td colspan="11" style="' + TH42 + ';text-align:left">Estatística de Requisitos Normativos por Sistema e Prioridade</td>' +
+        '</tr>' +
+        '<tr>' +
+          '<td style="' + TH42 + ';text-align:left;width:28%">Sistema</td>' +
+          '<td colspan="8" style="' + TH42 + '">Requisitos Normativos Não Conformes</td>' +
+          '<td style="' + TH42 + '">Sub total</td>' +
+          '<td style="' + TH42 + '">%</td>' +
+        '</tr>' +
+        '<tr>' +
+          '<td style="' + TH42 + ';text-align:left">&nbsp;</td>' +
+          '<td style="' + TH42 + '">A+</td><td style="' + TH42 + '">%</td>' +
+          '<td style="' + TH42 + '">A</td><td style="' + TH42 + '">%</td>' +
+          '<td style="' + TH42 + '">M</td><td style="' + TH42 + '">%</td>' +
+          '<td style="' + TH42 + '">B</td><td style="' + TH42 + '">%</td>' +
+          '<td style="' + TH42 + '">&nbsp;</td><td style="' + TH42 + '">&nbsp;</td>' +
+        '</tr>' +
+        stat42.map(r =>
+          '<tr>' +
+          '<td style="' + TD42 + ';text-align:left">' + r.s + '</td>' +
+          '<td style="' + TD42 + '">' + (r.aM||'') + '</td><td style="' + TD42 + '">' + pct(r.aM,r.t) + '</td>' +
+          '<td style="' + TD42 + '">' + (r.aA||'') + '</td><td style="' + TD42 + '">' + pct(r.aA,r.t) + '</td>' +
+          '<td style="' + TD42 + '">' + (r.mM||'') + '</td><td style="' + TD42 + '">' + pct(r.mM,r.t) + '</td>' +
+          '<td style="' + TD42 + '">' + (r.bB||'') + '</td><td style="' + TD42 + '">' + pct(r.bB,r.t) + '</td>' +
+          '<td style="' + TD42 + ';font-weight:700">' + (r.t||'') + '</td>' +
+          '<td style="' + TD42 + '">' + pct(r.t,tot42.t) + '</td>' +
+          '</tr>'
+        ).join('') +
+        '<tr style="background:#f1f5f9;font-weight:700">' +
+          '<td style="' + TD42 + ';text-align:left">Total de ocorrências</td>' +
+          '<td style="' + TD42 + '">' + tot42.aM + '</td><td style="' + TD42 + '">' + pct(tot42.aM,tot42.t) + '</td>' +
+          '<td style="' + TD42 + '">' + tot42.aA + '</td><td style="' + TD42 + '">' + pct(tot42.aA,tot42.t) + '</td>' +
+          '<td style="' + TD42 + '">' + tot42.mM + '</td><td style="' + TD42 + '">' + pct(tot42.mM,tot42.t) + '</td>' +
+          '<td style="' + TD42 + '">' + tot42.bB + '</td><td style="' + TD42 + '">' + pct(tot42.bB,tot42.t) + '</td>' +
+          '<td style="' + TD42 + '">' + tot42.t + '</td><td style="' + TD42 + '">100%</td>' +
+        '</tr>' +
+        '<tr><td colspan="11" style="' + TD42 + ';text-align:left;font-size:7.5pt"><b>A+</b> = Muito Alta &nbsp;|&nbsp; <b>A</b> = Alta &nbsp;|&nbsp; <b>M</b> = Média &nbsp;|&nbsp; <b>B</b> = Baixa</td></tr>' +
         '</table>' +
-        '<p style="font-size:7.5pt;margin-top:4pt;color:#374151"><b>A+</b> = Muito Alta (Grau &gt; 80) &nbsp;|&nbsp; <b>A</b> = Alta (50–80) &nbsp;|&nbsp; <b>M</b> = Média (30–49) &nbsp;|&nbsp; <b>B</b> = Baixa (&lt; 30)</p>' +
-        '</div></div>'
+        '</div>'
 
-      // ── BLOCO 5 — Recomendações ──────────────────────────────────────────────
-      const S5 = '<div class="titulo">5.- Recomendações sobre Manutenção, Operação, Condições Físicas, Segurança e Documentação.</div>' +
-        '<div class="section"><div class="bloco">' +
-        '<p style="text-align:justify"><b>5.1.- Recomendações sobre manutenção:</b><br>' + xe(rec51NR || '—') + '</p>' +
-        '<p style="text-align:justify"><b>5.2.- Recomendações sobre operação:</b><br>' + xe(rec52NR || '—') + '</p>' +
-        '<p style="text-align:justify"><b>5.3.- Recomendações sobre condições físicas:</b><br>' + xe(rec53NR || '—') + '</p>' +
-        '<p style="text-align:justify"><b>5.4.- Recomendações sobre segurança:</b><br>' + xe(rec54NR || '—') + '</p>' +
-        '<p style="text-align:justify"><b>5.5.- Recomendações sobre documentação:</b><br>' + xe(rec55NR || '—') + '</p>' +
-        '</div></div>'
+      // ── BLOCO 5 — Recomendações ────────────────────────────────────────────
+      const S5 =
+        '<div class="titulo">5.- Recomendações Gerais.</div>' +
+        '<div class="section">' +
+        '<p style="text-align:justify">No decorrer do processo de inspeção foi efetuada a análise da documentação, a vistoria nas instalações e a classificação das anomalias e dos requisitos normativos, o que possibilitou uma completa avaliação que possibilita apresentar as recomendações que seguem, considerando a manutenção, operação, condições físicas, segurança e documentação.</p>' +
+        '<table style="width:100%;border-collapse:collapse">' +
+        '<tr><td style="' + TH11 + '">5.1.- Recomendações sobre manutenção:</td></tr>' +
+        '<tr><td style="' + TD11 + ';min-height:16mm"><div style="min-height:14mm;text-align:justify">' + xe(rec51NR||'') + '</div></td></tr>' +
+        '<tr><td style="' + TH11 + '">5.2.- Recomendações sobre operação:</td></tr>' +
+        '<tr><td style="' + TD11 + ';min-height:16mm"><div style="min-height:14mm;text-align:justify">' + xe(rec52NR||'') + '</div></td></tr>' +
+        '<tr><td style="' + TH11 + '">5.3.- Recomendações sobre condições físicas:</td></tr>' +
+        '<tr><td style="' + TD11 + ';min-height:16mm"><div style="min-height:14mm;text-align:justify">' + xe(rec53NR||'') + '</div></td></tr>' +
+        '<tr><td style="' + TH11 + '">5.4.- Recomendações sobre segurança:</td></tr>' +
+        '<tr><td style="' + TD11 + ';min-height:16mm"><div style="min-height:14mm;text-align:justify">' + xe(rec54NR||'') + '</div></td></tr>' +
+        '<tr><td style="' + TH11 + '">5.5.- Recomendações sobre documentação:</td></tr>' +
+        '<tr><td style="' + TD11 + ';min-height:16mm"><div style="min-height:14mm;text-align:justify">' + xe(rec55NR||'') + '</div></td></tr>' +
+        '</table>' +
+        '</div>'
 
-      // ── ANEXO 1 — Documentos ─────────────────────────────────────────────────
-      const docsAnexo = DOCS_NR_MAP[tipoServico] ?? []
-      const docsA1 = Object.keys(complemento?.docsAnexo1 ?? {}).length > 0
-        ? Object.keys(complemento.docsAnexo1) : docsAnexo
+      // ── TABELA AGENDA (plano de trabalho) ──────────────────────────────────
+      const slugPlano: Record<string,string> = { '45':'plano_elevador','46':'plano_nr10','47':'plano_nr12','48':'plano_nr13' }
+      const nomePlano = chaveInspetor + '_' + cnpjoucpf + '_' + (slugPlano[tipoServico]??'plano') + '.html'
+      let tabelaPlano = '<table style="width:100%;border-collapse:collapse"><tr><td style="' + TH11 + '">Agenda de Trabalho – ' + agendaLabel + '</td></tr><tr><td style="' + TD11 + ';color:#9a3412;font-style:italic">Plano de trabalho não encontrado. Gere e salve o plano de trabalho deste serviço primeiro.</td></tr></table>'
+      try {
+        const { data: blobP } = await supabase.storage.from('aime').download('documentos_inspetor/' + nomePlano)
+        if (blobP) {
+          const htmlP = await blobP.text()
+          const idxAtiv = htmlP.indexOf('id="tbAtiv"')
+          const idxHead = htmlP.indexOf('Atividades')
+          const idxTb   = idxAtiv >= 0 ? idxAtiv : (idxHead >= 0 ? htmlP.lastIndexOf('<table', idxHead) : -1)
+          if (idxTb >= 0) {
+            tabelaPlano = htmlP.slice(idxTb, htmlP.indexOf('</table>', idxTb) + 8)
+          }
+        }
+      } catch { /* sem plano */ }
+
+      // ── ANEXO 1 ────────────────────────────────────────────────────────────
       const A1_TITULO: Record<string,string> = {
         '45': 'Documentação da Edificação e Elevadores Solicitada',
         '46': 'Documentação das Instalações Elétricas para Análise',
         '47': 'Documentação das Máquinas e Equipamentos para Análise',
         '48': 'Documentação das Máquinas e Equipamentos para Análise',
       }
-      const A1 = '<div class="titulo" style="text-align:center">Anexo 1 — ' + (A1_TITULO[tipoServico] ?? 'Documentação Solicitada') + '</div>' +
-        '<div class="section"><div class="bloco">' +
-        '<table style="width:100%;border-collapse:collapse;font-size:8.5pt">' +
-        '<tr style="background:#1E3A8A;color:#fff"><th style="padding:5px 8px;text-align:left;width:58%">Documentos</th><th style="padding:5px 8px;text-align:center;width:21%">Situação</th><th style="padding:5px 8px;width:21%">Resultado</th></tr>' +
+      const docsAnexo = DOCS_NR_MAP[tipoServico] ?? []
+      const docsA1 = Object.keys(complemento?.docsAnexo1 ?? {}).length > 0
+        ? Object.keys(complemento.docsAnexo1) : docsAnexo
+      const A1 =
+        '<div class="titulo" style="text-align:center">Anexo 1 — ' + (A1_TITULO[tipoServico]??'Documentação Solicitada') + '</div>' +
+        '<div class="section">' +
+        '<table style="width:100%;border-collapse:collapse">' +
+        '<tr>' +
+          '<td style="' + TH11 + ';width:58%">Documentos</td>' +
+          '<td style="' + TH11 + ';width:21%;text-align:center">Situação</td>' +
+          '<td style="' + TH11 + ';width:21%">Resultado</td>' +
+        '</tr>' +
         docsA1.map((d:string) => {
           const info = (complemento?.docsAnexo1 ?? {})[d] ?? {situacao:'',resultado:''}
-          return '<tr style="border-bottom:1px solid #e2e8f0"><td style="padding:3px 8px">' + d + '</td><td style="padding:3px 8px;text-align:center">' + (info.situacao || '—') + '</td><td style="padding:3px 8px">' + (info.resultado || '—') + '</td></tr>'
+          return '<tr>' +
+            '<td style="' + TDS + '">' + d + '</td>' +
+            '<td style="' + TDS + ';text-align:center">' + (info.situacao||'—') + '</td>' +
+            '<td style="' + TDS + '">' + (info.resultado||'—') + '</td>' +
+            '</tr>'
         }).join('') +
-        '</table></div></div>'
+        '</table>' +
+        '</div>'
 
-      // ── ANEXO 2 — Formulários de vistoria ────────────────────────────────────
+      // ── ANEXO 2 — Formulários homologados ──────────────────────────────────
       const ncsComFotoNR = await Promise.all((ncs ?? []).map(async (nc:any) => {
         if (nc.fotoBase64?.startsWith('data:image')) return nc
         if (!nc._arquivo) return nc
@@ -654,30 +844,30 @@ export async function POST(request: NextRequest) {
           const h = await blob.text()
           const mImg = h.match(/<img[^>]+src="(data:image[^"]+)"/)
           if (mImg) return { ...nc, fotoBase64: mImg[1] }
-        } catch { }
+        } catch {}
         return nc
       }))
 
       const A2 = (ncsComFotoNR ?? []).length === 0
-        ? '<p><i>Nenhuma vistoria homologada encontrada.</i></p>'
+        ? '<p style="color:#9a3412;font-style:italic">Nenhuma vistoria homologada encontrada.</p>'
         : (ncsComFotoNR ?? []).map((nc:any, idx:number) => {
-          const grN = Number(nc.grauRisco) || 0
-          const corR = grN > 80 ? '#CC0000' : grN >= 50 ? '#E8A000' : '#16A34A'
-          const bgR  = grN > 80 ? '#FEE2E2' : grN >= 50 ? '#FEF9C3' : '#DCFCE7'
-          const priR = grN > 80 ? '▲ Muito Alta' : grN >= 50 ? '▲ Alta' : grN >= 30 ? '■ Média' : '▼ Baixa'
-          const fotoR = nc.fotoBase64?.startsWith('data:image')
+          const grN = Number(nc.grauRisco)||0
+          const cor = grN > 80 ? '#CC0000' : grN >= 50 ? '#E8A000' : '#16A34A'
+          const bg  = grN > 80 ? '#FEE2E2' : grN >= 50 ? '#FEF9C3' : '#DCFCE7'
+          const pri = grN > 80 ? 'Muito Alta' : grN >= 50 ? 'Alta' : grN >= 30 ? 'Média' : 'Baixa'
+          const foto = nc.fotoBase64?.startsWith('data:image')
             ? '<img src="' + nc.fotoBase64 + '" style="max-width:100%;max-height:115mm;object-fit:contain;display:block;margin:0 auto">'
-            : '<div style="height:70mm;background:#f1f5f9;border:1px dashed #c3d4f0;display:flex;align-items:center;justify-content:center;color:#94a3b8;font-size:7pt">[Sem foto]</div>'
+            : '<div style="height:60mm;display:flex;align-items:center;justify-content:center;color:#94a3b8;border:1px dashed #c3d4f0;font-size:7pt">[Sem foto]</div>'
           const LBL = 'font-size:5.5pt;color:#4a6480;font-weight:700;display:block;text-transform:uppercase;margin-bottom:1px'
           const TDR = 'border:1px solid #dde5f0;padding:3px 6px;vertical-align:top'
-          const THR = 'background:#1E3A8A;color:#fff;font-weight:700;padding:4px 6px;font-size:7.5pt;text-transform:uppercase'
-          const pbR = idx > 0 ? '<div style="page-break-before:always"></div>' : ''
+          const THR = 'background:#1E3A8A;color:#fff;font-weight:700;padding:4px 6px;font-size:7.5pt'
+          const pb  = idx > 0 ? '<div style="page-break-before:always"></div>' : ''
           const GMAP:Record<string,string> = {'1':'Estética','2':'Leve','3':'Moderada','4':'Alta','5':'Crítica'}
           const UMAP:Record<string,string> = {'1':'Pode aguardar','2':'Pode aguardar','3':'Planejar','4':'Planejar','5':'Imediata'}
           const AMAP:Record<string,string> = {'1':'Ponto isolado','2':'Ponto isolado','3':'Vários pontos','4':'Vários pontos','5':'Sistema completo'}
           const EMAP:Record<string,string> = {'1':'Baixa','2':'Baixa','3':'Média','4':'Média','5':'Alta'}
-          const gv = String(nc.gravidade||''), uv = String(nc.urgencia||''), av = String(nc.abrangencia||''), ev = String(nc.exposicao||'')
-          return pbR +
+          const gv=String(nc.gravidade||''), uv=String(nc.urgencia||''), av=String(nc.abrangencia||''), ev=String(nc.exposicao||'')
+          return pb +
             '<table style="width:100%;border-collapse:collapse;font-size:7.5pt;outline:1px solid #1E3A8A">' +
             '<tr><td colspan="4" style="' + THR + '">Identificação</td></tr>' +
             '<tr><td style="' + TDR + ';width:32%"><span style="' + LBL + '">CNPJ/CPF</span>' + xe(nc.cnpjoucpf||'') + '</td><td colspan="3" style="' + TDR + '"><span style="' + LBL + '">Razão Social</span>' + xe(nc.razaoSocial||estab?.razao_social_nome||'') + '</td></tr>' +
@@ -686,33 +876,17 @@ export async function POST(request: NextRequest) {
             '<tr><td style="' + TDR + '"><span style="' + LBL + '">Resultado</span>' + xe(nc.resultado||nc.origem||'') + '</td><td style="' + TDR + '"><span style="' + LBL + '">Local</span>' + xe(nc.local||'') + '</td><td colspan="2" style="' + TDR + '"><span style="' + LBL + '">Complemento</span>' + xe(nc.complemento||'') + '</td></tr>' +
             '<tr><td colspan="4" style="' + THR + '">Classificação de Risco</td></tr>' +
             '<tr><td style="' + TDR + '"><span style="' + LBL + '">Gravidade</span>' + (GMAP[gv]||gv||'—') + '</td><td style="' + TDR + '"><span style="' + LBL + '">Urgência</span>' + (UMAP[uv]||uv||'—') + '</td><td style="' + TDR + '"><span style="' + LBL + '">Abrangência</span>' + (AMAP[av]||av||'—') + '</td><td style="' + TDR + '"><span style="' + LBL + '">Exposição</span>' + (EMAP[ev]||ev||'—') + '</td></tr>' +
-            '<tr><td colspan="2" style="' + TDR + ';background:' + bgR + ';border-color:' + corR + '"><span style="' + LBL + '">Grau de Risco</span><span style="font-size:16pt;font-weight:700;color:' + corR + '">' + grN + '</span></td><td colspan="2" style="' + TDR + ';background:' + bgR + ';border-color:' + corR + ';text-align:center"><span style="' + LBL + '">Prioridade</span><span style="font-size:11pt;font-weight:700;color:' + corR + '">' + priR + '</span></td></tr>' +
+            '<tr><td colspan="2" style="' + TDR + ';background:' + bg + ';border-color:' + cor + '"><span style="' + LBL + '">Grau de Risco</span><span style="font-size:16pt;font-weight:700;color:' + cor + '">' + grN + '</span></td><td colspan="2" style="' + TDR + ';background:' + bg + ';border-color:' + cor + ';text-align:center"><span style="' + LBL + '">Prioridade</span><span style="font-size:11pt;font-weight:700;color:' + cor + '">' + pri + '</span></td></tr>' +
             '<tr><td colspan="4" style="' + THR + '">Evidência Fotográfica</td></tr>' +
             '<tr><td style="' + TDR + ';width:40%"><span style="' + LBL + '">Foto Nº</span>' + xe(nc.fotoNr||'') + '</td><td colspan="3" style="' + TDR + ';text-align:right"><span style="' + LBL + '">Data da Vistoria</span>' + xe(nc.dataVistoria||nc.data||'') + '</td></tr>' +
-            '<tr><td colspan="4" style="' + TDR + ';padding:4px 2px">' + fotoR + '</td></tr>' +
+            '<tr><td colspan="4" style="' + TDR + ';padding:4px 2px">' + foto + '</td></tr>' +
             '<tr><td colspan="4" style="' + THR + '">Resultado da Análise</td></tr>' +
             '<tr><td colspan="4" style="' + TDR + '"><span style="' + LBL + '">Descrição da Não Conformidade (NC)</span>' + xe(nc.nc||nc.anomalia||'') + '</td></tr>' +
             '<tr><td colspan="4" style="' + TDR + '"><span style="' + LBL + '">Causa Provável (CP)</span>' + xe(nc.cp||'') + '</td></tr>' +
             '</table>'
         }).join('\n')
 
-      // ── Plano de trabalho ────────────────────────────────────────────────────
-      const slugPlano: Record<string,string> = { '45':'plano_elevador','46':'plano_nr10','47':'plano_nr12','48':'plano_nr13' }
-      const nomePlano = chaveInspetor + '_' + cnpjoucpf + '_' + (slugPlano[tipoServico] ?? 'plano') + '.html'
-      let tabelaPlano = '<p style="color:#9a3412;font-size:8pt"><i>Plano de trabalho não encontrado. Verifique se o plano foi gerado e salvo.</i></p>'
-      try {
-        const { data: blobP } = await supabase.storage.from('aime').download('documentos_inspetor/' + nomePlano)
-        if (blobP) {
-          const htmlP = await blobP.text()
-          // Buscar tabela de agenda: id='tbAtiv' ou primeira tabela com 'Atividades'
-          const idxAtiv = htmlP.indexOf('id="tbAtiv"')
-          const idxHead = htmlP.indexOf('Atividades')
-          const idxTb   = idxAtiv >= 0 ? idxAtiv : (idxHead >= 0 ? htmlP.lastIndexOf('<table', idxHead) : -1)
-          if (idxTb >= 0) tabelaPlano = htmlP.slice(idxTb, htmlP.indexOf('</table>', idxTb) + 8)
-        }
-      } catch { /* sem plano */ }
-
-      // ── Helpers assinatura ───────────────────────────────────────────────────
+      // ── Helpers assinatura ──────────────────────────────────────────────────
       const siglaInsNR  = (inspetor?.titulo_profissional||'').toLowerCase().includes('arquitet') ? 'CAU' : (inspetor?.titulo_profissional||'').toLowerCase().includes('corretor') ? 'CRECI' : 'CREA'
       const tituloInsNR = (inspetor?.titulo_profissional||'').replace(/(CREA|CAU|CRECI)[\s-]*/gi,'').trim()
       const numInsNR    = (inspetor?.inscricao_crea_cau||'').replace(/^(CREA|CAU|CRECI)[\s-]*/gi,'').trim()
@@ -723,30 +897,33 @@ export async function POST(request: NextRequest) {
         : '<div style="font-size:14pt;font-weight:900;color:#1E3A8A">' + xe(inspetor?.cabecalho_documentos||'AIMÊ') + '</div>'
       const cidadeNR = estab?.cidade ? xe(estab.cidade) + '/' + xe(estab?.uf||'') + ', ' : ''
 
-      // ── Índice ───────────────────────────────────────────────────────────────
+      // ── Índice ─────────────────────────────────────────────────────────────
       const indiceNR = [
         {n:'1.',pg:'2',t:'Considerações Preliminares',nivel:1},
         {n:'1.1.-',pg:'2',t:titulo11,nivel:2},
-        {n:'1.2.-',pg:'3',t:'Objetivo',nivel:2},
+        {n:'1.2.-',pg:'3',t:titulo12,nivel:2},
         {n:'1.3.-',pg:'3',t:'Plano de Trabalho — Agenda de Trabalho, ' + agendaLabel,nivel:2},
         {n:'1.4.-',pg:'4',t:'Condições e Limitações',nivel:2},
-        {n:'2.',pg:'4',t:'Metodologia Adotada para o Trabalho de Inspeção',nivel:1},
-        {n:'3.',pg:'5',t:'Resultado da Vistoria Técnica e Classificação',nivel:1},
-        {n:'3.1.-',pg:'5',t:'Descrição da Realização da Vistoria Técnica',nivel:2},
-        {n:'3.2.-',pg:'6',t:'Resultado da Vistoria',nivel:2},
-        {n:'3.3.-',pg:'7',t:'Resultado da Classificação',nivel:2},
-        {n:'4.',pg:'8',t:'Relação de Não Conformidades e Soluções',nivel:1},
-        {n:'4.1.-',pg:'8',t:'Relação de Não Conformidades — ' + nomeAtivo,nivel:2},
-        {n:'4.2.-',pg:'10',t:'Análise Estatística das Não Conformidades',nivel:2},
-        {n:'5.',pg:'11',t:'Recomendações',nivel:1},
+        {n:'2.',pg:'4',t:'Metodologia adotada para o desenvolvimento do Trabalho',nivel:1},
+        {n:'2.1.-',pg:'4',t:'Base normativa e legal aplicável',nivel:2},
+        {n:'2.2.-',pg:'4',t:'Metodologia',nivel:2},
+        {n:'2.3.-',pg:'5',t:'Critérios',nivel:2},
+        {n:'3.',pg:'6',t:'Resultado da Vistoria Técnica e Classificação',nivel:1},
+        {n:'3.1.-',pg:'6',t:'Descrição da Vistoria Técnica',nivel:2},
+        {n:'3.2.-',pg:'7',t:'Resultado da Vistoria',nivel:2},
+        {n:'3.3.-',pg:'7',t:'Resultado da Classificação da Instalação',nivel:2},
+        {n:'4.',pg:'8',t:'Relação de Não Conformidades e Análise das Não Conformidades',nivel:1},
+        {n:'4.1.-',pg:'8',t:'Relação de Não Conformidades e Soluções',nivel:2},
+        {n:'4.2.-',pg:'10',t:'Análise Estatística das Manifestações Patológicas',nivel:2},
+        {n:'5.',pg:'11',t:'Recomendações Gerais',nivel:1},
         {n:'6.',pg:'12',t:'Conclusão',nivel:1},
         {n:'7.',pg:'13',t:'Encerramento',nivel:1},
         {n:'7.1.-',pg:'13',t:'Anexos',nivel:2},
         {n:'7.2.-',pg:'13',t:'Declaração de Conformidade com o Código de Ética',nivel:2},
         {n:'7.3.-',pg:'14',t:'Termo de Encerramento',nivel:2},
         {n:'Anexo 1',pg:'15',t:A1_TITULO[tipoServico]??'Documentação Solicitada',nivel:1},
-        {n:'Anexo 2',pg:'16',t:'Resultado da Vistoria (Formulários Homologados)',nivel:1},
-        {n:'Anexo 3',pg:'18',t:'ART / RRT',nivel:1},
+        {n:'Anexo 2',pg:'16',t:'Resultado da Vistoria',nivel:1},
+        {n:'Anexo 3',pg:'18',t:'Anotação de Responsabilidade Técnica',nivel:1},
       ]
       const indiceHtmlNR = indiceNR.map(it =>
         '<div class="indice-item' + (it.nivel===2?' nivel2':'') + '">' +
@@ -757,9 +934,10 @@ export async function POST(request: NextRequest) {
         '</div>'
       ).join('')
 
-      // ── HTML FINAL ───────────────────────────────────────────────────────────
+      // ── HTML FINAL ─────────────────────────────────────────────────────────
       const partsNR: string[] = []
       partsNR.push('<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>' + titulo + '</title><style>' + CSS + '</style></head><body>')
+
       // CAPA
       partsNR.push('<div class="pg-capa" style="counter-reset:page 0">')
       partsNR.push('<div style="height:1cm;background:#fff;flex-shrink:0"></div>')
@@ -768,69 +946,119 @@ export async function POST(request: NextRequest) {
       partsNR.push('<div style="flex:1"></div>')
       partsNR.push('<div style="text-align:center;padding:0 20mm;flex-shrink:0">')
       partsNR.push('<div style="font-size:8pt;color:#6B7280;letter-spacing:3px;text-transform:uppercase;margin-bottom:6pt">LAUDO TÉCNICO</div>')
-      partsNR.push('<div style="font-size:18pt;font-weight:900;color:#1E3A8A;line-height:1.2;margin-bottom:2pt">' + titulo + '</div>')
+      partsNR.push('<div style="font-size:18pt;font-weight:900;color:#1E3A8A;line-height:1.2;margin-bottom:2pt">' + TITULO_DOC[tipoServico] + '</div>')
       partsNR.push('<div style="font-size:13pt;font-weight:700;color:#374151;margin-bottom:4pt">' + xe(estab?.razao_social_nome||'') + '</div>')
-      partsNR.push('<div style="font-size:9pt;color:#374151;text-align:center">' + xe(estab?.logradouro||'') + (estab?.numero_imovel?', '+xe(estab.numero_imovel):'') + ' &mdash; ' + xe(estab?.cidade||'') + '/' + xe(estab?.uf||'') + '</div>')
+      partsNR.push('<div style="font-size:9pt;color:#374151">' + xe(estab?.logradouro||'') + (estab?.numero_imovel?', '+xe(estab.numero_imovel):'') + ' — ' + xe(estab?.cidade||'') + '/' + xe(estab?.uf||'') + '</div>')
       partsNR.push('</div><div style="flex:2"></div>')
       partsNR.push('<div style="border-top:2px solid #1E3A8A;margin:0 20mm;flex-shrink:0"></div>')
       partsNR.push('<div style="padding:8mm 20mm;font-size:9.5pt;color:#222;line-height:1.9;flex-shrink:0">')
       partsNR.push('<b style="color:#1E3A8A">Inspetor Responsável:</b> ' + xe(inspetor?.nome_inspetor) + '<br>')
-      partsNR.push('<b style="color:#1E3A8A">Título Profissional:</b> ' + tituloInsNR + ' &mdash; ' + siglaInsNR + ' ' + numInsNR + '<br>')
+      partsNR.push('<b style="color:#1E3A8A">Título Profissional:</b> ' + tituloInsNR + ' — ' + siglaInsNR + ' ' + numInsNR + '<br>')
       if (inspetor?.especializacao) partsNR.push('<b style="color:#1E3A8A">Especialidade:</b> Especialista ' + xe(inspetor.especializacao) + '<br>')
       partsNR.push('<b style="color:#1E3A8A">Data:</b> ' + dataHojeNR)
       partsNR.push('</div>')
       partsNR.push('<div style="background:#1E3A8A;height:8mm;flex-shrink:0"></div>')
       partsNR.push('<div style="height:1cm;background:#fff;flex-shrink:0"></div>')
       partsNR.push('</div>')
+
       // ÍNDICE
       partsNR.push('<div class="section"><div class="pg-indice"><div class="indice-titulo">ÍNDICE</div>' + indiceHtmlNR + '</div></div>')
+
       // CORPO
       partsNR.push('<div class="section">')
       if (cabNR) partsNR.push('<div class="cab">' + cabNR + '</div>')
       partsNR.push('<br><br><br><br><br>')
+
+      // 1. Considerações Preliminares
       partsNR.push('<div class="titulo">1.- Considerações Preliminares.</div>')
-      partsNR.push('<p>' + item1Texto + '</p>')
+      partsNR.push('<p style="text-align:justify">' + xe(ITEM1[tipoServico]||'').replace(/\n\n/g,'</p><p style="text-align:justify">') + '</p>')
+
+      // 1.1
       partsNR.push(S11)
-      partsNR.push('<div class="titulo">1.2.- Objetivo.</div>')
-      partsNR.push('<p>' + objTexto + '</p>')
+
+      // 1.2
+      partsNR.push('<div class="titulo">' + titulo12 + '</div>')
+      partsNR.push('<p style="text-align:justify">' + xe(OBJETIVO[tipoServico]||'').replace(/\n/g,'<br>') + '</p>')
+
+      // 1.3
       partsNR.push('<div class="titulo">1.3.- Plano de Trabalho.</div>')
-      partsNR.push('<div class="section"><div class="bloco"><div class="bloco-header">Agenda de Trabalho — ' + agendaLabel + '</div>' + tabelaPlano + '</div></div>')
+      partsNR.push('<p style="text-align:justify">As etapas básicas desenvolvidas para a realização do presente trabalho de inspeção constam na tabela que segue:</p>')
+      partsNR.push(tabelaPlano)
+
+      // 1.4
       partsNR.push('<div class="titulo">1.4.- Condições e Limitações.</div>')
-      partsNR.push('<p>A inspeção foi realizada nas condições de acesso disponibilizadas pelo responsável do estabelecimento. Equipamentos em operação ou com acesso restrito foram classificados como "Não Avaliado" (NA). O presente laudo se refere exclusivamente às condições encontradas na data da vistoria.</p>')
-      partsNR.push('<div class="titulo">2.- Metodologia Adotada para o Trabalho de Inspeção.</div>')
-      partsNR.push('<p>' + metTexto + '</p>')
+      partsNR.push('<p style="text-align:justify">Este laudo segue as condições abaixo relacionadas, além de estar sujeito às seguintes limitações:</p>')
+      partsNR.push('<ul style="text-align:justify"><li>Neste trabalho computamos como corretos os elementos documentais consultados e as informações prestadas por terceiros, de boa fé e confiáveis;</li><li>O trabalho apresentado e o resultado final são válidos apenas para a sequência metodológica apresentada, sendo vedada a utilização deste laudo em conexão com qualquer outro trabalho, exceto como referência para execução dos serviços de manutenção;</li><li>O responsável técnico não assume responsabilidade sobre matéria alheia ao exercício profissional, estabelecido em leis, códigos e regulamentos próprios.</li></ul>')
+      partsNR.push('<p style="text-align:justify">Conforme normas e regulamentos, esta inspeção não inclui avaliação de melhorias públicas, infraestrutura urbana ou obras na região. Serão observadas apenas condições externas que, eventualmente, possam influenciar o desempenho, a segurança ou a manutenção, sem caracterizar análise do poder público ou de serviços urbanos.</p>')
+
+      // 2. Metodologia
+      partsNR.push('<div class="titulo">2.- Metodologia adotada para o desenvolvimento do Trabalho.</div>')
+      partsNR.push('<div class="titulo">2.1.- Base normativa e legal aplicável.</div>')
+      partsNR.push('<ul>' + NORMA21[tipoServico] + '</ul>')
+      partsNR.push('<div class="titulo">2.2.- Metodologia.</div>')
+      partsNR.push('<p style="text-align:justify">' + METODOLOGIA22[tipoServico] + '</p>')
+      partsNR.push('<div class="titulo">2.3.- Critérios.</div>')
+      partsNR.push('<p style="text-align:justify">O critério utilizado para elaboração de laudos baseia-se na análise do risco oferecido aos usuários, ao meio ambiente e ao patrimônio, diante das condições técnicas, de manutenção, operação, e segurança, bem como das condições físicas e documental.</p>')
+      partsNR.push('<p style="text-align:justify">A análise do risco consiste na classificação dos requisitos normativos, quanto a sua gravidade, urgência e tendência, relacionado com fatores de conservação, depreciação, saúde, segurança, funcionalidade, comprometimento de vida útil e perda de desempenho.</p>')
+      partsNR.push('<p style="text-align:justify">As recomendações quanto a manutenção, operação, condições físicas, segurança e documentação serão efetuadas segundo as questões e parâmetros de avaliação que seguem:</p>')
+      partsNR.push('<table style="width:100%;border-collapse:collapse">')
+      partsNR.push('<tr><td style="' + TH11 + ';width:18%">Critério</td><td style="' + TH11 + ';width:47%">Questão Norteadora</td><td style="' + TH11 + ';width:35%">Parâmetros de Avaliação</td></tr>')
+      partsNR.push('<tr><td style="' + TD11 + '">Manutenção</td><td style="' + TD11 + '">A manutenção garante a confiabilidade nas instalações?</td><td style="' + TD11 + '">Garante; Programada; Atrasada; Inexistente</td></tr>')
+      partsNR.push('<tr><td style="' + TD11 + '">Operação</td><td style="' + TD11 + '">A instalação pode operar com segurança?</td><td style="' + TD11 + '">Plena; Restrita; Insegura; Interditada</td></tr>')
+      partsNR.push('<tr><td style="' + TD11 + '">Condições Físicas</td><td style="' + TD11 + '">As máquinas apresentam condições físicas adequadas para operação segura?</td><td style="' + TD11 + '">Excelente; Boa; Regular; Deficiente; Crítica</td></tr>')
+      partsNR.push('<tr><td style="' + TD11 + '">Segurança</td><td style="' + TD11 + '">Os dispositivos de proteção atendem aos requisitos normativos?</td><td style="' + TD11 + '">Plenamente; Parcialmente; Inexistentes</td></tr>')
+      partsNR.push('<tr><td style="' + TD11 + '">Documentação</td><td style="' + TD11 + '">A documentação técnica atende à NR?</td><td style="' + TD11 + '">Completa; Parcial; Incompleta; Ausente</td></tr>')
+      partsNR.push('</table>')
+      partsNR.push('<p style="text-align:justify;margin-top:6pt">O grau de risco para efetuar as correções das não conformidades são apuradas pela metodologia <b>GUT</b> adaptado (<b>G</b>ravidade, <b>U</b>rgência e <b>T</b>endência - abrangência e exposição). Qualquer item marcado como <b>Não Conforme [NC]</b> dispara uma classificação de risco específica que indica a prioridade para correção.</p>')
+      partsNR.push('<ul>')
+      partsNR.push('<li><b>Prioridade 4 Baixa:</b> Desvios documentais secundários ou ausência de etiquetas de identificação simples que não geram risco de contato direto. (Correção: ' + prazos[0] + ').</li>')
+      partsNR.push('<li><b>Prioridade 3 Média:</b> Falha de organização interna em painéis, ausência de diagramas locais. (Correção: ' + prazos[1] + ').</li>')
+      partsNR.push('<li><b>Prioridade 2 Alta:</b> Ausência de equipamentos de proteção coletiva (EPCs), falta de testes de continuidade de aterramento. (Correção: ' + prazos[2] + ').</li>')
+      partsNR.push('<li><b>Prioridade 1 Muito Alta:</b> Condutores energizados expostos e sem isolamento, ausência de aterramento. ' + prazos[3] + '.</li>')
+      partsNR.push('</ul>')
+
+      // 3. Resultados
       partsNR.push('<div class="titulo">3.- Resultado da Vistoria Técnica e Classificação.</div>')
-      partsNR.push('<p>Neste capítulo é apresentado o resultado da vistoria técnica realizada, incluindo a descrição do caminhamento, os resultados individuais de cada requisito verificado e a classificação geral da instalação/equipamento inspecionado.</p>')
       partsNR.push(S31)
       partsNR.push('<div class="titulo">3.2.- Resultado da Vistoria.</div>')
-      partsNR.push('<p>O resultado detalhado da inspeção, com registro fotográfico e classificação de cada não conformidade identificada, encontra-se no Anexo 2 deste laudo, na forma dos formulários de vistoria homologados pelo inspetor responsável.</p>')
+      partsNR.push('<p style="text-align:justify">O resultado da vistoria, imagens dos formulários da coleta de dados, é apresentado no <b>Anexo 2</b> deste documento e representa, fielmente, dados, informações e fotos coletadas durante a realização da vistoria.</p>')
       partsNR.push(S33)
-      partsNR.push('<div class="titulo">4.- Relação de Não Conformidades e Soluções.</div>')
-      partsNR.push('<p>Neste item é apresentado o conjunto de não conformidades identificadas na inspeção, classificadas por sistema e prioridade, com sugestões de solução para cada item. Prioridade: <b>A+</b> = Grau &gt; 80 | <b>A</b> = Grau 50–80 | <b>M</b> = Grau 30–49 | <b>B</b> = Grau &lt; 30.</p>')
-      partsNR.push('<div class="titulo">4.1.- Relação de Não Conformidades — ' + nomeAtivo + '.</div>')
-      partsNR.push('<p><i>O resultado detalhado de cada não conformidade, com foto, descrição, causa provável e classificação de risco, está apresentado no Anexo 2 deste laudo.</i></p>')
+
+      // 4. NCs
+      partsNR.push('<div class="titulo">4.- Relação de Não Conformidades e Análise das Não Conformidades.</div>')
+      partsNR.push(S41)
       partsNR.push(S42)
+
+      // 5. Recomendações
       partsNR.push(S5)
+
+      // 6. Conclusão
       partsNR.push('<div class="titulo">6.- Conclusão.</div>')
-      partsNR.push('<p>Com base na inspeção realizada e nas não conformidades identificadas, recomenda-se a adoção imediata das medidas corretivas descritas neste laudo, priorizando os itens com prioridade <b>A+</b> e <b>A</b>, que representam risco imediato à segurança dos trabalhadores e à integridade dos equipamentos/instalações.</p>')
-      partsNR.push('<p>O presente laudo tem validade técnica conforme as normas aplicáveis e deve ser reavaliado a cada ciclo de inspeção previsto na legislação vigente. A responsabilidade pela implementação das medidas corretivas é do proprietário/responsável pelo estabelecimento.</p>')
+      partsNR.push('<p style="text-align:justify">' + CONCLUSAO[tipoServico] + '</p>')
+
+      // 7. Encerramento
       partsNR.push('<div class="titulo">7.- Encerramento.</div>')
-      partsNR.push('<div class="titulo">7.1.- Anexos.</div>')
-      partsNR.push('<p>Os anexos deste laudo integram o documento técnico e devem ser considerados em conjunto com o texto principal. Fazem parte deste laudo o Anexo 1 (documentação), o Anexo 2 (formulários de vistoria) e o Anexo 3 (ART/RRT).</p>')
+      partsNR.push('<div class="titulo">7.1.- Anexos:</div>')
+      partsNR.push('<ul><li>Anexo 1 – Relação de documentos solicitados e analisados;</li><li>Anexo 2 – Resultado da Vistoria;</li><li>Anexo 3 – Anotação de Responsabilidade Técnica.</li></ul>')
       partsNR.push('<div class="titulo">7.2.- Declaração de Conformidade com o Código de Ética.</div>')
-      partsNR.push('<p>O responsável técnico pela elaboração deste laudo declara que o trabalho foi realizado com independência técnica, imparcialidade e estrita observância aos princípios éticos da profissão e às normas técnicas e regulamentadoras aplicáveis.</p>')
+      partsNR.push('<p style="text-align:justify">O signatário atesta que a presente inspeção segue criteriosamente os seguintes princípios:</p>')
+      partsNR.push('<ul><li>Os itens deste trabalho foram revisados pessoalmente pelo responsável técnico;</li><li>O responsável técnico não possui no presente, nem contempla para o futuro, interesse nos bens envolvidos neste trabalho;</li><li>O trabalho encontra-se abrigado por absoluta confidencialidade, sendo garantido o sigilo perante terceiros;</li><li>Este trabalho foi elaborado em observância estrita aos princípios dos Códigos de Ética Profissional do CONFEA e do IBAPE.</li></ul>')
       partsNR.push('<div class="titulo">7.3.- Termo de Encerramento.</div>')
-      partsNR.push('<p style="text-align:right;font-size:9pt;font-weight:bold;color:#000;margin-top:20px">' + cidadeNR + dataHojeNR + '</p>')
+      partsNR.push('<p style="text-align:justify">O responsável técnico pela execução deste trabalho coloca-se ao inteiro dispor para esclarecimentos adicionais, caso necessários. O documento é entregue em mídia magnética, acompanhado dos arquivos pertinentes.</p>')
+      partsNR.push('<p style="font-size:8pt;font-style:italic;text-align:justify">Atenção: O titular do direito autoral deste trabalho somente autoriza sua reprodução nos casos legais cabíveis, vedando sua cópia ou qualquer forma de reprodução que caracterize plágio.</p>')
+      partsNR.push('<p style="text-align:right;font-size:9pt;font-weight:bold;margin-top:20px">' + cidadeNR + dataHojeNR + '</p>')
       partsNR.push('<p style="line-height:1;margin:0">&nbsp;</p><p style="line-height:1;margin:0">&nbsp;</p>')
       partsNR.push('<p style="font-size:8pt;line-height:1;margin:0">[Assinatura digital]</p>')
       partsNR.push('<p style="line-height:1;margin:0">&nbsp;</p>')
-      partsNR.push('<p style="line-height:1;margin:0"><strong>' + xe(inspetor?.nome_inspetor) + '</strong></p>')
-      partsNR.push('<p style="line-height:1;margin:0">' + tituloInsNR + ' — ' + siglaInsNR + ' ' + numInsNR + '</p>')
-      if (inspetor?.especializacao) partsNR.push('<p style="line-height:1;margin:0">Especialista ' + xe(inspetor.especializacao) + '</p>')
+      partsNR.push('<p style="line-height:1;margin:0"><strong>' + xe(inspetor?.nome_inspetor) + '</strong> – Responsável Técnico</p>')
+      partsNR.push('<p style="line-height:1;margin:0">' + tituloInsNR + ' – ' + siglaInsNR + ' - ' + numInsNR + '</p>')
+      if (inspetor?.especializacao) partsNR.push('<p style="line-height:1;margin:0">' + xe(inspetor.especializacao) + '</p>')
       partsNR.push('</div>')
+
+      // ANEXOS
       partsNR.push('<div class="section">' + A1 + '</div>')
-      partsNR.push('<div class="section"><div class="titulo" style="text-align:center">Anexo 2 — Resultado da Vistoria</div><br>' + A2 + '</div>')
-      partsNR.push('<div class="section"><div class="titulo" style="text-align:center">Anexo 3 — ART / RRT</div><br><p>Inserir neste espaço a ART (Anotação de Responsabilidade Técnica) registrada no CREA ou RRT (Registro de Responsabilidade Técnica) registrada no CAU, referente a este serviço.</p></div>')
+      partsNR.push('<div class="section"><div class="titulo" style="text-align:center">Anexo 2 – Resultado da Vistoria</div><br>' + A2 + '</div>')
+      partsNR.push('<div class="section"><div class="titulo" style="text-align:center">Anexo 3 – Anotação de Responsabilidade Técnica</div><br><p>Inserir neste espaço a ART (Anotação de Responsabilidade Técnica) registrada no CREA ou RRT (Registro de Responsabilidade Técnica) registrada no CAU, referente a este serviço.</p></div>')
       partsNR.push('</body></html>')
 
       const htmlNR = partsNR.join('\n')
@@ -840,6 +1068,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ sucesso: true, nome: nomeArquivo })
     }
     // ── FIM GERADOR NR (45-48) ────────────────────────────────────────────────
+
 
     const sistemas = SISTEMAS[tipoServico] ?? []
     const dataHoje = fmtData()
