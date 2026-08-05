@@ -449,7 +449,7 @@ function LaudoComplemento() {
       }))
 
       // DRT — recomendações gerais item 5 (manutenção, uso, sustentabilidade, outros)
-      let rec51 = '', rec52 = '', rec53 = '', rec54 = ''
+      let rec51 = '', rec52 = '', rec53 = '', rec54 = '', rec55 = ''
       try {
         const rDRT = await fetch('/api/ia-laudo', {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -458,8 +458,8 @@ function LaudoComplemento() {
             dados: {
               tipo_servico: tipoServico,
               ncs: ncsComSolucao.filter((nc: any) => nc.prioridade === 'Alta' || nc.prioridade === 'Média'),
-              classificacao: { nivel: nivelInspecao, risco, desempenho, manut, uso, desempGeral },
-            }
+              ncs: ncsComSolucao.filter((nc: any) => nc.prioridade === 'Alta' || nc.prioridade === 'Muito Alta'),
+              classificacao: { nivel: nivelInspecao, risco, desempenho, manut, uso, desempGeral, nrManut, nrOp, nrFisico, nrSeg, nrDoc },
           })
         })
         const dDRT = await rDRT.json()
@@ -467,6 +467,7 @@ function LaudoComplemento() {
         if (dDRT.rec52) rec52 = dDRT.rec52
         if (dDRT.rec53) rec53 = dDRT.rec53
         if (dDRT.rec54) rec54 = dDRT.rec54
+        if (dDRT.rec55) rec55 = dDRT.rec55
       } catch { /* segue sem recomendações DRT */ }
 
       const res = await fetch('/api/gerar-laudo', {
@@ -488,6 +489,7 @@ function LaudoComplemento() {
           }
         })
       })
+      const data = await res.json()
       if (!res.ok || data.erro) { setErro(data.erro ?? 'Erro ao gerar laudo.'); setEtapa('complemento'); return }
       setNomeArquivo(nome)
       // Redirecionar diretamente usando a variável local (não o estado que pode não ter atualizado)
