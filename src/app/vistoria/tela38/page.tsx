@@ -43,6 +43,8 @@ const TITULO_TELA: Record<string, string> = {
 
 // ─── Wrapper ─────────────────────────────────────────────────────────────────
 
+const ORIGEM_DEFAULT = 'Funcional'
+
 export default function Tela31Page() {
   return (
     <Suspense fallback={
@@ -90,7 +92,7 @@ function Tela31Inner() {
   const [sistema,        setSistema]         = useState('')
   const [subsistema,     setSubsistema]      = useState('')
   const [anomalia,       setAnomalia]        = useState('')
-  const [origem,         setOrigem]          = useState('Funcional')
+  const [origem,         setOrigem]          = useState(ORIGEM_DEFAULT)
   const [local,          setLocal]           = useState('')
   const [complemento,    setComplemento]     = useState('')
   const [resultado,      setResultado]        = useState('')
@@ -303,7 +305,7 @@ function Tela31Inner() {
     }
 
     // Limpa formulário preservando CNPJ/RS
-    setSistema(''); setSubsistema(''); setAnomalia(''); setOrigem(''); setLocal('')
+    setSistema(''); setSubsistema(''); setAnomalia(''); setOrigem(ORIGEM_DEFAULT); setLocal('')
     setComplemento(''); setTipoAtivo(''); setTagNrSerie(''); setFinalidade('')
     setDescGravidade(''); setDescUrgencia(''); setDescProbabilidade(''); setDescExposicaoRisco('')
     setFotoBase64(''); setNc(''); setCp(''); setFeedbackIA('')
