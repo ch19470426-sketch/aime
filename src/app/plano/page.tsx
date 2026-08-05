@@ -48,7 +48,7 @@ const SUBTIPOS: Record<string, string[]> = {
 }
 
 const FLUIDOS = ['Classe A','Classe B','Classe C','Classe D','Vapor','Ar comprimido','GLP','Nitrogênio','Outro']
-const USOS = ['Produção/processo','Transporte','Residencial','Comercial','Industrial','Institucional','Misto']
+const USOS_ESTAB = ['Residencial','Comercial','Industrial','Institucional','Misto']
 const FUNCOES = ['Administrador','Síndico','Proprietário','Responsável']
 
 function fmtCNPJ(v: string): string {
@@ -68,7 +68,7 @@ interface Ativo {
   tipo_ativo: string; tag_ativo_nr_serie: string; cpf_responsavel: string
   nome_responsavel: string; funcao_responsavel: string; whatsapp_responsavel: string
   email_responsavel: string; finalidade_vistoria: string; data_inicio_operacao: string
-  uso_ativo: string; numero_pavimentos: string; numero_unidades_salas: string
+  numero_pavimentos: string; numero_unidades_salas: string
   area_terreno: string; area_construida: string; numero_fachadas: string
   perimetro_fachadas: string; fabricante_marca: string; subtipo: string
   tensao_pressao_kv_kpa: string; capacidade_potencia: string; fluido_classe_fluido: string
@@ -78,7 +78,7 @@ interface Ativo {
 const ATIVO_VAZIO: Ativo = {
   tipo_ativo: '', tag_ativo_nr_serie: '1', cpf_responsavel: '', nome_responsavel: '',
   funcao_responsavel: '', whatsapp_responsavel: '', email_responsavel: '',
-  finalidade_vistoria: '', data_inicio_operacao: '', uso_ativo: '',
+  finalidade_vistoria: '', data_inicio_operacao: '',
   numero_pavimentos: '', numero_unidades_salas: '', area_terreno: '', area_construida: '',
   numero_fachadas: '', perimetro_fachadas: '', fabricante_marca: '', subtipo: '',
   tensao_pressao_kv_kpa: '', capacidade_potencia: '', fluido_classe_fluido: '',
@@ -191,7 +191,6 @@ function PlanoInner() {
     if (!ativoAtual.funcao_responsavel) return 'Selecione a Função do responsável'
     if (!ativoAtual.finalidade_vistoria) return 'Informe a Finalidade da vistoria'
     if (!ativoAtual.data_inicio_operacao) return 'Informe a Data de início de operação'
-    if (!ativoAtual.uso_ativo) return 'Selecione o Uso do ativo'
     if (isPredial && !ativoAtual.numero_pavimentos) return 'Informe o Número de pavimentos'
     if (isPredial && !ativoAtual.area_construida) return 'Informe a Área construída'
     if (isFachada && !ativoAtual.numero_fachadas) return 'Informe o Número de fachadas'
@@ -224,7 +223,6 @@ function PlanoInner() {
         email_responsavel: ativoAtual.email_responsavel || null,
         finalidade_vistoria: ativoAtual.finalidade_vistoria,
         data_inicio_operacao: ativoAtual.data_inicio_operacao || null,
-        uso_ativo: ativoAtual.uso_ativo,
         numero_pavimentos: ativoAtual.numero_pavimentos ? parseInt(ativoAtual.numero_pavimentos) : null,
         numero_unidades_salas: ativoAtual.numero_unidades_salas ? parseInt(ativoAtual.numero_unidades_salas) : null,
         area_terreno: ativoAtual.area_terreno ? parseFloat(ativoAtual.area_terreno) : null,
@@ -452,7 +450,15 @@ function PlanoInner() {
 
                     <div style={{ ...S.blockTitle, margin: '8px -12px 6px', padding: '3px 12px' }}>Características do ativo</div>
 
-                    {/* Linha 1: Subtipo + Data início + Uso */}
+                    {/* Uso do Estabelecimento — exibição readonly */}
+                    <div style={{ ...S.row, ...S.c2, marginBottom:'4px' }}>
+                      <Field label="Uso do Estabelecimento">
+                        <input style={{ ...S.input, backgroundColor: '#F8FAFC' }}
+                          value={est?.uso_estabelecimento ?? ''} readOnly />
+                      </Field>
+                    </div>
+
+                    {/* Linha 1: Subtipo + Data início */}
                     <div style={{ ...S.row, ...(isNR ? S.c3 : S.c2) }}>
                       {isNR && (
                         <Field label="Subtipo *">
@@ -467,14 +473,7 @@ function PlanoInner() {
                         <input style={S.input} type="date" value={ativoAtual.data_inicio_operacao}
                           onChange={e => atualizarAtivo('data_inicio_operacao', e.target.value)} />
                       </Field>
-                      <Field label="Uso do ativo *">
-                        <select style={S.input} value={ativoAtual.uso_ativo}
-                          onChange={e => atualizarAtivo('uso_ativo', e.target.value)}>
-                          <option value="">Selecione...</option>
-                          {USOS.map(u => <option key={u} value={u}>{u}</option>)}
-                        </select>
-                      </Field>
-                    </div>
+</div>
 
                     {/* Linha 2: campos específicos por tipo */}
                     {isPredial && (
