@@ -328,6 +328,11 @@ export async function POST(request: NextRequest) {
     // Rotear para gerador específico se for laudo NR (45-48)
     const ehNR = ['45','46','47','48'].includes(tipoServico)
 
+
+
+    const titulo   = TITULO[tipoServico] ?? 'Laudo Técnico'
+    const nivel    = complemento?.nivelInspecao ?? cl.nivel ?? ''
+    const labelDoc = cnpjoucpf?.length === 11 ? 'CPF' : 'CNPJ'
     // ── GERADOR PARA LAUDOS NR (45-48) ──────────────────────────────────────────
     if (ehNR) {
       const clNR      = complemento?.classificacao ?? {}
@@ -708,14 +713,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ sucesso: true, nome: nomeArquivo })
     }
     // ── FIM GERADOR NR (45-48) ────────────────────────────────────────────────
-
-
-    const titulo   = TITULO[tipoServico] ?? 'Laudo Técnico'
     const sistemas = SISTEMAS[tipoServico] ?? []
     const dataHoje = fmtData()
     const cl       = complemento?.classificacao ?? {}
-    const nivel    = complemento?.nivelInspecao ?? cl.nivel ?? ''
-    const labelDoc = cnpjoucpf?.length === 11 ? 'CPF' : 'CNPJ'
     const labelEst = tipoServico === '43' ? 'Proprietário' : 'Condomínio / Empresa'
 
     // NCs por sistema
