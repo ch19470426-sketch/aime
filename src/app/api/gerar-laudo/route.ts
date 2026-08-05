@@ -609,7 +609,7 @@ export async function POST(request: NextRequest) {
       ).join('')
 
       // Data local
-      const dataHojeNR = dataHoje
+      const dataHojeNR = new Date().toLocaleDateString('pt-BR', {day:'2-digit',month:'long',year:'numeric'})
       const cidadeNR   = estab?.cidade ? xe(estab.cidade) + '/' + xe(estab?.uf||'') + ', ' : ''
 
       // HTML final
