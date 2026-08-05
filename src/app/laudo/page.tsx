@@ -588,27 +588,27 @@ function LaudoComplemento() {
 
           {/* ── 1.1 Síntese da Edificação ── */}
           <div style={S.bloco}>
-            <div style={S.bHead}><span style={S.bTitle}>1.1 — Descrição da Edificação ou Estabelecimento</span></div>
+            <div style={S.bHead}><span style={S.bTitle}>{['45','46','47','48'].includes(tipoServico) ? '1.1 — Características do Estabelecimento e Ativos' : '1.1 — Descrição da Edificação ou Estabelecimento'}</span></div>
             <div style={S.bBody}>
               <div style={S.grid3}>
                 <div>
                   <label style={S.label}>Razão social / Nome</label>
                   <input style={{ ...S.input, backgroundColor: '#F8FAFC' }} value={estab.razao_social_nome ?? ''} readOnly />
                 </div>
-                <div>
+                {!(['45','46','47','48'].includes(tipoServico)) && (<div>
                   <label style={S.label}>Nível da Inspeção</label>
                   <select style={S.input} value={nivelInspecao} onChange={e => setNivelInspecao(e.target.value)}>
                     <option value="">Selecione...</option>
                     <option>Nível 1</option><option>Nível 2</option><option>Nível 3</option>
                   </select>
-                </div>
+                </select></div>)}
                 <div>
                   <label style={S.label}>Responsável pelo ativo</label>
                   <input style={{ ...S.input }} value={estab.nome_responsavel ?? ''} onChange={e => setEstab(prev=>({...prev,nome_responsavel:e.target.value}))} />
                 </div>
               </div>
               <div style={{ marginTop: "8px" }}>
-                <label style={S.label}>Descreva sinteticamente a edificação (Convenção ou Escritura) *</label>
+                <label style={S.label}>{(['45','46','47','48'].includes(tipoServico) ? 'Descreva sinteticamente o estabelecimento e os ativos a vistoriar (tipo, quantidade, localização e condições gerais)' : 'Descreva sinteticamente a edificação (Convenção ou Escritura)'} *</label>
                 <textarea style={{ ...S.textarea, backgroundColor: editandoSintese ? '#FFFBEB' : undefined, borderColor: editandoSintese ? '#F59E0B' : undefined }} value={sinteseEdif} maxLength={900} value={sinteseEdif}
                   onChange={e => setSinteseEdif(e.target.value)}
                   placeholder="Insira uma breve descrição e a topologia da edificação, ou clique em ✦ Gerar para geração automática com IA..." />
@@ -743,22 +743,36 @@ function LaudoComplemento() {
 
                 {/* 45-48 — Classificação NR (5 critérios) */}
                 {(['45','46','47','48'].includes(tipoServico)) && (
-                  <div style={S.grid3}>
-                    {[
-                      { lbl: 'Manutenção *',        val: nrManut,  set: setNrManut,  opts: CL_NR.manutencao },
-                      { lbl: 'Operação *',           val: nrOp,     set: setNrOp,     opts: CL_NR.operacao },
-                      { lbl: 'Condições Físicas *',  val: nrFisico, set: setNrFisico, opts: CL_NR.condicoesFisicas },
-                      { lbl: 'Segurança *',          val: nrSeg,    set: setNrSeg,    opts: CL_NR.seguranca },
-                      { lbl: 'Documentação *',       val: nrDoc,    set: setNrDoc,    opts: CL_NR.documentacao },
-                    ].map(({ lbl, val, set, opts }) => (
-                      <div key={lbl}>
-                        <label style={S.label}>{lbl}</label>
-                        <select style={S.input} value={val} onChange={e => set(e.target.value)}>
-                          <option value="">Selecione...</option>
-                          {opts.map(v => <option key={v} value={v}>{v}</option>)}
-                        </select>
-                      </div>
-                    ))}
+                  <div>
+                    <div style={S.grid3}>
+                      {[
+                        { lbl: 'Manutenção *',        val: nrManut,  set: setNrManut,  opts: CL_NR.manutencao },
+                        { lbl: 'Operação *',           val: nrOp,     set: setNrOp,     opts: CL_NR.operacao },
+                        { lbl: 'Condições Físicas *',  val: nrFisico, set: setNrFisico, opts: CL_NR.condicoesFisicas },
+                      ].map(({ lbl, val, set, opts }) => (
+                        <div key={lbl}>
+                          <label style={S.label}>{lbl}</label>
+                          <select style={S.input} value={val} onChange={e => set(e.target.value)}>
+                            <option value=''>Selecione...</option>
+                            {opts.map(v => <option key={v} value={v}>{v}</option>)}
+                          </select>
+                        </div>
+                      ))}
+                    </div>
+                    <div style={{ display:'flex', gap:'8px', marginTop:'4px' }}>
+                      {[
+                        { lbl: 'Segurança *',    val: nrSeg, set: setNrSeg, opts: CL_NR.seguranca },
+                        { lbl: 'Documentação *', val: nrDoc, set: setNrDoc, opts: CL_NR.documentacao },
+                      ].map(({ lbl, val, set, opts }) => (
+                        <div key={lbl} style={{ flex:1 }}>
+                          <label style={S.label}>{lbl}</label>
+                          <select style={S.input} value={val} onChange={e => set(e.target.value)}>
+                            <option value=''>Selecione...</option>
+                            {opts.map(v => <option key={v} value={v}>{v}</option>)}
+                          </select>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 )}
               </div>
