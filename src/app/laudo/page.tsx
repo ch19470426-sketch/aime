@@ -144,7 +144,6 @@ function LaudoComplemento() {
   const [rec52, setRec52] = useState('')
   const [rec53, setRec53] = useState('')
   const [rec54, setRec54] = useState('')
-  const [rec54, setRec54] = useState('')
   const [rec55, setRec55] = useState('')
   // Classificação 3.3 para tipos 45-48 (5 critérios NR)
   const [nrManut,     setNrManut]     = useState('')
