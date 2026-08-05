@@ -478,7 +478,6 @@ function LaudoComplemento() {
           estab, inspetor, ncs: ncsComSolucao, nomeArquivo: nome,
           complemento: {
             nomeConvencao, sinteseEdif,
-            nomeConvencao, sinteseEdif,
             pathCroqui, croquiBase64, fotoCapa, artRrt,
             // Classificação NR (45-48)
             nrManut, nrOp, nrFisico, nrSeg, nrDoc, pathFoto, pathArt, docsAnexo1,
@@ -488,8 +487,8 @@ function LaudoComplemento() {
             rec51, rec52, rec53, rec54, rec55,
             recsSistema,
           }
+        })
       })
-      const data = await res.json()
       if (!res.ok || data.erro) { setErro(data.erro ?? 'Erro ao gerar laudo.'); setEtapa('complemento'); return }
       setNomeArquivo(nome)
       // Redirecionar diretamente usando a variável local (não o estado que pode não ter atualizado)
