@@ -699,6 +699,7 @@ function PlanoInner() {
                           <td style={{ padding: '2px 4px' }}>
                             <input type="date" style={{ ...S.input, fontSize: '7.5pt', padding: '2px 4px' }}
                               value={datas[i]?.ini ?? ''}
+                              onFocus={e => { try { (e.target as any).showPicker?.() } catch {} }}
                               onChange={e => {
                                 const v = e.target.value
                                 if (i > 0 && datas[i-1]?.ini && v < datas[i-1].ini) {
@@ -711,6 +712,7 @@ function PlanoInner() {
                           <td style={{ padding: '2px 4px' }}>
                             <input type="date" style={{ ...S.input, fontSize: '7.5pt', padding: '2px 4px' }}
                               value={datas[i]?.fim ?? ''}
+                              onFocus={e => { try { (e.target as any).showPicker?.() } catch {} }}
                               onChange={e => {
                                 const v = e.target.value
                                 if (datas[i]?.ini && v < datas[i].ini) {
