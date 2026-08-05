@@ -429,45 +429,95 @@ export async function POST(request: NextRequest) {
 
       // ── BLOCO 1.1 — Características ─────────────────────────────────────────
       const show45 = tipoServico === '45'
-      const S11 = '<div class="titulo">' + titulo11 + '</div>' +
-        '<div class="section">' +
-        '  <div class="bloco">' +
-        '    <div class="bloco-header">Características ' + (show45 ? 'da Edificação e Elevadores' : 'do Estabelecimento') + '</div>' +
-        '    <div class="row">' +
-        '      <div class="cell cell-2"><label>' + (show45 ? 'Condomínio' : 'Razão Social') + '</label><div class="val">' + xe(estab?.razao_social_nome) + '</div></div>' +
-        '      <div class="cell"><label>' + labelDoc + '</label><div class="val">' + xe(cnpjoucpf) + '</div></div>' +
-        '      <div class="cell"><label>CEP</label><div class="val">' + xe(estab?.cep_estabelecimento || estab?.cep) + '</div></div>' +
-        '    </div>' +
-        '    <div class="row">' +
-        '      <div class="cell cell-3"><label>Endereço</label><div class="val">' + xe(estab?.logradouro) + (estab?.numero_imovel ? ', ' + xe(estab.numero_imovel) : '') + '</div></div>' +
-        '      <div class="cell"><label>Bairro</label><div class="val">' + xe(estab?.bairro) + '</div></div>' +
-        '    </div>' +
-        '    <div class="row">' +
-        '      <div class="cell"><label>Cidade / UF</label><div class="val">' + xe(estab?.cidade) + '/' + xe(estab?.uf) + '</div></div>' +
-        '      <div class="cell"><label>CPF Responsável</label><div class="val">' + xe(estab?.cpf_responsavel) + '</div></div>' +
-        '      <div class="cell"><label>Nome do Responsável</label><div class="val">' + xe(estab?.nome_responsavel) + '</div></div>' +
-        '      <div class="cell"><label>Função</label><div class="val">' + xe(estab?.funcao_responsavel) + '</div></div>' +
-        '    </div>' +
-        '    <div class="row">' +
-        '      <div class="cell cell-2"><label>Telefone / WhatsApp</label><div class="val">' + xe(estab?.whatsapp) + '</div></div>' +
-        '      <div class="cell cell-2"><label>e-Mail</label><div class="val">' + xe(estab?.email) + '</div></div>' +
-        '    </div>' +
-        '    <div class="row">' +
-        '      <div class="cell cell-2"><label>Finalidade da Inspeção</label><div class="val">' + xe(estab?.finalidade_vistoria || '—') + '</div></div>' +
-        (show45 ? '      <div class="cell"><label>Uso da Edificação</label><div class="val">' + xe(estab?.uso_imovel || '—') + '</div></div><div class="cell"><label>Tipo de Imóvel</label><div class="val">' + xe(estab?.tipo_imovel || '—') + '</div></div>' : '') +
-        '    </div>' +
-        '    <div class="row"><div class="cell cell-4"><label>Síntese do Estabelecimento</label><div class="val" style="min-height:28mm;white-space:pre-wrap">' + xe(complemento?.sinteseEdif || '—') + '</div></div></div>' +
-        (show45 ? '    <div class="bloco-header" style="margin-top:4mm">Relação de Ativos a Vistoriar</div><table style="width:100%;border-collapse:collapse;font-size:8pt"><tr style="background:#1E3A8A;color:#fff"><th style="padding:3px 6px">TAG/Número</th><th style="padding:3px 6px">Fabricante/Marca</th><th style="padding:3px 6px">Capacidade (kg)</th><th style="padding:3px 6px">Nº Paradas</th></tr>' + (estab?.ativos || []).map((a:any) => '<tr><td style="padding:2px 6px;border-bottom:1px solid #e2e8f0">' + xe(a.tag||'—') + '</td><td style="padding:2px 6px;border-bottom:1px solid #e2e8f0">' + xe(a.fabricante||'—') + '</td><td style="padding:2px 6px;border-bottom:1px solid #e2e8f0">' + xe(a.capacidade||'—') + '</td><td style="padding:2px 6px;border-bottom:1px solid #e2e8f0">' + xe(a.paradas||'—') + '</td></tr>').join('') + '</table>' : '') +
-        '  </div>' +
-        '  <div class="bloco" style="margin-top:4mm">' +
-        '    <div class="bloco-header">Localização do Estabelecimento</div>' +
-        '    <div class="row">' +
-        '      <div class="cell cell-2">' + (complemento?.croquiBase64?.startsWith('data:image') ? '<img src="' + complemento.croquiBase64 + '" style="width:100%;max-height:60mm;object-fit:contain">' : '<div style="min-height:60mm;background:#f8fafc;border:1px dashed #c3d4f0;display:flex;align-items:center;justify-content:center;color:#94a3b8;font-size:8pt">[Croqui de Localização]</div>') + '</div>' +
-        '      <div class="cell cell-2">' + (complemento?.fotoCapa?.startsWith('data:image') ? '<img src="' + complemento.fotoCapa + '" style="width:100%;max-height:60mm;object-fit:contain">' : '<div style="min-height:60mm;background:#f8fafc;border:1px dashed #c3d4f0;display:flex;align-items:center;justify-content:center;color:#94a3b8;font-size:8pt">[Foto da Fachada Principal]</div>') + '</div>' +
-        '    </div>' +
-        '  </div>' +
-        '</div>'
+      // ── BLOCO 1.1 fiel ao template 95-98 ────────────────────────────────────
+      const labelInst = show45 ? 'Condomínio' : 'Razão Social'
+      const labelTelW  = show45 ? 'Telefone contato' : 'Whatsapp'
+      const labelFinal = show45 ? 'Finalidade da vistoria' : 'Finalidade da inspeção'
+      const labelDesc  = show45
+        ? 'Síntese da descrição da edificação seguindo a convenção ou escritura de compra:'
+        : 'Descrição sintética da instituição:'
+      const TD11 = 'border:1px solid #dde5f0;padding:4px 8px;font-size:8.5pt;vertical-align:top'
 
+      const S11_rows = [
+        '<tr style="background:#f1f5f9"><td colspan="6" style="padding:4px 8px;font-weight:700;color:#1E3A8A;font-size:8.5pt">' + (show45 ? 'Características da Edificação e Elevadores' : 'Características da Instituição:') + '</td></tr>',
+        '<tr>' +
+          '<td style="' + TD11 + ';width:30%"><b>' + labelInst + ':</b><br>' + xe(estab?.razao_social_nome) + '</td>' +
+          '<td style="' + TD11 + ';width:15%"><b>' + labelDoc + ':</b><br>' + xe(cnpjoucpf) + '</td>' +
+          '<td style="' + TD11 + ';width:15%"><b>CEP:</b><br>' + xe(estab?.cep_estabelecimento||estab?.cep) + '</td>' +
+        '</tr>',
+        '<tr>' +
+          '<td style="' + TD11 + ';width:45%" colspan="2"><b>Endereço:</b><br>' + xe(estab?.logradouro) + (estab?.numero_imovel ? ', ' + xe(estab.numero_imovel) : '') + '</td>' +
+          '<td style="' + TD11 + ';width:20%"><b>Bairro:</b><br>' + xe(estab?.bairro) + '</td>' +
+          '<td style="' + TD11 + ';width:20%"><b>Cidade e UF:</b><br>' + xe(estab?.cidade) + ' / ' + xe(estab?.uf) + '</td>' +
+        '</tr>',
+        '<tr>' +
+          '<td style="' + TD11 + '"><b>CPF responsável:</b><br>' + xe(estab?.cpf_responsavel) + '</td>' +
+          '<td style="' + TD11 + '" colspan="2"><b>Nome do responsável:</b><br>' + xe(estab?.nome_responsavel) + '</td>' +
+          '<td style="' + TD11 + '"><b>Função do responsável:</b><br>' + xe(estab?.funcao_responsavel) + '</td>' +
+        '</tr>',
+        '<tr>' +
+          '<td style="' + TD11 + '" colspan="2"><b>' + labelTelW + ':</b><br>' + xe(estab?.whatsapp) + '</td>' +
+          '<td style="' + TD11 + '" colspan="2"><b>eMail contato:</b><br>' + xe(estab?.email) + '</td>' +
+          '<td style="' + TD11 + '"><b>' + labelFinal + ':</b><br>' + xe(estab?.finalidade_vistoria||'—') + '</td>' +
+        '</tr>',
+      ].join('')
+
+      // Linha extra tipo 45: uso, tipo imóvel, nº pavimentos, nº elevadores
+      const S11_extra45 = show45
+        ? '<tr>' +
+            '<td style="' + TD11 + '"><b>Uso Edificação:</b><br>' + xe(estab?.uso_imovel||'—') + '</td>' +
+            '<td style="' + TD11 + '"><b>Tipo imóvel:</b><br>' + xe(estab?.tipo_imovel||'—') + '</td>' +
+            '<td style="' + TD11 + '"><b>Nr pavimentos:</b><br>' + xe(estab?.numero_pavimentos||'—') + '</td>' +
+            '<td style="' + TD11 + '"><b>Nr elevadores:</b><br>' + xe(estab?.nr_elevadores||'—') + '</td>' +
+          '</tr>'
+        : ''
+
+      // Síntese gerada por IA (descVistoria da tela)
+      const S11_sintese = '<tr><td style="' + TD11 + '" colspan="5"><b>' + labelDesc + '</b><br>' +
+        '<div style="min-height:20mm;text-align:justify">' + xe(complemento?.sinteseEdif||'—') + '</div></td></tr>'
+
+      // Tabela de ativos (tipo 45) — origem: ativos_a_vistoriar do plano
+      const S11_ativos45 = show45
+        ? '<tr style="background:#f1f5f9"><td colspan="5" style="padding:4px 8px;font-weight:700;color:#1E3A8A;font-size:8.5pt">Relação de Ativos a Vistoriar</td></tr>' +
+          '<tr style="background:#1E3A8A;color:#fff">' +
+            '<td style="padding:3px 6px">TAG/Número</td>' +
+            '<td style="padding:3px 6px">Fabricante/Marca</td>' +
+            '<td style="padding:3px 6px">Capacidade kg</td>' +
+            '<td style="padding:3px 6px">Nr paradas</td>' +
+          '</tr>' +
+          (Array.isArray(estab?.ativos) && estab.ativos.length > 0
+            ? estab.ativos.map((a:any) =>
+                '<tr><td style="' + TD11 + '">' + xe(a.tag||a.tag_ativo_nr_serie||'—') + '</td>' +
+                '<td style="' + TD11 + '">' + xe(a.fabricante||a.fabricante_marca||'—') + '</td>' +
+                '<td style="' + TD11 + '">' + xe(a.capacidade||a.capacidade_potencia||'—') + '</td>' +
+                '<td style="' + TD11 + '">' + xe(a.paradas||'—') + '</td></tr>'
+              ).join('')
+            : '<tr><td colspan="4" style="' + TD11 + '"><i>Nenhum ativo cadastrado no plano.</i></td></tr>')
+        : ''
+
+      // Localização: croqui + foto
+      const S11_local =
+        '<tr style="background:#f1f5f9"><td colspan="5" style="padding:4px 8px;font-weight:700;color:#1E3A8A;font-size:8.5pt">Localização do Estabelecimento</td></tr>' +
+        '<tr>' +
+          '<td style="' + TD11 + '" colspan="2">' +
+            (complemento?.croquiBase64?.startsWith('data:image')
+              ? '<img src="' + complemento.croquiBase64 + '" style="width:100%;max-height:60mm;object-fit:contain">'
+              : '<div style="min-height:55mm;background:#f8fafc;border:1px dashed #c3d4f0;display:flex;align-items:center;justify-content:center;color:#94a3b8;font-size:8pt">[Croqui de Localização Maps]</div>') +
+          '</td>' +
+          '<td style="' + TD11 + '" colspan="2">' +
+            (complemento?.fotoCapa?.startsWith('data:image')
+              ? '<img src="' + complemento.fotoCapa + '" style="width:100%;max-height:60mm;object-fit:contain">'
+              : '<div style="min-height:55mm;background:#f8fafc;border:1px dashed #c3d4f0;display:flex;align-items:center;justify-content:center;color:#94a3b8;font-size:8pt">[Foto Fachada Principal]</div>') +
+          '</td>' +
+        '</tr>'
+
+      const S11 =
+        '<div class="titulo">' + titulo11 + '</div>' +
+        '<div class="section">' +
+        '<table style="width:100%;border-collapse:collapse;font-size:8.5pt">' +
+        S11_rows + S11_extra45 + S11_sintese + S11_ativos45 + S11_local +
+        '</table>' +
+        '</div>'
       // ── BLOCO 3.1 — Descrição da Realização da Vistoria ─────────────────────
       const S31 = '<div class="titulo">3.1.- Descrição da Realização da Vistoria Técnica.</div>' +
         '<div class="section">' +
@@ -654,12 +704,11 @@ export async function POST(request: NextRequest) {
         const { data: blobP } = await supabase.storage.from('aime').download('documentos_inspetor/' + nomePlano)
         if (blobP) {
           const htmlP = await blobP.text()
-          const idxTb = htmlP.indexOf('id="tbAtiv"')
+          // Buscar tabela de agenda: id='tbAtiv' ou primeira tabela com 'Atividades'
+          const idxAtiv = htmlP.indexOf('id="tbAtiv"')
+          const idxHead = htmlP.indexOf('Atividades')
+          const idxTb   = idxAtiv >= 0 ? idxAtiv : (idxHead >= 0 ? htmlP.lastIndexOf('<table', idxHead) : -1)
           if (idxTb >= 0) tabelaPlano = htmlP.slice(idxTb, htmlP.indexOf('</table>', idxTb) + 8)
-          else {
-            const idxAlt = htmlP.indexOf('<table')
-            if (idxAlt >= 0) tabelaPlano = htmlP.slice(idxAlt, htmlP.indexOf('</table>', idxAlt) + 8)
-          }
         }
       } catch { /* sem plano */ }
 
@@ -745,8 +794,7 @@ export async function POST(request: NextRequest) {
       partsNR.push('<div class="titulo">1.2.- Objetivo.</div>')
       partsNR.push('<p>' + objTexto + '</p>')
       partsNR.push('<div class="titulo">1.3.- Plano de Trabalho.</div>')
-      partsNR.push('<p>Agenda de Trabalho — ' + agendaLabel + '.</p>')
-      partsNR.push(tabelaPlano)
+      partsNR.push('<div class="section"><div class="bloco"><div class="bloco-header">Agenda de Trabalho — ' + agendaLabel + '</div>' + tabelaPlano + '</div></div>')
       partsNR.push('<div class="titulo">1.4.- Condições e Limitações.</div>')
       partsNR.push('<p>A inspeção foi realizada nas condições de acesso disponibilizadas pelo responsável do estabelecimento. Equipamentos em operação ou com acesso restrito foram classificados como "Não Avaliado" (NA). O presente laudo se refere exclusivamente às condições encontradas na data da vistoria.</p>')
       partsNR.push('<div class="titulo">2.- Metodologia Adotada para o Trabalho de Inspeção.</div>')
