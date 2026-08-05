@@ -24,7 +24,7 @@ if (typeof window !== 'undefined') {
 
 const permissoes: Record<string, number[]> = {
   "Arquiteto":          [11,12,13,19,21,22,23,29,31,32,33,40,41,42,43,49,61,62,99],
-  "Eng Civil":          [11,12,13,14,16,19,21,22,23,24,26,29,31,32,33,34,36,40,41,42,43,44,46,49,61,62,99],
+  "Eng Civil":          [11,12,13,14,19,21,22,23,24,26,29,31,32,33,34,36,40,41,42,43,44,49,61,62,99],
   "Eng Elétrico":       [16,26,36,40,46,61,62,99],
   "Eng Mecânico":       [15,17,18,25,27,28,35,37,38,40,45,47,48,61,62,99],
   "Técnico Edificação": [13,23,33,40,43,61,62,99],
@@ -86,7 +86,7 @@ const menuGrupos = [
 ]
 
 // Tipos de serviço que são vistorias (abre tela de CNPJ/CPF)
-const CODIGOS_VISTORIA = [11,12,13,14,15,16,17,18,19,21,22,23,24,25,26,27,28,29,31,32,33,34,35,36,37,38,40,41,42,43,44,61]
+const CODIGOS_VISTORIA = [11,12,13,14,15,16,17,18,19,21,22,23,24,25,26,27,28,29,31,32,33,34,35,36,37,38,40,41,42,43,44,45,46,47,48,61]
 
 // Tipos de serviço que coletam CPF (pessoa física) em vez de CNPJ
 const CODIGOS_CPF = [13, 23, 33, 43]
