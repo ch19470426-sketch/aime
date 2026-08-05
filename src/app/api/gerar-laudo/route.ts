@@ -336,12 +336,18 @@ export async function POST(request: NextRequest) {
     // ── GERADOR PARA LAUDOS NR (45-48) ──────────────────────────────────────────
     if (ehNR) {
       const clNR     = complemento?.classificacao ?? {}
-      const nrManut  = clNR.nrManut   ?? ''
-      const nrOp     = clNR.nrOp      ?? ''
-      const nrFisico = clNR.nrFisico  ?? ''
-      const nrSeg    = clNR.nrSeg     ?? ''
-      const nrDoc    = clNR.nrDoc     ?? ''
-      const rec      = complemento?.recomendacoes ?? {}
+      // nrManut pode vir direto do complemento (payload novo) ou do clNR (payload antigo)
+      const nrManut  = complemento?.nrManut  ?? clNR.nrManut  ?? ''
+      const nrOp     = complemento?.nrOp     ?? clNR.nrOp     ?? ''
+      const nrFisico = complemento?.nrFisico ?? clNR.nrFisico ?? ''
+      const nrSeg    = complemento?.nrSeg    ?? clNR.nrSeg    ?? ''
+      const nrDoc    = complemento?.nrDoc    ?? clNR.nrDoc    ?? ''
+      // Recomendações 5.1-5.5
+      const rec51NR  = complemento?.rec51 ?? ''
+      const rec52NR  = complemento?.rec52 ?? ''
+      const rec53NR  = complemento?.rec53 ?? ''
+      const rec54NR  = complemento?.rec54 ?? ''
+      const rec55NR  = complemento?.rec55 ?? ''
       const dataHojeNR = new Date().toLocaleDateString('pt-BR', {day:'2-digit',month:'long',year:'numeric'})
 
       // ── Títulos individualizados por norma ──────────────────────────────────
@@ -456,8 +462,8 @@ export async function POST(request: NextRequest) {
         '  <div class="bloco" style="margin-top:4mm">' +
         '    <div class="bloco-header">Localização do Estabelecimento</div>' +
         '    <div class="row">' +
-        '      <div class="cell cell-2" style="min-height:60mm;background:#f8fafc;border:1px dashed #c3d4f0;display:flex;align-items:center;justify-content:center;color:#94a3b8;font-size:8pt">[Croqui de Localização]</div>' +
-        '      <div class="cell cell-2" style="min-height:60mm;background:#f8fafc;border:1px dashed #c3d4f0;display:flex;align-items:center;justify-content:center;color:#94a3b8;font-size:8pt">[Foto da Fachada Principal]</div>' +
+        '      <div class="cell cell-2">' + (complemento?.croquiBase64?.startsWith('data:image') ? '<img src="' + complemento.croquiBase64 + '" style="width:100%;max-height:60mm;object-fit:contain">' : '<div style="min-height:60mm;background:#f8fafc;border:1px dashed #c3d4f0;display:flex;align-items:center;justify-content:center;color:#94a3b8;font-size:8pt">[Croqui de Localização]</div>') + '</div>' +
+        '      <div class="cell cell-2">' + (complemento?.fotoCapa?.startsWith('data:image') ? '<img src="' + complemento.fotoCapa + '" style="width:100%;max-height:60mm;object-fit:contain">' : '<div style="min-height:60mm;background:#f8fafc;border:1px dashed #c3d4f0;display:flex;align-items:center;justify-content:center;color:#94a3b8;font-size:8pt">[Foto da Fachada Principal]</div>') + '</div>' +
         '    </div>' +
         '  </div>' +
         '</div>'
@@ -467,7 +473,7 @@ export async function POST(request: NextRequest) {
         '<div class="section">' +
         '  <div class="bloco">' +
         '    <div class="bloco-header">Descrição da Realização da Vistoria</div>' +
-        '    <div class="row"><div class="cell cell-4"><div class="val" style="min-height:40mm;white-space:pre-wrap">' + xe(complemento?.descVistoria || complemento?.dadosVistoria || '—') + '</div></div></div>' +
+        '    <div class="row"><div class="cell cell-4"><div class="val" style="min-height:40mm;white-space:pre-wrap;text-align:justify">' + xe(complemento?.descVistoria || complemento?.dadosVistoria || '—') + '</div></div></div>' +
         '  </div>' +
         '</div>'
 
@@ -561,11 +567,11 @@ export async function POST(request: NextRequest) {
       // ── BLOCO 5 — Recomendações ──────────────────────────────────────────────
       const S5 = '<div class="titulo">5.- Recomendações sobre Manutenção, Operação, Condições Físicas, Segurança e Documentação.</div>' +
         '<div class="section"><div class="bloco">' +
-        '<p><b>5.1.- Recomendações sobre manutenção:</b><br>' + xe(rec.rec51 || '—') + '</p>' +
-        '<p><b>5.2.- Recomendações sobre operação:</b><br>' + xe(rec.rec52 || '—') + '</p>' +
-        '<p><b>5.3.- Recomendações sobre condições físicas:</b><br>' + xe(rec.rec53 || '—') + '</p>' +
-        '<p><b>5.4.- Recomendações sobre segurança:</b><br>' + xe(rec.rec54 || '—') + '</p>' +
-        '<p><b>5.5.- Recomendações sobre documentação:</b><br>' + xe(rec.rec55 || '—') + '</p>' +
+        '<p style="text-align:justify"><b>5.1.- Recomendações sobre manutenção:</b><br>' + xe(rec51NR || '—') + '</p>' +
+        '<p style="text-align:justify"><b>5.2.- Recomendações sobre operação:</b><br>' + xe(rec52NR || '—') + '</p>' +
+        '<p style="text-align:justify"><b>5.3.- Recomendações sobre condições físicas:</b><br>' + xe(rec53NR || '—') + '</p>' +
+        '<p style="text-align:justify"><b>5.4.- Recomendações sobre segurança:</b><br>' + xe(rec54NR || '—') + '</p>' +
+        '<p style="text-align:justify"><b>5.5.- Recomendações sobre documentação:</b><br>' + xe(rec55NR || '—') + '</p>' +
         '</div></div>'
 
       // ── ANEXO 1 — Documentos ─────────────────────────────────────────────────
