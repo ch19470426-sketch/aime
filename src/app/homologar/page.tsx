@@ -150,6 +150,7 @@ function Tela40Inner() {
   const [planoDocs,         setPlanoDocs]         = useState<{doc:string;situacao:string;resultado:string}[]>([])
   const [planoEncontrado,   setPlanoEncontrado]   = useState(false)
   const [verificando,       setVerificando]       = useState(false)
+  const [autoAcionado,      setAutoAcionado]      = useState(false)
 
   // Listas de validação (carregadas do banco)
   const [sistemas,     setSistemas]     = useState<ItemSistema[]>([])
@@ -817,11 +818,11 @@ function Tela40Inner() {
                   readOnly={isNR && (resultado === 'Conforme' || resultado === 'Não aplicável')}
                   onChange={e => setNc(e.target.value)} />
               </Field>
-              {!isNR && (
-                <Field label="Causa provável (CP)">
-                  <textarea style={{ ...S.input, ...S.textarea }} value={cp} maxLength={500} onChange={e => setCp(e.target.value)} />
-                </Field>
-              )}
+              <Field label="Causa provável (CP)">
+                <textarea style={{ ...S.input, ...S.textarea }} value={cp} maxLength={500} onChange={e => setCp(e.target.value)} />
+              </Field>
+
+
 
             </div>
           </div>
