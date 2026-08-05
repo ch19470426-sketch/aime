@@ -458,8 +458,8 @@ function LaudoComplemento() {
             dados: {
               tipo_servico: tipoServico,
               ncs: ncsComSolucao.filter((nc: any) => nc.prioridade === 'Alta' || nc.prioridade === 'Média'),
-              ncs: ncsComSolucao.filter((nc: any) => nc.prioridade === 'Alta' || nc.prioridade === 'Muito Alta'),
               classificacao: { nivel: nivelInspecao, risco, desempenho, manut, uso, desempGeral, nrManut, nrOp, nrFisico, nrSeg, nrDoc },
+            }
           })
         })
         const dDRT = await rDRT.json()
