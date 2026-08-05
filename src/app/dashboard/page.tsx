@@ -347,8 +347,8 @@ export default function Dashboard() {
       window.location.href = `/proposta?cpf_inspetor=${cpfInspetor}&chave_inspetor=${chaveInspetor}&cnpjoucpf=${docLimpo}&tipo_servico=${tipoServico}`
       return
     }
-    // Códigos 41-44: Laudos grupo 1 (Autovistoria, Inspeção, Imóvel Novo, Fachada)
-    if (Number(tipoServico) >= 41 && Number(tipoServico) <= 44) {
+    // Códigos 41-48: Laudos (Autovistoria, Inspeção, Imóvel Novo, Fachada, Elevador, NR-10, NR-12, NR-13)
+    if (Number(tipoServico) >= 41 && Number(tipoServico) <= 48) {
       window.location.href = `/laudo?cpf_inspetor=${cpfInspetor}&chave_inspetor=${chaveInspetor}&cnpjoucpf=${docLimpo}&tipo_servico=${tipoServico}`
       return
     }
