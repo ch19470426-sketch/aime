@@ -21,6 +21,10 @@ const LAUDO_CONFIG: Record<string, {
   '42': { titulo: 'Laudo de Inspeção Predial', tipoVistoria: '32', norma: 'NBR 16.747/2020 + IBAPE/2025', labelEstabelecimento: 'Condomínio', labelResponsavel: 'Síndico/Responsável', labelCNPJ: 'CNPJ', temClassificacao: true },
   '43': { titulo: 'Laudo de Imóvel Novo', tipoVistoria: '33', norma: 'NBR 15.575 + NBR 16.747', labelEstabelecimento: 'Proprietário', labelResponsavel: 'Proprietário', labelCNPJ: 'CPF', temClassificacao: true },
   '44': { titulo: 'Laudo de Inspeção de Fachada', tipoVistoria: '34', norma: 'NBR 13.755 + NBR 16.747', labelEstabelecimento: 'Condomínio', labelResponsavel: 'Síndico/Responsável', labelCNPJ: 'CNPJ', temClassificacao: true },
+  '45': { titulo: 'Laudo de Inspeção de Elevadores', tipoVistoria: '35', norma: 'NBR 16.858-1 + NR-12', labelEstabelecimento: 'Estabelecimento', labelResponsavel: 'Responsável Técnico', labelCNPJ: 'CNPJ', temClassificacao: true },
+  '46': { titulo: 'Laudo de Inspeção Elétrica — NR-10', tipoVistoria: '36', norma: 'NR-10 + NBR 5410', labelEstabelecimento: 'Estabelecimento', labelResponsavel: 'Responsável Técnico', labelCNPJ: 'CNPJ', temClassificacao: true },
+  '47': { titulo: 'Laudo de Inspeção de Máquinas e Equipamentos — NR-12', tipoVistoria: '37', norma: 'NR-12 + NBR/ISO 12100', labelEstabelecimento: 'Estabelecimento', labelResponsavel: 'Responsável Técnico', labelCNPJ: 'CNPJ', temClassificacao: true },
+  '48': { titulo: 'Laudo de Inspeção de Caldeiras, Vasos e Tubulações — NR-13', tipoVistoria: '38', norma: 'NR-13 + ASME', labelEstabelecimento: 'Estabelecimento', labelResponsavel: 'Responsável Técnico', labelCNPJ: 'CNPJ', temClassificacao: true },
 }
 
 const NIVEIS_INSPECAO = ['Nível 1', 'Nível 2', 'Nível 3']
@@ -49,9 +53,20 @@ const CL44 = {
   f: ['Programável', 'No curto prazo', 'Urgente', 'Emergencial'],
 }
 
+// Classificação NR — 5 critérios (tipos 45-48)
+const CL_NR = {
+  manutencao:       ['Garante', 'Garante parcialmente', 'Não garante'],
+  operacao:         ['Plena', 'Restrita', 'Interditada'],
+  condicoesFisicas: ['Excelente', 'Boa', 'Regular', 'Péssima'],
+  seguranca:        ['Plenamente', 'Parcialmente', 'Não atende'],
+  documentacao:     ['Completa', 'Incompleta', 'Inexistente'],
+}
+
 const SLUG: Record<string, string> = {
   '41': 'laudo_autovistoria', '42': 'laudo_inspecao',
   '43': 'laudo_imovel_novo',  '44': 'laudo_fachada',
+  '45': 'laudo_elevador',      '46': 'laudo_nr10',
+  '47': 'laudo_nr12',          '48': 'laudo_nr13',
 }
 
 // ─── Wrapper Suspense ─────────────────────────────────────────────────────────
@@ -129,6 +144,13 @@ function LaudoComplemento() {
   const [rec52, setRec52] = useState('')
   const [rec53, setRec53] = useState('')
   const [rec54, setRec54] = useState('')
+
+  // Classificação 3.3 para tipos 45-48 (5 critérios NR)
+  const [nrManut,     setNrManut]     = useState('')
+  const [nrOp,        setNrOp]        = useState('')
+  const [nrFisico,    setNrFisico]    = useState('')
+  const [nrSeg,       setNrSeg]       = useState('')
+  const [nrDoc,       setNrDoc]       = useState('')
   const [gerandoRec, setGerandoRec] = useState(false)
 
   // ── Campos complementares ──
@@ -468,7 +490,9 @@ function LaudoComplemento() {
           estab, inspetor, ncs: ncsComSolucao, nomeArquivo: nome,
           complemento: {
             nomeConvencao, sinteseEdif,
-            pathCroqui, pathFoto, pathArt, docsAnexo1,
+            pathCroqui,
+            // Classificação NR (45-48)
+            nrManut, nrOp, nrFisico, nrSeg, nrDoc, pathFoto, pathArt, docsAnexo1,
             descVistoria: descVistoria || dadosVistoria,
             nivelInspecao,
             classificacao: { nivel: nivelInspecao, risco, desempenho, manut, uso, desempGeral },
@@ -636,7 +660,7 @@ function LaudoComplemento() {
                 <span style={S.bTitle}>
                   {tipoServico === '43' ? '3.3 — Resultado da Classificação do Imóvel'
                     : tipoServico === '44' ? '3.3 — Resultado da Classificação da Fachada'
-                    : '3.3 — Resultado da Classificação da Edificação'}
+                    : (['45','46','47','48'].includes(tipoServico) ? '3.3 — Resultado da Classificação da Instalação' : '3.3 — Resultado da Classificação da Edificação')}
                 </span>
               </div>
               <div style={{ ...S.bBody, paddingTop: '4px', paddingBottom: '4px' }}>
@@ -705,6 +729,27 @@ function LaudoComplemento() {
                       { lbl: 'd) Risco de desprendimento *', val: manut, set: setManut, opts: CL44.d },
                       { lbl: 'e) Desempenho do sistema *', val: uso, set: setUso, opts: CL44.e },
                       { lbl: 'f) Prioridade de intervenção *', val: desempGeral, set: setDesempGeral, opts: CL44.f },
+                    ].map(({ lbl, val, set, opts }) => (
+                      <div key={lbl}>
+                        <label style={S.label}>{lbl}</label>
+                        <select style={S.input} value={val} onChange={e => set(e.target.value)}>
+                          <option value="">Selecione...</option>
+                          {opts.map(v => <option key={v} value={v}>{v}</option>)}
+                        </select>
+                      </div>
+                    ))}
+                  </div>
+)}
+
+                {/* 45-48 — Classificação NR (5 critérios) */}
+                {(['45','46','47','48'].includes(tipoServico)) && (
+                  <div style={S.grid3}>
+                    {[
+                      { lbl: 'Manutenção *',        val: nrManut,  set: setNrManut,  opts: CL_NR.manutencao },
+                      { lbl: 'Operação *',           val: nrOp,     set: setNrOp,     opts: CL_NR.operacao },
+                      { lbl: 'Condições Físicas *',  val: nrFisico, set: setNrFisico, opts: CL_NR.condicoesFisicas },
+                      { lbl: 'Segurança *',          val: nrSeg,    set: setNrSeg,    opts: CL_NR.seguranca },
+                      { lbl: 'Documentação *',       val: nrDoc,    set: setNrDoc,    opts: CL_NR.documentacao },
                     ].map(({ lbl, val, set, opts }) => (
                       <div key={lbl}>
                         <label style={S.label}>{lbl}</label>
