@@ -882,28 +882,6 @@ function LaudoComplemento() {
           </div>
 
 
-          {/* ── Recomendações 5.1-5.5 para tipos 45-48 ── */}
-          {(['45','46','47','48'].includes(tipoServico)) && (
-            <div style={S.bloco}>
-              <div style={S.bHead}><span style={S.bTitle}>5.- Recomendações</span></div>
-              <div style={S.bBody}>
-                {[
-                  { lbl: '5.1 Manutenção', val: rec51, set: setRec51 },
-                  { lbl: '5.2 Operação', val: rec52, set: setRec52 },
-                  { lbl: '5.3 Condições Físicas', val: rec53, set: setRec53 },
-                  { lbl: '5.4 Segurança', val: rec54, set: setRec54 },
-                  { lbl: '5.5 Documentação', val: rec55, set: setRec55 },
-                ].map(({ lbl, val, set }) => (
-                  <div key={lbl} style={{ marginBottom: '6px' }}>
-                    <label style={S.label}>{lbl}</label>
-                    <textarea style={{ ...S.input, ...S.textarea }}
-                      value={val} onChange={e => set(e.target.value)}
-                      placeholder={`Descreva as recomendações sobre ${lbl.split(' ').slice(1).join(' ').toLowerCase()}...`} />
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
 
           {/* ── Observação ── */}
           <div style={{ backgroundColor: "#FFF9E6", border: "1px solid #F59E0B", borderRadius: "8px", padding: "10px 14px", marginBottom: "12px" }}>
