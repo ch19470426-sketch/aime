@@ -144,7 +144,8 @@ function LaudoComplemento() {
   const [rec52, setRec52] = useState('')
   const [rec53, setRec53] = useState('')
   const [rec54, setRec54] = useState('')
-
+  const [rec54, setRec54] = useState('')
+  const [rec55, setRec55] = useState('')
   // Classificação 3.3 para tipos 45-48 (5 critérios NR)
   const [nrManut,     setNrManut]     = useState('')
   const [nrOp,        setNrOp]        = useState('')
@@ -159,30 +160,17 @@ function LaudoComplemento() {
   const [artRrt, setArtRrt]                 = useState('')  // ART/RRT base64
 
   // Documentos Anexo 1 — situação e resultado por documento
-  const DOCS_LISTA = [
-    'Auto de Conclusão da Edificação (HABITE-SE)',
-    'Convenção do Condomínio',
-    'Alvará de Funcionamento de Elevadores',
-    'Relatório de Inspeção Anual dos Elevadores (RIA)',
-    'Apólice de Seguro da edificação',
-    'Auto de Vistoria do Corpo de Bombeiros (AVCB)',
-    'Atestado do Sistema de Proteção a Descarga Atmosférica (SPDA)',
-    'Avaliação da Rede de Distribuição Interna de Gás',
-    'Contrato de Manutenção de Elevadores',
-    'Certificado de Desratização e Desinsetização',
-    'Relatório de Manutenção e Limpeza das Caixas de Água',
-    'Certificado do reservatório de GLP',
-    'Laudo de autovistoria anterior',
-    'Projeto Arquitetônico Aprovado na Prefeitura',
-    'Projetos Elétrico e Hidrossanitário Aprovados na Prefeitura',
-    'Manual de Uso, Operação e Manutenção da Edificação',
-    'Plano de Manutenção Preventiva da Edificação',
-    'Atestado de Brigada de Incêndio (Imóveis não Residenciais)',
-    'Alvará de Funcionamento (Imóveis não Residenciais)',
-    'Licenças Ambientais (Imóveis não Residenciais)',
-    'Outorga e Licença de Estação de Tratamento de Efluentes',
-    'Outorga e Licença de Poço Profundo de Captação de Água',
-  ]
+  const DOCS_LISTA_POR_TIPO: Record<string,string[]> = {
+    '41': ['Auto de Conclusão da Edificação (HABITE-SE)','Convenção do Condomínio','Alvará de Funcionamento de Elevadores','Relatório de Inspeção Anual dos Elevadores (RIA)','Apólice de Seguro da edificação','Auto de Vistoria do Corpo de Bombeiros (AVCB)','Atestado do Sistema de Proteção a Descarga Atmosférica (SPDA)','Avaliação da Rede de Distribuição Interna de Gás','Contrato de Manutenção de Elevadores','Certificado de Desratização e Desinsetização','Relatório de Manutenção e Limpeza das Caixas de Água','Certificado do reservatório de GLP','Laudo de autovistoria anterior'],
+    '42': ['Auto de Conclusão da Edificação (HABITE-SE)','Convenção do Condomínio','Alvará de Funcionamento de Elevadores','Relatório de Inspeção Anual dos Elevadores (RIA)','Apólice de Seguro da edificação','Auto de Vistoria do Corpo de Bombeiros (AVCB)','Atestado do Sistema de Proteção a Descarga Atmosférica (SPDA)','Avaliação da Rede de Distribuição Interna de Gás','Contrato de Manutenção de Elevadores','Certificado de Desratização e Desinsetização','Relatório de Manutenção e Limpeza das Caixas de Água','Certificado do reservatório de GLP','Laudo de inspeção predial anterior'],
+    '43': ['Auto de Conclusão da Edificação (HABITE-SE)','Convenção do Condomínio','Manual do Proprietário','Certificado de garantia da construtora','Laudo de vistoria de entrega','Projeto arquitetônico aprovado','Alvará de construção'],
+    '44': ['Auto de Conclusão da Edificação (HABITE-SE)','Convenção do Condomínio','Projeto arquitetônico das fachadas','Laudo de inspeção de fachada anterior','Relatório de manutenção das fachadas','Auto de Vistoria do Corpo de Bombeiros (AVCB)'],
+    '45': ['Auto de Conclusão da Edificação (HABITE-SE)','Convenção do Condomínio','Alvará de Funcionamento de Elevadores','Relatório de Inspeção Anual dos Elevadores (RIA)','Contrato de Manutenção de Elevadores','Laudo de inspeção de elevador anterior','Projeto de instalação dos elevadores aprovado na Prefeitura'],
+    '46': ['Prontuário das Instalações Elétricas (PIE)','Alvará de Funcionamento da Instituição','Contrato de Manutenção das Instalações Elétricas','Laudo de inspeção das instalações anterior'],
+    '47': ['Inventário de máquinas e equipamentos','Planta baixa do estabelecimento','Manuais de operação e segurança das máquinas','Laudo da última inspeção realizada','Alvará de funcionamento da instituição'],
+    '48': ['Inventário de caldeiras, vasos e tubulações','Planta baixa do estabelecimento','Manuais de operação e segurança dos equipamentos','Laudo da última inspeção realizada','Alvará de funcionamento da instituição','Prontuário das caldeiras (NR-13)'],
+  }
+  const DOCS_LISTA = DOCS_LISTA_POR_TIPO[tipoServico] ?? DOCS_LISTA_POR_TIPO['41']
   const [docsAnexo1, setDocsAnexo1] = useState<Record<string,{situacao:string,resultado:string}>>({}) // preenchido pelo plano
 
   const SUPA_URL = 'https://asgorarunzhiojqioxzq.supabase.co'
@@ -490,15 +478,15 @@ function LaudoComplemento() {
           estab, inspetor, ncs: ncsComSolucao, nomeArquivo: nome,
           complemento: {
             nomeConvencao, sinteseEdif,
-            pathCroqui,
+            nomeConvencao, sinteseEdif,
+            pathCroqui, croquiBase64, fotoCapa, artRrt,
             // Classificação NR (45-48)
             nrManut, nrOp, nrFisico, nrSeg, nrDoc, pathFoto, pathArt, docsAnexo1,
             descVistoria: descVistoria || dadosVistoria,
             nivelInspecao,
-            classificacao: { nivel: nivelInspecao, risco, desempenho, manut, uso, desempGeral },
-            rec51, rec52, rec53, rec54,
+            classificacao: { nivel: nivelInspecao, risco, desempenho, manut, uso, desempGeral, nrManut, nrOp, nrFisico, nrSeg, nrDoc },
+            rec51, rec52, rec53, rec54, rec55,
             recsSistema,
-          }
         })
       })
       const data = await res.json()
@@ -892,6 +880,30 @@ function LaudoComplemento() {
               </table>
             </div>
           </div>
+
+
+          {/* ── Recomendações 5.1-5.5 para tipos 45-48 ── */}
+          {(['45','46','47','48'].includes(tipoServico)) && (
+            <div style={S.bloco}>
+              <div style={S.bHead}><span style={S.bTitle}>5.- Recomendações</span></div>
+              <div style={S.bBody}>
+                {[
+                  { lbl: '5.1 Manutenção', val: rec51, set: setRec51 },
+                  { lbl: '5.2 Operação', val: rec52, set: setRec52 },
+                  { lbl: '5.3 Condições Físicas', val: rec53, set: setRec53 },
+                  { lbl: '5.4 Segurança', val: rec54, set: setRec54 },
+                  { lbl: '5.5 Documentação', val: rec55, set: setRec55 },
+                ].map(({ lbl, val, set }) => (
+                  <div key={lbl} style={{ marginBottom: '6px' }}>
+                    <label style={S.label}>{lbl}</label>
+                    <textarea style={{ ...S.input, ...S.textarea }}
+                      value={val} onChange={e => set(e.target.value)}
+                      placeholder={`Descreva as recomendações sobre ${lbl.split(' ').slice(1).join(' ').toLowerCase()}...`} />
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* ── Observação ── */}
           <div style={{ backgroundColor: "#FFF9E6", border: "1px solid #F59E0B", borderRadius: "8px", padding: "10px 14px", marginBottom: "12px" }}>
