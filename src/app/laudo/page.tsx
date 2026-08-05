@@ -601,7 +601,7 @@ function LaudoComplemento() {
                     <option value="">Selecione...</option>
                     <option>Nível 1</option><option>Nível 2</option><option>Nível 3</option>
                   </select>
-                </select></div>)}
+                </div>)}
                 <div>
                   <label style={S.label}>Responsável pelo ativo</label>
                   <input style={{ ...S.input }} value={estab.nome_responsavel ?? ''} onChange={e => setEstab(prev=>({...prev,nome_responsavel:e.target.value}))} />
