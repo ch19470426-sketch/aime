@@ -608,7 +608,7 @@ function LaudoComplemento() {
                 </div>
               </div>
               <div style={{ marginTop: "8px" }}>
-                <label style={S.label}>{(['45','46','47','48'].includes(tipoServico) ? 'Descreva sinteticamente o estabelecimento e os ativos a vistoriar (tipo, quantidade, localização e condições gerais)' : 'Descreva sinteticamente a edificação (Convenção ou Escritura)'} *</label>
+                <label style={S.label}>{(['45','46','47','48'].includes(tipoServico) ? 'Descreva sinteticamente o estabelecimento e os ativos a vistoriar (tipo, quantidade, localização e condições gerais)' : 'Descreva sinteticamente a edificação (Convenção ou Escritura)')} *</label>
                 <textarea style={{ ...S.textarea, backgroundColor: editandoSintese ? '#FFFBEB' : undefined, borderColor: editandoSintese ? '#F59E0B' : undefined }} value={sinteseEdif} maxLength={900} value={sinteseEdif}
                   onChange={e => setSinteseEdif(e.target.value)}
                   placeholder="Insira uma breve descrição e a topologia da edificação, ou clique em ✦ Gerar para geração automática com IA..." />
