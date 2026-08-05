@@ -366,32 +366,32 @@ export async function POST(request: NextRequest) {
       const metTexto  = METODOLOGIA[tipoServico] ?? ''
 
       // ── Bloco 1.1 Características (Estabelecimento + Ativos) ──────────────
-      const S11NR = \`<div class="titulo">1.1.- Características e Localização do Estabelecimento.</div>
+      const S11NR = '<div class="titulo">1.1.- Características e Localização do Estabelecimento.</div>
 <div class="bloco">
-  <div class="bloco-header">Características do Estabelecimento e \${nomeAtivo}</div>
+  <div class="bloco-header">Características do Estabelecimento e \'+nomeAtivo+'</div>
   <div class="row">
-    <div class="cell cell-2"><label>Razão Social</label><div class="val">\${xe(estab?.razao_social_nome)}</div></div>
-    <div class="cell"><label>\${labelDoc}</label><div class="val">\${xe(cnpjoucpf)}</div></div>
-    <div class="cell"><label>CEP</label><div class="val">\${xe(estab?.cep_estabelecimento||estab?.cep)}</div></div>
+    <div class="cell cell-2"><label>Razão Social</label><div class="val">\'+xe(estab?.razao_social_nome)+'</div></div>
+    <div class="cell"><label>\'+labelDoc+'</label><div class="val">\'+xe(cnpjoucpf)+'</div></div>
+    <div class="cell"><label>CEP</label><div class="val">\'+xe(estab?.cep_estabelecimento||estab?.cep)+'</div></div>
   </div>
   <div class="row">
-    <div class="cell cell-3"><label>Endereço</label><div class="val">\${xe(estab?.logradouro)}\${estab?.numero_imovel?', '+xe(estab.numero_imovel):''}\${estab?.complemento?' — '+xe(estab.complemento):''}</div></div>
-    <div class="cell"><label>Bairro</label><div class="val">\${xe(estab?.bairro)}</div></div>
+    <div class="cell cell-3"><label>Endereço</label><div class="val">\'+xe(estab?.logradouro)+'\'+estab?.numero_imovel?', '+xe(estab.numero_imovel):''+'\'+estab?.complemento?' — '+xe(estab.complemento):''+'</div></div>
+    <div class="cell"><label>Bairro</label><div class="val">\'+xe(estab?.bairro)+'</div></div>
   </div>
   <div class="row">
-    <div class="cell"><label>Cidade / UF</label><div class="val">\${xe(estab?.cidade)}/\${xe(estab?.uf)}</div></div>
-    <div class="cell cell-2"><label>Responsável</label><div class="val">\${xe(estab?.nome_responsavel)}</div></div>
-    <div class="cell"><label>Função</label><div class="val">\${xe(estab?.funcao_responsavel)}</div></div>
+    <div class="cell"><label>Cidade / UF</label><div class="val">\'+xe(estab?.cidade)+'/\'+xe(estab?.uf)+'</div></div>
+    <div class="cell cell-2"><label>Responsável</label><div class="val">\'+xe(estab?.nome_responsavel)+'</div></div>
+    <div class="cell"><label>Função</label><div class="val">\'+xe(estab?.funcao_responsavel)+'</div></div>
   </div>
   <div class="row">
-    <div class="cell cell-2"><label>Telefone / WhatsApp</label><div class="val">\${xe(estab?.whatsapp)}</div></div>
-    <div class="cell cell-2"><label>e-Mail</label><div class="val">\${xe(estab?.email)}</div></div>
+    <div class="cell cell-2"><label>Telefone / WhatsApp</label><div class="val">\'+xe(estab?.whatsapp)+'</div></div>
+    <div class="cell cell-2"><label>e-Mail</label><div class="val">\'+xe(estab?.email)+'</div></div>
   </div>
   <div class="row">
-    <div class="cell"><label>Tipo do Ativo</label><div class="val">\${xe(estab?.tipo_imovel)}</div></div>
-    <div class="cell"><label>Finalidade</label><div class="val">\${xe(estab?.finalidade_vistoria||'—')}</div></div>
+    <div class="cell"><label>Tipo do Ativo</label><div class="val">\'+xe(estab?.tipo_imovel)+'</div></div>
+    <div class="cell"><label>Finalidade</label><div class="val">\'+xe(estab?.finalidade_vistoria||'—')+'</div></div>
   </div>
-</div>\`
+</div>'
 
       // ── Bloco 3.3 Classificação NR (5 critérios) ──────────────────────────
       const CRITERIOS_NR = [
@@ -404,7 +404,7 @@ export async function POST(request: NextRequest) {
       const cor33 = (v:string) => v==='Garante'||v==='Plena'||v==='Excelente'||v==='Plenamente'||v==='Completa' ? '#16A34A'
         : v==='Não garante'||v==='Interditada'||v==='Péssima'||v==='Não atende'||v==='Inexistente' ? '#CC0000' : '#E8A000'
 
-      const S33NR = \`<div class="titulo">3.3.- Resultado da Classificação da Instalação / Equipamento.</div>
+      const S33NR = '<div class="titulo">3.3.- Resultado da Classificação da Instalação / Equipamento.</div>
 <div class="bloco">
   <div class="bloco-header">Classificação por Critério Normativo</div>
   <table style="width:100%;border-collapse:collapse;font-size:8.5pt">
@@ -414,31 +414,31 @@ export async function POST(request: NextRequest) {
       <th style="padding:5px 8px;text-align:center;width:20%">Parâmetros de Avaliação</th>
       <th style="padding:5px 8px;text-align:center;width:20%">Resultado</th>
     </tr>
-    \${CRITERIOS_NR.map(c => \`<tr style="border-bottom:1px solid #e2e8f0">
+    \${CRITERIOS_NR.map(c => '<tr style="border-bottom:1px solid #e2e8f0">
       <td style="padding:4px 8px;font-weight:bold">\${c.nome}</td>
       <td style="padding:4px 8px">\${c.questao}</td>
       <td style="padding:4px 8px;text-align:center">\${c.val||'—'}</td>
       <td style="padding:4px 8px;text-align:center;font-weight:bold;color:\${cor33(c.val)}">\${c.val||'—'}</td>
-    </tr>\`).join('')}
+    </tr>').join('')}
   </table>
-</div>\`
+</div>'
 
       // ── Recomendações 5. (5 itens NR) ─────────────────────────────────────
       const rec = complemento?.recomendacoes ?? {}
-      const S5NR = \`<div class="titulo">5.- Recomendações sobre Manutenção, Operação, Condições Físicas, Segurança e Documentação.</div>
+      const S5NR = '<div class="titulo">5.- Recomendações sobre Manutenção, Operação, Condições Físicas, Segurança e Documentação.</div>
 <div class="bloco">
   <div class="bloco-header">Recomendações Técnicas</div>
-  <div class="item-row"><div class="item-num">5.1</div><div class="item-criterio">Manutenção</div><div class="item-val">\${xe(rec.rec51||'—')}</div></div>
-  <div class="item-row"><div class="item-num">5.2</div><div class="item-criterio">Operação</div><div class="item-val">\${xe(rec.rec52||'—')}</div></div>
-  <div class="item-row"><div class="item-num">5.3</div><div class="item-criterio">Condições Físicas</div><div class="item-val">\${xe(rec.rec53||'—')}</div></div>
-  <div class="item-row"><div class="item-num">5.4</div><div class="item-criterio">Segurança</div><div class="item-val">\${xe(rec.rec54||'—')}</div></div>
-  <div class="item-row"><div class="item-num">5.5</div><div class="item-criterio">Documentação</div><div class="item-val">\${xe(rec.rec55||'—')}</div></div>
-</div>\`
+  <div class="item-row"><div class="item-num">5.1</div><div class="item-criterio">Manutenção</div><div class="item-val">\'+xe(rec.rec51||'—')+'</div></div>
+  <div class="item-row"><div class="item-num">5.2</div><div class="item-criterio">Operação</div><div class="item-val">\'+xe(rec.rec52||'—')+'</div></div>
+  <div class="item-row"><div class="item-num">5.3</div><div class="item-criterio">Condições Físicas</div><div class="item-val">\'+xe(rec.rec53||'—')+'</div></div>
+  <div class="item-row"><div class="item-num">5.4</div><div class="item-criterio">Segurança</div><div class="item-val">\'+xe(rec.rec54||'—')+'</div></div>
+  <div class="item-row"><div class="item-num">5.5</div><div class="item-criterio">Documentação</div><div class="item-val">\'+xe(rec.rec55||'—')+'</div></div>
+</div>'
 
       // ── Anexo 1 — Documentos ───────────────────────────────────────────────
       const docsA1 = Object.keys(complemento?.docsAnexo1??{}).length > 0
         ? Object.keys(complemento.docsAnexo1) : docsAnexo
-      const A1NR = \`<div class="titulo" style="text-align:center">Anexo 1 – Documentação Solicitada</div>
+      const A1NR = '<div class="titulo" style="text-align:center">Anexo 1 – Documentação Solicitada</div>
 <br>
 <div class="bloco">
   <table style="width:100%;border-collapse:collapse;font-size:8.5pt">
@@ -447,16 +447,16 @@ export async function POST(request: NextRequest) {
       <th style="padding:5px 8px;text-align:center;width:21%">Situação</th>
       <th style="padding:5px 8px;text-align:left;width:21%">Resultado</th>
     </tr>
-    \${docsA1.map((d:string) => {
-      const info=(complemento?.docsAnexo1??{})[d]??{situacao:'',resultado:''}
-      return \`<tr style="border-bottom:1px solid #e2e8f0">
+    \'+docsA1.map((d:string) => {
+      const info=(complemento?.docsAnexo1??{+')[d]??{situacao:'',resultado:''}
+      return '<tr style="border-bottom:1px solid #e2e8f0">
         <td style="padding:3px 8px;word-break:break-word">\${d}</td>
         <td style="padding:3px 8px;text-align:center">\${info.situacao||'—'}</td>
         <td style="padding:3px 8px">\${info.resultado||'—'}</td>
-      </tr>\`
+      </tr>'
     }).join('')}
   </table>
-</div>\`
+</div>'
 
       // ── Montar HTML completo NR ─────────────────────────────────────────────
       // Reutilizar: CAPA, ÍNDICE, CSS, A2 (formulários), A3, assinatura
@@ -466,14 +466,14 @@ export async function POST(request: NextRequest) {
       const slugPlano: Record<string,string> = {
         '45':'plano_elevador','46':'plano_nr10','47':'plano_nr12','48':'plano_nr13'
       }
-      const nomePlano = \`\${chaveInspetor}_\${cnpjoucpf}_\${slugPlano[tipoServico]??'plano'}.html\`
+      const nomePlano = '\'+chaveInspetor+'_\'+cnpjoucpf+'_\'+slugPlano[tipoServico]??'plano'+'.html'
 
       // Texto do plano (buscar do storage igual 41-44)
       let tabelaPlano = '<p><i>Plano de trabalho não encontrado.</i></p>'
       let tabelaDocs  = A1NR
       try {
         const { data: blobP } = await supabase.storage.from('aime')
-          .download(\`documentos_inspetor/\${nomePlano}\`)
+          .download('documentos_inspetor/\'+nomePlano+'')
         if (blobP) {
           const htmlP = await blobP.text()
           const idxTb = htmlP.indexOf('id="tbAtiv"')
@@ -487,7 +487,7 @@ export async function POST(request: NextRequest) {
         if (!nc._arquivo) return nc
         try {
           const { data: blob } = await supabase.storage.from('aime')
-            .download(\`vistorias_homologadas/\${nc._arquivo}\`)
+            .download('vistorias_homologadas/\'+nc._arquivo+'')
           if (!blob) return nc
           const htmlNc = await blob.text()
           const mImg = htmlNc.match(/<img[^>]+src="(data:image[^"]+)"/)
@@ -567,35 +567,35 @@ export async function POST(request: NextRequest) {
       const rodInspetor = xe(inspetor?.rodape_documentos||'Mapeamento Inteligente de Edificações e Equipamentos')
       const logoB64NR = inspetor?.logo_base64||''
       const logoTagNR = logoB64NR
-        ? \`<img src="\${logoB64NR}" style="max-height:28mm;max-width:80mm">\`
-        : \`<div style="font-size:14pt;font-weight:900;color:#1E3A8A">\${xe(inspetor?.cabecalho_documentos||'AIMÊ')}</div>\`
+        ? '<img src="\'+logoB64NR+'" style="max-height:28mm;max-width:80mm">'
+        : '<div style="font-size:14pt;font-weight:900;color:#1E3A8A">\'+xe(inspetor?.cabecalho_documentos||'AIMÊ')+'</div>'
 
-      const htmlNR = \`<!DOCTYPE html>
+      const htmlNR = '<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<title>\${titulo}</title>
-<style>\${CSS}</style>
+<title>\'+titulo+'</title>
+<style>\'+CSS+'</style>
 </head>
 <body>
 <div class='pg-capa' style='counter-reset:page 0'>
   <div style='height:1cm;background:#fff;flex-shrink:0'></div>
   <div style='background:#1E3A8A;height:8mm;flex-shrink:0'></div>
-  <div style='text-align:center;padding:10mm 0 0;flex-shrink:0;margin-bottom:16mm'>\${logoTagNR}</div>
+  <div style='text-align:center;padding:10mm 0 0;flex-shrink:0;margin-bottom:16mm'>\'+logoTagNR+'</div>
   <div style='flex:1'></div>
   <div style='text-align:center;padding:0 20mm;flex-shrink:0'>
     <div style='font-size:8pt;color:#6B7280;letter-spacing:3px;text-transform:uppercase;margin-bottom:6pt'>LAUDO TÉCNICO</div>
-    <div style='font-size:18pt;font-weight:900;color:#1E3A8A;line-height:1.2;margin-bottom:2pt'>\${titulo}</div>
-    <div style='font-size:13pt;font-weight:700;color:#374151;margin-bottom:4pt'>\${xe(estab?.razao_social_nome||'')}</div>
-    <div style='font-size:9pt;color:#374151;text-align:center'>\${xe(estab?.logradouro||'')}\${estab?.numero_imovel?', '+xe(estab.numero_imovel):''} &mdash; \${xe(estab?.cidade||'')}/\${xe(estab?.uf||'')}</div>
+    <div style='font-size:18pt;font-weight:900;color:#1E3A8A;line-height:1.2;margin-bottom:2pt'>\'+titulo+'</div>
+    <div style='font-size:13pt;font-weight:700;color:#374151;margin-bottom:4pt'>\'+xe(estab?.razao_social_nome||'')+'</div>
+    <div style='font-size:9pt;color:#374151;text-align:center'>\'+xe(estab?.logradouro||'')+'\'+estab?.numero_imovel?', '+xe(estab.numero_imovel):''+' &mdash; \'+xe(estab?.cidade||'')+'/\'+xe(estab?.uf||'')+'</div>
   </div>
   <div style='flex:2'></div>
   <div style='border-top:2px solid #1E3A8A;margin:0 20mm;flex-shrink:0'></div>
   <div style='padding:8mm 20mm;font-size:9.5pt;color:#222;line-height:1.9;flex-shrink:0'>
-    <b style='color:#1E3A8A'>Inspetor Responsável:</b> \${xe(inspetor?.nome_inspetor)}<br>
-    <b style='color:#1E3A8A'>Título Profissional:</b> \${tituloInsCurrent} &mdash; \${siglaInsCurrent} \${numInsCurrent}<br>
-    \${inspetor?.especializacao?'<b style="color:#1E3A8A">Especialidade:</b> Especialista '+xe(inspetor.especializacao)+'<br>':''}
-    <b style='color:#1E3A8A'>Data:</b> \${dataHoje}
+    <b style='color:#1E3A8A'>Inspetor Responsável:</b> \'+xe(inspetor?.nome_inspetor)+'<br>
+    <b style='color:#1E3A8A'>Título Profissional:</b> \'+tituloInsCurrent+' &mdash; \'+siglaInsCurrent+' \'+numInsCurrent+'<br>
+    \'+inspetor?.especializacao?'<b style="color:#1E3A8A">Especialidade:</b> Especialista '+xe(inspetor.especializacao)+'<br>':''+'
+    <b style='color:#1E3A8A'>Data:</b> \'+dataHoje+'
   </div>
   <div style='background:#1E3A8A;height:8mm;flex-shrink:0'></div>
   <div style='height:1cm;background:#fff;flex-shrink:0'></div>
@@ -604,8 +604,8 @@ export async function POST(request: NextRequest) {
 <div class="section">
 <div class="pg-indice">
 <div class="indice-titulo">ÍNDICE</div>
-\${[
-  {n:'1.',pg:'2',t:'Considerações Preliminares',nivel:1},
+\'+[
+  {n:'1.',pg:'2',t:'Considerações Preliminares',nivel:1+',
   {n:'1.1.-',pg:'2',t:'Características e Localização do Estabelecimento',nivel:2},
   {n:'1.2.-',pg:'3',t:'Objetivo',nivel:2},
   {n:'1.3.-',pg:'3',t:'Plano de Trabalho',nivel:2},
@@ -636,38 +636,38 @@ export async function POST(request: NextRequest) {
 </div>
 
 <div class="section">
-\${cabInspetor?'<div class="cab">'+cabInspetor+'</div>':''}
+\'+cabInspetor?'<div class="cab">'+cabInspetor+'</div>':''+'
 <br><br><br><br><br>
 
 <div class="titulo">1.- Considerações Preliminares.</div>
-<p>Este Laudo de Inspeção é o documento técnico resultante da inspeção realizada nos \${nomeAtivo} do estabelecimento, com análise, classificação e priorização das não conformidades identificadas com base nos requisitos normativos aplicáveis.</p>
+<p>Este Laudo de Inspeção é o documento técnico resultante da inspeção realizada nos \'+nomeAtivo+' do estabelecimento, com análise, classificação e priorização das não conformidades identificadas com base nos requisitos normativos aplicáveis.</p>
 <p>A inspeção abrangeu verificação documental, inspeção visual e funcional dos equipamentos/instalações, com emissão de relatório técnico conforme os critérios estabelecidos pelas normas vigentes.</p>
 
-\${S11NR}
+\'+S11NR+'
 
 <div class="titulo">1.2.- Objetivo.</div>
-<p>\${objTexto}</p>
+<p>\'+objTexto+'</p>
 
 <div class="titulo">1.3.- Plano de Trabalho.</div>
 <p>As etapas desenvolvidas para a realização do presente trabalho constam na tabela que segue.</p>
-\${tabelaPlano}
+\'+tabelaPlano+'
 
 <div class="titulo">1.4.- Condições e Limitações.</div>
 <p>A inspeção foi realizada nas condições de acesso disponibilizadas pelo responsável do estabelecimento. Equipamentos em operação ou com acesso restrito foram classificados como "Não Avaliado" (NA). O presente laudo se refere exclusivamente às condições encontradas na data da vistoria.</p>
 
 <div class="titulo">2.- Metodologia Adotada para o Trabalho de Inspeção.</div>
-<p>\${metTexto}</p>
+<p>\'+metTexto+'</p>
 
 <div class="titulo">3.- Resultado da Vistoria Técnica e Classificação.</div>
 <p>Neste capítulo é apresentado o resultado da vistoria técnica realizada, incluindo a descrição do caminhamento, os resultados individuais de cada requisito verificado e a classificação geral da instalação/equipamento.</p>
 
 <div class="titulo">3.1.- Descrição da Realização da Vistoria Técnica.</div>
-<p>\${xe(complemento?.descVistoria||complemento?.dadosVistoria||'—')}</p>
+<p>\'+xe(complemento?.descVistoria||complemento?.dadosVistoria||'—')+'</p>
 
 <div class="titulo">3.2.- Resultado da Vistoria.</div>
 <p>O resultado detalhado da inspeção, com registro fotográfico e classificação de cada não conformidade identificada, encontra-se no Anexo 2 deste laudo, na forma dos formulários de vistoria homologados.</p>
 
-\${S33NR}
+\'+S33NR+'
 
 <div class="titulo">4.- Relação de Não Conformidades e Soluções.</div>
 <p>Neste item é apresentado o conjunto de não conformidades identificadas na inspeção, classificadas por sistema e prioridade (A+, A, M, B), com sugestões de solução para cada item.</p>
@@ -680,7 +680,7 @@ export async function POST(request: NextRequest) {
 <p>A análise estatística das não conformidades identificadas por sistema e por prioridade apresenta-se a seguir.</p>
 
 <div class="titulo">5.- Recomendações.</div>
-\${S5NR}
+\'+S5NR+'
 
 <div class="titulo">6.- Conclusão.</div>
 <p>Com base na inspeção realizada e nas não conformidades identificadas, recomenda-se a adoção das medidas corretivas descritas neste laudo, priorizando os itens de prioridade A+ e A, que representam risco imediato à segurança dos trabalhadores e à integridade dos equipamentos.</p>
@@ -692,24 +692,24 @@ export async function POST(request: NextRequest) {
 <div class="titulo">7.2.- Declaração de Conformidade com o Código de Ética.</div>
 <p>O responsável técnico pela elaboração deste laudo declara que o trabalho foi realizado com independência técnica, imparcialidade e estrita observância aos princípios éticos da profissão e às normas técnicas e regulamentadoras aplicáveis.</p>
 <div class="titulo">7.3.- Termo de Encerramento.</div>
-<p style="text-align:right;font-size:9pt;font-weight:bold;color:#000;margin-top:20px">\${estab?.cidade?xe(estab.cidade)+'/'+xe(estab?.uf||'')+', ':''}${dataHoje}</p>
+<p style="text-align:right;font-size:9pt;font-weight:bold;color:#000;margin-top:20px">\'+estab?.cidade?xe(estab.cidade)+'/'+xe(estab?.uf||'')+', ':''+''+dataHoje+'</p>
 <p style="line-height:1;margin:0">&nbsp;</p>
 <p style="line-height:1;margin:0">&nbsp;</p>
 <p style="font-size:8pt;line-height:1;margin:0">[Assinatura digital]</p>
 <p style="line-height:1;margin:0">&nbsp;</p>
-<p style="line-height:1;margin:0"><strong>\${xe(inspetor?.nome_inspetor)}</strong></p>
-<p style="line-height:1;margin:0">\${tituloInsCurrent} — \${siglaInsCurrent} \${numInsCurrent}</p>
-\${inspetor?.especializacao?'<p style="line-height:1;margin:0">Especialista '+xe(inspetor.especializacao)+'</p>':''}
+<p style="line-height:1;margin:0"><strong>\'+xe(inspetor?.nome_inspetor)+'</strong></p>
+<p style="line-height:1;margin:0">\'+tituloInsCurrent+' — \'+siglaInsCurrent+' \'+numInsCurrent+'</p>
+\'+inspetor?.especializacao?'<p style="line-height:1;margin:0">Especialista '+xe(inspetor.especializacao)+'</p>':''+'
 </div>
 
 <div class="section">
-\${tabelaDocs}
+\'+tabelaDocs+'
 </div>
 
 <div class="section">
 <div class="titulo" style="text-align:center">Anexo 2 – Resultado da Vistoria</div>
 <br>
-\${A2NR}
+\'+A2NR+'
 </div>
 
 <div class="section">
@@ -719,11 +719,11 @@ export async function POST(request: NextRequest) {
 </div>
 
 </body>
-</html>\`
+</html>'
 
       // Salvar no storage
       const { error: errSave } = await supabase.storage.from('aime')
-        .upload(\`documentos_inspetor/\${nomeArquivo}\`, new Blob([htmlNR], { type:'text/html' }), { upsert: true })
+        .upload('documentos_inspetor/\'+nomeArquivo+'', new Blob([htmlNR], { type:'text/html' }), { upsert: true })
       if (errSave) throw new Error('Erro ao salvar: ' + errSave.message)
 
       return NextResponse.json({ sucesso: true, nome: nomeArquivo })
