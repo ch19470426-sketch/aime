@@ -189,6 +189,14 @@ function LaudoComplemento() {
         if (Array.isArray(dadosE) && dadosE.length > 0) {
           const e = dadosE[0]
           setEstab(e)
+          // Buscar contato_cliente mais recente
+          try {
+            const resCC = await fetch(`${SUPA_URL}/rest/v1/contato_cliente?cpf_inspetor=eq.${cpfInspetor}&cnpjoucpf=eq.${cnpjoucpf}&tipo_servico=eq.${encodeURIComponent(tipoServico)}&order=data_cadastro.desc&limit=1`, {
+              headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` }
+            })
+            const dadosCC = await resCC.json()
+            if (Array.isArray(dadosCC) && dadosCC.length > 0) setContato(dadosCC[0])
+          } catch { /* contato não encontrado */ }
           // Buscar endereço pelo CEP sempre (sobrescreve campos do BD)
           if (e.cep || e.cep_estabelecimento) {
             try {
@@ -310,7 +318,7 @@ function LaudoComplemento() {
             uso: estab.uso_imovel, tipo: estab.tipo_imovel,
             pavimentos: estab.numero_pavimentos, unidades: estab.numero_unidades_salas,
             area_construida: estab.area_construida, area_terreno: estab.area_terreno,
-            responsavel: estab.nome_responsavel, funcao: estab.funcao_responsavel,
+            responsavel: estab.nome_responsavel, funcao: contato.funcao_responsavel,
             nome_convencao: nomeConvencao, nivel_inspecao: nivelInspecao,
           }
         })
@@ -470,7 +478,7 @@ function LaudoComplemento() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           cpfInspetor, chaveInspetor, cnpjoucpf, tipoServico,
-          estab, inspetor, ncs: ncsComSolucao, nomeArquivo: nome,
+          estab: { ...estab, ...contato }, inspetor, ncs: ncsComSolucao, nomeArquivo: nome,
           complemento: {
             nomeConvencao, sinteseEdif,
             pathCroqui, croquiBase64, fotoCapa, artRrt,
@@ -588,7 +596,7 @@ function LaudoComplemento() {
                 {(['45','46','47','48'].includes(tipoServico)) && <div></div>}
                 <div>
                   <label style={S.label}>Responsável pelo ativo</label>
-                  <input style={{ ...S.input }} value={estab.nome_responsavel ?? ''} onChange={e => setEstab(prev=>({...prev,nome_responsavel:e.target.value}))} />
+                  <input style={{ ...S.input }} value={contato.nome_responsavel ?? ''} readOnly />
                 </div>
               </div>
               <div style={{ marginTop: "8px" }}>
