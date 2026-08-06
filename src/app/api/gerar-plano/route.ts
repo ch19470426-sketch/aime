@@ -485,7 +485,7 @@ export async function POST(request: NextRequest) {
       .select('*')
       .eq('cpf_inspetor', cpfInspetor)
       .eq('cnpjoucpf', cnpjoucpf)
-      .eq('tipo_servico', tipoServico)
+      .eq('tipo_servico', tipoVistoria ?? tipoServico)
     const ativosCompletos = (ativosDB ?? ativos ?? []) as Record<string, string>[]
 
     const { data: insp } = await supabase.from('inspetor')
