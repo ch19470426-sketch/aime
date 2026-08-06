@@ -1,3 +1,6 @@
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
+
 // src/app/api/auth-criar-conta/route.ts
 // AIMÊ — Cria a conta de autenticação (Supabase Auth) já confirmada, via API
 // administrativa (service role). Evita depender do toggle "Confirm email" do
