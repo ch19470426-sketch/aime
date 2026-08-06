@@ -65,25 +65,25 @@ function fmtWpp(v: string): string {
 }
 
 interface Ativo {
-  tipo_ativo: string; tag_ativo_nr_serie: string; cpf_responsavel: string
-  nome_responsavel: string; funcao_responsavel: string; whatsapp_responsavel: string
-  email_responsavel: string; finalidade_vistoria: string; data_inicio_operacao: string
+interface Ativo {
+  tipo_ativo: string; tag_ativo_nr_serie: string; data_inicio_operacao: string
   numero_pavimentos: string; numero_unidades_salas: string
   area_terreno: string; area_construida: string; numero_fachadas: string
   perimetro_fachadas: string; fabricante_marca: string; subtipo: string
   tensao_pressao_kv_kpa: string; capacidade_potencia: string; fluido_classe_fluido: string
   volume_interno_m3: string
 }
+}
 
 const ATIVO_VAZIO: Ativo = {
-  tipo_ativo: '', tag_ativo_nr_serie: '1', cpf_responsavel: '', nome_responsavel: '',
-  funcao_responsavel: '', whatsapp_responsavel: '', email_responsavel: '',
-  finalidade_vistoria: '', data_inicio_operacao: '',
+const ATIVO_VAZIO: Ativo = {
+  tipo_ativo: '', tag_ativo_nr_serie: '1', data_inicio_operacao: '',
   numero_pavimentos: '', numero_unidades_salas: '', area_terreno: '', area_construida: '',
   numero_fachadas: '', perimetro_fachadas: '', fabricante_marca: '', subtipo: '',
   tensao_pressao_kv_kpa: '', capacidade_potencia: '', fluido_classe_fluido: '',
   volume_interno_m3: '',
 }
+
 
 const SLUG_TIPO: Record<string, string> = {
   '21': 'plano_autovistoria',    '22': 'plano_inspecao',
@@ -187,9 +187,6 @@ function PlanoInner() {
   function validarAtivo(): string | null {
     if (!ativoAtual.tipo_ativo) return 'Selecione o Tipo de ativo'
     if (needsTag && !ativoAtual.tag_ativo_nr_serie) return 'Informe o TAG / Nº Série'
-    if (!ativoAtual.nome_responsavel) return 'Informe o Nome do responsável'
-    if (!ativoAtual.funcao_responsavel) return 'Selecione a Função do responsável'
-    if (!ativoAtual.finalidade_vistoria) return 'Informe a Finalidade da vistoria'
     if (!ativoAtual.data_inicio_operacao) return 'Informe a Data de início de operação'
     if (isPredial && !ativoAtual.numero_pavimentos) return 'Informe o Número de pavimentos'
     if (isPredial && !ativoAtual.area_construida) return 'Informe a Área construída'
@@ -216,12 +213,6 @@ function PlanoInner() {
         data_cadastro: new Date().toISOString(),
         tipo_ativo: ativoAtual.tipo_ativo,
         tag_ativo_nr_serie: tag,
-        cpf_responsavel: ativoAtual.cpf_responsavel || null,
-        nome_responsavel: ativoAtual.nome_responsavel,
-        funcao_responsavel: ativoAtual.funcao_responsavel,
-        whatsapp_responsavel: ativoAtual.whatsapp_responsavel.replace(/\D/g, '') || null,
-        email_responsavel: ativoAtual.email_responsavel || null,
-        finalidade_vistoria: ativoAtual.finalidade_vistoria,
         data_inicio_operacao: ativoAtual.data_inicio_operacao || null,
         numero_pavimentos: ativoAtual.numero_pavimentos ? parseInt(ativoAtual.numero_pavimentos) : null,
         numero_unidades_salas: ativoAtual.numero_unidades_salas ? parseInt(ativoAtual.numero_unidades_salas) : null,
@@ -367,20 +358,6 @@ function PlanoInner() {
                           <Field label="TAG / Nº Série">
                             <input style={S.inputRO} value={a.tag_ativo_nr_serie ?? ''} readOnly />
                           </Field>
-                          <Field label="Finalidade">
-                            <input style={S.inputRO} value={a.finalidade_vistoria ?? ''} readOnly />
-                          </Field>
-                        </div>
-                        <div style={{ ...S.row, ...S.c3 }}>
-                          <Field label="Responsável">
-                            <input style={S.inputRO} value={a.nome_responsavel ?? ''} readOnly />
-                          </Field>
-                          <Field label="Função">
-                            <input style={S.inputRO} value={a.funcao_responsavel ?? ''} readOnly />
-                          </Field>
-                          <Field label="WhatsApp">
-                            <input style={S.inputRO} value={fmtWpp(a.whatsapp_responsavel ?? '')} readOnly />
-                          </Field>
                         </div>
                         <div style={{ textAlign: 'right', marginTop: '4px' }}>
                           <button onClick={() => excluirAtivo(i)}
@@ -412,52 +389,11 @@ function PlanoInner() {
                             onChange={e => atualizarAtivo('tag_ativo_nr_serie', e.target.value)} placeholder="Ex: ELV-01" />
                         </Field>
                       )}
-                      <Field label="Finalidade da vistoria *">
-                        <input style={S.input} value={ativoAtual.finalidade_vistoria}
-                          onChange={e => atualizarAtivo('finalidade_vistoria', e.target.value)} placeholder="Ex: Inspeção de segurança" />
-                      </Field>
                     </div>
 
-                    <div style={{ ...S.blockTitle, margin: '8px -12px 6px', padding: '3px 12px' }}>Responsável pelo ativo</div>
-                    <div style={{ ...S.row, ...S.c3 }}>
-                      <Field label="Nome *">
-                        <input style={S.input} value={ativoAtual.nome_responsavel}
-                          onChange={e => atualizarAtivo('nome_responsavel', e.target.value)} />
-                      </Field>
-                      <Field label="Função *">
-                        <select style={S.input} value={ativoAtual.funcao_responsavel}
-                          onChange={e => atualizarAtivo('funcao_responsavel', e.target.value)}>
-                          <option value="">Selecione...</option>
-                          {FUNCOES.map(f => <option key={f} value={f}>{f}</option>)}
-                        </select>
-                      </Field>
-                      <Field label="CPF">
-                        <input style={S.input} value={ativoAtual.cpf_responsavel} maxLength={11}
-                          onChange={e => atualizarAtivo('cpf_responsavel', e.target.value.replace(/\D/g, ''))} placeholder="Somente dígitos" />
-                      </Field>
-                    </div>
-                    <div style={{ ...S.row, ...S.c2 }}>
-                      <Field label="WhatsApp">
-                        <input style={S.input} value={fmtWpp(ativoAtual.whatsapp_responsavel)} maxLength={15}
-                          onChange={e => atualizarAtivo('whatsapp_responsavel', e.target.value.replace(/\D/g, '').slice(0, 11))}
-                          placeholder="(27) 99999-9999" />
-                      </Field>
-                      <Field label="E-mail">
-                        <input style={S.input} value={ativoAtual.email_responsavel}
-                          onChange={e => atualizarAtivo('email_responsavel', e.target.value)} placeholder="email@dominio.com" />
-                      </Field>
-                    </div>
-
+                    {/* Responsável agora está em Estabelecimento */}
+                    {/* Início bloco características do ativo */}esponsável pelo ativo</div>
                     <div style={{ ...S.blockTitle, margin: '8px -12px 6px', padding: '3px 12px' }}>Características do ativo</div>
-
-                    {/* Uso do Estabelecimento — exibição readonly */}
-                    <div style={{ ...S.row, ...S.c2, marginBottom:'4px' }}>
-                      <Field label="Uso do Estabelecimento">
-                        <input style={{ ...S.input, backgroundColor: '#F8FAFC' }}
-                          value={est?.uso_estabelecimento ?? ''} readOnly />
-                      </Field>
-                    </div>
-
                     {/* Linha 1: Subtipo + Data início */}
                     <div style={{ ...S.row, ...(isNR ? S.c3 : S.c2) }}>
                       {isNR && (
@@ -602,13 +538,13 @@ function PlanoInner() {
                       <div style={{ ...S.row, ...S.c3 }}>
                         <Field label="Tipo de ativo"><input style={S.inputRO} value={a.tipo_ativo ?? ''} readOnly /></Field>
                         <Field label="TAG / Nº Série"><input style={S.inputRO} value={a.tag_ativo_nr_serie ?? ''} readOnly /></Field>
-                        <Field label="Finalidade"><input style={S.inputRO} value={a.finalidade_vistoria ?? ''} readOnly /></Field>
+
                       </div>
-                      <div style={{ ...S.row, ...S.c3 }}>
-                        <Field label="Responsável"><input style={S.inputRO} value={a.nome_responsavel ?? ''} readOnly /></Field>
-                        <Field label="Função"><input style={S.inputRO} value={a.funcao_responsavel ?? ''} readOnly /></Field>
-                        <Field label="WhatsApp"><input style={S.inputRO} value={fmtWpp(a.whatsapp_responsavel ?? '')} readOnly /></Field>
-                      </div>
+
+
+
+
+
                       <div style={{ textAlign: 'right', marginTop: '4px' }}>
                         <button onClick={() => excluirAtivo(i)}
                           style={{ background: '#DC2626', color: '#fff', border: 'none', borderRadius: '4px', padding: '3px 10px', cursor: 'pointer', fontSize: '7.5pt' }}>
@@ -669,8 +605,8 @@ function PlanoInner() {
                         <tr key={i} style={{ background: i%2===0?'#f8fafc':'#fff', borderBottom: '1px solid #e2e8f0' }}>
                           <td style={{ padding: '3px 6px' }}>{a.tipo_ativo}</td>
                           <td style={{ padding: '3px 6px' }}>{a.tag_ativo_nr_serie}</td>
-                          <td style={{ padding: '3px 6px' }}>{a.finalidade_vistoria}</td>
-                          <td style={{ padding: '3px 6px' }}>{a.nome_responsavel}</td>
+                          <td style={{ padding: '3px 6px' }}>{a.data_inicio_operacao}</td>
+                          <td style={{ padding: '3px 6px' }}>{a.fabricante_marca || a.numero_pavimentos || '—'}</td>
                         </tr>
                       ))}
                     </tbody>
