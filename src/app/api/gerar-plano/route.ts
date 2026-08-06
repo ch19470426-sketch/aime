@@ -486,7 +486,16 @@ export async function POST(request: NextRequest) {
       .eq('cpf_inspetor', cpfInspetor)
       .eq('cnpjoucpf', cnpjoucpf)
       .eq('tipo_servico', tipoVistoria ?? tipoServico)
-    const ativosCompletos = (ativosDB ?? ativos ?? []) as Record<string, string>[]
+    let ativosCompletos = (ativosDB && ativosDB.length > 0 ? ativosDB : null) ?? (ativos && (ativos as any[]).length > 0 ? ativos : null) ?? [] as Record<string, string>[]
+    // Se ainda vazio, buscar sem filtro de tipo
+    if ((ativosCompletos as any[]).length === 0) {
+      const { data: ativosAll } = await supabase
+        .from('ativos_a_vistoriar')
+        .select('*')
+        .eq('cpf_inspetor', cpfInspetor)
+        .eq('cnpjoucpf', cnpjoucpf)
+      if (ativosAll && ativosAll.length > 0) ativosCompletos = ativosAll as Record<string, string>[]
+    }
 
     const { data: insp } = await supabase.from('inspetor')
       .select('nome_inspetor,titulo_profissional,inscricao_crea_cau,especializacao,cabecalho_documentos,rodape_documentos')
@@ -524,10 +533,12 @@ export async function POST(request: NextRequest) {
 
     // Linhas de ativos
     const stTd = 'font-size:10pt'
-    const tsStr = tipoVistoria ?? tipoServico
-    const tsN = Number(tsStr.split(' ')[0] || tsStr)
-    const isPred = tsN >= 31 && tsN <= 34
-    const isInd  = tsN >= 35 && tsN <= 38
+    // Usar tipo_servico do primeiro ativo (mais confiável) ou tipoVistoria ou tipoServico
+    const tsRef = (ativosCompletos[0] as any)?.tipo_servico ?? tipoVistoria ?? tipoServico ?? ''
+    const tsStr = tsRef
+    const tsN = Number(String(tsStr).split(' ')[0]) || 0
+    const isPred = (tsN >= 31 && tsN <= 34) || String(tsStr).includes('31') || String(tsStr).includes('32') || String(tsStr).includes('33') || String(tsStr).includes('34')
+    const isInd  = (tsN >= 35 && tsN <= 38) || String(tsStr).includes('35') || String(tsStr).includes('36') || String(tsStr).includes('37') || String(tsStr).includes('38')
     const fmtDt  = (d: string) => { const p=d?.split('-'); return p?.length===3?p[2]+'/'+p[1]+'/'+p[0]:d??'' }
 
     const linhasAtivos = ativosCompletos.map((a, i) => {
