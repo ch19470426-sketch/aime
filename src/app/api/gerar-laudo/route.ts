@@ -857,15 +857,15 @@ export async function POST(request: NextRequest) {
         '<p style="text-align:justify">No decorrer do processo de inspeção foi efetuada a análise da documentação, a vistoria nas instalações e a classificação das anomalias e dos requisitos normativos, o que possibilitou uma completa avaliação que possibilita apresentar as recomendações que seguem, considerando a manutenção, operação, condições físicas, segurança e documentação.</p>' +
         '<table style="width:100%;border-collapse:collapse">' +
         '<tr><td style="' + TH11 + '">5.1.- Recomendações sobre manutenção:</td></tr>' +
-        '<tr><td style="' + TD11 + ';min-height:16mm"><div style="min-height:14mm;text-align:justify">' + ((xe(rec51NR||'') || 'Nada a registrar para este item.') + '</div></td></tr>' +
+        '<tr><td style="' + TD11 + ';min-height:16mm"><div style="min-height:14mm;text-align:justify">' + (xe(rec51NR||'') || 'Nada a registrar para este item.') + '</div></td></tr>' +
         '<tr><td style="' + TH11 + '">5.2.- Recomendações sobre operação:</td></tr>' +
-        '<tr><td style="' + TD11 + ';min-height:16mm"><div style="min-height:14mm;text-align:justify">' + ((xe(rec52NR||'') || 'Nada a registrar para este item.') + '</div></td></tr>' +
+        '<tr><td style="' + TD11 + ';min-height:16mm"><div style="min-height:14mm;text-align:justify">' + (xe(rec52NR||'') || 'Nada a registrar para este item.') + '</div></td></tr>' +
         '<tr><td style="' + TH11 + '">5.3.- Recomendações sobre condições físicas:</td></tr>' +
-        '<tr><td style="' + TD11 + ';min-height:16mm"><div style="min-height:14mm;text-align:justify">' + ((xe(rec53NR||'') || 'Nada a registrar para este item.') + '</div></td></tr>' +
+        '<tr><td style="' + TD11 + ';min-height:16mm"><div style="min-height:14mm;text-align:justify">' + (xe(rec53NR||'') || 'Nada a registrar para este item.') + '</div></td></tr>' +
         '<tr><td style="' + TH11 + '">5.4.- Recomendações sobre segurança:</td></tr>' +
-        '<tr><td style="' + TD11 + ';min-height:16mm"><div style="min-height:14mm;text-align:justify">' + ((xe(rec54NR||'') || 'Nada a registrar para este item.') + '</div></td></tr>' +
+        '<tr><td style="' + TD11 + ';min-height:16mm"><div style="min-height:14mm;text-align:justify">' + (xe(rec54NR||'') || 'Nada a registrar para este item.') + '</div></td></tr>' +
         '<tr><td style="' + TH11 + '">5.5.- Recomendações sobre documentação:</td></tr>' +
-        '<tr><td style="' + TD11 + ';min-height:16mm"><div style="min-height:14mm;text-align:justify">' + ((xe(rec55NR||'') || 'Nada a registrar para este item.') + '</div></td></tr>' +
+        '<tr><td style="' + TD11 + ';min-height:16mm"><div style="min-height:14mm;text-align:justify">' + (xe(rec55NR||'') || 'Nada a registrar para este item.') + '</div></td></tr>' +
         '</table>' +
         '</div>'
 
