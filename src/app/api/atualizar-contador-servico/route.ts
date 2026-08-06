@@ -1,3 +1,6 @@
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
+
 // src/app/api/atualizar-contador-servico/route.ts
 // AIMÊ — Item (h) da especificação 2.10: ao homologar um documento do grupo 4x (Laudos),
 // soma 1 em qtd_servicos_exec do inspetor e ajusta o saldo do contrato conforme o tipo de assinatura.
