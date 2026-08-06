@@ -512,17 +512,31 @@ export async function POST(request: NextRequest) {
 
     // Linhas de ativos
     const stTd = 'font-size:10pt'
-    const linhasAtivos = (ativos as Record<string, string>[]).map((a, i) => [
-      '<tr>',
-      '<td style="' + stTd + '">' + (i+1) + '</td>',
-      '<td style="' + stTd + '">' + (a.tipo_ativo ?? '') + '</td>',
-      '<td style="' + stTd + '">' + (a.tag_ativo_nr_serie ?? '') + '</td>',
-      '<td style="' + stTd + '">' + (a.nome_responsavel ?? '') + '</td>',
-      '<td style="' + stTd + '">' + (a.funcao_responsavel ?? '') + '</td>',
-      '<td style="' + stTd + '">' + fmtWpp(a.whatsapp_responsavel ?? '') + '</td>',
-      '<td style="' + stTd + '">' + (a.uso_ativo ?? '') + '</td>',
-      '</tr>'
-    ].join('')).join('')
+    const tsN = Number(tipoServico.split(' ')[0] || tipoServico)
+    const isPred = tsN >= 31 && tsN <= 34
+    const isInd  = tsN >= 35 && tsN <= 38
+    const fmtDt  = (d: string) => { const p=d?.split('-'); return p?.length===3?p[2]+'/'+p[1]+'/'+p[0]:d??'' }
+
+    const linhasAtivos = (ativos as Record<string, string>[]).map((a, i) => {
+      if (isPred) return [
+        '<tr>',
+        '<td style="' + stTd + '">' + (i+1) + '</td>',
+        '<td style="' + stTd + '">' + (a.tipo_ativo ?? '') + '</td>',
+        '<td style="' + stTd + '">' + fmtDt(a.data_inicio_operacao ?? '') + '</td>',
+        '<td style="' + stTd + '">' + (a.numero_pavimentos ?? '') + '</td>',
+        '<td style="' + stTd + '">' + (a.numero_unidades_salas ?? '') + '</td>',
+        '</tr>'
+      ].join('')
+      return [
+        '<tr>',
+        '<td style="' + stTd + '">' + (i+1) + '</td>',
+        '<td style="' + stTd + '">' + (a.tipo_ativo ?? '') + '</td>',
+        '<td style="' + stTd + '">' + (a.tag_ativo_nr_serie ?? '') + '</td>',
+        '<td style="' + stTd + '">' + fmtDt(a.data_inicio_operacao ?? '') + '</td>',
+        '<td style="' + stTd + '">' + (a.subtipo ?? '') + '</td>',
+        '</tr>'
+      ].join('')
+    }).join('')
 
     // Linhas de atividades
     const fmtDataBR = (iso: string) => {
@@ -599,7 +613,11 @@ export async function POST(request: NextRequest) {
     partes.push('<table style="width:640px"><tr><td style="border:none;padding:0"><strong>Estabelecimento:</strong> ' + est.razao_social_nome + '</td><td style="border:none;padding:0;text-align:right"><strong>CNPJ/CPF:</strong> ' + fmtCNPJ(cnpjoucpf) + '</td></tr><tr><td colspan="2" style="border:none;padding:0"><strong>Endereço:</strong> ' + endereco + '</td></tr></table>')
     partes.push('<p style="line-height:1;margin:0">&nbsp;</p>')
     partes.push('<h2 style="font-size:10pt;font-weight:bold">1.1.- Ativos a Vistoriar</h2>')
-    partes.push('<table style="width:640px"><thead><tr><th style="width:30px;font-size:10pt">#</th><th style="width:80px;font-size:10pt">Tipo</th><th style="width:70px;font-size:10pt">TAG/Série</th><th style="width:130px;font-size:10pt">Responsável</th><th style="width:80px;font-size:10pt">Função</th><th style="width:140px;font-size:10pt">WhatsApp</th><th style="width:110px;font-size:10pt">Uso</th></tr></thead>')
+    const thStyle = 'padding:3px 6px;font-size:10pt;text-align:left;background:#1E3A8A;color:#fff'
+    const thN = 'padding:3px 6px;font-size:10pt;text-align:center;background:#1E3A8A;color:#fff;width:24px'
+    const thPred = '<thead><tr><th style="'+thN+'">#</th><th style="'+thStyle+'">Tipo de ativo</th><th style="'+thStyle+'">Data Habite-se</th><th style="'+thStyle+'">Nº pavimentos</th><th style="'+thStyle+'">Aptos/Salas</th></tr></thead>'
+    const thInd  = '<thead><tr><th style="'+thN+'">#</th><th style="'+thStyle+'">Tipo de ativo</th><th style="'+thStyle+'">Tag/Nº Série</th><th style="'+thStyle+'">Dt. início operação</th><th style="'+thStyle+'">Subtipo</th></tr></thead>'
+    partes.push('<table id="tbAtiv" style="width:100%;border-collapse:collapse;margin-bottom:6pt">' + (isPred ? thPred : thInd))
     partes.push('<tbody>' + linhasAtivos + '</tbody></table>')
     partes.push('<h2 style="font-size:10pt;font-weight:bold">1.2.- Agenda de Trabalho — ' + plano.parceiro + '</h2>')
     partes.push('<table style="width:640px"><thead><tr><th style="width:370px;font-size:10pt">Atividades</th><th style="width:135px;text-align:center;font-size:10pt">Dt. Início</th><th style="width:135px;text-align:center;font-size:10pt">Dt. Fim</th></tr></thead>')
