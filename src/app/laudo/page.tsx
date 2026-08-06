@@ -115,6 +115,7 @@ function LaudoComplemento() {
   const [inspetor, setInspetor] = useState<Record<string,string>>({})
   const [ncs, setNcs]           = useState<NC[]>([])
   const [carregando, setCarregando] = useState(true)
+  const [contato, setContato]     = useState<Record<string,string>>({})
 
   // Complemento 1.1
   const [nomeConvencao, setNomeConvencao] = useState('')
