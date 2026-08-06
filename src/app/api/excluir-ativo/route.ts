@@ -1,3 +1,6 @@
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
+
 // src/app/api/excluir-ativo/route.ts
 // Exclui um registro de ativos_a_vistoriar usando Service Role (evita bloqueio silencioso por RLS)
 
