@@ -355,7 +355,7 @@ function PlanoInner() {
                         <div style={{ ...S.row, ...S.c3 }}>
                           <Field label="Tipo de ativo"><input style={S.inputRO} value={a.tipo_ativo ?? ''} readOnly /></Field>
                           <Field label="Tag/Nº Série"><input style={S.inputRO} value={a.tag_ativo_nr_serie ?? ''} readOnly /></Field>
-                          <Field label="Data início operação"><input style={S.inputRO} value={a.data_inicio_operacao ?? ''} readOnly /></Field>
+                          <Field label="Data início operação"><input style={S.inputRO} value={a.data_inicio_operacao ? new Date(a.data_inicio_operacao+'T00:00:00').toLocaleDateString('pt-BR') : ''} readOnly /></Field>
                         </div>
 
 
@@ -458,7 +458,7 @@ function PlanoInner() {
                        </div>
                      )}
 
-                     {isNR && (
+                     {(isNR10 || isNR12 || isNR13) && (
                        <>
                          <div style={{ ...S.row, ...(isNR10 ? S.c4 : S.c3) }}>
                            <Field label="Subtipo *">
@@ -609,7 +609,7 @@ function PlanoInner() {
                       {Number(tsVistoria) <= 34 ? (
                         <tr style={{ background: '#1E3A8A', color: '#fff' }}>
                           <th style={{ padding: '3px 6px', textAlign: 'left' }}>Tipo de ativo</th>
-                          <th style={{ padding: '3px 6px', textAlign: 'left' }}>Dt. início operação</th>
+                           <th style={{ padding: '3px 6px', textAlign: 'left' }}>Data Habite-se</th>
                           <th style={{ padding: '3px 6px', textAlign: 'left' }}>Nº pavimentos</th>
                           <th style={{ padding: '3px 6px', textAlign: 'left' }}>Aptos/Salas</th>
                         </tr>
@@ -626,7 +626,7 @@ function PlanoInner() {
                       {ativos.map((a, i) => Number(tsVistoria) <= 34 ? (
                         <tr key={i} style={{ background: i%2===0?'#f8fafc':'#fff', borderBottom: '1px solid #e2e8f0' }}>
                           <td style={{ padding: '3px 6px' }}>{a.tipo_ativo}</td>
-                          <td style={{ padding: '3px 6px' }}>{a.data_inicio_operacao}</td>
+                          <td style={{ padding: '3px 6px' }}>{a.data_inicio_operacao ? new Date(a.data_inicio_operacao+'T00:00:00').toLocaleDateString('pt-BR') : ''}</td>
                           <td style={{ padding: '3px 6px' }}>{a.numero_pavimentos}</td>
                           <td style={{ padding: '3px 6px' }}>{a.numero_unidades_salas}</td>
                         </tr>
@@ -634,7 +634,7 @@ function PlanoInner() {
                         <tr key={i} style={{ background: i%2===0?'#f8fafc':'#fff', borderBottom: '1px solid #e2e8f0' }}>
                           <td style={{ padding: '3px 6px' }}>{a.tipo_ativo}</td>
                           <td style={{ padding: '3px 6px' }}>{a.tag_ativo_nr_serie}</td>
-                          <td style={{ padding: '3px 6px' }}>{a.data_inicio_operacao}</td>
+                          <td style={{ padding: '3px 6px' }}>{a.data_inicio_operacao ? new Date(a.data_inicio_operacao+'T00:00:00').toLocaleDateString('pt-BR') : ''}</td>
                           <td style={{ padding: '3px 6px' }}>{a.subtipo}</td>
                         </tr>
                       ))}
