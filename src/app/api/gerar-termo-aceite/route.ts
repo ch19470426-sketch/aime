@@ -1,3 +1,6 @@
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
+
 // src/app/api/gerar-termo-aceite/route.ts
 // AIMÊ — Gera o HTML do Termo de Aceite dos Serviços e salva em documentos_inspetor
 
