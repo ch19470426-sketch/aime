@@ -1,3 +1,6 @@
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
+
 // src/app/api/gerar-chave-inspetor/route.ts
 // AIMÊ — Gera a próxima chave sequencial de inspetor (ex: INS-001, INS-002...)
 
