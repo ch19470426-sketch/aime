@@ -1,3 +1,6 @@
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
+
 // src/app/api/listar-documentos/route.ts
 // AIMÊ — Lista os documentos disponíveis para download de uma chave+cnpjoucpf
 
