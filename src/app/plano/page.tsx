@@ -255,17 +255,6 @@ cpf_inspetor=eq.${cpfInspetor}&cnpjoucpf=eq.${cnpjoucpf}&tipo_servico=eq.${encod
       if (res.ok) {
         const novos = [...ativos, { ...ativoAtual, tag_ativo_nr_serie: tag, data_cadastro: payload.data_cadastro }]
         setAtivos(novos)
-        // Salvar contato_cliente
-        if (nomeResp) {
-          await fetch(`${SUPA_URL}/rest/v1/contato_cliente`, {
-            method: 'POST',
-            headers: { apikey: SUPA_SVC, Authorization: `Bearer ${SUPA_SVC}`, 'Content-Type': 'application/json', Prefer: 'resolution=merge-duplicates' },
-            body: JSON.stringify({ cpf_inspetor: cpfInspetor, cnpjoucpf, tipo_servico: tsVistoria,
-              nome_responsavel: nomeResp, funcao_responsavel: funcaoResp || null,
-              cpf_responsavel: cpfResp || null, whatsapp_responsavel: whatsResp || null,
-              email_responsavel: emailResp || null, finalidade_vistoria: finalidade || null })
-          })
-        }
         setAtivoAtual({ ...ATIVO_VAZIO })
         setShowForm(false)
         setEtapa('lista')
@@ -407,35 +396,11 @@ cpf_inspetor=eq.${cpfInspetor}&cnpjoucpf=eq.${cnpjoucpf}&tipo_servico=eq.${encod
                 </div>
               )}
 
-              {/* Formulário cadastro novo ativo */}
-              {showForm && (
-                <div style={{ ...S.block, marginBottom: '8px' }}>
-                  <div style={S.blockTitle}>Dados do ativo a vistoriar</div>
+
+                {/* ── Bloco Contato do Responsável — UMA VEZ POR SERVIÇO ── */}
+                <div style={{ ...S.block, marginBottom: '8px', background: '#F0F4FF' }}>
+                  <div style={S.blockTitle}>Contato do Responsável pela Vistoria</div>
                   <div style={S.blockBody}>
-                    {/* Linha 1: Tipo + TAG + Data início operação */}
-                    <div style={{ ...S.row, ...(needsTag ? S.c3 : S.c2) }}>
-                      <Field label="Tipo de ativo *">
-                        <select style={S.input} value={ativoAtual.tipo_ativo}
-                          onChange={e => atualizarAtivo('tipo_ativo', e.target.value)}>
-                          <option value="">Selecione...</option>
-                          {(TIPOS_ATIVO[tsNum] ?? []).map(t => <option key={t} value={t}>{t}</option>)}
-                        </select>
-                      </Field>
-                      {needsTag && (
-                        <Field label="TAG / Nº Série *">
-                          <input style={S.input} value={ativoAtual.tag_ativo_nr_serie}
-                            onChange={e => atualizarAtivo('tag_ativo_nr_serie', e.target.value)}
-                            placeholder="Ex: ELV-01" />
-                        </Field>
-                      )}
-                      <Field label="Data de início de operação *">
-                        <input style={S.input} type="date" value={ativoAtual.data_inicio_operacao}
-                          onChange={e => atualizarAtivo('data_inicio_operacao', e.target.value)}
-                          onFocus={e => { try { (e.target as any).showPicker?.() } catch {} }} />
-                      </Field>
-                    </div>
-                    {/* Bloco Contato do Responsável */}
-                    <div style={{ ...S.blockTitle, margin: '8px -12px 6px', padding: '3px 12px' }}>Contato do responsável pela vistoria</div>
                     <div style={{ ...S.row, ...S.c3 }}>
                       <Field label="Nome do responsável *">
                         <input style={S.input} value={nomeResp}
@@ -472,6 +437,53 @@ cpf_inspetor=eq.${cpfInspetor}&cnpjoucpf=eq.${cnpjoucpf}&tipo_servico=eq.${encod
                         <input style={S.input} value={finalidade}
                           onChange={e => setFinalidade(e.target.value)}
                           placeholder="Ex: Inspeção periódica" />
+                      </Field>
+                    </div>
+                    <div style={{ textAlign: 'right', marginTop: '6px' }}>
+                      <button style={{ ...S.btn, ...S.btnPri, padding: '6px 20px', fontSize: '11px' }}
+                        onClick={async () => {
+                          if (!nomeResp) { informa('Atenção', 'Informe o nome do responsável.'); return }
+                          await fetch(`${SUPA_URL}/rest/v1/contato_cliente`, {
+                            method: 'POST',
+                            headers: { apikey: SUPA_SVC, Authorization: `Bearer ${SUPA_SVC}`, 'Content-Type': 'application/json', Prefer: 'resolution=merge-duplicates' },
+                            body: JSON.stringify({ cpf_inspetor: cpfInspetor, cnpjoucpf, tipo_servico: tsVistoria,
+                              nome_responsavel: nomeResp, funcao_responsavel: funcaoResp || null,
+                              cpf_responsavel: cpfResp || null, whatsapp_responsavel: whatsResp || null,
+                              email_responsavel: emailResp || null, finalidade_vistoria: finalidade || null })
+                          })
+                          agradece('Contato salvo com sucesso.')
+                        }}>
+                        Salvar contato
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+              {/* Formulário cadastro novo ativo */}
+              {showForm && (
+                <div style={{ ...S.block, marginBottom: '8px' }}>
+                  <div style={S.blockTitle}>Dados do ativo a vistoriar</div>
+                  <div style={S.blockBody}>
+                    {/* Linha 1: Tipo + TAG + Data início operação */}
+                    <div style={{ ...S.row, ...(needsTag ? S.c3 : S.c2) }}>
+                      <Field label="Tipo de ativo *">
+                        <select style={S.input} value={ativoAtual.tipo_ativo}
+                          onChange={e => atualizarAtivo('tipo_ativo', e.target.value)}>
+                          <option value="">Selecione...</option>
+                          {(TIPOS_ATIVO[tsNum] ?? []).map(t => <option key={t} value={t}>{t}</option>)}
+                        </select>
+                      </Field>
+                      {needsTag && (
+                        <Field label="TAG / Nº Série *">
+                          <input style={S.input} value={ativoAtual.tag_ativo_nr_serie}
+                            onChange={e => atualizarAtivo('tag_ativo_nr_serie', e.target.value)}
+                            placeholder="Ex: ELV-01" />
+                        </Field>
+                      )}
+                      <Field label="Data de início de operação *">
+                        <input style={S.input} type="date" value={ativoAtual.data_inicio_operacao}
+                          onChange={e => atualizarAtivo('data_inicio_operacao', e.target.value)}
+                          onFocus={e => { try { (e.target as any).showPicker?.() } catch {} }} />
                       </Field>
                     </div>
                     {/* Linha 2+: Características específicas por tipo */}
