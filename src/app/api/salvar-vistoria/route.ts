@@ -1,3 +1,6 @@
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
+
 // src/app/api/salvar-vistoria/route.ts
 // AIMÊ — Salva formulário no Supabase Storage
 // Suporta JSON (vistorias/) e HTML (vistorias_homologadas/)
