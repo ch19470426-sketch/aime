@@ -1,3 +1,6 @@
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
+
 // src/app/api/upload-pdf-assinado/route.ts
 // AIMÊ — Recebe o PDF assinado (Gov.br) enviado pelo inspetor e guarda em documentos_inspetor/
 
