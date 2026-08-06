@@ -402,9 +402,9 @@ export async function POST(request: NextRequest) {
       // ── Item 1.2 — Objetivo e Escopo ──────────────────────────────────────
       const OBJETIVO: Record<string,string> = {
         '45': 'Avaliar as condições de segurança, operação e desempenho do sistema de transporte vertical, verificando a conformidade com as normas técnicas e requisitos legais, identificando falhas, desgastes e riscos operacionais, visando garantir segurança dos usuários, assegurar a confiabilidade operacional e subsidiar a manutenção e modernização dos equipamentos.',
-        '46': 'O presente Laudo Técnico tem por objetivo avaliar as condições de segurança das instalações elétricas da unidade identificada em estudo, verificando a conformidade com os requisitos da Norma Regulamentadora NR-10 – Segurança em Instalações e Serviços em Eletricidade, bem como com as normas técnicas da ABNT aplicáveis.\n\nA inspeção abrange o seguinte escopo:\n- Prontuário das instalações elétricas e documentação técnica\n- Medidas de controle do risco elétrico (proteção contra contatos diretos e indiretos)\n- Sistema de aterramento e equipotencialização\n- Quadros de distribuição, circuitos e dispositivos de proteção\n- Sistema de proteção contra descargas atmosféricas (SPDA)\n- Sinalização de segurança elétrica\n- Procedimentos de bloqueio e etiquetagem (LOTO elétrico)\n- Equipamentos de Proteção Individual (EPI) e coletivo (EPC) elétricos\n- Habilitação e qualificação dos trabalhadores expostos ao risco elétrico\n- Manutenção das instalações elétricas',
-        '47': 'O presente Laudo Técnico tem por objetivo avaliar as condições de segurança das máquinas e equipamentos instalados na unidade em estudo, verificando a conformidade com os requisitos estabelecidos pela Norma Regulamentadora NR-12 – Segurança no Trabalho em Máquinas e Equipamentos, suas Anexos e normas técnicas complementares.\n\nEste laudo abrange a inspeção visual, funcional e documental dos seguintes aspectos:\n- Proteções físicas fixas e móveis das zonas de perigo\n- Dispositivos de segurança (intertravamentos, sensores, cortinas de luz, etc.)\n- Dispositivos de partida, parada e emergência\n- Sistemas elétricos das máquinas\n- Ergonomia e condições do posto de trabalho\n- Documentação técnica (prontuário, manuais, análise de risco)\n- Capacitação e habilitação dos operadores\n- Procedimentos de bloqueio e etiquetagem (LOTO)\n- Sinalização de segurança e EPI',
-        '48': 'O presente Laudo Técnico tem por objetivo avaliar as condições de segurança de Caldeiras, Vasos de Pressão, Tubulações e Tanques da unidade em estudo, verificando a conformidade com os requisitos da Norma Regulamentadora NR-13 – Caldeiras, Vasos de Pressão, Tubulações e Tanques Metálicos de Armazenamento, bem como com as normas técnicas da ABNT aplicáveis.\n\nA inspeção abrange os seguintes escopos:\n- Prontuário e documentação técnica dos equipamentos\n- Caldeiras a vapor: categoria, dispositivos de segurança e operação\n- Vasos de pressão: classificação, inspeções e dispositivos de segurança\n- Tubulações de processo: identificação, suportes e ensaios\n- Tanques metálicos de armazenamento: contenção, SPDA e proteção catódica\n- Dispositivos de segurança: válvulas de alívio, manômetros e pressostatos\n- Habilitação e capacitação de operadores\n- EPI, EPC e sinalização de segurança\n- Plano de manutenção e registros de inspeção',
+        '46': 'O presente Laudo Técnico tem por objetivo avaliar as condições de segurança das instalações elétricas da unidade identificada em estudo, verificando a conformidade com os requisitos da Norma Regulamentadora NR-10 – Segurança em Instalações e Serviços em Eletricidade, bem como com as normas técnicas da ABNT aplicáveis.\n\nA inspeção abrange o seguinte escopo:\n<p style=\"margin:1pt 0 1pt 8pt\">&#8226;&nbsp;Prontuário das instalações elétricas e documentação técnica\n<p style=\"margin:1pt 0 1pt 8pt\">&#8226;&nbsp;Medidas de controle do risco elétrico (proteção contra contatos diretos e indiretos)\n<p style=\"margin:1pt 0 1pt 8pt\">&#8226;&nbsp;Sistema de aterramento e equipotencialização\n<p style=\"margin:1pt 0 1pt 8pt\">&#8226;&nbsp;Quadros de distribuição, circuitos e dispositivos de proteção\n<p style=\"margin:1pt 0 1pt 8pt\">&#8226;&nbsp;Sistema de proteção contra descargas atmosféricas (SPDA)\n<p style=\"margin:1pt 0 1pt 8pt\">&#8226;&nbsp;Sinalização de segurança elétrica\n<p style=\"margin:1pt 0 1pt 8pt\">&#8226;&nbsp;Procedimentos de bloqueio e etiquetagem (LOTO elétrico)\n<p style=\"margin:1pt 0 1pt 8pt\">&#8226;&nbsp;Equipamentos de Proteção Individual (EPI) e coletivo (EPC) elétricos\n<p style=\"margin:1pt 0 1pt 8pt\">&#8226;&nbsp;Habilitação e qualificação dos trabalhadores expostos ao risco elétrico\n<p style=\"margin:1pt 0 1pt 8pt\">&#8226;&nbsp;Manutenção das instalações elétricas',
+        '47': 'O presente Laudo Técnico tem por objetivo avaliar as condições de segurança das máquinas e equipamentos instalados na unidade em estudo, verificando a conformidade com os requisitos estabelecidos pela Norma Regulamentadora NR-12 – Segurança no Trabalho em Máquinas e Equipamentos, suas Anexos e normas técnicas complementares.\n\nEste laudo abrange a inspeção visual, funcional e documental dos seguintes aspectos:\n<p style=\"margin:1pt 0 1pt 8pt\">&#8226;&nbsp;Proteções físicas fixas e móveis das zonas de perigo\n<p style=\"margin:1pt 0 1pt 8pt\">&#8226;&nbsp;Dispositivos de segurança (intertravamentos, sensores, cortinas de luz, etc.)\n<p style=\"margin:1pt 0 1pt 8pt\">&#8226;&nbsp;Dispositivos de partida, parada e emergência\n<p style=\"margin:1pt 0 1pt 8pt\">&#8226;&nbsp;Sistemas elétricos das máquinas\n<p style=\"margin:1pt 0 1pt 8pt\">&#8226;&nbsp;Ergonomia e condições do posto de trabalho\n<p style=\"margin:1pt 0 1pt 8pt\">&#8226;&nbsp;Documentação técnica (prontuário, manuais, análise de risco)\n<p style=\"margin:1pt 0 1pt 8pt\">&#8226;&nbsp;Capacitação e habilitação dos operadores\n<p style=\"margin:1pt 0 1pt 8pt\">&#8226;&nbsp;Procedimentos de bloqueio e etiquetagem (LOTO)\n<p style=\"margin:1pt 0 1pt 8pt\">&#8226;&nbsp;Sinalização de segurança e EPI',
+        '48': 'O presente Laudo Técnico tem por objetivo avaliar as condições de segurança de Caldeiras, Vasos de Pressão, Tubulações e Tanques da unidade em estudo, verificando a conformidade com os requisitos da Norma Regulamentadora NR-13 – Caldeiras, Vasos de Pressão, Tubulações e Tanques Metálicos de Armazenamento, bem como com as normas técnicas da ABNT aplicáveis.\n\nA inspeção abrange os seguintes escopos:\n<p style=\"margin:1pt 0 1pt 8pt\">&#8226;&nbsp;Prontuário e documentação técnica dos equipamentos\n<p style=\"margin:1pt 0 1pt 8pt\">&#8226;&nbsp;Caldeiras a vapor: categoria, dispositivos de segurança e operação\n<p style=\"margin:1pt 0 1pt 8pt\">&#8226;&nbsp;Vasos de pressão: classificação, inspeções e dispositivos de segurança\n<p style=\"margin:1pt 0 1pt 8pt\">&#8226;&nbsp;Tubulações de processo: identificação, suportes e ensaios\n<p style=\"margin:1pt 0 1pt 8pt\">&#8226;&nbsp;Tanques metálicos de armazenamento: contenção, SPDA e proteção catódica\n<p style=\"margin:1pt 0 1pt 8pt\">&#8226;&nbsp;Dispositivos de segurança: válvulas de alívio, manômetros e pressostatos\n<p style=\"margin:1pt 0 1pt 8pt\">&#8226;&nbsp;Habilitação e capacitação de operadores\n<p style=\"margin:1pt 0 1pt 8pt\">&#8226;&nbsp;EPI, EPC e sinalização de segurança\n<p style=\"margin:1pt 0 1pt 8pt\">&#8226;&nbsp;Plano de manutenção e registros de inspeção',
       }
 
       // ── Item 2.1 — Base normativa ──────────────────────────────────────────
@@ -640,50 +640,69 @@ export async function POST(request: NextRequest) {
       }
 
       const recsSis = complemento?.recsSistema ?? {}
+      // Descrição dos sistemas NR (para inserir na tabela 4.1)
+      const DESC_SISTEMAS: Record<string,string> = {
+        '01_Documentação Técnica': 'Conjunto de documentos obrigatórios exigidos pela NR-12, incluindo prontuário da máquina, manuais de operação e manutenção, registros de inspeção e análise de riscos.',
+        '02_Capacitação': 'Treinamento e habilitação dos operadores e trabalhadores que operam, mantêm ou inspecionam máquinas e equipamentos, conforme requisitos da NR-12.',
+        '03_Proteções e Dispositivos': 'Proteções fixas, móveis e dispositivos de segurança instalados nas zonas de perigo das máquinas, incluindo intertravamentos, sensores e cortinas de luz.',
+        '04_Partida e Parada': 'Dispositivos de partida, parada normal e de emergência, incluindo botões de emergência, sistemas de travamento e bloqueio (LOTO).',
+        '05_Sistema Elétrico': 'Instalações elétricas das máquinas, aterramento, proteções contra choques elétricos e conformidade com normas elétricas aplicáveis.',
+        '06_Ergonomia': 'Condições ergonômicas do posto de trabalho, incluindo postura, esforço físico, iluminação, ruído e conforto do operador.',
+        '07_EPIs e EPCs': 'Equipamentos de Proteção Individual e Coletiva utilizados nas operações com máquinas, incluindo adequação e disponibilidade.',
+        '08_Sinalização': 'Sinalização de segurança das máquinas e equipamentos, incluindo advertências de perigo, instruções de operação e identificação de zonas de risco.',
+        '09_Manutenção': 'Programa de manutenção preventiva e corretiva das máquinas, incluindo registros, periodicidade e execução por profissional habilitado.',
+        '10_SPDA': 'Sistema de Proteção contra Descargas Atmosféricas das instalações onde operam as máquinas.',
+        '11_Procedimentos Segurança': 'Procedimentos operacionais de segurança para operação, manutenção e inspeção das máquinas, incluindo LOTO e análise de risco.',
+        '12_Gestão de Risco': 'Análise e gestão de riscos das máquinas e equipamentos, incluindo metodologia de avaliação e plano de ação corretiva.',
+      }
       const S41_blocos = Object.keys(ncsPorSistema41).length === 0
-        ? '<tr><td colspan="5" style="' + TD11 + ';color:#9a3412;font-style:italic">Nenhuma não conformidade registrada.</td></tr>'
+        ? '<tr><td colspan="4" style="' + TD11 + ';color:#9a3412;font-style:italic">Nenhuma não conformidade registrada.</td></tr>'
         : Object.entries(ncsPorSistema41).map(([sis, ncsSis]) => {
             const sisNome = sis.length > 2 ? sis.slice(3).replace(/_/g,' ') : sis
+            const descSis = xe(DESC_SISTEMAS[sis] ?? '')
             const recSis  = xe(recsSis[sis] ?? '')
-            const tagEx   = xe(ncsSis[0]?.tag || ncsSis[0]?.cnpjoucpf || '')
+            const tagEx   = xe(ncsSis[0]?.tag || '')
             const tipoEx  = xe(ncsSis[0]?.tipoAtivo || '')
             return (
-              '<tr style="background:#E8EEF7">' +
+              // Linha cabeçalho: Tag/Série | Sistema
+              '<tr style="background:#1E3A8A;color:#fff">' +
               (is45
-                ? '<td style="' + TH11 + ';width:15%">' + tagEx + '</td><td style="' + TH11 + ';width:15%">' + tipoEx + '</td>'
-                : '<td style="' + TH11 + ';width:15%" colspan="2">' + tagEx + '</td>') +
-              '<td style="' + TH11 + ';font-size:9pt">' + sisNome + '</td>' +
+                ? '<td style="padding:4px 8px;font-size:8pt;font-weight:700;width:15%">Tag: ' + tagEx + ' | Tipo: ' + tipoEx + '</td>'
+                : '<td style="padding:4px 8px;font-size:8pt;font-weight:700;width:15%">Tag/Nº Série: ' + tagEx + '</td>') +
+              '<td style="padding:4px 8px;font-size:8.5pt;font-weight:700">Sistema: ' + sisNome + '</td>' +
               '</tr>' +
-              (recSis
-                ? '<tr><td colspan="3" style="' + TD11 + ';background:#EEF2FF">' +
-                    '<b style="font-size:7pt;color:#1E3A8A">✦ Recomendação para o sistema</b><br>' +
-                    '<span style="font-size:8pt">' + recSis + '</span>' +
-                  '</td></tr>'
-                : '') +
+              // Linha descrição do sistema
               '<tr>' +
-                '<td style="' + TH11 + ';width:8%;text-align:center">Foto</td>' +
-                '<td style="' + TH11 + '">Não Conformidade / Item Normativo</td>' +
-                '<td style="' + TH11 + ';width:18%">G.Risco / Prioridade</td>' +
+              '<td style="' + TD11 + ';background:#f1f5f9;font-size:7.5pt;font-weight:700;width:15%;vertical-align:top">Descrição<br>do sistema:</td>' +
+              '<td style="' + TD11 + ';background:#f1f5f9;font-size:8pt">' + descSis + '</td>' +
               '</tr>' +
+              // Linha recomendação para o sistema
+              '<tr>' +
+              '<td style="' + TD11 + ';background:#EEF2FF;font-size:7.5pt;font-weight:700;color:#1E3A8A;vertical-align:top">Recomendação<br>para o sistema:</td>' +
+              '<td style="' + TD11 + ';background:#EEF2FF;font-size:8pt">' + (recSis || '<i style="color:#9a3412">Sem recomendação registrada para este sistema.</i>') + '</td>' +
+              '</tr>' +
+              // Cabeçalho das NCs
+              '<tr style="background:#E8EEF7">' +
+              '<td style="' + TD11 + ';font-weight:700;font-size:8pt;text-align:center">Foto</td>' +
+              '<td style="' + TD11 + ';font-weight:700;font-size:8pt">Não Conformidade &nbsp;|&nbsp; Local &nbsp;|&nbsp; G.Risco &nbsp;|&nbsp; Prioridade &nbsp;|&nbsp; Sugestões</td>' +
+              '</tr>' +
+              // Linhas de NCs
               ncsSis.map(nc => {
                 const grN = Number(nc.grauRisco)||0
-                const corP = grN > 80 ? '#CC0000' : grN >= 50 ? '#E8A000' : grN >= 30 ? '#F59E0B' : '#16A34A'
+                const corP = grN > 80 ? '#CC0000' : grN >= 50 ? '#E87000' : grN >= 30 ? '#D4A017' : '#2E8B57'
                 const priP = grN > 80 ? 'Muito Alta' : grN >= 50 ? 'Alta' : grN >= 30 ? 'Média' : 'Baixa'
                 return '<tr>' +
-                  '<td style="' + TDS + ';text-align:center;font-size:8pt">' + xe(nc.fotoNr||'') + '</td>' +
+                  '<td style="' + TDS + ';text-align:center;font-size:9pt;width:8%">' + xe(nc.fotoNr||'') + '</td>' +
                   '<td style="' + TDS + '">' +
-                    '<b style="font-size:7.5pt">' + xe(nc.nc||nc.anomalia||'') + '</b>' +
-                    (nc.local ? '<br><span style="font-size:7pt;color:#4a6480">Local: ' + xe(nc.local) + '</span>' : '') +
-                    (nc.cp ? '<br><span style="font-size:7pt;color:#374151">CP: ' + xe(nc.cp) + '</span>' : '') +
-                  '</td>' +
-                  '<td style="' + TDS + ';text-align:center">' +
-                    '<span style="font-size:14pt;font-weight:700;color:' + corP + '">' + grN + '</span><br>' +
-                    '<span style="font-size:8pt;font-weight:700;color:' + corP + '">' + priP + '</span>' +
+                    '<b style="font-size:8pt">' + xe(nc.nc||nc.anomalia||'') + '</b>' +
+                    (nc.local ? '<span style="font-size:7.5pt;color:#4a6480"> &mdash; ' + xe(nc.local) + '</span>' : '') +
+                    '<br><span style="font-size:8pt;font-weight:700;color:' + corP + '">' + grN + ' pts &mdash; ' + priP + '</span>' +
+                    (nc.cp ? '<br><span style="font-size:7.5pt;color:#374151"><i>Sugestão: ' + xe(nc.cp||nc.solucao||'') + '</i></span>' : '') +
                   '</td>' +
                   '</tr>'
               }).join('')
             )
-          }).join('<tr><td colspan="3" style="border:none;height:4pt"></td></tr>')
+          }).join('<tr><td colspan="2" style="border:none;height:6pt"></td></tr>')
 
 
       const S41 =
@@ -693,8 +712,7 @@ export async function POST(request: NextRequest) {
         '<p style="text-align:justify">A prioridade para manutenção de cada uma das não conformidades foi obtida pelo grau de risco (0 a 100), calculado com base nos parâmetros: gravidade (40%); abrangência (30%); urgência (20%); e exposição (10%); observado no requisito normativo.</p>' +
         '<p style="text-align:justify">Quanto à definição das prioridades foi adotado o critério: grau de risco superior a 80 pontos, prioridade <b>Muito Alta</b>; grau de risco menor que 80 pontos e maior que 49 pontos, prioridade <b>Alta</b>; grau de risco menor que 50 pontos e maior que 29 pontos, prioridade <b>Média</b>; grau de risco inferior a 30 pontos, prioridade <b>Baixa</b>.</p>' +
         '<table style="width:100%;border-collapse:collapse">' +
-        '<tr><td colspan="3" style="' + TH11 + '">' + titulo41 + '</td></tr>' +
-        '<tr>' + cabecalho41 + '</tr>' +
+        '<tr><td colspan="2" style="' + TH11 + '">' + titulo41 + '</td></tr>' +
         S41_blocos +
         '</table>' +
         '</div>'
@@ -757,9 +775,9 @@ export async function POST(request: NextRequest) {
 
       // ── Gráfico Pizza (SVG) ──────────────────────────────────────────────────
       const pieData = [
-        { label: 'Muito Alta', val: tot42.aM, cor: '#CC0000' },
-        { label: 'Alta',       val: tot42.aA, cor: '#E8A000' },
-        { label: 'Média',      val: tot42.mM, cor: '#F59E0B' },
+        { label: 'Muito Alta', val: tot42.aM, cor: '#DC2626' },
+        { label: 'Alta',       val: tot42.aA, cor: '#EA580C' },
+        { label: 'Média',      val: tot42.mM, cor: '#EAB308' },
         { label: 'Baixa',      val: tot42.bB, cor: '#16A34A' },
       ].filter(d => d.val > 0)
       const pieTotal = pieData.reduce((s,d) => s+d.val, 0)
@@ -828,7 +846,7 @@ export async function POST(request: NextRequest) {
         '</tr>' +
         '<tr><td colspan="11" style="' + TD42 + ';text-align:left;font-size:7.5pt"><b>A+</b> = Muito Alta &nbsp;|&nbsp; <b>A</b> = Alta &nbsp;|&nbsp; <b>M</b> = Média &nbsp;|&nbsp; <b>B</b> = Baixa</td></tr>' +
         '</table>' +
-        (svgBar ? '<div style="text-align:center;margin:10pt 0 4pt"><b style="font-size:8pt;color:#1E3A8A">Distribuição por Sistema</b>' + svgBar + '</div>' : '') +
+
         (svgPie ? '<div style="text-align:center;margin:4pt 0 10pt"><b style="font-size:8pt;color:#1E3A8A">Distribuição por Prioridade</b>' + svgPie + '</div>' : '') +
         '</div>'
 
@@ -839,15 +857,15 @@ export async function POST(request: NextRequest) {
         '<p style="text-align:justify">No decorrer do processo de inspeção foi efetuada a análise da documentação, a vistoria nas instalações e a classificação das anomalias e dos requisitos normativos, o que possibilitou uma completa avaliação que possibilita apresentar as recomendações que seguem, considerando a manutenção, operação, condições físicas, segurança e documentação.</p>' +
         '<table style="width:100%;border-collapse:collapse">' +
         '<tr><td style="' + TH11 + '">5.1.- Recomendações sobre manutenção:</td></tr>' +
-        '<tr><td style="' + TD11 + ';min-height:16mm"><div style="min-height:14mm;text-align:justify">' + xe(rec51NR||'') + '</div></td></tr>' +
+        '<tr><td style="' + TD11 + ';min-height:16mm"><div style="min-height:14mm;text-align:justify">' + ((xe(rec51NR||'') || 'Nada a registrar para este item.') + '</div></td></tr>' +
         '<tr><td style="' + TH11 + '">5.2.- Recomendações sobre operação:</td></tr>' +
-        '<tr><td style="' + TD11 + ';min-height:16mm"><div style="min-height:14mm;text-align:justify">' + xe(rec52NR||'') + '</div></td></tr>' +
+        '<tr><td style="' + TD11 + ';min-height:16mm"><div style="min-height:14mm;text-align:justify">' + ((xe(rec52NR||'') || 'Nada a registrar para este item.') + '</div></td></tr>' +
         '<tr><td style="' + TH11 + '">5.3.- Recomendações sobre condições físicas:</td></tr>' +
-        '<tr><td style="' + TD11 + ';min-height:16mm"><div style="min-height:14mm;text-align:justify">' + xe(rec53NR||'') + '</div></td></tr>' +
+        '<tr><td style="' + TD11 + ';min-height:16mm"><div style="min-height:14mm;text-align:justify">' + ((xe(rec53NR||'') || 'Nada a registrar para este item.') + '</div></td></tr>' +
         '<tr><td style="' + TH11 + '">5.4.- Recomendações sobre segurança:</td></tr>' +
-        '<tr><td style="' + TD11 + ';min-height:16mm"><div style="min-height:14mm;text-align:justify">' + xe(rec54NR||'') + '</div></td></tr>' +
+        '<tr><td style="' + TD11 + ';min-height:16mm"><div style="min-height:14mm;text-align:justify">' + ((xe(rec54NR||'') || 'Nada a registrar para este item.') + '</div></td></tr>' +
         '<tr><td style="' + TH11 + '">5.5.- Recomendações sobre documentação:</td></tr>' +
-        '<tr><td style="' + TD11 + ';min-height:16mm"><div style="min-height:14mm;text-align:justify">' + xe(rec55NR||'') + '</div></td></tr>' +
+        '<tr><td style="' + TD11 + ';min-height:16mm"><div style="min-height:14mm;text-align:justify">' + ((xe(rec55NR||'') || 'Nada a registrar para este item.') + '</div></td></tr>' +
         '</table>' +
         '</div>'
 
@@ -1120,7 +1138,7 @@ export async function POST(request: NextRequest) {
       partsNR.push('</div>')
 
       // ANEXOS
-      partsNR.push('<div class="section">' + A1 + '</div>')
+      partsNR.push('<div>' + A1 + '</div>')
       partsNR.push('<div class="section"><div class="titulo" style="text-align:center">Anexo 2 – Resultado da Vistoria</div><br>' + A2 + '</div>')
       partsNR.push('<div class="section"><div class="titulo" style="text-align:center">Anexo 3 – Anotação de Responsabilidade Técnica</div><br><p>Inserir neste espaço a ART (Anotação de Responsabilidade Técnica) registrada no CREA ou RRT (Registro de Responsabilidade Técnica) registrada no CAU, referente a este serviço.</p></div>')
       partsNR.push('</body></html>')
