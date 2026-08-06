@@ -33,7 +33,6 @@ interface Estabelecimento {
   funcao_responsavel?: string
   whatsapp_responsavel?: string
   email_responsavel?: string
-  finalidade_vistoria?: string
 }
 
 interface Inspetor {
