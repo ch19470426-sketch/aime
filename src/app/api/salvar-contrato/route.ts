@@ -1,3 +1,6 @@
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
+
 // src/app/api/salvar-contrato/route.ts
 // AIMÊ — Salva ou atualiza o contrato do inspetor
 
