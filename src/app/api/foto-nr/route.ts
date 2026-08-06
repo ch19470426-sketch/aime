@@ -1,3 +1,6 @@
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
+
 // src/app/api/foto-nr/route.ts
 // AIMÊ — Numeração sequencial de fotos
 //
