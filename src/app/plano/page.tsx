@@ -75,9 +75,6 @@ interface Ativo {
 
 const ATIVO_VAZIO: Ativo = {
   tipo_ativo: '', tag_ativo_nr_serie: '1', data_inicio_operacao: '',
-const ATIVO_VAZIO: Ativo = {
-const ATIVO_VAZIO: Ativo = {
-  tipo_ativo: '', tag_ativo_nr_serie: '1', data_inicio_operacao: '',
   numero_pavimentos: '', numero_unidades_salas: '', area_terreno: '', area_construida: '',
   numero_fachadas: '', perimetro_fachadas: '', fabricante_marca: '', subtipo: '',
   tensao_pressao_kv_kpa: '', capacidade_potencia: '', fluido_classe_fluido: '',
