@@ -1,3 +1,6 @@
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
+
 // src/app/api/salvar-inspetor/route.ts
 // AIMÊ — Cria ou atualiza o cadastro do inspetor (chamada pela tela /inspetor)
 
