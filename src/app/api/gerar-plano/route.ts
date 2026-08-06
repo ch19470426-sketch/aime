@@ -532,7 +532,8 @@ export async function POST(request: NextRequest) {
     const siglaConselho = conselho(insp.titulo_profissional)
 
     // Linhas de ativos
-    const stTd = 'font-size:10pt'
+    const stTd  = 'font-size:10pt'
+    const stTdC = 'font-size:10pt;text-align:center'
     // Usar tipo_servico do primeiro ativo (mais confiável) ou tipoVistoria ou tipoServico
     const tsRef = (ativosCompletos[0] as any)?.tipo_servico ?? tipoVistoria ?? tipoServico ?? ''
     const tsStr = tsRef
@@ -546,9 +547,9 @@ export async function POST(request: NextRequest) {
         '<tr>',
         '<td style="' + stTd + '">' + (i+1) + '</td>',
         '<td style="' + stTd + '">' + (a.tipo_ativo ?? '') + '</td>',
-        '<td style="' + stTd + '">' + fmtDt(a.data_inicio_operacao ?? '') + '</td>',
-        '<td style="' + stTd + '">' + (a.numero_pavimentos ?? '') + '</td>',
-        '<td style="' + stTd + '">' + (a.numero_unidades_salas ?? '') + '</td>',
+        '<td style="' + stTdC + '">' + fmtDt(a.data_inicio_operacao ?? '') + '</td>',
+        '<td style="' + stTdC + '">' + (a.numero_pavimentos ?? '') + '</td>',
+        '<td style="' + stTdC + '">' + (a.numero_unidades_salas ?? '') + '</td>',
         '</tr>'
       ].join('')
       return [
@@ -556,8 +557,8 @@ export async function POST(request: NextRequest) {
         '<td style="' + stTd + '">' + (i+1) + '</td>',
         '<td style="' + stTd + '">' + (a.tipo_ativo ?? '') + '</td>',
         '<td style="' + stTd + '">' + (a.tag_ativo_nr_serie ?? '') + '</td>',
-        '<td style="' + stTd + '">' + fmtDt(a.data_inicio_operacao ?? '') + '</td>',
-        '<td style="' + stTd + '">' + (a.subtipo ?? '') + '</td>',
+        '<td style="' + stTdC + '">' + fmtDt(a.data_inicio_operacao ?? '') + '</td>',
+        '<td style="' + stTdC + '">' + (a.subtipo ?? '') + '</td>',
         '</tr>'
       ].join('')
     }).join('')
