@@ -352,14 +352,14 @@ function PlanoInner() {
                       const isInd  = tsa >= 35 && tsa <= 38
                       return (
                       <div key={i} style={{ borderBottom: '1px solid #e2e8f0', padding: '5px 0' }}>
-                        <div style={{ ...S.row, ...(isPred ? (tsa <= 33 ? S.c4 : S.c3) : S.c4) }}>
-                          <Field label="Tipo"><input style={S.inputRO} value={a.tipo_ativo ?? ''} readOnly /></Field>
-                          <Field label="Dt. início"><input style={S.inputRO} value={a.data_inicio_operacao ?? ''} readOnly /></Field>
-                          {isPred && <Field label="Pavimentos"><input style={S.inputRO} value={a.numero_pavimentos ?? ''} readOnly /></Field>}
-                          {isPred && tsa <= 33 && <Field label="Aptos/Salas"><input style={S.inputRO} value={a.numero_unidades_salas ?? ''} readOnly /></Field>}
-                          {isInd && <Field label="TAG/Nº Série"><input style={S.inputRO} value={a.tag_ativo_nr_serie ?? ''} readOnly /></Field>}
-                          {isInd && <Field label="Subtipo"><input style={S.inputRO} value={a.subtipo ?? ''} readOnly /></Field>}
+                        <div style={{ ...S.row, ...S.c3 }}>
+                          <Field label="Tipo de ativo"><input style={S.inputRO} value={a.tipo_ativo ?? ''} readOnly /></Field>
+                          <Field label="Tag/Nº Série"><input style={S.inputRO} value={a.tag_ativo_nr_serie ?? ''} readOnly /></Field>
+                          <Field label="Data início operação"><input style={S.inputRO} value={a.data_inicio_operacao ?? ''} readOnly /></Field>
                         </div>
+
+
+
                         <div style={{ textAlign: 'right', marginTop: '4px' }}>
                           <button onClick={() => excluirAtivo(i)}
                             style={{ background: '#DC2626', color: '#fff', border: 'none', borderRadius: '50px', padding: '3px 12px', fontSize: '11px', cursor: 'pointer' }}>
@@ -606,20 +606,36 @@ function PlanoInner() {
                   </div>
                   <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '8pt', marginBottom: '10px' }}>
                     <thead>
-                      <tr style={{ background: '#1E3A8A', color: '#fff' }}>
-                        <th style={{ padding: '3px 6px', textAlign: 'left' }}>Tipo de ativo</th>
-                        <th style={{ padding: '3px 6px', textAlign: 'left' }}>TAG / Nº Série</th>
-                        <th style={{ padding: '3px 6px', textAlign: 'left' }}>Finalidade</th>
-                        <th style={{ padding: '3px 6px', textAlign: 'left' }}>Responsável</th>
-                      </tr>
+                      {Number(tsVistoria) <= 34 ? (
+                        <tr style={{ background: '#1E3A8A', color: '#fff' }}>
+                          <th style={{ padding: '3px 6px', textAlign: 'left' }}>Tipo de ativo</th>
+                          <th style={{ padding: '3px 6px', textAlign: 'left' }}>Dt. início operação</th>
+                          <th style={{ padding: '3px 6px', textAlign: 'left' }}>Nº pavimentos</th>
+                          <th style={{ padding: '3px 6px', textAlign: 'left' }}>Aptos/Salas</th>
+                        </tr>
+                      ) : (
+                        <tr style={{ background: '#1E3A8A', color: '#fff' }}>
+                          <th style={{ padding: '3px 6px', textAlign: 'left' }}>Tipo de ativo</th>
+                          <th style={{ padding: '3px 6px', textAlign: 'left' }}>Tag/Nº Série</th>
+                          <th style={{ padding: '3px 6px', textAlign: 'left' }}>Dt. início operação</th>
+                          <th style={{ padding: '3px 6px', textAlign: 'left' }}>Subtipo</th>
+                        </tr>
+                      )}
                     </thead>
                     <tbody>
-                      {ativos.map((a, i) => (
+                      {ativos.map((a, i) => Number(tsVistoria) <= 34 ? (
+                        <tr key={i} style={{ background: i%2===0?'#f8fafc':'#fff', borderBottom: '1px solid #e2e8f0' }}>
+                          <td style={{ padding: '3px 6px' }}>{a.tipo_ativo}</td>
+                          <td style={{ padding: '3px 6px' }}>{a.data_inicio_operacao}</td>
+                          <td style={{ padding: '3px 6px' }}>{a.numero_pavimentos}</td>
+                          <td style={{ padding: '3px 6px' }}>{a.numero_unidades_salas}</td>
+                        </tr>
+                      ) : (
                         <tr key={i} style={{ background: i%2===0?'#f8fafc':'#fff', borderBottom: '1px solid #e2e8f0' }}>
                           <td style={{ padding: '3px 6px' }}>{a.tipo_ativo}</td>
                           <td style={{ padding: '3px 6px' }}>{a.tag_ativo_nr_serie}</td>
                           <td style={{ padding: '3px 6px' }}>{a.data_inicio_operacao}</td>
-                          <td style={{ padding: '3px 6px' }}>{a.fabricante_marca || a.numero_pavimentos || '—'}</td>
+                          <td style={{ padding: '3px 6px' }}>{a.subtipo}</td>
                         </tr>
                       ))}
                     </tbody>
