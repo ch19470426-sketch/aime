@@ -504,7 +504,6 @@ function PlanoInner() {
                          )}
                        </>
                      )}
-
                     <div style={{ ...S.footer, marginTop: '8px' }}>
                       <button style={{ ...S.btn, ...S.btnSec }}
                         onClick={() => { setShowForm(false); setAtivoAtual({ ...ATIVO_VAZIO }) }}>
@@ -514,6 +513,7 @@ function PlanoInner() {
                         onClick={salvarAtivo} disabled={salvando}>
                         {salvando ? 'Salvando...' : 'Salvar ativo'}
                       </button>
+                    </div>
                   </div>
                 </div>
               )}
