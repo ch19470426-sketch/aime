@@ -513,7 +513,14 @@ function PlanoInner() {
                     )}
 
                      {isElevador && (
-                       <div style={{ ...S.row, ...S.c3 }}>
+                       <div style={{ ...S.row, ...S.c4 }}>
+                         <Field label="Subtipo *">
+                           <select style={S.input} value={ativoAtual.subtipo}
+                             onChange={e => atualizarAtivo('subtipo', e.target.value)}>
+                             <option value="">Selecione...</option>
+                             {(SUBTIPOS[tsNum] ?? []).map(s => <option key={s} value={s}>{s}</option>)}
+                           </select>
+                         </Field>
                          <Field label="Fabricante/Marca *">
                            <input style={S.input} value={ativoAtual.fabricante_marca}
                              onChange={e => atualizarAtivo('fabricante_marca', e.target.value)} />
