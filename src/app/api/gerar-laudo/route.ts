@@ -571,7 +571,7 @@ export async function POST(request: NextRequest) {
 
       const S11 =
         '<div class="titulo">' + titulo11 + '</div>' +
-        '<div class="section">' +
+        '<div>' +
         tabelaCaract +
         tabelaLocal +
         tabelaAtivos4648 +
@@ -581,7 +581,7 @@ export async function POST(request: NextRequest) {
       // ── BLOCO 3.1 ──────────────────────────────────────────────────────────
       const S31 =
         '<div class="titulo">3.1.- Descrição da Vistoria Técnica.</div>' +
-        '<div class="section">' +
+        '<div>' +
         '<table style="width:100%;border-collapse:collapse">' +
         '<tr><td style="' + TH11 + '">Descrição da Realização da Vistoria</td></tr>' +
         '<tr><td style="' + TD11 + ';min-height:40mm"><div style="min-height:35mm;text-align:justify;white-space:pre-wrap">' +
@@ -606,7 +606,7 @@ export async function POST(request: NextRequest) {
 
       const S33 =
         '<div class="titulo">3.3.- Resultado da Classificação da Instalação.</div>' +
-        '<div class="section">' +
+        '<div>' +
         '<p style="text-align:justify;margin-bottom:6pt">O resultado da classificação das instalações seguindo a metodologia apresentada para execução deste trabalho é apresentada a seguir.</p>' +
         '<table style="width:100%;border-collapse:collapse">' +
         '<tr>' +
@@ -639,54 +639,56 @@ export async function POST(request: NextRequest) {
         ncsPorSistema41[sis].push(nc)
       }
 
+      const recsSis = complemento?.recsSistema ?? {}
       const S41_blocos = Object.keys(ncsPorSistema41).length === 0
-        ? '<tr><td colspan="6" style="' + TD11 + ';color:#9a3412;font-style:italic">Nenhuma não conformidade registrada.</td></tr>'
+        ? '<tr><td colspan="5" style="' + TD11 + ';color:#9a3412;font-style:italic">Nenhuma não conformidade registrada.</td></tr>'
         : Object.entries(ncsPorSistema41).map(([sis, ncsSis]) => {
-            const tagEx = ncsSis[0]?.cnpjoucpf || ''
-            const tipoEx = ncsSis[0]?.tipoAtivo || ''
             const sisNome = sis.length > 2 ? sis.slice(3).replace(/_/g,' ') : sis
+            const recSis  = xe(recsSis[sis] ?? '')
+            const tagEx   = xe(ncsSis[0]?.tag || ncsSis[0]?.cnpjoucpf || '')
+            const tipoEx  = xe(ncsSis[0]?.tipoAtivo || '')
             return (
-              '<tr>' + (is45
-                ? '<td style="' + TD11 + '">' + xe(ncsSis[0]?.tag||tagEx) + '</td>' +
-                  '<td style="' + TD11 + '">' + xe(tipoEx) + '</td>'
-                : '<td style="' + TD11 + '" colspan="2">' + xe(ncsSis[0]?.tag||tagEx) + '</td>') +
-              '<td style="' + TD11 + '">' + xe(sisNome) + '</td>' +
+              '<tr style="background:#E8EEF7">' +
+              (is45
+                ? '<td style="' + TH11 + ';width:15%">' + tagEx + '</td><td style="' + TH11 + ';width:15%">' + tipoEx + '</td>'
+                : '<td style="' + TH11 + ';width:15%" colspan="2">' + tagEx + '</td>') +
+              '<td style="' + TH11 + ';font-size:9pt">' + sisNome + '</td>' +
               '</tr>' +
-              '<tr><td colspan="3" style="' + TD11 + ';background:#f1f5f9"><b>Descrição do sistema:</b><br>' +
-                xe(ncsSis[0]?.sistemaDesc||'') + '</td></tr>' +
-              '<tr><td colspan="3" style="' + TD11 + '"><b>Recomendação para o sistema:</b><br>' +
-                xe(ncsSis[0]?.solucao||ncsSis[0]?.recomendacao||'') + '</td></tr>' +
+              (recSis
+                ? '<tr><td colspan="3" style="' + TD11 + ';background:#EEF2FF">' +
+                    '<b style="font-size:7pt;color:#1E3A8A">✦ Recomendação para o sistema</b><br>' +
+                    '<span style="font-size:8pt">' + recSis + '</span>' +
+                  '</td></tr>'
+                : '') +
               '<tr>' +
-                '<td style="' + TH11 + '">Foto</td>' +
-                '<td style="' + TH11 + '">Não Conformidade</td>' +
-                '<td style="' + TH11 + '">Local</td>' +
-              '</tr>' +
-              '<tr>' +
-                '<td style="' + TH11 + '">G Risco</td>' +
-                '<td style="' + TH11 + '">Prioridade</td>' +
-                '<td style="' + TH11 + '">Sugestões</td>' +
+                '<td style="' + TH11 + ';width:8%;text-align:center">Foto</td>' +
+                '<td style="' + TH11 + '">Não Conformidade / Item Normativo</td>' +
+                '<td style="' + TH11 + ';width:18%">G.Risco / Prioridade</td>' +
               '</tr>' +
               ncsSis.map(nc => {
                 const grN = Number(nc.grauRisco)||0
-                const corP = grN > 80 ? '#CC0000' : grN >= 50 ? '#E8A000' : '#16A34A'
+                const corP = grN > 80 ? '#CC0000' : grN >= 50 ? '#E8A000' : grN >= 30 ? '#F59E0B' : '#16A34A'
                 const priP = grN > 80 ? 'Muito Alta' : grN >= 50 ? 'Alta' : grN >= 30 ? 'Média' : 'Baixa'
                 return '<tr>' +
-                  '<td style="' + TDS + ';text-align:center">' + xe(nc.fotoNr||'') + '</td>' +
-                  '<td style="' + TDS + '">' + xe(nc.nc||nc.anomalia||'') + '</td>' +
-                  '<td style="' + TDS + '">' + xe(nc.local||'') + '</td>' +
-                  '</tr>' +
-                  '<tr>' +
-                  '<td style="' + TDS + ';text-align:center;font-weight:700;color:' + corP + '">' + grN + '</td>' +
-                  '<td style="' + TDS + ';font-weight:700;color:' + corP + '">' + priP + '</td>' +
-                  '<td style="' + TDS + '">' + xe(nc.solucao||nc.cp||'') + '</td>' +
+                  '<td style="' + TDS + ';text-align:center;font-size:8pt">' + xe(nc.fotoNr||'') + '</td>' +
+                  '<td style="' + TDS + '">' +
+                    '<b style="font-size:7.5pt">' + xe(nc.nc||nc.anomalia||'') + '</b>' +
+                    (nc.local ? '<br><span style="font-size:7pt;color:#4a6480">Local: ' + xe(nc.local) + '</span>' : '') +
+                    (nc.cp ? '<br><span style="font-size:7pt;color:#374151">CP: ' + xe(nc.cp) + '</span>' : '') +
+                  '</td>' +
+                  '<td style="' + TDS + ';text-align:center">' +
+                    '<span style="font-size:14pt;font-weight:700;color:' + corP + '">' + grN + '</span><br>' +
+                    '<span style="font-size:8pt;font-weight:700;color:' + corP + '">' + priP + '</span>' +
+                  '</td>' +
                   '</tr>'
               }).join('')
             )
-          }).join('<tr><td colspan="3" style="border:none;height:6pt"></td></tr>')
+          }).join('<tr><td colspan="3" style="border:none;height:4pt"></td></tr>')
+
 
       const S41 =
         '<div class="titulo">4.1.- Relação de Não Conformidades e Soluções.</div>' +
-        '<div class="section">' +
+        '<div>' +
         '<p style="text-align:justify">Neste item é apresentado, de forma clara e concisa, o conjunto de requisitos normativos identificados na vistoria, suas localizações e o número da foto no respectivo formulário de vistoria. Na tabela constam as prioridades para retificação dos problemas de cada um dos componentes, visando mitigar os riscos e garantir a conformidade e eficiência dos equipamentos, segundo normas técnicas vigentes.</p>' +
         '<p style="text-align:justify">A prioridade para manutenção de cada uma das não conformidades foi obtida pelo grau de risco (0 a 100), calculado com base nos parâmetros: gravidade (40%); abrangência (30%); urgência (20%); e exposição (10%); observado no requisito normativo.</p>' +
         '<p style="text-align:justify">Quanto à definição das prioridades foi adotado o critério: grau de risco superior a 80 pontos, prioridade <b>Muito Alta</b>; grau de risco menor que 80 pontos e maior que 49 pontos, prioridade <b>Alta</b>; grau de risco menor que 50 pontos e maior que 29 pontos, prioridade <b>Média</b>; grau de risco inferior a 30 pontos, prioridade <b>Baixa</b>.</p>' +
@@ -723,9 +725,69 @@ export async function POST(request: NextRequest) {
       const TH42 = 'background:#1E3A8A;color:#fff;padding:3px 5px;text-align:center;font-size:7.5pt;border:1px solid #1E3A8A'
       const TD42 = 'padding:3px 5px;text-align:center;border:1px solid #c3d4f0;font-size:8pt'
 
+
+      // ── Gráfico de Barras (SVG) ─────────────────────────────────────────────
+      const barW = 540; const barH = 160; const barPad = 40
+      const sistFiltrados = stat42.filter(r => r.t > 0)
+      const maxBar = Math.max(...sistFiltrados.map(r => r.t), 1)
+      const barWidth = sistFiltrados.length > 0 ? Math.floor((barW - barPad) / sistFiltrados.length) - 4 : 40
+      const svgBar = sistFiltrados.length === 0 ? '' :
+        '<svg xmlns="http://www.w3.org/2000/svg" width="' + barW + '" height="' + (barH+60) + '" style="display:block;margin:8pt auto">' +
+        sistFiltrados.map((r, i) => {
+          const x = barPad + i * (barWidth + 4)
+          const hAm = Math.round(r.aM / maxBar * barH)
+          const hAa = Math.round(r.aA / maxBar * barH)
+          const hM  = Math.round(r.mM / maxBar * barH)
+          const hB  = Math.round(r.bB / maxBar * barH)
+          const nome = r.s.slice(3).replace(/_/g,' ').slice(0,12)
+          let y = barH
+          let bars = ''
+          if (r.aM > 0) { y -= hAm; bars += '<rect x="' + x + '" y="' + y + '" width="' + barWidth + '" height="' + hAm + '" fill="#CC0000"/>' }
+          if (r.aA > 0) { y -= hAa; bars += '<rect x="' + x + '" y="' + y + '" width="' + barWidth + '" height="' + hAa + '" fill="#E8A000"/>' }
+          if (r.mM > 0) { y -= hM;  bars += '<rect x="' + x + '" y="' + y + '" width="' + barWidth + '" height="' + hM  + '" fill="#F59E0B"/>' }
+          if (r.bB > 0) { y -= hB;  bars += '<rect x="' + x + '" y="' + y + '" width="' + barWidth + '" height="' + hB  + '" fill="#16A34A"/>' }
+          bars += '<text x="' + (x + barWidth/2) + '" y="' + (barH+14) + '" text-anchor="middle" font-size="6" fill="#374151">' + nome + '</text>'
+          bars += '<text x="' + (x + barWidth/2) + '" y="' + (barH+22) + '" text-anchor="middle" font-size="7" font-weight="bold" fill="#1E3A8A">' + r.t + '</text>'
+          return bars
+        }).join('') +
+        '<line x1="' + barPad + '" y1="' + barH + '" x2="' + barW + '" y2="' + barH + '" stroke="#1E3A8A" stroke-width="1"/>' +
+        '<text x="' + (barW/2) + '" y="' + (barH+52) + '" text-anchor="middle" font-size="7" fill="#6B7280">■ Muito Alta &nbsp; ■ Alta &nbsp; ■ Média &nbsp; ■ Baixa</text>' +
+        '<text x="8" y="' + (barH+52) + '" font-size="7" fill="#CC0000">■</text>' +
+        '</svg>'
+
+      // ── Gráfico Pizza (SVG) ──────────────────────────────────────────────────
+      const pieData = [
+        { label: 'Muito Alta', val: tot42.aM, cor: '#CC0000' },
+        { label: 'Alta',       val: tot42.aA, cor: '#E8A000' },
+        { label: 'Média',      val: tot42.mM, cor: '#F59E0B' },
+        { label: 'Baixa',      val: tot42.bB, cor: '#16A34A' },
+      ].filter(d => d.val > 0)
+      const pieTotal = pieData.reduce((s,d) => s+d.val, 0)
+      const svgPie = pieTotal === 0 ? '' : (() => {
+        const cx = 90; const cy = 90; const r = 80
+        let angle = -Math.PI/2
+        let slices = ''
+        let legend = ''
+        pieData.forEach((d, i) => {
+          const pct = d.val / pieTotal
+          const startA = angle
+          const endA   = angle + pct * 2 * Math.PI
+          const lx1 = cx + r * Math.cos(startA); const ly1 = cy + r * Math.sin(startA)
+          const lx2 = cx + r * Math.cos(endA);   const ly2 = cy + r * Math.sin(endA)
+          const large = pct > 0.5 ? 1 : 0
+          slices += '<path d="M ' + cx + ' ' + cy + ' L ' + lx1.toFixed(1) + ' ' + ly1.toFixed(1) + ' A ' + r + ' ' + r + ' 0 ' + large + ' 1 ' + lx2.toFixed(1) + ' ' + ly2.toFixed(1) + ' Z" fill="' + d.cor + '" stroke="#fff" stroke-width="2"/>'
+          const midA = (startA + endA) / 2
+          const tx = cx + r * 0.65 * Math.cos(midA); const ty = cy + r * 0.65 * Math.sin(midA)
+          if (pct > 0.05) slices += '<text x="' + tx.toFixed(1) + '" y="' + ty.toFixed(1) + '" text-anchor="middle" font-size="9" font-weight="bold" fill="#fff">' + Math.round(pct*100) + '%</text>'
+          legend += '<rect x="190" y="' + (20+i*22) + '" width="12" height="12" fill="' + d.cor + '"/><text x="208" y="' + (31+i*22) + '" font-size="9" fill="#374151">' + d.label + ' (' + d.val + ')</text>'
+          angle = endA
+        })
+        return '<svg xmlns="http://www.w3.org/2000/svg" width="320" height="190" style="display:block;margin:8pt auto">' + slices + legend + '</svg>'
+      })()
+
       const S42 =
         '<div class="titulo">4.2.- Análise Estatística das Manifestações Patológicas.</div>' +
-        '<div class="section">' +
+        '<div>' +
         '<p style="text-align:justify">A tabela que segue apresenta a estatística de ocorrências de requisitos normativos não conformes identificados na instalação, e classificados por sistema e prioridades, onde se pode observar a situação de cada um dos sistemas, possibilitando uma clara compreensão do estado das instalações e um adequado planejamento para execução das atividades corretivas.</p>' +
         '<table style="width:100%;border-collapse:collapse">' +
         '<tr>' +
@@ -766,12 +828,14 @@ export async function POST(request: NextRequest) {
         '</tr>' +
         '<tr><td colspan="11" style="' + TD42 + ';text-align:left;font-size:7.5pt"><b>A+</b> = Muito Alta &nbsp;|&nbsp; <b>A</b> = Alta &nbsp;|&nbsp; <b>M</b> = Média &nbsp;|&nbsp; <b>B</b> = Baixa</td></tr>' +
         '</table>' +
+        (svgBar ? '<div style="text-align:center;margin:10pt 0 4pt"><b style="font-size:8pt;color:#1E3A8A">Distribuição por Sistema</b>' + svgBar + '</div>' : '') +
+        (svgPie ? '<div style="text-align:center;margin:4pt 0 10pt"><b style="font-size:8pt;color:#1E3A8A">Distribuição por Prioridade</b>' + svgPie + '</div>' : '') +
         '</div>'
 
       // ── BLOCO 5 — Recomendações ────────────────────────────────────────────
       const S5 =
         '<div class="titulo">5.- Recomendações Gerais.</div>' +
-        '<div class="section">' +
+        '<div>' +
         '<p style="text-align:justify">No decorrer do processo de inspeção foi efetuada a análise da documentação, a vistoria nas instalações e a classificação das anomalias e dos requisitos normativos, o que possibilitou uma completa avaliação que possibilita apresentar as recomendações que seguem, considerando a manutenção, operação, condições físicas, segurança e documentação.</p>' +
         '<table style="width:100%;border-collapse:collapse">' +
         '<tr><td style="' + TH11 + '">5.1.- Recomendações sobre manutenção:</td></tr>' +
