@@ -65,7 +65,6 @@ function fmtWpp(v: string): string {
 }
 
 interface Ativo {
-interface Ativo {
   tipo_ativo: string; tag_ativo_nr_serie: string; data_inicio_operacao: string
   numero_pavimentos: string; numero_unidades_salas: string
   area_terreno: string; area_construida: string; numero_fachadas: string
@@ -73,8 +72,9 @@ interface Ativo {
   tensao_pressao_kv_kpa: string; capacidade_potencia: string; fluido_classe_fluido: string
   volume_interno_m3: string
 }
-}
 
+const ATIVO_VAZIO: Ativo = {
+  tipo_ativo: '', tag_ativo_nr_serie: '1', data_inicio_operacao: '',
 const ATIVO_VAZIO: Ativo = {
 const ATIVO_VAZIO: Ativo = {
   tipo_ativo: '', tag_ativo_nr_serie: '1', data_inicio_operacao: '',
@@ -349,24 +349,28 @@ function PlanoInner() {
                 <div style={{ ...S.block, marginBottom: '8px' }}>
                   <div style={S.blockTitle}>Ativos cadastrados — {fmtCNPJ(cnpjoucpf)} ({ativos.length})</div>
                   <div style={{ padding: '4px 10px' }}>
-                    {ativos.map((a, i) => (
+                    {ativos.map((a, i) => {
+                      const tsa = Number(a.tipo_servico || tsVistoria || tsNum)
+                      const isPred = tsa >= 31 && tsa <= 34
+                      const isInd  = tsa >= 35 && tsa <= 38
+                      return (
                       <div key={i} style={{ borderBottom: '1px solid #e2e8f0', padding: '5px 0' }}>
-                        <div style={{ ...S.row, ...S.c3 }}>
-                          <Field label="Tipo de ativo">
-                            <input style={S.inputRO} value={a.tipo_ativo ?? ''} readOnly />
-                          </Field>
-                          <Field label="TAG / Nº Série">
-                            <input style={S.inputRO} value={a.tag_ativo_nr_serie ?? ''} readOnly />
-                          </Field>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(80px,1fr))', gap: '6px' }}>
+                          <Field label="Tipo"><input style={S.inputRO} value={a.tipo_ativo ?? ''} readOnly /></Field>
+                          <Field label="Dt. início"><input style={S.inputRO} value={a.data_inicio_operacao ?? ''} readOnly /></Field>
+                          {isPred && <Field label="Pavimentos"><input style={S.inputRO} value={a.numero_pavimentos ?? ''} readOnly /></Field>}
+                          {isPred && tsa <= 33 && <Field label="Aptos/Salas"><input style={S.inputRO} value={a.numero_unidades_salas ?? ''} readOnly /></Field>}
+                          {isInd && <Field label="TAG/Nº Série"><input style={S.inputRO} value={a.tag_ativo_nr_serie ?? ''} readOnly /></Field>}
+                          {isInd && <Field label="Subtipo"><input style={S.inputRO} value={a.subtipo ?? ''} readOnly /></Field>}
                         </div>
                         <div style={{ textAlign: 'right', marginTop: '4px' }}>
                           <button onClick={() => excluirAtivo(i)}
-                            style={{ background: '#DC2626', color: '#fff', border: 'none', borderRadius: '4px', padding: '3px 10px', cursor: 'pointer', fontSize: '7.5pt' }}>
+                            style={{ background: '#DC2626', color: '#fff', border: 'none', borderRadius: '50px', padding: '3px 12px', fontSize: '11px', cursor: 'pointer' }}>
                             Excluir ativo
                           </button>
                         </div>
                       </div>
-                    ))}
+                    )})}
                   </div>
                 </div>
               )}
@@ -376,9 +380,11 @@ function PlanoInner() {
                 <div style={{ ...S.block, marginBottom: '8px' }}>
                   <div style={S.blockTitle}>Dados do ativo a vistoriar</div>
                   <div style={S.blockBody}>
+                    {/* Linha 1: Tipo + TAG + Data início operação */}
                     <div style={{ ...S.row, ...(needsTag ? S.c3 : S.c2) }}>
                       <Field label="Tipo de ativo *">
-                        <select style={S.input} value={ativoAtual.tipo_ativo} onChange={e => atualizarAtivo('tipo_ativo', e.target.value)}>
+                        <select style={S.input} value={ativoAtual.tipo_ativo}
+                          onChange={e => atualizarAtivo('tipo_ativo', e.target.value)}>
                           <option value="">Selecione...</option>
                           {(TIPOS_ATIVO[tsNum] ?? []).map(t => <option key={t} value={t}>{t}</option>)}
                         </select>
@@ -386,30 +392,18 @@ function PlanoInner() {
                       {needsTag && (
                         <Field label="TAG / Nº Série *">
                           <input style={S.input} value={ativoAtual.tag_ativo_nr_serie}
-                            onChange={e => atualizarAtivo('tag_ativo_nr_serie', e.target.value)} placeholder="Ex: ELV-01" />
-                        </Field>
-                      )}
-                    </div>
-
-                    {/* Responsável agora está em Estabelecimento */}
-                    {/* Início bloco características do ativo */}esponsável pelo ativo</div>
-                    <div style={{ ...S.blockTitle, margin: '8px -12px 6px', padding: '3px 12px' }}>Características do ativo</div>
-                    {/* Linha 1: Subtipo + Data início */}
-                    <div style={{ ...S.row, ...(isNR ? S.c3 : S.c2) }}>
-                      {isNR && (
-                        <Field label="Subtipo *">
-                          <select style={S.input} value={ativoAtual.subtipo}
-                            onChange={e => atualizarAtivo('subtipo', e.target.value)}>
-                            <option value="">Selecione...</option>
-                            {(SUBTIPOS[tsNum] ?? []).map(s => <option key={s} value={s}>{s}</option>)}
-                          </select>
+                            onChange={e => atualizarAtivo('tag_ativo_nr_serie', e.target.value)}
+                            placeholder="Ex: ELV-01" />
                         </Field>
                       )}
                       <Field label="Data de início de operação *">
                         <input style={S.input} type="date" value={ativoAtual.data_inicio_operacao}
-                          onChange={e => atualizarAtivo('data_inicio_operacao', e.target.value)} />
+                          onChange={e => atualizarAtivo('data_inicio_operacao', e.target.value)}
+                          onFocus={e => { try { (e.target as any).showPicker?.() } catch {} }} />
                       </Field>
-</div>
+                    </div>
+                    {/* Linha 2+: Características específicas por tipo */}
+                    <div style={{ ...S.blockTitle, margin: '8px -12px 6px', padding: '3px 12px' }}>Características do ativo</div>
 
                     {/* Linha 2: campos específicos por tipo */}
                     {isPredial && (
