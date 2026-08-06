@@ -475,7 +475,7 @@ function gerarScriptDatas(_n: number): string {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { tipoServico, cpfInspetor, cnpjoucpf, ativos, datas, docs } = body
+    const { tipoServico, tipoVistoria, cpfInspetor, cnpjoucpf, ativos, datas, docs } = body
     const datasAtiv = (datas ?? []) as {ini: string; fim: string}[]
     const docsLista = (docs ?? []) as {doc: string; sit: string; res: string}[]
 
@@ -515,7 +515,8 @@ export async function POST(request: NextRequest) {
 
     // Linhas de ativos
     const stTd = 'font-size:10pt'
-    const tsN = Number(tipoServico.split(' ')[0] || tipoServico)
+    const tsStr = tipoVistoria ?? tipoServico
+    const tsN = Number(tsStr.split(' ')[0] || tsStr)
     const isPred = tsN >= 31 && tsN <= 34
     const isInd  = tsN >= 35 && tsN <= 38
     const fmtDt  = (d: string) => { const p=d?.split('-'); return p?.length===3?p[2]+'/'+p[1]+'/'+p[0]:d??'' }
