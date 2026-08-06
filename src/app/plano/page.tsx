@@ -352,7 +352,7 @@ function PlanoInner() {
                       const isInd  = tsa >= 35 && tsa <= 38
                       return (
                       <div key={i} style={{ borderBottom: '1px solid #e2e8f0', padding: '5px 0' }}>
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(80px,1fr))', gap: '6px' }}>
+                        <div style={{ ...S.row, ...(isPred ? (tsa <= 33 ? S.c4 : S.c3) : S.c4) }}>
                           <Field label="Tipo"><input style={S.inputRO} value={a.tipo_ativo ?? ''} readOnly /></Field>
                           <Field label="Dt. início"><input style={S.inputRO} value={a.data_inicio_operacao ?? ''} readOnly /></Field>
                           {isPred && <Field label="Pavimentos"><input style={S.inputRO} value={a.numero_pavimentos ?? ''} readOnly /></Field>}
@@ -441,47 +441,69 @@ function PlanoInner() {
                       </div>
                     )}
 
-                    {(isElevador || isNR) && (
-                      <div style={{ ...S.row, ...S.c3 }}>
-                        <Field label="Fabricante/Marca *">
-                          <input style={S.input} value={ativoAtual.fabricante_marca}
-                            onChange={e => atualizarAtivo('fabricante_marca', e.target.value)} />
-                        </Field>
-                        {isElevador && (
-                          <Field label="Pavimentos *">
-                            <input style={S.input} type="number" min="1" value={ativoAtual.numero_pavimentos}
-                              onChange={e => atualizarAtivo('numero_pavimentos', e.target.value)} />
-                          </Field>
-                        )}
-                        <Field label="Capacidade/Potência *">
-                          <input style={S.input} type="number" step="0.01" value={ativoAtual.capacidade_potencia}
-                            onChange={e => atualizarAtivo('capacidade_potencia', e.target.value)} placeholder="kW/kVA/kg/m³" />
-                        </Field>
-                        {(isNR10 || isNR13) && (
-                          <Field label={isNR10 ? 'Tensão (kV) *' : 'Pressão (kPa) *'}>
-                            <input style={S.input} type="number" step="0.01" value={ativoAtual.tensao_pressao_kv_kpa}
-                              onChange={e => atualizarAtivo('tensao_pressao_kv_kpa', e.target.value)} />
-                          </Field>
-                        )}
-                      </div>
-                    )}
+                     {isElevador && (
+                       <div style={{ ...S.row, ...S.c3 }}>
+                         <Field label="Fabricante/Marca *">
+                           <input style={S.input} value={ativoAtual.fabricante_marca}
+                             onChange={e => atualizarAtivo('fabricante_marca', e.target.value)} />
+                         </Field>
+                         <Field label="Pavimentos *">
+                           <input style={S.input} type="number" min="1" value={ativoAtual.numero_pavimentos}
+                             onChange={e => atualizarAtivo('numero_pavimentos', e.target.value)} />
+                         </Field>
+                         <Field label="Capacidade/Potência *">
+                           <input style={S.input} type="number" step="0.01" value={ativoAtual.capacidade_potencia}
+                             onChange={e => atualizarAtivo('capacidade_potencia', e.target.value)} placeholder="kg" />
+                         </Field>
+                       </div>
+                     )}
 
-                    {/* Linha 3: NR-13 — fluido e volume */}
-                    {isNR13 && (
-                      <div style={{ ...S.row, ...S.c2 }}>
-                        <Field label="Fluido/Classe *">
-                          <select style={S.input} value={ativoAtual.fluido_classe_fluido}
-                            onChange={e => atualizarAtivo('fluido_classe_fluido', e.target.value)}>
-                            <option value="">Selecione...</option>
-                            {FLUIDOS.map(f => <option key={f} value={f}>{f}</option>)}
-                          </select>
-                        </Field>
-                        <Field label="Volume interno (m³) *">
-                          <input style={S.input} type="number" step="0.0001" value={ativoAtual.volume_interno_m3}
-                            onChange={e => atualizarAtivo('volume_interno_m3', e.target.value)} />
-                        </Field>
-                      </div>
-                    )}
+                     {isNR && (
+                       <>
+                         <div style={{ ...S.row, ...(isNR10 ? S.c4 : S.c3) }}>
+                           <Field label="Subtipo *">
+                             <select style={S.input} value={ativoAtual.subtipo}
+                               onChange={e => atualizarAtivo('subtipo', e.target.value)}>
+                               <option value="">Selecione...</option>
+                               {(SUBTIPOS[tsNum] ?? []).map(s => <option key={s} value={s}>{s}</option>)}
+                             </select>
+                           </Field>
+                           <Field label="Fabricante/Marca *">
+                             <input style={S.input} value={ativoAtual.fabricante_marca}
+                               onChange={e => atualizarAtivo('fabricante_marca', e.target.value)} />
+                           </Field>
+                           {isNR10 && (
+                             <Field label="Tensão (kV) *">
+                               <input style={S.input} type="number" step="0.01" value={ativoAtual.tensao_pressao_kv_kpa}
+                                 onChange={e => atualizarAtivo('tensao_pressao_kv_kpa', e.target.value)} />
+                             </Field>
+                           )}
+                           <Field label="Capacidade/Potência *">
+                             <input style={S.input} type="number" step="0.01" value={ativoAtual.capacidade_potencia}
+                               onChange={e => atualizarAtivo('capacidade_potencia', e.target.value)} />
+                           </Field>
+                         </div>
+                         {isNR13 && (
+                           <div style={{ ...S.row, ...S.c3 }}>
+                             <Field label="Pressão (kPa) *">
+                               <input style={S.input} type="number" step="0.01" value={ativoAtual.tensao_pressao_kv_kpa}
+                                 onChange={e => atualizarAtivo('tensao_pressao_kv_kpa', e.target.value)} />
+                             </Field>
+                             <Field label="Fluido/Classe *">
+                               <select style={S.input} value={ativoAtual.fluido_classe_fluido}
+                                 onChange={e => atualizarAtivo('fluido_classe_fluido', e.target.value)}>
+                                 <option value="">Selecione...</option>
+                                 {FLUIDOS.map(f => <option key={f} value={f}>{f}</option>)}
+                               </select>
+                             </Field>
+                             <Field label="Volume interno (m³) *">
+                               <input style={S.input} type="number" step="0.0001" value={ativoAtual.volume_interno_m3}
+                                 onChange={e => atualizarAtivo('volume_interno_m3', e.target.value)} />
+                             </Field>
+                           </div>
+                         )}
+                       </>
+                     )}
 
                     <div style={{ ...S.footer, marginTop: '8px' }}>
                       <button style={{ ...S.btn, ...S.btnSec }}
