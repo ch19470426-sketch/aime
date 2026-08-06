@@ -504,10 +504,11 @@ function PlanoInner() {
                          )}
                        </>
                      )}
+
                     <div style={{ ...S.footer, marginTop: '8px' }}>
                       <button style={{ ...S.btn, ...S.btnSec }}
                         onClick={() => { setShowForm(false); setAtivoAtual({ ...ATIVO_VAZIO }) }}>
-                        ← Cancelar
+                        Voltar
                       </button>
                       <button style={{ ...S.btn, ...S.btnPri, opacity: salvando ? 0.6 : 1 }}
                         onClick={salvarAtivo} disabled={salvando}>
@@ -569,7 +570,6 @@ function PlanoInner() {
                   )})}
                 </div>
               </div>
-              <div style={{ ...S.footer, marginTop: '8px' }}>
               <div style={{ ...S.footer, gridTemplateColumns: '1fr 1fr' }}>
                 <button style={{ ...S.btn, ...S.btnSec }} onClick={() => { setEtapa('ativo'); setShowForm(false) }}>
                   ← Voltar
@@ -579,6 +579,9 @@ function PlanoInner() {
                   {salvando ? 'Gerando...' : `Gerar plano (${ativos.length}) →`}
                 </button>
               </div>
+            </div>
+          )}
+
           {/* ── ETAPA 2: PLANO REACT ── */}
           {etapa === 'plano' && (
             <div>
