@@ -28,6 +28,12 @@ interface Estabelecimento {
   numero_imovel: string
   complemento: string
   uso_estabelecimento?: string
+  cpf_responsavel?: string
+  nome_responsavel?: string
+  funcao_responsavel?: string
+  whatsapp_responsavel?: string
+  email_responsavel?: string
+  finalidade_vistoria?: string
 }
 
 interface Inspetor {
@@ -134,7 +140,13 @@ function PropostaInner() {
   const [cep,         setCep]         = useState('')
   const [numero,      setNumero]      = useState('')
   const [complemento, setComplemento] = useState('')
-  const [usoEstab,    setUsoEstab]    = useState('')
+  const [usoEstab,       setUsoEstab]       = useState('')
+  const [cpfResp,        setCpfResp]        = useState('')
+  const [nomeResp,       setNomeResp]       = useState('')
+  const [funcaoResp,     setFuncaoResp]     = useState('')
+  const [whatsappResp,   setWhatsappResp]   = useState('')
+  const [emailResp,      setEmailResp]      = useState('')
+  const [finalidade,     setFinalidade]     = useState('')
 
   // Campos da proposta
   const [valor,  setValor]  = useState('')
@@ -225,6 +237,12 @@ function PropostaInner() {
         numero_imovel: numero.trim(),
         complemento: complemento?.trim() ?? null,
         uso_estabelecimento: usoEstab || null,
+        cpf_responsavel: cpfResp || null,
+        nome_responsavel: nomeResp || null,
+        funcao_responsavel: funcaoResp || null,
+        whatsapp_responsavel: whatsappResp.replace(/\D/g,'') || null,
+        email_responsavel: emailResp || null,
+        finalidade_vistoria: finalidade || null,
         tipo_id: 1,
         ...(isUpdate ? {} : { data_cadastro: new Date().toISOString().split('T')[0] })
       }
