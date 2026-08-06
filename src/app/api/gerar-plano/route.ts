@@ -479,6 +479,15 @@ export async function POST(request: NextRequest) {
     const datasAtiv = (datas ?? []) as {ini: string; fim: string}[]
     const docsLista = (docs ?? []) as {doc: string; sit: string; res: string}[]
 
+    // Buscar ativos completos do BD (garante todos os campos)
+    const { data: ativosDB } = await supabase
+      .from('ativos_a_vistoriar')
+      .select('*')
+      .eq('cpf_inspetor', cpfInspetor)
+      .eq('cnpjoucpf', cnpjoucpf)
+      .eq('tipo_servico', tipoServico)
+    const ativosCompletos = (ativosDB ?? ativos ?? []) as Record<string, string>[]
+
     const { data: insp } = await supabase.from('inspetor')
       .select('nome_inspetor,titulo_profissional,inscricao_crea_cau,especializacao,cabecalho_documentos,rodape_documentos')
       .eq('cpf_inspetor', cpfInspetor).single()
@@ -521,7 +530,7 @@ export async function POST(request: NextRequest) {
     const isInd  = tsN >= 35 && tsN <= 38
     const fmtDt  = (d: string) => { const p=d?.split('-'); return p?.length===3?p[2]+'/'+p[1]+'/'+p[0]:d??'' }
 
-    const linhasAtivos = (ativos as Record<string, string>[]).map((a, i) => {
+    const linhasAtivos = ativosCompletos.map((a, i) => {
       if (isPred) return [
         '<tr>',
         '<td style="' + stTd + '">' + (i+1) + '</td>',
