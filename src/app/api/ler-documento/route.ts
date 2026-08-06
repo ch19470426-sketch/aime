@@ -1,3 +1,6 @@
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
+
 // src/app/api/ler-documento/route.ts
 // Lê documento do Storage usando Service Role
 
