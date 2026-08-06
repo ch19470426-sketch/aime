@@ -1,3 +1,6 @@
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
+
 // src/app/api/vistorias/route.ts
 // AIMÊ — API para listar, ler e deletar formulários de vistoria do Storage
 
