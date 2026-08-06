@@ -354,7 +354,7 @@ function PlanoInner() {
                       <div key={i} style={{ borderBottom: '1px solid #e2e8f0', padding: '5px 0' }}>
                         <div style={{ ...S.row, ...S.c3 }}>
                           <Field label="Tipo de ativo"><input style={S.inputRO} value={a.tipo_ativo ?? ''} readOnly /></Field>
-                          <Field label="Tag/Nº Série"><input style={S.inputRO} value={a.tag_ativo_nr_serie ?? ''} readOnly /></Field>
+                          <Field label="Tag/Nº Série"><input style={S.inputRO} value={a.tag_ativo_nr_serie || (isPred ? '1' : '')} readOnly /></Field>
                           <Field label="Data início operação"><input style={S.inputRO} value={a.data_inicio_operacao ? new Date(a.data_inicio_operacao+'T00:00:00').toLocaleDateString('pt-BR') : ''} readOnly /></Field>
                         </div>
 
@@ -557,7 +557,7 @@ function PlanoInner() {
                         <Field label="Data início operação"><input style={S.inputRO} value={a.data_inicio_operacao ? new Date(a.data_inicio_operacao+'T00:00:00').toLocaleDateString('pt-BR') : ''} readOnly /></Field>
                         {isPred2 && <Field label="Nº pavimentos"><input style={S.inputRO} value={a.numero_pavimentos ?? ''} readOnly /></Field>}
                         {isPred2 && tsa2 <= 33 && <Field label="Aptos/Salas"><input style={S.inputRO} value={a.numero_unidades_salas ?? ''} readOnly /></Field>}
-                        {isInd2 && <Field label="Tag/Nº Série"><input style={S.inputRO} value={a.tag_ativo_nr_serie ?? ''} readOnly /></Field>}
+                        {isInd2 && <Field label="Tag/Nº Série"><input style={S.inputRO} value={a.tag_ativo_nr_serie || (isPred ? '1' : '')} readOnly /></Field>}
                         {isInd2 && <Field label="Subtipo"><input style={S.inputRO} value={a.subtipo ?? ''} readOnly /></Field>}
                       </div>
                       <div style={{ textAlign: 'right', marginTop: '4px' }}>
