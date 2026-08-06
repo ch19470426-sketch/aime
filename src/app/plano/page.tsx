@@ -125,6 +125,13 @@ function PlanoInner() {
 
   const [etapa,      setEtapa]      = useState<'ativo' | 'lista' | 'plano'>('ativo')
   const [showForm,   setShowForm]   = useState(false)
+  // Contato cliente (salvo em contato_cliente no BD)
+  const [nomeResp,    setNomeResp]    = useState('')
+  const [funcaoResp,  setFuncaoResp]  = useState('')
+  const [cpfResp,     setCpfResp]     = useState('')
+  const [whatsResp,   setWhatsResp]   = useState('')
+  const [emailResp,   setEmailResp]   = useState('')
+  const [finalidade,  setFinalidade]  = useState('')
   const [carregando, setCarregando] = useState(true)
   const [salvando,   setSalvando]   = useState(false)
   const [est,        setEst]        = useState<{razao_social_nome:string}|null>(null)
@@ -169,6 +176,18 @@ function PlanoInner() {
       if (Array.isArray(ativoData)) {
         setAtivos(ativoData)
         setShowForm(ativoData.length === 0)
+      }
+      // Carregar contato_cliente mais recente
+      const resCC = await query('contato_cliente',
+        `cpf_inspetor=eq.${cpfInspetor}&cnpjoucpf=eq.${cnpjoucpf}&tipo_servico=eq.${encodeURIComponent(tsVistoria)}&order=data_cadastro.desc&limit=1`)
+      if (Array.isArray(resCC) && resCC.length > 0) {
+        const cc = resCC[0]
+        setNomeResp(cc.nome_responsavel ?? '')
+        setFuncaoResp(cc.funcao_responsavel ?? '')
+        setCpfResp(cc.cpf_responsavel ?? '')
+        setWhatsResp(cc.whatsapp_responsavel ?? '')
+        setEmailResp(cc.email_responsavel ?? '')
+        setFinalidade(cc.finalidade_vistoria ?? '')
       }
     } catch {
       informa('Erro', 'Não foi possível carregar os dados.')
@@ -232,6 +251,17 @@ function PlanoInner() {
       if (res.ok) {
         const novos = [...ativos, { ...ativoAtual, tag_ativo_nr_serie: tag, data_cadastro: payload.data_cadastro }]
         setAtivos(novos)
+        // Salvar contato_cliente
+        if (nomeResp) {
+          await fetch(`${SUPA_URL}/rest/v1/contato_cliente`, {
+            method: 'POST',
+            headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}`, 'Content-Type': 'application/json', Prefer: 'resolution=merge-duplicates' },
+            body: JSON.stringify({ cpf_inspetor: cpfInspetor, cnpjoucpf, tipo_servico: tsVistoria,
+              nome_responsavel: nomeResp, funcao_responsavel: funcaoResp || null,
+              cpf_responsavel: cpfResp || null, whatsapp_responsavel: whatsResp || null,
+              email_responsavel: emailResp || null, finalidade_vistoria: finalidade || null })
+          })
+        }
         setAtivoAtual({ ...ATIVO_VAZIO })
         setShowForm(false)
         setEtapa('lista')
@@ -398,6 +428,46 @@ function PlanoInner() {
                         <input style={S.input} type="date" value={ativoAtual.data_inicio_operacao}
                           onChange={e => atualizarAtivo('data_inicio_operacao', e.target.value)}
                           onFocus={e => { try { (e.target as any).showPicker?.() } catch {} }} />
+                      </Field>
+                    </div>
+                    {/* Bloco Contato do Responsável */}
+                    <div style={{ ...S.blockTitle, margin: '8px -12px 6px', padding: '3px 12px' }}>Contato do responsável pela vistoria</div>
+                    <div style={{ ...S.row, ...S.c3 }}>
+                      <Field label="Nome do responsável *">
+                        <input style={S.input} value={nomeResp}
+                          onChange={e => setNomeResp(e.target.value)}
+                          placeholder="Nome completo" />
+                      </Field>
+                      <Field label="Função">
+                        <select style={S.input} value={funcaoResp} onChange={e => setFuncaoResp(e.target.value)}>
+                          <option value=''>Selecione...</option>
+                          <option>Administrador</option>
+                          <option>Síndico</option>
+                          <option>Proprietário</option>
+                          <option>Responsável</option>
+                        </select>
+                      </Field>
+                      <Field label="CPF do responsável">
+                        <input style={S.input} value={cpfResp} maxLength={11}
+                          onChange={e => setCpfResp(e.target.value.replace(/\D/g,''))}
+                          placeholder="00000000000" />
+                      </Field>
+                    </div>
+                    <div style={{ ...S.row, ...S.c3 }}>
+                      <Field label="WhatsApp">
+                        <input style={S.input} value={whatsResp} maxLength={11}
+                          onChange={e => setWhatsResp(e.target.value.replace(/\D/g,''))}
+                          placeholder="27999999999" />
+                      </Field>
+                      <Field label="E-mail">
+                        <input style={S.input} value={emailResp}
+                          onChange={e => setEmailResp(e.target.value)}
+                          placeholder="email@exemplo.com" />
+                      </Field>
+                      <Field label="Finalidade da vistoria">
+                        <input style={S.input} value={finalidade}
+                          onChange={e => setFinalidade(e.target.value)}
+                          placeholder="Ex: Inspeção periódica" />
                       </Field>
                     </div>
                     {/* Linha 2+: Características específicas por tipo */}
