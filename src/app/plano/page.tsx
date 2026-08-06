@@ -272,7 +272,7 @@ function PlanoInner() {
       const res = await fetch('/api/gerar-plano', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ tipoServico: tsVistoria, cpfInspetor, cnpjoucpf, ativos })
+        body: JSON.stringify({ tipoServico, tipoVistoria: tsVistoria, cpfInspetor, cnpjoucpf, ativos })
       })
       const data = await res.json()
       if (data.html) {
