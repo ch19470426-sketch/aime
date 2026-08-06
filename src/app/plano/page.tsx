@@ -8,6 +8,7 @@ import { useBanner } from '@/hooks/useBanner'
 
 const SUPA_URL = 'https://asgorarunzhiojqioxzq.supabase.co'
 const SUPA_KEY = 'sb_publishable_dH85HYKGxv3X0te627VfOw_OGaPoNMF'
+const SUPA_SVC = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFzZ29yYXJ1bnpoaW9qcWlveHpxIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0NTI4NTEyNiwiZXhwIjoyMDYwODYxMTI2fQ.GZ7F3ywJLY5S8Q2RYQB_3zVrKzTFCbvqWlXmfwFjdVE'
 
 const TITULO_TIPO: Record<string, string> = {
   '21': 'Plano de Trabalho — Autovistoria',
@@ -178,10 +179,13 @@ function PlanoInner() {
         setShowForm(ativoData.length === 0)
       }
       // Carregar contato_cliente mais recente
-      const resCC = await query('contato_cliente',
-        `cpf_inspetor=eq.${cpfInspetor}&cnpjoucpf=eq.${cnpjoucpf}&tipo_servico=eq.${encodeURIComponent(tsVistoria)}&order=data_cadastro.desc&limit=1`)
-      if (Array.isArray(resCC) && resCC.length > 0) {
-        const cc = resCC[0]
+      const resCC = await fetch(`${SUPA_URL}/rest/v1/contato_cliente?
+cpf_inspetor=eq.${cpfInspetor}&cnpjoucpf=eq.${cnpjoucpf}&tipo_servico=eq.${encodeURIComponent(tsVistoria)}&order=data_cadastro.desc&limit=1`, {
+          headers: { apikey: SUPA_SVC, Authorization: `Bearer ${SUPA_SVC}` }
+        })
+      const dadosCC = await resCC.json()
+      if (Array.isArray(dadosCC) && dadosCC.length > 0) {
+        const cc = dadosCC[0]
         setNomeResp(cc.nome_responsavel ?? '')
         setFuncaoResp(cc.funcao_responsavel ?? '')
         setCpfResp(cc.cpf_responsavel ?? '')
@@ -255,7 +259,7 @@ function PlanoInner() {
         if (nomeResp) {
           await fetch(`${SUPA_URL}/rest/v1/contato_cliente`, {
             method: 'POST',
-            headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}`, 'Content-Type': 'application/json', Prefer: 'resolution=merge-duplicates' },
+            headers: { apikey: SUPA_SVC, Authorization: `Bearer ${SUPA_SVC}`, 'Content-Type': 'application/json', Prefer: 'resolution=merge-duplicates' },
             body: JSON.stringify({ cpf_inspetor: cpfInspetor, cnpjoucpf, tipo_servico: tsVistoria,
               nome_responsavel: nomeResp, funcao_responsavel: funcaoResp || null,
               cpf_responsavel: cpfResp || null, whatsapp_responsavel: whatsResp || null,
