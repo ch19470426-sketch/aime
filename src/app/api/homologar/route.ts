@@ -1,3 +1,6 @@
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
+
 // src/app/api/homologar/route.ts
 // AIMÊ — Homologa vistoria: lê JSON, gera HTML, salva em vistorias_homologadas/, exclui JSON
 
