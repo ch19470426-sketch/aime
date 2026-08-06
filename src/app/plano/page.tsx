@@ -507,9 +507,9 @@ function PlanoInner() {
 
                     <div style={{ ...S.footer, marginTop: '8px' }}>
                       <button style={{ ...S.btn, ...S.btnSec }}
+                      <button style={{ ...S.btn, ...S.btnSec }}
                         onClick={() => { setShowForm(false); setAtivoAtual({ ...ATIVO_VAZIO }) }}>
-                        Voltar
-                      </button>
+                        ← Cancelar
                       <button style={{ ...S.btn, ...S.btnPri, opacity: salvando ? 0.6 : 1 }}
                         onClick={salvarAtivo} disabled={salvando}>
                         {salvando ? 'Salvando...' : 'Salvar ativo'}
@@ -571,15 +571,15 @@ function PlanoInner() {
                 </div>
               </div>
               <div style={{ ...S.footer, marginTop: '8px' }}>
-                <button style={{ ...S.btn, ...S.btnSec }} onClick={() => { setShowForm(true); setEtapa('ativo') }}>Voltar</button>
+              <div style={{ ...S.footer, gridTemplateColumns: '1fr 1fr' }}>
+                <button style={{ ...S.btn, ...S.btnSec }} onClick={() => { setEtapa('ativo'); setShowForm(false) }}>
+                  ← Voltar
+                </button>
                 <button style={{ ...S.btn, ...S.btnPri, opacity: (ativos.length === 0 || salvando) ? 0.5 : 1 }}
                   onClick={gerarPlano} disabled={ativos.length === 0 || salvando}>
                   {salvando ? 'Gerando...' : `Gerar plano (${ativos.length}) →`}
                 </button>
               </div>
-            </div>
-          )}
-
           {/* ── ETAPA 2: PLANO REACT ── */}
           {etapa === 'plano' && (
             <div>
