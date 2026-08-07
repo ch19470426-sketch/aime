@@ -417,7 +417,7 @@ export async function POST(request: NextRequest) {
       }
 
       // ── Item 1 — Considerações Preliminares ────────────────────────────────
-      const ITEM1: Record<string,string> = {
+      const ITEM1nr: Record<string,string> = {
         '45': 'Este Laudo de Inspeção em Elevador é o documento completo resultante do trabalho executado pela inspeção nos equipamentos, resultado da vistoria, análise, classificação e priorização das anomalias e falhas, conforme exigências da NBR 16.858 (série), metodologia da NBR 16.747 ajustada, normas complementares e demais legislações aplicáveis.\n\nA inspeção apresentada neste laudo é o resultado de um exame "clínico geral" que avalia as condições globais do objeto em estudo e detecta a existência de problemas de conservação ou funcionamento, com base em uma análise fundamentalmente sensorial e efetuada por um profissional habilitado. Com base nesta análise, pode ocorrer a recomendação de contratação de ensaios especializados ou outras ações para que se possa aprofundar e refinar o diagnóstico.\n\nA documentação da edificação solicitada pelo inspetor na reunião inicial é analisada e avaliada, e o resultado fica registrado na planilha apresentada no Anexo 1 deste laudo.',
         '46': 'Este Laudo de Inspeção em Instalações Elétricas é o documento completo resultante do trabalho executado pela inspeção nas instalações, vistoria, análise, classificação e priorização dos requisitos normativos, conforme exigências da NR-10 e metodologia da NBR 16.747 ajustada, normas complementares e demais legislações aplicáveis.\n\nO apresentado neste laudo é o resultado de um exame "clínico geral" que avalia as condições globais do objeto em estudo no domínio da segurança do trabalho e da conformidade regulatória. Detecta a existência de não conformidades, com base em uma análise fundamentalmente sensorial e efetuada por um profissional habilitado. Com base nesta análise, pode ocorrer a recomendação de contratação de ensaios especializados ou outras ações para que se possa aprofundar e refinar o diagnóstico.\n\nA documentação solicitada pelo inspetor na reunião inicial é analisada e avaliada, e o resultado fica registrado na planilha apresentada no Anexo 1 deste laudo.',
         '47': 'Este Laudo de Inspeção em Máquinas e Equipamentos é o documento completo resultante do trabalho executado pela inspeção nas instalações, vistoria, análise, classificação e priorização dos requisitos normativos, conforme exigências da NR-12 e metodologia da NBR 16.747 ajustada, normas complementares e demais legislações aplicáveis.\n\nO apresentado neste laudo é o resultado de um exame "clínico geral" que avalia as condições globais do objeto em estudo no domínio da segurança do trabalho e da conformidade regulatória. Detecta a existência de não conformidades, com base em uma análise fundamentalmente sensorial e efetuada por um profissional habilitado. Com base nesta análise, pode ocorrer a recomendação de contratação de ensaios especializados ou outras ações para que se possa aprofundar e refinar o diagnóstico.\n\nA documentação solicitada pelo inspetor na reunião inicial é analisada e avaliada, e o resultado fica registrado na planilha apresentada no Anexo 1 deste laudo.',
@@ -541,7 +541,7 @@ export async function POST(request: NextRequest) {
           : '') +
         '</table>'
 
-      // Tabela localização (croqui + foto)
+      // Tabela localização (croqui + fotonr)
       const tabelaLocal =
         '<table style="width:100%;border-collapse:collapse;margin-top:6pt">' +
         '<tr><td colspan="2" style="' + TH11 + '">Localização do Estabelecimento</td></tr>' +
@@ -592,7 +592,7 @@ export async function POST(request: NextRequest) {
           '</table>'
         : ''
 
-      const S11 =
+      const S11nr =
         '<div class="titulo">' + titulo11 + '</div>' +
         '<div class="section">' +
         tabelaCaract +
@@ -627,7 +627,7 @@ export async function POST(request: NextRequest) {
         { c: 'Documentação',      q: 'A documentação técnica atende à NR?',                                  val: nrDoc    },
       ]
 
-      const S33 =
+      const S33nr =
         '<div class="titulo">3.3.- Resultado da Classificação da Instalação.</div>' +
         '<div class="section">' +
         '<p style="text-align:justify;margin-bottom:6pt">O resultado da classificação das instalações seguindo a metodologia apresentada para execução deste trabalho é apresentada a seguir.</p>' +
@@ -717,15 +717,15 @@ export async function POST(request: NextRequest) {
               '</td>' +
               '</tr>' +
               ncsSis.map(nc => {
-                const grN = Number(nc.grauRisco)||0
-                const corP = grN > 80 ? '#CC0000' : grN >= 50 ? '#EA580C' : grN >= 30 ? '#D4A017' : '#16A34A'
-                const priP = grN > 80 ? 'Muito Alta' : grN >= 50 ? 'Alta' : grN >= 30 ? 'Média' : 'Baixa'
+                const grNnr = Number(nc.grauRisco)||0
+                const corP = grNnr > 80 ? '#CC0000' : grNnr >= 50 ? '#EA580C' : grNnr >= 30 ? '#D4A017' : '#16A34A'
+                const priP = grNnr > 80 ? 'Muito Alta' : grNnr >= 50 ? 'Alta' : grNnr >= 30 ? 'Média' : 'Baixa'
                 return '<tr>' +
                   '<td style="' + TDS + ';text-align:center;font-size:9pt;width:6%">' + xe(nc.fotoNr||'') + '</td>' +
                   '<td style="' + TDS + ';font-size:8pt">' +
                     '<span style="width:30%;display:inline-block">' + xe(nc.nc||nc.anomalia||'') + '</span>' +
                     '<span style="width:20%;display:inline-block;text-align:center;color:#4a6480">' + xe(nc.local||'') + '</span>' +
-                    '<span style="width:8%;display:inline-block;text-align:center;font-weight:700;color:' + corP + '">' + grN + '</span>' +
+                    '<span style="width:8%;display:inline-block;text-align:center;font-weight:700;color:' + corP + '">' + grNnr + '</span>' +
                     '<span style="width:12%;display:inline-block;text-align:center;font-weight:700;color:' + corP + '">' + priP + '</span>' +
                     '<span style="flex:1;display:inline-block;color:#374151">' + xe(nc.cp||nc.solucao||'') + '</span>' +
                   '</td>' +
@@ -735,10 +735,10 @@ export async function POST(request: NextRequest) {
           }).join('<tr><td colspan="2" style="border:none;height:6pt"></td></tr>')
 
 
-      const S41 =
+      const S41nr =
         '<div class="titulo">4.1.- Relação de Não Conformidades e Soluções.</div>' +
         '<div class="section">' +
-        '<p style="text-align:justify">Neste item é apresentado, de forma clara e concisa, o conjunto de requisitos normativos identificados na vistoria, suas localizações e o número da foto no respectivo formulário de vistoria. Na tabela constam as prioridades para retificação dos problemas de cada um dos componentes, visando mitigar os riscos e garantir a conformidade e eficiência dos equipamentos, segundo normas técnicas vigentes.</p>' +
+        '<p style="text-align:justify">Neste item é apresentado, de forma clara e concisa, o conjunto de requisitos normativos identificados na vistoria, suas localizações e o número da fotonr no respectivo formulário de vistoria. Na tabela constam as prioridades para retificação dos problemas de cada um dos componentes, visando mitigar os riscos e garantir a conformidade e eficiência dos equipamentos, segundo normas técnicas vigentes.</p>' +
         '<p style="text-align:justify">A prioridade para manutenção de cada uma das não conformidades foi obtida pelo grau de risco (0 a 100), calculado com base nos parâmetros: gravidade (40%); abrangência (30%); urgência (20%); e exposição (10%); observado no requisito normativo.</p>' +
         '<p style="text-align:justify">Quanto à definição das prioridades foi adotado o critério: grau de risco superior a 80 pontos, prioridade <b>Muito Alta</b>; grau de risco menor que 80 pontos e maior que 49 pontos, prioridade <b>Alta</b>; grau de risco menor que 50 pontos e maior que 29 pontos, prioridade <b>Média</b>; grau de risco inferior a 30 pontos, prioridade <b>Baixa</b>.</p>' +
         '<table style="width:100%;border-collapse:collapse">' +
@@ -758,11 +758,11 @@ export async function POST(request: NextRequest) {
       ]
       const stat42 = SISTEMAS_NR.map(s => {
         const prefix = s.slice(0,2)
-        const arr = (ncs ?? []).filter((n:any) => (n.sistema||'').startsWith(prefix))
-        const aM = arr.filter((n:any) => Number(n.grauRisco) > 80).length
-        const aA = arr.filter((n:any) => Number(n.grauRisco) >= 50 && Number(n.grauRisco) <= 80).length
-        const mM = arr.filter((n:any) => Number(n.grauRisco) >= 30 && Number(n.grauRisco) < 50).length
-        const bB = arr.filter((n:any) => Number(n.grauRisco) < 30 && Number(n.grauRisco) > 0).length
+        const arrnr = (ncs ?? []).filter((n:any) => (n.sistema||'').startsWith(prefix))
+        const aM = arrnr.filter((n:any) => Number(n.grauRisco) > 80).length
+        const aA = arrnr.filter((n:any) => Number(n.grauRisco) >= 50 && Number(n.grauRisco) <= 80).length
+        const mM = arrnr.filter((n:any) => Number(n.grauRisco) >= 30 && Number(n.grauRisco) < 50).length
+        const bB = arrnr.filter((n:any) => Number(n.grauRisco) < 30 && Number(n.grauRisco) > 0).length
         const t  = aM + aA + mM + bB
         return { s, aM, aA, mM, bB, t }
       })
@@ -793,10 +793,10 @@ export async function POST(request: NextRequest) {
 
       // Gráfico pizza (estilo laudos 41-44: SVG 160x160 + legenda)
       const pieD = [
-        {label:'Muito Alta',val:tot42.aM,cor:'#CC0000'},
-        {label:'Alta',      val:tot42.aA,cor:'#E8A000'},
-        {label:'Média',     val:tot42.mM,cor:'#EAB308'},
-        {label:'Baixa',     val:tot42.bB,cor:'#16A34A'},
+        {label:'Muito Alta',val:tot42.aM,cornr:'#CC0000'},
+        {label:'Alta',      val:tot42.aA,cornr:'#E8A000'},
+        {label:'Média',     val:tot42.mM,cornr:'#EAB308'},
+        {label:'Baixa',     val:tot42.bB,cornr:'#16A34A'},
       ].filter(d=>d.val>0)
       const pieT = pieD.reduce((s,d)=>s+d.val,0)
       const svgPieH = pieT===0 ? '' : (()=>{
@@ -810,15 +810,15 @@ export async function POST(request: NextRequest) {
           return '<path d="M'+cx+','+cy+' L'+x1.toFixed(1)+','+y1.toFixed(1)+' A'+r+','+r+' 0 '+(e-s>0.5?1:0)+',1 '+x2.toFixed(1)+','+y2.toFixed(1)+' Z" fill="'+col+'"/>'
         }
         let cum=0
-        const slices=pieD.map(d=>{const p=d.val/pieT;const s=arcP(cum,cum+p,d.cor);cum+=p;return s}).join('')
-        const leg=pieD.map((d,i)=>'<div style="display:flex;align-items:center;gap:8px"><span style="display:inline-block;width:14px;height:14px;background:'+d.cor+';border-radius:3px;flex-shrink:0"></span><span>'+d.label+' — '+d.val+'</span></div>').join('')
+        const slices=pieD.map(d=>{const p=d.val/pieT;const s=arcP(cum,cum+p,d.cornr);cum+=p;return s}).join('')
+        const leg=pieD.map((d,i)=>'<div style="display:flex;align-items:center;gap:8px"><span style="display:inline-block;width:14px;height:14px;background:'+d.cornr+';border-radius:3px;flex-shrink:0"></span><span>'+d.label+' — '+d.val+'</span></div>').join('')
         return '<div style="display:flex;align-items:center;justify-content:center;gap:24px;padding:8px">'+
           '<svg width="160" height="160" viewBox="0 0 160 160" style="flex-shrink:0">'+slices+'</svg>'+
           '<div style="font-size:8.5pt;display:flex;flex-direction:column;gap:8px">'+leg+
           '<div style="border-top:1px solid #e5e7eb;padding-top:6px;margin-top:4px"><b>Total: '+pieT+' NCs</b></div></div></div>'
       })()
 
-      const S42 =
+      const S42nr =
         '<div class="titulo">4.2.- Análise Estatística das Manifestações Patológicas.</div>' +
         '<div class="section">' +
         '<p style="text-align:justify">A tabela que segue apresenta a estatística de ocorrências de requisitos normativos não conformes identificados na instalação, e classificados por sistema e prioridades, onde se pode observar a situação de cada um dos sistemas, possibilitando uma clara compreensão do estado das instalações e um adequado planejamento para execução das atividades corretivas.</p>' +
@@ -864,7 +864,7 @@ export async function POST(request: NextRequest) {
         '</div>'
 
       // ── BLOCO 5 — Recomendações ────────────────────────────────────────────
-      const S5 =
+      const S5nr =
         '<div class="titulo">5.- Recomendações Gerais.</div>' +
         '<div class="section">' +
         '<p style="text-align:justify">No decorrer do processo de inspeção foi efetuada a análise da documentação, a vistoria nas instalações e a classificação das anomalias e dos requisitos normativos, o que possibilitou uma completa avaliação que possibilita apresentar as recomendações que seguem, considerando a manutenção, operação, condições físicas, segurança e documentação.</p>' +
@@ -883,8 +883,8 @@ export async function POST(request: NextRequest) {
         '</div>'
 
       // ── TABELA AGENDA (plano de trabalho) ──────────────────────────────────
-      const slugPlano: Record<string,string> = { '45':'plano_elevador','46':'plano_nr10','47':'plano_nr12','48':'plano_nr13' }
-      const nomePlano = chaveInspetor + '_' + cnpjoucpf + '_' + (slugPlano[tipoServico]??'plano') + '.html'
+      const slugPlanoNR: Record<string,string> = { '45':'plano_elevador','46':'plano_nr10','47':'plano_nr12','48':'plano_nr13' }
+      const nomePlano = chaveInspetor + '_' + cnpjoucpf + '_' + (slugPlanoNR[tipoServico]??'plano') + '.html'
       let tabelaPlano = '<table style="width:100%;border-collapse:collapse"><tr><td style="' + TH11 + '">Agenda de Trabalho – ' + agendaLabel + '</td></tr><tr><td style="' + TD11 + ';color:#9a3412;font-style:italic">Plano de trabalho não encontrado. Gere e salve o plano de trabalho deste serviço primeiro.</td></tr></table>'
       try {
         const { data: blobP } = await supabase.storage.from('aime').download('documentos_inspetor/' + nomePlano)
@@ -909,7 +909,7 @@ export async function POST(request: NextRequest) {
       const docsAnexo = DOCS_NR_MAP[tipoServico] ?? []
       const docsA1 = Object.keys(complemento?.docsAnexo1 ?? {}).length > 0
         ? Object.keys(complemento.docsAnexo1) : docsAnexo
-      const A1 =
+      const A1nr =
         '<div class="titulo" style="text-align:center">Anexo 1 — ' + (A1_TITULO[tipoServico]??'Documentação Solicitada') + '</div>' +
         '<div class="section">' +
         '<table style="width:100%;border-collapse:collapse">' +
@@ -919,11 +919,11 @@ export async function POST(request: NextRequest) {
           '<td style="' + TH11 + ';width:21%">Resultado</td>' +
         '</tr>' +
         docsA1.map((d:string) => {
-          const info = (complemento?.docsAnexo1 ?? {})[d] ?? {situacao:'',resultado:''}
+          const infonr = (complemento?.docsAnexo1 ?? {})[d] ?? {situacao:'',resultado:''}
           return '<tr>' +
             '<td style="' + TDS + '">' + d + '</td>' +
-            '<td style="' + TDS + ';text-align:center">' + (info.situacao||'—') + '</td>' +
-            '<td style="' + TDS + '">' + (info.resultado||'—') + '</td>' +
+            '<td style="' + TDS + ';text-align:center">' + (infonr.situacao||'—') + '</td>' +
+            '<td style="' + TDS + '">' + (infonr.resultado||'—') + '</td>' +
             '</tr>'
         }).join('') +
         '</table>' +
@@ -943,17 +943,17 @@ export async function POST(request: NextRequest) {
         return nc
       }))
 
-      const A2 = (ncsComFotoNR ?? []).length === 0
+      const A2nr = (ncsComFotoNR ?? []).length === 0
         ? '<p style="color:#9a3412;font-style:italic">Nenhuma vistoria homologada encontrada.</p>'
         : (ncsComFotoNR ?? []).map((nc:any, idx:number) => {
-          const grN = Number(nc.grauRisco)||0
-          const cor = grN > 80 ? '#CC0000' : grN >= 50 ? '#E8A000' : '#16A34A'
-          const bg  = grN > 80 ? '#FEE2E2' : grN >= 50 ? '#FEF9C3' : '#DCFCE7'
-          const pri = grN > 80 ? 'Muito Alta' : grN >= 50 ? 'Alta' : grN >= 30 ? 'Média' : 'Baixa'
-          const foto = nc.fotoBase64?.startsWith('data:image')
+          const grNnr = Number(nc.grauRisco)||0
+          const cornr = grNnr > 80 ? '#CC0000' : grNnr >= 50 ? '#E8A000' : '#16A34A'
+          const bgnr  = grNnr > 80 ? '#FEE2E2' : grNnr >= 50 ? '#FEF9C3' : '#DCFCE7'
+          const prinr = grNnr > 80 ? 'Muito Alta' : grNnr >= 50 ? 'Alta' : grNnr >= 30 ? 'Média' : 'Baixa'
+          const fotonr = nc.fotoBase64?.startsWith('data:image')
             ? '<img src="' + nc.fotoBase64 + '" style="max-width:100%;max-height:115mm;object-fit:contain;display:block;margin:0 auto">'
-            : '<div style="height:60mm;display:flex;align-items:center;justify-content:center;color:#94a3b8;border:1px dashed #c3d4f0;font-size:7pt">[Sem foto]</div>'
-          const LBL = 'font-size:5.5pt;color:#4a6480;font-weight:700;display:block;text-transform:uppercase;margin-bottom:1px'
+            : '<div style="height:60mm;display:flex;align-items:center;justify-content:center;color:#94a3b8;border:1px dashed #c3d4f0;font-size:7pt">[Sem fotonr]</div>'
+          const LBLnr = 'font-size:5.5pt;color:#4a6480;font-weight:700;display:block;text-transform:uppercase;margin-bottom:1px'
           const TDR = 'border:1px solid #dde5f0;padding:3px 6px;vertical-align:top'
           const THR = 'background:#1E3A8A;color:#fff;font-weight:700;padding:4px 6px;font-size:7.5pt'
           const pb  = idx > 0 ? '<div style="page-break-before:always"></div>' : ''
@@ -965,19 +965,19 @@ export async function POST(request: NextRequest) {
           return pb +
             '<table style="width:100%;border-collapse:collapse;font-size:7.5pt;outline:1px solid #1E3A8A">' +
             '<tr><td colspan="4" style="' + THR + '">Identificação</td></tr>' +
-            '<tr><td style="' + TDR + ';width:32%"><span style="' + LBL + '">CNPJ/CPF</span>' + xe(nc.cnpjoucpf||'') + '</td><td colspan="3" style="' + TDR + '"><span style="' + LBL + '">Razão Social</span>' + xe(nc.razaoSocial||estab?.razao_social_nome||'') + '</td></tr>' +
+            '<tr><td style="' + TDR + ';width:32%"><span style="' + LBLnr + '">CNPJ/CPF</span>' + xe(nc.cnpjoucpf||'') + '</td><td colspan="3" style="' + TDR + '"><span style="' + LBLnr + '">Razão Social</span>' + xe(nc.razaoSocial||estab?.razao_social_nome||'') + '</td></tr>' +
             '<tr><td colspan="4" style="' + THR + '">Requisito Normativo — Não Conformidade</td></tr>' +
-            '<tr><td style="' + TDR + '"><span style="' + LBL + '">Sistema</span>' + xe((nc.sistema||'').slice(3).replace(/_/g,' ')) + '</td><td style="' + TDR + '"><span style="' + LBL + '">Subsistema</span>' + xe(nc.subsistema||'') + '</td><td colspan="2" style="' + TDR + '"><span style="' + LBL + '">Item Normativo</span>' + xe(nc.anomalia||nc.nc||'') + '</td></tr>' +
-            '<tr><td style="' + TDR + '"><span style="' + LBL + '">Resultado</span>' + xe(nc.resultado||nc.origem||'') + '</td><td style="' + TDR + '"><span style="' + LBL + '">Local</span>' + xe(nc.local||'') + '</td><td colspan="2" style="' + TDR + '"><span style="' + LBL + '">Complemento</span>' + xe(nc.complemento||'') + '</td></tr>' +
+            '<tr><td style="' + TDR + '"><span style="' + LBLnr + '">Sistema</span>' + xe((nc.sistema||'').slice(3).replace(/_/g,' ')) + '</td><td style="' + TDR + '"><span style="' + LBLnr + '">Subsistema</span>' + xe(nc.subsistema||'') + '</td><td colspan="2" style="' + TDR + '"><span style="' + LBLnr + '">Item Normativo</span>' + xe(nc.anomalia||nc.nc||'') + '</td></tr>' +
+            '<tr><td style="' + TDR + '"><span style="' + LBLnr + '">Resultado</span>' + xe(nc.resultado||nc.origem||'') + '</td><td style="' + TDR + '"><span style="' + LBLnr + '">Local</span>' + xe(nc.local||'') + '</td><td colspan="2" style="' + TDR + '"><span style="' + LBLnr + '">Complemento</span>' + xe(nc.complemento||'') + '</td></tr>' +
             '<tr><td colspan="4" style="' + THR + '">Classificação de Risco</td></tr>' +
-            '<tr><td style="' + TDR + '"><span style="' + LBL + '">Gravidade</span>' + (GMAP[gv]||gv||'—') + '</td><td style="' + TDR + '"><span style="' + LBL + '">Urgência</span>' + (UMAP[uv]||uv||'—') + '</td><td style="' + TDR + '"><span style="' + LBL + '">Abrangência</span>' + (AMAP[av]||av||'—') + '</td><td style="' + TDR + '"><span style="' + LBL + '">Exposição</span>' + (EMAP[ev]||ev||'—') + '</td></tr>' +
-            '<tr><td colspan="2" style="' + TDR + ';background:' + bg + ';border-color:' + cor + '"><span style="' + LBL + '">Grau de Risco</span><span style="font-size:16pt;font-weight:700;color:' + cor + '">' + grN + '</span></td><td colspan="2" style="' + TDR + ';background:' + bg + ';border-color:' + cor + ';text-align:center"><span style="' + LBL + '">Prioridade</span><span style="font-size:11pt;font-weight:700;color:' + cor + '">' + pri + '</span></td></tr>' +
+            '<tr><td style="' + TDR + '"><span style="' + LBLnr + '">Gravidade</span>' + (GMAP[gv]||gv||'—') + '</td><td style="' + TDR + '"><span style="' + LBLnr + '">Urgência</span>' + (UMAP[uv]||uv||'—') + '</td><td style="' + TDR + '"><span style="' + LBLnr + '">Abrangência</span>' + (AMAP[av]||av||'—') + '</td><td style="' + TDR + '"><span style="' + LBLnr + '">Exposição</span>' + (EMAP[ev]||ev||'—') + '</td></tr>' +
+            '<tr><td colspan="2" style="' + TDR + ';background:' + bgnr + ';border-color:' + cornr + '"><span style="' + LBLnr + '">Grau de Risco</span><span style="font-size:16pt;font-weight:700;color:' + cornr + '">' + grNnr + '</span></td><td colspan="2" style="' + TDR + ';background:' + bgnr + ';border-color:' + cornr + ';text-align:center"><span style="' + LBLnr + '">Prioridade</span><span style="font-size:11pt;font-weight:700;color:' + cornr + '">' + prinr + '</span></td></tr>' +
             '<tr><td colspan="4" style="' + THR + '">Evidência Fotográfica</td></tr>' +
-            '<tr><td style="' + TDR + ';width:40%"><span style="' + LBL + '">Foto Nº</span>' + xe(nc.fotoNr||'') + '</td><td colspan="3" style="' + TDR + ';text-align:right"><span style="' + LBL + '">Data da Vistoria</span>' + xe(nc.dataVistoria||nc.data||'') + '</td></tr>' +
-            '<tr><td colspan="4" style="' + TDR + ';padding:4px 2px">' + foto + '</td></tr>' +
+            '<tr><td style="' + TDR + ';width:40%"><span style="' + LBLnr + '">Foto Nº</span>' + xe(nc.fotoNr||'') + '</td><td colspan="3" style="' + TDR + ';text-align:right"><span style="' + LBLnr + '">Data da Vistoria</span>' + xe(nc.dataVistoria||nc.data||'') + '</td></tr>' +
+            '<tr><td colspan="4" style="' + TDR + ';padding:4px 2px">' + fotonr + '</td></tr>' +
             '<tr><td colspan="4" style="' + THR + '">Resultado da Análise</td></tr>' +
-            '<tr><td colspan="4" style="' + TDR + '"><span style="' + LBL + '">Descrição da Não Conformidade (NC)</span>' + xe(nc.nc||nc.anomalia||'') + '</td></tr>' +
-            '<tr><td colspan="4" style="' + TDR + '"><span style="' + LBL + '">Causa Provável (CP)</span>' + xe(nc.cp||'') + '</td></tr>' +
+            '<tr><td colspan="4" style="' + TDR + '"><span style="' + LBLnr + '">Descrição da Não Conformidade (NC)</span>' + xe(nc.nc||nc.anomalia||'') + '</td></tr>' +
+            '<tr><td colspan="4" style="' + TDR + '"><span style="' + LBLnr + '">Causa Provável (CP)</span>' + xe(nc.cp||'') + '</td></tr>' +
             '</table>'
         }).join('\n')
 
@@ -1066,10 +1066,10 @@ export async function POST(request: NextRequest) {
 
       // 1. Considerações Preliminares
       partsNR.push('<div class="titulo">1.- Considerações Preliminares.</div>')
-      partsNR.push('<p style="text-align:justify">' + xe(ITEM1[tipoServico]||'').replace(/\n\n/g,'</p><p style="text-align:justify">') + '</p>')
+      partsNR.push('<p style="text-align:justify">' + xe(ITEM1nr[tipoServico]||'').replace(/\n\n/g,'</p><p style="text-align:justify">') + '</p>')
 
       // 1.1
-      partsNR.push(S11)
+      partsNR.push(S11nr)
 
       // 1.2
       partsNR.push('<div class="titulo">' + titulo12 + '</div>')
@@ -1117,15 +1117,15 @@ export async function POST(request: NextRequest) {
       partsNR.push(S31)
       partsNR.push('<div class="titulo">3.2.- Resultado da Vistoria.</div>')
       partsNR.push('<p style="text-align:justify">O resultado da vistoria, imagens dos formulários da coleta de dados, é apresentado no <b>Anexo 2</b> deste documento e representa, fielmente, dados, informações e fotos coletadas durante a realização da vistoria.</p>')
-      partsNR.push(S33)
+      partsNR.push(S33nr)
 
       // 4. NCs
       partsNR.push('<div class="titulo">4.- Relação de Não Conformidades e Análise das Não Conformidades.</div>')
-      partsNR.push(S41)
-      partsNR.push(S42)
+      partsNR.push(S41nr)
+      partsNR.push(S42nr)
 
       // 5. Recomendações
-      partsNR.push(S5)
+      partsNR.push(S5nr)
 
       // 6. Conclusão
       partsNR.push('<div class="titulo">6.- Conclusão.</div>')
@@ -1151,8 +1151,8 @@ export async function POST(request: NextRequest) {
       partsNR.push('</div>')
 
       // ANEXOS
-      partsNR.push('<div class="section">' + A1 + '</div>')
-      partsNR.push('<div class="section"><div class="titulo" style="text-align:center">Anexo 2 – Resultado da Vistoria</div><br>' + A2 + '</div>')
+      partsNR.push('<div class="section">' + A1nr + '</div>')
+      partsNR.push('<div class="section"><div class="titulo" style="text-align:center">Anexo 2 – Resultado da Vistoria</div><br>' + A2nr + '</div>')
       partsNR.push('<div class="section"><div class="titulo" style="text-align:center">Anexo 3 – Anotação de Responsabilidade Técnica</div><br><p>Inserir neste espaço a ART (Anotação de Responsabilidade Técnica) registrada no CREA ou RRT (Registro de Responsabilidade Técnica) registrada no CAU, referente a este serviço.</p></div>')
       partsNR.push('</body></html>')
 
