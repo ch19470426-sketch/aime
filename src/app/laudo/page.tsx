@@ -174,7 +174,8 @@ function LaudoComplemento() {
   const [docsAnexo1, setDocsAnexo1] = useState<Record<string,{situacao:string,resultado:string}>>({}) // preenchido pelo plano
 
   const SUPA_URL = 'https://asgorarunzhiojqioxzq.supabase.co'
-  const SUPA_KEY = 'sb_publishable_dH85HYKGxv3X0te627VfOw_OGaPoNMF'
+  const SUPA_SVC = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFzZ29yYXJ1bnpoaW9qcWlveHpxIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0NTI4NTEyNiwiZXhwIjoyMDYwODYxMTI2fQ.GZ7F3ywJLY5S8Q2RYQB_3zVrKzTFCbvqWlXmfwFjdVE'
+const SUPA_KEY = 'sb_publishable_dH85HYKGxv3X0te627VfOw_OGaPoNMF'
 
   // ── Carregar dados ──
   useEffect(() => {
@@ -193,7 +194,7 @@ function LaudoComplemento() {
           // Buscar contato_cliente mais recente
           try {
             const resCC = await fetch(`${SUPA_URL}/rest/v1/contato_cliente?cpf_inspetor=eq.${cpfInspetor}&cnpjoucpf=eq.${cnpjoucpf}&tipo_servico=eq.${encodeURIComponent(tipoServico)}&order=data_cadastro.desc&limit=1`, {
-              headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` }
+              headers: { apikey: SUPA_SVC, Authorization: `Bearer ${SUPA_SVC}` }
             })
             const dadosCC = await resCC.json()
             if (Array.isArray(dadosCC) && dadosCC.length > 0) setContato(dadosCC[0])
