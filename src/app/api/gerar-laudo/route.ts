@@ -672,69 +672,78 @@ export async function POST(request: NextRequest) {
       }
 
       const recsSis = complemento?.recsSistema ?? {}
-      // Descrição dos sistemas NR (para inserir na tabela 4.1)
-      const DESC_SISTEMAS: Record<string,string> = {
-        '01_Documentação Técnica': 'Conjunto de documentos obrigatórios exigidos pela NR-12, incluindo prontuário da máquina, manuais de operação e manutenção, registros de inspeção e análise de riscos.',
-        '02_Capacitação': 'Treinamento e habilitação dos operadores e trabalhadores que operam, mantêm ou inspecionam máquinas e equipamentos, conforme requisitos da NR-12.',
-        '03_Proteções e Dispositivos': 'Proteções fixas, móveis e dispositivos de segurança instalados nas zonas de perigo das máquinas, incluindo intertravamentos, sensores e cortinas de luz.',
-        '04_Partida e Parada': 'Dispositivos de partida, parada normal e de emergência, incluindo botões de emergência, sistemas de travamento e bloqueio (LOTO).',
-        '05_Sistema Elétrico': 'Instalações elétricas das máquinas, aterramento, proteções contra choques elétricos e conformidade com normas elétricas aplicáveis.',
-        '06_Ergonomia': 'Condições ergonômicas do posto de trabalho, incluindo postura, esforço físico, iluminação, ruído e conforto do operador.',
-        '07_EPIs e EPCs': 'Equipamentos de Proteção Individual e Coletiva utilizados nas operações com máquinas, incluindo adequação e disponibilidade.',
-        '08_Sinalização': 'Sinalização de segurança das máquinas e equipamentos, incluindo advertências de perigo, instruções de operação e identificação de zonas de risco.',
-        '09_Manutenção': 'Programa de manutenção preventiva e corretiva das máquinas, incluindo registros, periodicidade e execução por profissional habilitado.',
-        '10_SPDA': 'Sistema de Proteção contra Descargas Atmosféricas das instalações onde operam as máquinas.',
-        '11_Procedimentos Segurança': 'Procedimentos operacionais de segurança para operação, manutenção e inspeção das máquinas, incluindo LOTO e análise de risco.',
-        '12_Gestão de Risco': 'Análise e gestão de riscos das máquinas e equipamentos, incluindo metodologia de avaliação e plano de ação corretiva.',
+      const DESC_SIS: Record<string,string> = {
+        '01_Documentação Técnica':'Conjunto de documentos obrigatórios exigidos pela NR, incluindo prontuários, manuais, registros de inspeção e análise de riscos.',
+        '02_Capacitação':'Treinamento e habilitação dos operadores e trabalhadores que operam, mantêm ou inspecionam os equipamentos.',
+        '03_Proteções e Dispositivos':'Proteções fixas, móveis e dispositivos de segurança nas zonas de perigo, incluindo intertravamentos e sensores.',
+        '04_Partida e Parada':'Dispositivos de partida, parada normal e de emergência, incluindo botões de emergência e bloqueio (LOTO).',
+        '05_Sistema Elétrico':'Instalações elétricas, aterramento, proteções contra choques elétricos e conformidade com normas elétricas.',
+        '06_Ergonomia':'Condições ergonômicas do posto de trabalho: postura, esforço físico, iluminação, ruído e conforto.',
+        '07_EPIs e EPCs':'Equipamentos de Proteção Individual e Coletiva utilizados nas operações, incluindo adequação e disponibilidade.',
+        '08_Sinalização':'Sinalização de segurança, advertências de perigo, instruções de operação e identificação de zonas de risco.',
+        '09_Manutenção':'Programa de manutenção preventiva e corretiva, registros, periodicidade e execução por profissional habilitado.',
+        '10_SPDA':'Sistema de Proteção contra Descargas Atmosféricas das instalações.',
+        '11_Procedimentos Segurança':'Procedimentos operacionais de segurança para operação, manutenção e inspeção, incluindo LOTO e análise de risco.',
+        '12_Gestão de Risco':'Análise e gestão de riscos, metodologia de avaliação e plano de ação corretiva.',
+        '03_Quadros Elétricos':'Quadros de distribuição, barramentos, dispositivos de proteção e identificação dos circuitos.',
+        '04_Cabos e Condutores':'Condutores elétricos, isolamento, dimensionamento e identificação de circuitos.',
+        '05_Proteção Elétrica':'Dispositivos de proteção contra sobrecorrente, curto-circuito e contato indireto.',
+        '06_Sistema de Aterramento':'Sistema de aterramento e equipotencialização das instalações elétricas.',
+        '08_Tomadas/Pontos Energia':'Tomadas, pontos de energia e adequação às cargas instaladas.',
+        '09_Iluminação':'Sistema de iluminação normal e de emergência das áreas de trabalho.',
       }
       const S41_blocos = Object.keys(ncsPorSistema41).length === 0
-        ? '<tr><td colspan="4" style="' + TD11 + ';color:#9a3412;font-style:italic">Nenhuma não conformidade registrada.</td></tr>'
+        ? '<tr><td colspan="6" style="' + TD11 + ';color:#9a3412;font-style:italic">Nenhuma não conformidade registrada.</td></tr>'
         : Object.entries(ncsPorSistema41).map(([sis, ncsSis]) => {
             const sisNome = sis.length > 2 ? sis.slice(3).replace(/_/g,' ') : sis
-            const descSis = xe(DESC_SISTEMAS[sis] ?? '')
+            const descSis = xe(DESC_SIS[sis] ?? '')
             const recSis  = xe(recsSis[sis] ?? '')
             const tagEx   = xe(ncsSis[0]?.tag || '')
             const tipoEx  = xe(ncsSis[0]?.tipoAtivo || '')
+            const TH_SIS  = 'background:#1E3A8A;color:#fff;padding:4px 8px;font-size:8pt;font-weight:700'
             return (
-              // Linha cabeçalho: Tag/Série | Sistema
-              '<tr style="background:#1E3A8A;color:#fff">' +
+              // Cabeçalho: Tag/Série | Sistema
+              '<tr>' +
               (is45
-                ? '<td style="padding:4px 8px;font-size:8pt;font-weight:700;width:15%">Tag: ' + tagEx + ' | Tipo: ' + tipoEx + '</td>'
-                : '<td style="padding:4px 8px;font-size:8pt;font-weight:700;width:15%">Tag/Nº Série: ' + tagEx + '</td>') +
-              '<td style="padding:4px 8px;font-size:8.5pt;font-weight:700">Sistema: ' + sisNome + '</td>' +
+                ? '<td style="' + TH_SIS + ';width:22%">Tag/Nº Série: ' + tagEx + ' | Tipo: ' + tipoEx + '</td>'
+                : '<td style="' + TH_SIS + ';width:22%">Tag/Nº Série: ' + tagEx + '</td>') +
+              '<td style="' + TH_SIS + '">Sistema: ' + sisNome + '</td>' +
               '</tr>' +
-              // Linha descrição do sistema
+              // Descrição do sistema
               '<tr>' +
-              '<td style="' + TD11 + ';background:#f1f5f9;font-size:7.5pt;font-weight:700;width:15%;vertical-align:top">Descrição<br>do sistema:</td>' +
-              '<td style="' + TD11 + ';background:#f1f5f9;font-size:8pt">' + descSis + '</td>' +
+              '<td style="' + TD11 + ';background:#F8FAFC;font-size:7.5pt;font-weight:700;color:#1E3A8A;vertical-align:top;width:22%">Descrição do sistema:</td>' +
+              '<td style="' + TD11 + ';background:#F8FAFC;font-size:8pt">' + (descSis || '<i>Sem descrição cadastrada.</i>') + '</td>' +
               '</tr>' +
-              // Linha recomendação para o sistema
+              // Recomendação para o sistema
               '<tr>' +
-              '<td style="' + TD11 + ';background:#EEF2FF;font-size:7.5pt;font-weight:700;color:#1E3A8A;vertical-align:top">Recomendação<br>para o sistema:</td>' +
-              '<td style="' + TD11 + ';background:#EEF2FF;font-size:8pt">' + (recSis || '<i style="color:#9a3412">Sem recomendação registrada para este sistema.</i>') + '</td>' +
+              '<td style="' + TD11 + ';background:#EEF2FF;font-size:7.5pt;font-weight:700;color:#1E3A8A;vertical-align:top;width:22%">Recomendação<br>para o sistema:</td>' +
+              '<td style="' + TD11 + ';background:#EEF2FF;font-size:8pt">' + (recSis || '<i style="color:#9a3412">Não há recomendação registrada para este sistema.</i>') + '</td>' +
               '</tr>' +
-              // Cabeçalho das NCs
+              // Cabeçalho tabela de NCs
               '<tr style="background:#E8EEF7">' +
-              '<td style="' + TD11 + ';font-weight:700;font-size:8pt;text-align:center">Foto</td>' +
-              '<td style="' + TD11 + ';font-weight:700;font-size:8pt">Não Conformidade &nbsp;|&nbsp; Local &nbsp;|&nbsp; G.Risco &nbsp;|&nbsp; Prioridade &nbsp;|&nbsp; Sugestões</td>' +
+              '<td style="' + TD11 + ';font-weight:700;font-size:8pt;text-align:center;width:6%">Foto</td>' +
+              '<td style="' + TD11 + ';font-weight:700;font-size:8pt;width:28%">Não Conformidade</td>' +
+              '<td style="' + TD11 + ';font-weight:700;font-size:8pt;width:18%">Local</td>' +
+              '<td style="' + TD11 + ';font-weight:700;font-size:8pt;text-align:center;width:8%">G Risco</td>' +
+              '<td style="' + TD11 + ';font-weight:700;font-size:8pt;text-align:center;width:10%">Prioridade</td>' +
+              '<td style="' + TD11 + ';font-weight:700;font-size:8pt;width:30%">Sugestões</td>' +
               '</tr>' +
               // Linhas de NCs
               ncsSis.map(nc => {
                 const grN = Number(nc.grauRisco)||0
-                const corP = grN > 80 ? '#CC0000' : grN >= 50 ? '#E87000' : grN >= 30 ? '#D4A017' : '#2E8B57'
+                const corP = grN > 80 ? '#CC0000' : grN >= 50 ? '#EA580C' : grN >= 30 ? '#D4A017' : '#16A34A'
                 const priP = grN > 80 ? 'Muito Alta' : grN >= 50 ? 'Alta' : grN >= 30 ? 'Média' : 'Baixa'
                 return '<tr>' +
-                  '<td style="' + TDS + ';text-align:center;font-size:9pt;width:8%">' + xe(nc.fotoNr||'') + '</td>' +
-                  '<td style="' + TDS + '">' +
-                    '<b style="font-size:8pt">' + xe(nc.nc||nc.anomalia||'') + '</b>' +
-                    (nc.local ? '<span style="font-size:7.5pt;color:#4a6480"> &mdash; ' + xe(nc.local) + '</span>' : '') +
-                    '<br><span style="font-size:8pt;font-weight:700;color:' + corP + '">' + grN + ' pts &mdash; ' + priP + '</span>' +
-                    (nc.cp ? '<br><span style="font-size:7.5pt;color:#374151"><i>Sugestão: ' + xe(nc.cp||nc.solucao||'') + '</i></span>' : '') +
-                  '</td>' +
+                  '<td style="' + TDS + ';text-align:center;font-size:9pt">' + xe(nc.fotoNr||'') + '</td>' +
+                  '<td style="' + TDS + ';font-size:8pt">' + xe(nc.nc||nc.anomalia||'') + '</td>' +
+                  '<td style="' + TDS + ';font-size:8pt">' + xe(nc.local||'') + '</td>' +
+                  '<td style="' + TDS + ';text-align:center;font-size:10pt;font-weight:700;color:' + corP + '">' + grN + '</td>' +
+                  '<td style="' + TDS + ';text-align:center;font-size:8pt;font-weight:700;color:' + corP + '">' + priP + '</td>' +
+                  '<td style="' + TDS + ';font-size:8pt">' + xe(nc.cp||nc.solucao||'') + '</td>' +
                   '</tr>'
               }).join('')
             )
-          }).join('<tr><td colspan="2" style="border:none;height:6pt"></td></tr>')
+          }).join('<tr><td colspan="6" style="border:none;height:6pt"></td></tr>')
 
 
       const S41 =
@@ -744,7 +753,7 @@ export async function POST(request: NextRequest) {
         '<p style="text-align:justify">A prioridade para manutenção de cada uma das não conformidades foi obtida pelo grau de risco (0 a 100), calculado com base nos parâmetros: gravidade (40%); abrangência (30%); urgência (20%); e exposição (10%); observado no requisito normativo.</p>' +
         '<p style="text-align:justify">Quanto à definição das prioridades foi adotado o critério: grau de risco superior a 80 pontos, prioridade <b>Muito Alta</b>; grau de risco menor que 80 pontos e maior que 49 pontos, prioridade <b>Alta</b>; grau de risco menor que 50 pontos e maior que 29 pontos, prioridade <b>Média</b>; grau de risco inferior a 30 pontos, prioridade <b>Baixa</b>.</p>' +
         '<table style="width:100%;border-collapse:collapse">' +
-        '<tr><td colspan="2" style="' + TH11 + '">' + titulo41 + '</td></tr>' +
+        '<tr><td colspan="6" style="' + TH11 + '">' + titulo41 + '</td></tr>' +
         S41_blocos +
         '</table>' +
         '</div>'
@@ -777,54 +786,61 @@ export async function POST(request: NextRequest) {
 
 
 
-      // ── Gráfico de Barras — distribuição por ocorrência por sistema (azul) ──
+      // ── Gráfico de Barras HORIZONTAIS — distribuição por ocorrência por sistema ──
       const sistFiltrados = stat42.filter(r => r.t > 0)
       const maxBar = Math.max(...sistFiltrados.map(r => r.t), 1)
-      const bW = sistFiltrados.length > 0 ? Math.floor(460 / sistFiltrados.length) - 6 : 40
+      const barH_item = 18  // altura de cada barra
+      const barTotalH = sistFiltrados.length * (barH_item + 4) + 30
+      const barLabelW = 130  // largura do label do sistema
+      const barAreaW  = 340  // largura da área de barras
       const svgBar = sistFiltrados.length === 0 ? '' :
-        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 180" width="100%" style="display:block">' +
+        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 ' + barTotalH + '" width="100%" style="display:block">' +
         sistFiltrados.map((r, i) => {
-          const x = 20 + i * (bW + 6)
-          const h = Math.round(r.t / maxBar * 130)
-          const y = 140 - h
-          const nome = r.s.length > 5 ? r.s.slice(3, 16) : r.s
+          const y = i * (barH_item + 4) + 4
+          const w = Math.round(r.t / maxBar * barAreaW)
+          const nome = r.s.length > 5 ? r.s.slice(3, 22) : r.s
           return (
-            '<rect x="' + x + '" y="' + y + '" width="' + bW + '" height="' + h + '" fill="#1E3A8A" rx="2"/>' +
-            '<text x="' + (x + bW/2) + '" y="' + (y - 3) + '" text-anchor="middle" font-size="8" font-weight="bold" fill="#1E3A8A">' + r.t + '</text>' +
-            '<text x="' + (x + bW/2) + '" y="155" text-anchor="middle" font-size="6" fill="#374151" transform="rotate(-30 ' + (x + bW/2) + ' 155)">' + nome + '</text>'
+            '<text x="' + (barLabelW - 4) + '" y="' + (y + barH_item - 4) + '" text-anchor="end" font-size="7.5" fill="#374151">' + nome + '</text>' +
+            '<rect x="' + barLabelW + '" y="' + y + '" width="' + w + '" height="' + barH_item + '" fill="#1E3A8A" rx="2"/>' +
+            '<text x="' + (barLabelW + w + 4) + '" y="' + (y + barH_item - 4) + '" font-size="8" font-weight="bold" fill="#1E3A8A">' + r.t + '</text>'
           )
         }).join('') +
-        '<line x1="15" y1="140" x2="490" y2="140" stroke="#1E3A8A" stroke-width="1"/>' +
         '</svg>'
 
-      // ── Gráfico Pizza — distribuição por prioridade ──────────────────────────
+
+      // ── Gráfico Pizza — distribuição por prioridade (estilo caixa, igual laudos 41-44) ──
       const pieData = [
-        { label: 'Muito Alta', val: tot42.aM, cor: '#DC2626' },
-        { label: 'Alta',       val: tot42.aA, cor: '#EA580C' },
+        { label: 'Muito Alta', val: tot42.aM, cor: '#CC0000' },
+        { label: 'Alta',       val: tot42.aA, cor: '#E8A000' },
         { label: 'Média',      val: tot42.mM, cor: '#EAB308' },
         { label: 'Baixa',      val: tot42.bB, cor: '#16A34A' },
       ].filter(d => d.val > 0)
       const pieTotal = pieData.reduce((s,d) => s+d.val, 0)
       const svgPie = pieTotal === 0 ? '' : (() => {
-        const cx = 90; const cy = 90; const r = 75
-        let angle = -Math.PI / 2
-        let slices = ''
-        let legend = ''
-        pieData.forEach((d, i) => {
+        const r=70, cx=80, cy=80
+        function arc(s:number, e:number, col:string):string {
+          if (e-s <= 0) return ''
+          if (e-s >= 1) return '<circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="'+col+'"/>'
+          const a1=(s*2-0.5)*Math.PI, a2=(e*2-0.5)*Math.PI
+          const x1=cx+r*Math.cos(a1), y1=cy+r*Math.sin(a1)
+          const x2=cx+r*Math.cos(a2), y2=cy+r*Math.sin(a2)
+          return '<path d="M'+cx+','+cy+' L'+x1+','+y1+' A'+r+','+r+' 0 '+(e-s>0.5?1:0)+',1 '+x2+','+y2+' Z" fill="'+col+'"/>'
+        }
+        let cum = 0
+        const slices = pieData.map(d => {
           const pct = d.val / pieTotal
-          const end = angle + pct * 2 * Math.PI
-          const x1 = cx + r * Math.cos(angle); const y1 = cy + r * Math.sin(angle)
-          const x2 = cx + r * Math.cos(end);   const y2 = cy + r * Math.sin(end)
-          const large = pct > 0.5 ? 1 : 0
-          slices += '<path d="M ' + cx + ' ' + cy + ' L ' + x1.toFixed(1) + ' ' + y1.toFixed(1) + ' A ' + r + ' ' + r + ' 0 ' + large + ' 1 ' + x2.toFixed(1) + ' ' + y2.toFixed(1) + ' Z" fill="' + d.cor + '" stroke="#fff" stroke-width="2"/>'
-          const mid = (angle + end) / 2
-          const tx = cx + r * 0.62 * Math.cos(mid); const ty = cy + r * 0.62 * Math.sin(mid)
-          if (pct > 0.04) slices += '<text x="' + tx.toFixed(1) + '" y="' + ty.toFixed(1) + '" text-anchor="middle" font-size="9" font-weight="bold" fill="#fff">' + Math.round(pct*100) + '%</text>'
-          legend += '<rect x="195" y="' + (20 + i * 22) + '" width="12" height="12" fill="' + d.cor + '" rx="2"/>' +
-                    '<text x="212" y="' + (31 + i * 22) + '" font-size="9" fill="#374151">' + d.label + ' — ' + d.val + '</text>'
-          angle = end
-        })
-        return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 200" width="100%" style="display:block">' + slices + legend + '</svg>'
+          const s = arc(cum, cum+pct, d.cor)
+          cum += pct
+          return s
+        }).join('')
+        const legend = pieData.map((d,i) =>
+          '<div style="display:flex;align-items:center;gap:8px"><span style="display:inline-block;width:14px;height:14px;background:'+d.cor+';border-radius:3px;flex-shrink:0"></span><span>'+d.label+' — '+d.val+'</span></div>'
+        ).join('')
+        return '<div style="display:flex;align-items:center;justify-content:center;gap:24px;padding:8px">' +
+          '<svg width="160" height="160" viewBox="0 0 160 160" style="flex-shrink:0">' + slices + '</svg>' +
+          '<div style="font-size:8.5pt;display:flex;flex-direction:column;gap:8px">' + legend +
+          '<div style="border-top:1px solid #e5e7eb;padding-top:6px;margin-top:4px"><b>Total: ' + pieTotal + ' NCs</b></div>' +
+          '</div></div>'
       })()
 
       const S42 =
@@ -871,8 +887,8 @@ export async function POST(request: NextRequest) {
         '<tr><td colspan="11" style="' + TD42 + ';text-align:left;font-size:7.5pt"><b>A+</b> = Muito Alta &nbsp;|&nbsp; <b>A</b> = Alta &nbsp;|&nbsp; <b>M</b> = Média &nbsp;|&nbsp; <b>B</b> = Baixa</td></tr>' +
         '</table>' +
 
-        (svgBar ? '<div style="border:1px solid #1E3A8A;border-radius:4px;padding:8pt;margin:8pt 0"><p style="font-size:8pt;font-weight:700;color:#1E3A8A;margin:0 0 4pt">Distribuição de Ocorrências por Sistema</p>' + svgBar + '</div>' : '') +
-        (svgPie ? '<div style="border:1px solid #1E3A8A;border-radius:4px;padding:8pt;margin:8pt 0"><p style="font-size:8pt;font-weight:700;color:#1E3A8A;margin:0 0 4pt">Distribuição por Prioridade</p>' + svgPie + '</div>' : '') +
+        (svgBar ? '<div class="bloco"><div class="bloco-header">Distribuição de Ocorrências por Sistema</div>' + svgBar + '</div>' : '') +
+        (svgPie ? '<div class="bloco"><div class="bloco-header">Distribuição por Prioridade</div>' + svgPie + '</div>' : '') +
         '</div>'
 
       // ── BLOCO 5 — Recomendações ────────────────────────────────────────────
@@ -1085,7 +1101,7 @@ export async function POST(request: NextRequest) {
 
       // 1.2
       partsNR.push('<div class="titulo">' + titulo12 + '</div>')
-      partsNR.push('<p style="text-align:justify">' + xe(OBJETIVO[tipoServico]||'').replace(/\n/g,'<br>') + '</p>')
+      partsNR.push('<div style="text-align:justify">' + xe(OBJETIVO[tipoServico]||'').replace(/\\n\\n/g,'</p><p style="text-align:justify">').replace(/\\n<p/g,'<p').replace(/\\n/g,'<br>') + '</div>')
 
       // 1.3
       partsNR.push('<div class="titulo">1.3.- Plano de Trabalho.</div>')
