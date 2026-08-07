@@ -504,6 +504,7 @@ function LaudoComplemento() {
         })
       })
       const data = await res.json()
+      console.error('GERAR-LAUDO resposta:', JSON.stringify(data).slice(0,300))
       if (!res.ok || data.erro) { setErro(data.erro ?? 'Erro ao gerar laudo.'); setEtapa('complemento'); return }
       setNomeArquivo(nome)
       // Redirecionar diretamente usando a variável local (não o estado que pode não ter atualizado)
