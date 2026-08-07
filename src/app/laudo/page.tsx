@@ -503,13 +503,16 @@ function LaudoComplemento() {
           }
         })
       })
+      console.log('GERAR: aguardando res.json')
       const data = await res.json()
-      console.error('GERAR-LAUDO resposta:', JSON.stringify(data).slice(0,300))
+      console.log('GERAR: data recebido ok=', res.ok, 'erro=', data.erro?.slice?.(0,100))
       if (!res.ok || data.erro) { setErro(data.erro ?? 'Erro ao gerar laudo.'); setEtapa('complemento'); return }
       setNomeArquivo(nome)
       // Redirecionar diretamente usando a variável local (não o estado que pode não ter atualizado)
+      console.log('GERAR: redirecionando para homologar')
       window.location.href = `/homologar-produto?cpf_inspetor=${cpfInspetor}&chave_inspetor=${chaveInspetor}&cnpjoucpf=${cnpjoucpf}&tipo_servico=${tipoServico}&nome_arquivo=${encodeURIComponent(nome)}&titulo=${encodeURIComponent(cfg?.titulo ?? 'Laudo Técnico')}`
     } catch (e) {
+      console.error('GERAR CATCH:', String(e), e instanceof Error ? e.stack?.split('\n').slice(0,3).join(' | ') : '')
       setErro('Erro ao gerar laudo: ' + String(e))
       setEtapa('complemento')
     }
@@ -565,7 +568,8 @@ function LaudoComplemento() {
           <p style={{ color: "#6B7280", fontSize: "13px", marginBottom: "24px" }}>O laudo foi salvo em Documentos Inspetor. Agora baixe o Word, revise, assine e faça upload.</p>
           <div style={{ display: "flex", gap: "12px", justifyContent: "center" }}>
             <button style={S.btn} onClick={() => {
-              window.location.href = `/homologar-produto?cpf_inspetor=${cpfInspetor}&chave_inspetor=${chaveInspetor}&cnpjoucpf=${cnpjoucpf}&tipo_servico=${tipoServico}&nome_arquivo=${encodeURIComponent(nomeArquivo)}&titulo=${encodeURIComponent(cfg.titulo)}`
+              console.log('GERAR: redirecionando para homologar')
+      window.location.href = `/homologar-produto?cpf_inspetor=${cpfInspetor}&chave_inspetor=${chaveInspetor}&cnpjoucpf=${cnpjoucpf}&tipo_servico=${tipoServico}&nome_arquivo=${encodeURIComponent(nomeArquivo)}&titulo=${encodeURIComponent(cfg.titulo)}`
             }}>Homologar documento →</button>
             <button style={S.btnSec} onClick={() => window.location.href = '/dashboard'}>Voltar ao Menu</button>
           </div>
