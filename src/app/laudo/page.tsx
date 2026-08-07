@@ -410,6 +410,7 @@ function LaudoComplemento() {
       const slug = SLUG[tipoServico] ?? `laudo_${tipoServico}`
       const nome = `${chaveInspetor}_${cnpjoucpf}_${slug}.html`
 
+      console.log('GERAR: passo 1 - inicio')
       // ── Salvar imagens no storage antes de enviar payload ──
       async function salvarImagem(b64: string, sufixo: string): Promise<string> {
         if (!b64) return ''
@@ -434,6 +435,7 @@ function LaudoComplemento() {
         salvarImagem(artRrt, 'art_rrt'),
       ])
 
+      console.log('GERAR: passo 2 - apos salvar imagens')
       // ── Gerar recomendações por sistema + SNC para cada NC via IA ──
       const sistemaComNCs = [...new Set((ncs ?? []).map((nc: any) => nc.sistema).filter(Boolean))]
       const recsSistema: Record<string, string> = {}
@@ -463,6 +465,7 @@ function LaudoComplemento() {
         } catch { return nc }
       }))
 
+      console.log('GERAR: passo 3 - apos RSR+SNC')
       // DRT — recomendações gerais item 5 (manutenção, uso, sustentabilidade, outros)
       let rec51 = '', rec52 = '', rec53 = '', rec54 = '', rec55 = ''
       try {
@@ -485,6 +488,7 @@ function LaudoComplemento() {
         if (dDRT.rec55) rec55 = dDRT.rec55
       } catch { /* segue sem recomendações DRT */ }
 
+      console.log('GERAR: passo 4 - apos DRT')
       const res = await fetch('/api/gerar-laudo', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -510,6 +514,7 @@ function LaudoComplemento() {
       // Redirecionar diretamente usando a variável local (não o estado que pode não ter atualizado)
       window.location.href = `/homologar-produto?cpf_inspetor=${cpfInspetor}&chave_inspetor=${chaveInspetor}&cnpjoucpf=${cnpjoucpf}&tipo_servico=${tipoServico}&nome_arquivo=${encodeURIComponent(nome)}&titulo=${encodeURIComponent(cfg.titulo)}`
     } catch (e) {
+      console.error('GERAR ERRO:', e, e instanceof Error ? e.stack : '')
       setErro('Erro ao gerar laudo: ' + String(e))
       setEtapa('complemento')
     }
