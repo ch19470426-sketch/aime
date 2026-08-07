@@ -355,6 +355,7 @@ export async function POST(request: NextRequest) {
 
 
     const titulo   = TITULO[tipoServico] ?? 'Laudo Técnico'
+    const cl       = complemento?.classificacao ?? {}
     const nivel    = complemento?.nivelInspecao ?? cl.nivel ?? ''
     const labelDoc = cnpjoucpf?.length === 11 ? 'CPF' : 'CNPJ'
     // ── GERADOR PARA LAUDOS NR (45-48) — fiel aos templates docx ────────────────
@@ -1166,7 +1167,7 @@ export async function POST(request: NextRequest) {
 
     const sistemas = SISTEMAS[tipoServico] ?? []
     const dataHoje = fmtData()
-    const cl       = complemento?.classificacao ?? {}
+    // cl já declarado acima
     const labelEst = tipoServico === '43' ? 'Proprietário' : 'Condomínio / Empresa'
 
     // NCs por sistema
