@@ -776,65 +776,6 @@ export async function POST(request: NextRequest) {
       const TD42 = 'padding:3px 5px;text-align:center;border:1px solid #c3d4f0;font-size:8pt'
 
 
-      // ── Gráfico de Barras (SVG) ─────────────────────────────────────────────
-      const barW = 540; const barH = 160; const barPad = 40
-      const sistFiltrados = stat42.filter(r => r.t > 0)
-      const maxBar = Math.max(...sistFiltrados.map(r => r.t), 1)
-      const barWidth = sistFiltrados.length > 0 ? Math.floor((barW - barPad) / sistFiltrados.length) - 4 : 40
-      const svgBar = sistFiltrados.length === 0 ? '' :
-        '<svg xmlns="http://www.w3.org/2000/svg" width="' + barW + '" height="' + (barH+60) + '" style="display:block;margin:8pt auto">' +
-        sistFiltrados.map((r, i) => {
-          const x = barPad + i * (barWidth + 4)
-          const hAm = Math.round(r.aM / maxBar * barH)
-          const hAa = Math.round(r.aA / maxBar * barH)
-          const hM  = Math.round(r.mM / maxBar * barH)
-          const hB  = Math.round(r.bB / maxBar * barH)
-          const nome = r.s.slice(3).replace(/_/g,' ').slice(0,12)
-          let y = barH
-          let bars = ''
-          if (r.aM > 0) { y -= hAm; bars += '<rect x="' + x + '" y="' + y + '" width="' + barWidth + '" height="' + hAm + '" fill="#CC0000"/>' }
-          if (r.aA > 0) { y -= hAa; bars += '<rect x="' + x + '" y="' + y + '" width="' + barWidth + '" height="' + hAa + '" fill="#E8A000"/>' }
-          if (r.mM > 0) { y -= hM;  bars += '<rect x="' + x + '" y="' + y + '" width="' + barWidth + '" height="' + hM  + '" fill="#F59E0B"/>' }
-          if (r.bB > 0) { y -= hB;  bars += '<rect x="' + x + '" y="' + y + '" width="' + barWidth + '" height="' + hB  + '" fill="#16A34A"/>' }
-          bars += '<text x="' + (x + barWidth/2) + '" y="' + (barH+14) + '" text-anchor="middle" font-size="6" fill="#374151">' + nome + '</text>'
-          bars += '<text x="' + (x + barWidth/2) + '" y="' + (barH+22) + '" text-anchor="middle" font-size="7" font-weight="bold" fill="#1E3A8A">' + r.t + '</text>'
-          return bars
-        }).join('') +
-        '<line x1="' + barPad + '" y1="' + barH + '" x2="' + barW + '" y2="' + barH + '" stroke="#1E3A8A" stroke-width="1"/>' +
-        '<text x="' + (barW/2) + '" y="' + (barH+52) + '" text-anchor="middle" font-size="7" fill="#6B7280">■ Muito Alta &nbsp; ■ Alta &nbsp; ■ Média &nbsp; ■ Baixa</text>' +
-        '<text x="8" y="' + (barH+52) + '" font-size="7" fill="#CC0000">■</text>' +
-        '</svg>'
-
-      // ── Gráfico Pizza (SVG) ──────────────────────────────────────────────────
-      const pieData = [
-        { label: 'Muito Alta', val: tot42.aM, cor: '#DC2626' },
-        { label: 'Alta',       val: tot42.aA, cor: '#EA580C' },
-        { label: 'Média',      val: tot42.mM, cor: '#EAB308' },
-        { label: 'Baixa',      val: tot42.bB, cor: '#16A34A' },
-      ].filter(d => d.val > 0)
-      const pieTotal = pieData.reduce((s,d) => s+d.val, 0)
-      const svgPie = pieTotal === 0 ? '' : (() => {
-        const cx = 90; const cy = 90; const r = 80
-        let angle = -Math.PI/2
-        let slices = ''
-        let legend = ''
-        pieData.forEach((d, i) => {
-          const pct = d.val / pieTotal
-          const startA = angle
-          const endA   = angle + pct * 2 * Math.PI
-          const lx1 = cx + r * Math.cos(startA); const ly1 = cy + r * Math.sin(startA)
-          const lx2 = cx + r * Math.cos(endA);   const ly2 = cy + r * Math.sin(endA)
-          const large = pct > 0.5 ? 1 : 0
-          slices += '<path d="M ' + cx + ' ' + cy + ' L ' + lx1.toFixed(1) + ' ' + ly1.toFixed(1) + ' A ' + r + ' ' + r + ' 0 ' + large + ' 1 ' + lx2.toFixed(1) + ' ' + ly2.toFixed(1) + ' Z" fill="' + d.cor + '" stroke="#fff" stroke-width="2"/>'
-          const midA = (startA + endA) / 2
-          const tx = cx + r * 0.65 * Math.cos(midA); const ty = cy + r * 0.65 * Math.sin(midA)
-          if (pct > 0.05) slices += '<text x="' + tx.toFixed(1) + '" y="' + ty.toFixed(1) + '" text-anchor="middle" font-size="9" font-weight="bold" fill="#fff">' + Math.round(pct*100) + '%</text>'
-          legend += '<rect x="190" y="' + (20+i*22) + '" width="12" height="12" fill="' + d.cor + '"/><text x="208" y="' + (31+i*22) + '" font-size="9" fill="#374151">' + d.label + ' (' + d.val + ')</text>'
-          angle = endA
-        })
-        return '<svg xmlns="http://www.w3.org/2000/svg" width="320" height="190" style="display:block;margin:8pt auto">' + slices + legend + '</svg>'
-      })()
-
 
       // ── Gráfico de Barras — distribuição por ocorrência por sistema (azul) ──
       const sistFiltrados = stat42.filter(r => r.t > 0)
