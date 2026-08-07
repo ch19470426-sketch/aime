@@ -116,7 +116,7 @@ ${ehNR_IA ? `Gere 5 textos em linguagem técnica formal para inspeção NR. Resp
 {"rec51":"recomendações sobre manutenção das instalações","rec52":"recomendações sobre operação segura","rec53":"recomendações sobre condições físicas dos equipamentos","rec54":"recomendações sobre segurança e dispositivos de proteção","rec55":"recomendações sobre documentação técnica e prontuários"}
 Cada campo deve ter entre 150-500 chars. Baseie-se APENAS nos dados fornecidos.` : `Gere 4 textos em linguagem técnica formal. Responda SOMENTE em JSON, sem markdown:
 {"rec51":"avaliação e recomendações da manutenção","rec52":"avaliação e recomendações do uso da edificação","rec53":"avaliação e recomendações da sustentabilidade","rec54":"outras avaliações e recomendações pertinentes"}
-Cada campo deve ter entre 200-600 chars. Baseie-se APENAS nos dados fornecidos.`}
+Cada campo deve ter entre 200-600 chars. Baseie-se APENAS nos dados fornecidos.`}`
 
     // ── Prompt 4: Recomendação por sistema (item 4.1) ─────────────────────────
     } else if (tipo === 'recomendacao_sistema') {
