@@ -662,6 +662,48 @@ export async function POST(request: NextRequest) {
         ncsPorSistema41[sis].push(nc)
       }
 
+      // Gráfico barras horizontal (azul, por sistema)
+      const sistFilt = stat42.filter(r => r.t > 0)
+      const maxB = Math.max(...sistFilt.map(r => r.t), 1)
+      const rowH = 18
+      const svgBarH = sistFilt.length === 0 ? '' :
+        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 ' + (sistFilt.length*(rowH+4)+20) + '" width="100%">' +
+        sistFilt.map((r,i) => {
+          const y = i*(rowH+4)+4
+          const w = Math.round(r.t/maxB*310)
+          const nome = r.s.length>5 ? r.s.slice(3,22) : r.s
+          return '<text x="138" y="'+(y+rowH-4)+'" text-anchor="end" font-size="7.5" fill="#374151">'+nome+'</text>'+
+                 '<rect x="142" y="'+y+'" width="'+w+'" height="'+rowH+'" fill="#1E3A8A" rx="2"/>'+
+                 '<text x="'+(142+w+4)+'" y="'+(y+rowH-4)+'" font-size="8" font-weight="bold" fill="#1E3A8A">'+r.t+'</text>'
+        }).join('') + '</svg>'
+
+      // Gráfico pizza (estilo laudos 41-44: SVG 160x160 + legenda)
+      const pieD = [
+        {label:'Muito Alta',val:tot42.aM,cornr:'#CC0000'},
+        {label:'Alta',      val:tot42.aA,cornr:'#E8A000'},
+        {label:'Média',     val:tot42.mM,cornr:'#EAB308'},
+        {label:'Baixa',     val:tot42.bB,cornr:'#16A34A'},
+      ].filter(d=>d.val>0)
+      const pieT = pieD.reduce((s,d)=>s+d.val,0)
+      const svgPieH = pieT===0 ? '' : (()=>{
+        const r=70,cx=80,cy=80
+        function arcP(s:number,e:number,col:string):string{
+          if(e-s<=0)return ''
+          if(e-s>=1)return '<circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="'+col+'"/>'
+          const a1=(s*2-0.5)*Math.PI,a2=(e*2-0.5)*Math.PI
+          const x1=cx+r*Math.cos(a1),y1=cy+r*Math.sin(a1)
+          const x2=cx+r*Math.cos(a2),y2=cy+r*Math.sin(a2)
+          return '<path d="M'+cx+','+cy+' L'+x1.toFixed(1)+','+y1.toFixed(1)+' A'+r+','+r+' 0 '+(e-s>0.5?1:0)+',1 '+x2.toFixed(1)+','+y2.toFixed(1)+' Z" fill="'+col+'"/>'
+        }
+        let cum=0
+        const slices=pieD.map(d=>{const p=d.val/pieT;const s=arcP(cum,cum+p,d.cornr);cum+=p;return s}).join('')
+        const leg=pieD.map((d,i)=>'<div style="display:flex;align-items:center;gap:8px"><span style="display:inline-block;width:14px;height:14px;background:'+d.cornr+';border-radius:3px;flex-shrink:0"></span><span>'+d.label+' — '+d.val+'</span></div>').join('')
+        return '<div style="display:flex;align-items:center;justify-content:center;gap:24px;padding:8px">'+
+          '<svg width="160" height="160" viewBox="0 0 160 160" style="flex-shrink:0">'+slices+'</svg>'+
+          '<div style="font-size:8.5pt;display:flex;flex-direction:column;gap:8px">'+leg+
+          '<div style="border-top:1px solid #e5e7eb;padding-top:6px;margin-top:4px"><b>Total: '+pieT+' NCs</b></div></div></div>'
+      })()
+
       const recsSis = complemento?.recsSistema ?? {}
       const DESC_SIS: Record<string,string> = {
         '01_Documentação Técnica':'Prontuários, manuais, registros de inspeção e análise de riscos obrigatórios pela NR.',
@@ -775,48 +817,6 @@ export async function POST(request: NextRequest) {
       const TH42 = 'background:#1E3A8A;color:#fff;padding:3px 5px;text-align:center;font-size:7.5pt;border:1px solid #1E3A8A'
       const TD42 = 'padding:3px 5px;text-align:center;border:1px solid #c3d4f0;font-size:8pt'
 
-
-      // Gráfico barras horizontal (azul, por sistema)
-      const sistFilt = stat42.filter(r => r.t > 0)
-      const maxB = Math.max(...sistFilt.map(r => r.t), 1)
-      const rowH = 18
-      const svgBarH = sistFilt.length === 0 ? '' :
-        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 ' + (sistFilt.length*(rowH+4)+20) + '" width="100%">' +
-        sistFilt.map((r,i) => {
-          const y = i*(rowH+4)+4
-          const w = Math.round(r.t/maxB*310)
-          const nome = r.s.length>5 ? r.s.slice(3,22) : r.s
-          return '<text x="138" y="'+(y+rowH-4)+'" text-anchor="end" font-size="7.5" fill="#374151">'+nome+'</text>'+
-                 '<rect x="142" y="'+y+'" width="'+w+'" height="'+rowH+'" fill="#1E3A8A" rx="2"/>'+
-                 '<text x="'+(142+w+4)+'" y="'+(y+rowH-4)+'" font-size="8" font-weight="bold" fill="#1E3A8A">'+r.t+'</text>'
-        }).join('') + '</svg>'
-
-      // Gráfico pizza (estilo laudos 41-44: SVG 160x160 + legenda)
-      const pieD = [
-        {label:'Muito Alta',val:tot42.aM,cornr:'#CC0000'},
-        {label:'Alta',      val:tot42.aA,cornr:'#E8A000'},
-        {label:'Média',     val:tot42.mM,cornr:'#EAB308'},
-        {label:'Baixa',     val:tot42.bB,cornr:'#16A34A'},
-      ].filter(d=>d.val>0)
-      const pieT = pieD.reduce((s,d)=>s+d.val,0)
-      const svgPieH = pieT===0 ? '' : (()=>{
-        const r=70,cx=80,cy=80
-        function arcP(s:number,e:number,col:string):string{
-          if(e-s<=0)return ''
-          if(e-s>=1)return '<circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="'+col+'"/>'
-          const a1=(s*2-0.5)*Math.PI,a2=(e*2-0.5)*Math.PI
-          const x1=cx+r*Math.cos(a1),y1=cy+r*Math.sin(a1)
-          const x2=cx+r*Math.cos(a2),y2=cy+r*Math.sin(a2)
-          return '<path d="M'+cx+','+cy+' L'+x1.toFixed(1)+','+y1.toFixed(1)+' A'+r+','+r+' 0 '+(e-s>0.5?1:0)+',1 '+x2.toFixed(1)+','+y2.toFixed(1)+' Z" fill="'+col+'"/>'
-        }
-        let cum=0
-        const slices=pieD.map(d=>{const p=d.val/pieT;const s=arcP(cum,cum+p,d.cornr);cum+=p;return s}).join('')
-        const leg=pieD.map((d,i)=>'<div style="display:flex;align-items:center;gap:8px"><span style="display:inline-block;width:14px;height:14px;background:'+d.cornr+';border-radius:3px;flex-shrink:0"></span><span>'+d.label+' — '+d.val+'</span></div>').join('')
-        return '<div style="display:flex;align-items:center;justify-content:center;gap:24px;padding:8px">'+
-          '<svg width="160" height="160" viewBox="0 0 160 160" style="flex-shrink:0">'+slices+'</svg>'+
-          '<div style="font-size:8.5pt;display:flex;flex-direction:column;gap:8px">'+leg+
-          '<div style="border-top:1px solid #e5e7eb;padding-top:6px;margin-top:4px"><b>Total: '+pieT+' NCs</b></div></div></div>'
-      })()
 
       const S42nr =
         '<div class="titulo">4.2.- Análise Estatística das Manifestações Patológicas.</div>' +
