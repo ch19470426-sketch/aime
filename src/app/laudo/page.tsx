@@ -307,7 +307,8 @@ function LaudoComplemento() {
         if (dadosNCs.ncs) setNcs(dadosNCs.ncs)
         else if (dadosNCs.erro) setErro('Erro ao buscar NCs: ' + dadosNCs.erro)
       } catch (e) {
-        setErro('Erro ao carregar dados: ' + String(e))
+        console.error('LAUDO ERRO:', e)
+        setErro('Erro ao carregar dados: ' + String(e) + ' | ' + (e instanceof Error ? e.stack?.split('\n')[1] ?? '' : ''))
       } finally {
         setCarregando(false)
       }
