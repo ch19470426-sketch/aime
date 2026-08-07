@@ -662,6 +662,33 @@ export async function POST(request: NextRequest) {
         ncsPorSistema41[sis].push(nc)
       }
 
+      // ── BLOCO 4.2 Estatística ──────────────────────────────────────────────
+      const SISTEMAS_NR = [
+        '01_Documentação Técnica','02_Capacitação','03_Quadros Elétricos',
+        '04_Cabos e Condutores','05_Proteção Elétrica','06_Sistema de Aterramento',
+        '07_EPIs e EPCs','08_Tomadas/Pontos Energia','09_Iluminação',
+        '10_SPDA','11_Procedimentos Segurança','12_Manutenção'
+      ]
+      const stat42 = SISTEMAS_NR.map(s => {
+        const prefix = s.slice(0,2)
+        const arrnr = (ncs ?? []).filter((n:any) => (n.sistema||'').startsWith(prefix))
+        const aM = arrnr.filter((n:any) => Number(n.grauRisco) > 80).length
+        const aA = arrnr.filter((n:any) => Number(n.grauRisco) >= 50 && Number(n.grauRisco) <= 80).length
+        const mM = arrnr.filter((n:any) => Number(n.grauRisco) >= 30 && Number(n.grauRisco) < 50).length
+        const bB = arrnr.filter((n:any) => Number(n.grauRisco) < 30 && Number(n.grauRisco) > 0).length
+        const t  = aM + aA + mM + bB
+        return { s, aM, aA, mM, bB, t }
+      })
+      const tot42 = {
+        aM: stat42.reduce((a,r)=>a+r.aM,0), aA: stat42.reduce((a,r)=>a+r.aA,0),
+        mM: stat42.reduce((a,r)=>a+r.mM,0), bB: stat42.reduce((a,r)=>a+r.bB,0),
+        t:  stat42.reduce((a,r)=>a+r.t, 0)
+      }
+      const pct = (n:number, t:number) => t > 0 ? Math.round(n/t*100)+'%' : ''
+      const TH42 = 'background:#1E3A8A;color:#fff;padding:3px 5px;text-align:center;font-size:7.5pt;border:1px solid #1E3A8A'
+      const TD42 = 'padding:3px 5px;text-align:center;border:1px solid #c3d4f0;font-size:8pt'
+
+
       // Gráfico barras horizontal (azul, por sistema)
       const sistFilt = stat42.filter(r => r.t > 0)
       const maxB = Math.max(...sistFilt.map(r => r.t), 1)
@@ -790,33 +817,6 @@ export async function POST(request: NextRequest) {
         (svgBarH ? '<div class="bloco"><div class="bloco-header">Distribuição de Ocorrências por Sistema</div>' + svgBarH + '</div>' : '') +
         (svgPieH ? '<div class="bloco"><div class="bloco-header">Distribuição por Prioridade</div>' + svgPieH + '</div>' : '') +
         '</div>'
-
-      // ── BLOCO 4.2 Estatística ──────────────────────────────────────────────
-      const SISTEMAS_NR = [
-        '01_Documentação Técnica','02_Capacitação','03_Quadros Elétricos',
-        '04_Cabos e Condutores','05_Proteção Elétrica','06_Sistema de Aterramento',
-        '07_EPIs e EPCs','08_Tomadas/Pontos Energia','09_Iluminação',
-        '10_SPDA','11_Procedimentos Segurança','12_Manutenção'
-      ]
-      const stat42 = SISTEMAS_NR.map(s => {
-        const prefix = s.slice(0,2)
-        const arrnr = (ncs ?? []).filter((n:any) => (n.sistema||'').startsWith(prefix))
-        const aM = arrnr.filter((n:any) => Number(n.grauRisco) > 80).length
-        const aA = arrnr.filter((n:any) => Number(n.grauRisco) >= 50 && Number(n.grauRisco) <= 80).length
-        const mM = arrnr.filter((n:any) => Number(n.grauRisco) >= 30 && Number(n.grauRisco) < 50).length
-        const bB = arrnr.filter((n:any) => Number(n.grauRisco) < 30 && Number(n.grauRisco) > 0).length
-        const t  = aM + aA + mM + bB
-        return { s, aM, aA, mM, bB, t }
-      })
-      const tot42 = {
-        aM: stat42.reduce((a,r)=>a+r.aM,0), aA: stat42.reduce((a,r)=>a+r.aA,0),
-        mM: stat42.reduce((a,r)=>a+r.mM,0), bB: stat42.reduce((a,r)=>a+r.bB,0),
-        t:  stat42.reduce((a,r)=>a+r.t, 0)
-      }
-      const pct = (n:number, t:number) => t > 0 ? Math.round(n/t*100)+'%' : ''
-      const TH42 = 'background:#1E3A8A;color:#fff;padding:3px 5px;text-align:center;font-size:7.5pt;border:1px solid #1E3A8A'
-      const TD42 = 'padding:3px 5px;text-align:center;border:1px solid #c3d4f0;font-size:8pt'
-
 
       const S42nr =
         '<div class="titulo">4.2.- Análise Estatística das Manifestações Patológicas.</div>' +
