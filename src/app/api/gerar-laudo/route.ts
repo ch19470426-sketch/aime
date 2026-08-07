@@ -329,6 +329,38 @@ export async function POST(request: NextRequest) {
     const ehNR = ['45','46','47','48'].includes(tipoServico)
 
 
+    // Buscar ativos do BD para o laudo NR (45-48)
+    if (ehNR && cnpjoucpf && cpfInspetor) {
+      try {
+        const tsVistoria = {
+          '45': '35 Vistoria elevador', '46': '36 Vistoria nr-10',
+          '47': '37 Vistoria nr-12',   '48': '38 Vistoria nr-13'
+        }[tipoServico] ?? ''
+        const { data: ativosDB } = await supabase
+          .from('ativos_a_vistoriar')
+          .select('*')
+          .eq('cpf_inspetor', cpfInspetor)
+          .eq('cnpjoucpf', cnpjoucpf)
+          .eq('tipo_servico', tsVistoria)
+        if (ativosDB && ativosDB.length > 0) {
+          estab = { ...estab, ativos: ativosDB }
+        }
+        // Buscar contato_cliente mais recente
+        const { data: ccDB } = await supabase
+          .from('contato_cliente')
+          .select('*')
+          .eq('cpf_inspetor', cpfInspetor)
+          .eq('cnpjoucpf', cnpjoucpf)
+          .eq('tipo_servico', tsVistoria)
+          .order('data_cadastro', { ascending: false })
+          .limit(1)
+        if (ccDB && ccDB.length > 0) {
+          estab = { ...estab, ...ccDB[0] }
+        }
+      } catch { /* continua sem ativos */ }
+    }
+
+
 
     const titulo   = TITULO[tipoServico] ?? 'Laudo Técnico'
     const nivel    = complemento?.nivelInspecao ?? cl.nivel ?? ''
@@ -542,7 +574,7 @@ export async function POST(request: NextRequest) {
             '<td style="' + TH11 + '">Tipo ativo</td>' +
             '<td style="' + TH11 + '">Tag/Nº Série</td>' +
             '<td style="' + TH11 + '">Dt. Início Op.</td>' +
-            '<td style="' + TH11 + '">Uso ativo</td>' +
+            
             '<td style="' + TH11 + '">Subtipo</td>' +
             '<td style="' + TH11 + '">Tensão/Pressão kV/kPa</td>' +
             '<td style="' + TH11 + '">Fabricante</td>' +
@@ -555,8 +587,8 @@ export async function POST(request: NextRequest) {
                 '<tr>' +
                 '<td style="' + TDS + '">' + xe(a.tipo_ativo||a.tipo||'') + '</td>' +
                 '<td style="' + TDS + '">' + xe(a.tag_ativo_nr_serie||a.tag||'') + '</td>' +
-                '<td style="' + TDS + '">' + xe(a.data_inicio_operacao||'') + '</td>' +
-                '<td style="' + TDS + '">' + xe(a.uso_ativo||'') + '</td>' +
+                '<td style="' + TDS + ';text-align:center">' + (a.data_inicio_operacao ? new Date(a.data_inicio_operacao+'T00:00:00').toLocaleDateString('pt-BR') : '') + '</td>' +
+                
                 '<td style="' + TDS + '">' + xe(a.subtipo||'') + '</td>' +
                 '<td style="' + TDS + '">' + xe(a.tensao_pressao_kv_kpa||'') + '</td>' +
                 '<td style="' + TDS + '">' + xe(a.fabricante_marca||'') + '</td>' +
@@ -803,6 +835,57 @@ export async function POST(request: NextRequest) {
         return '<svg xmlns="http://www.w3.org/2000/svg" width="320" height="190" style="display:block;margin:8pt auto">' + slices + legend + '</svg>'
       })()
 
+
+      // ── Gráfico de Barras — distribuição por ocorrência por sistema (azul) ──
+      const sistFiltrados = stat42.filter(r => r.t > 0)
+      const maxBar = Math.max(...sistFiltrados.map(r => r.t), 1)
+      const bW = sistFiltrados.length > 0 ? Math.floor(460 / sistFiltrados.length) - 6 : 40
+      const svgBar = sistFiltrados.length === 0 ? '' :
+        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 180" width="100%" style="display:block">' +
+        sistFiltrados.map((r, i) => {
+          const x = 20 + i * (bW + 6)
+          const h = Math.round(r.t / maxBar * 130)
+          const y = 140 - h
+          const nome = r.s.length > 5 ? r.s.slice(3, 16) : r.s
+          return (
+            '<rect x="' + x + '" y="' + y + '" width="' + bW + '" height="' + h + '" fill="#1E3A8A" rx="2"/>' +
+            '<text x="' + (x + bW/2) + '" y="' + (y - 3) + '" text-anchor="middle" font-size="8" font-weight="bold" fill="#1E3A8A">' + r.t + '</text>' +
+            '<text x="' + (x + bW/2) + '" y="155" text-anchor="middle" font-size="6" fill="#374151" transform="rotate(-30 ' + (x + bW/2) + ' 155)">' + nome + '</text>'
+          )
+        }).join('') +
+        '<line x1="15" y1="140" x2="490" y2="140" stroke="#1E3A8A" stroke-width="1"/>' +
+        '</svg>'
+
+      // ── Gráfico Pizza — distribuição por prioridade ──────────────────────────
+      const pieData = [
+        { label: 'Muito Alta', val: tot42.aM, cor: '#DC2626' },
+        { label: 'Alta',       val: tot42.aA, cor: '#EA580C' },
+        { label: 'Média',      val: tot42.mM, cor: '#EAB308' },
+        { label: 'Baixa',      val: tot42.bB, cor: '#16A34A' },
+      ].filter(d => d.val > 0)
+      const pieTotal = pieData.reduce((s,d) => s+d.val, 0)
+      const svgPie = pieTotal === 0 ? '' : (() => {
+        const cx = 90; const cy = 90; const r = 75
+        let angle = -Math.PI / 2
+        let slices = ''
+        let legend = ''
+        pieData.forEach((d, i) => {
+          const pct = d.val / pieTotal
+          const end = angle + pct * 2 * Math.PI
+          const x1 = cx + r * Math.cos(angle); const y1 = cy + r * Math.sin(angle)
+          const x2 = cx + r * Math.cos(end);   const y2 = cy + r * Math.sin(end)
+          const large = pct > 0.5 ? 1 : 0
+          slices += '<path d="M ' + cx + ' ' + cy + ' L ' + x1.toFixed(1) + ' ' + y1.toFixed(1) + ' A ' + r + ' ' + r + ' 0 ' + large + ' 1 ' + x2.toFixed(1) + ' ' + y2.toFixed(1) + ' Z" fill="' + d.cor + '" stroke="#fff" stroke-width="2"/>'
+          const mid = (angle + end) / 2
+          const tx = cx + r * 0.62 * Math.cos(mid); const ty = cy + r * 0.62 * Math.sin(mid)
+          if (pct > 0.04) slices += '<text x="' + tx.toFixed(1) + '" y="' + ty.toFixed(1) + '" text-anchor="middle" font-size="9" font-weight="bold" fill="#fff">' + Math.round(pct*100) + '%</text>'
+          legend += '<rect x="195" y="' + (20 + i * 22) + '" width="12" height="12" fill="' + d.cor + '" rx="2"/>' +
+                    '<text x="212" y="' + (31 + i * 22) + '" font-size="9" fill="#374151">' + d.label + ' — ' + d.val + '</text>'
+          angle = end
+        })
+        return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 200" width="100%" style="display:block">' + slices + legend + '</svg>'
+      })()
+
       const S42 =
         '<div class="titulo">4.2.- Análise Estatística das Manifestações Patológicas.</div>' +
         '<div>' +
@@ -847,7 +930,8 @@ export async function POST(request: NextRequest) {
         '<tr><td colspan="11" style="' + TD42 + ';text-align:left;font-size:7.5pt"><b>A+</b> = Muito Alta &nbsp;|&nbsp; <b>A</b> = Alta &nbsp;|&nbsp; <b>M</b> = Média &nbsp;|&nbsp; <b>B</b> = Baixa</td></tr>' +
         '</table>' +
 
-        (svgPie ? '<div style="text-align:center;margin:4pt 0 10pt"><b style="font-size:8pt;color:#1E3A8A">Distribuição por Prioridade</b>' + svgPie + '</div>' : '') +
+        (svgBar ? '<div style="border:1px solid #1E3A8A;border-radius:4px;padding:8pt;margin:8pt 0"><p style="font-size:8pt;font-weight:700;color:#1E3A8A;margin:0 0 4pt">Distribuição de Ocorrências por Sistema</p>' + svgBar + '</div>' : '') +
+        (svgPie ? '<div style="border:1px solid #1E3A8A;border-radius:4px;padding:8pt;margin:8pt 0"><p style="font-size:8pt;font-weight:700;color:#1E3A8A;margin:0 0 4pt">Distribuição por Prioridade</p>' + svgPie + '</div>' : '') +
         '</div>'
 
       // ── BLOCO 5 — Recomendações ────────────────────────────────────────────
