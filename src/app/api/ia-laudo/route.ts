@@ -96,7 +96,8 @@ INSTRUÇÕES:
         ? Math.floor((Date.now() - new Date(dataHab).getTime()) / (365.25 * 24 * 3600 * 1000))
         : null
 
-      prompt = `Você é um engenheiro civil experiente em inspeção predial. Redija as recomendações do item 5 de um ${nomeLaudo}.
+      const ehNR_IA = ['45','46','47','48'].includes(d.tipo_servico ?? '')
+      prompt = `Você é um engenheiro de inspeção técnica experiente. Redija as recomendações do item 5 de um ${nomeLaudo}.
 
 CLASSIFICAÇÃO DA EDIFICAÇÃO:
 - Nível da inspeção: ${classif?.nivel ?? 'não informado'}
@@ -111,14 +112,11 @@ NÃO CONFORMIDADES (prioridade Alta e Média apenas):
 ${ncsTexto || 'Nenhuma NC de prioridade Alta ou Média identificada.'}
 
 INSTRUÇÕES:
-Gere 4 textos independentes em linguagem técnica formal. Responda SOMENTE em JSON válido, sem markdown:
-{
-  "rec51": "Avaliação e recomendações da manutenção (baseadas nas NCs e na qualidade de manutenção classificada)",
-  "rec52": "Avaliação e recomendações do uso da edificação (baseadas nas condições de uso classificadas)",
-  "rec53": "Avaliação e recomendações da sustentabilidade (baseadas no desempenho e nas NCs identificadas)",
-  "rec54": "Outras avaliações e recomendações pertinentes (considerações finais adicionais)"
-}
-Cada texto deve ter entre 200 e 600 caracteres. Base-se APENAS nos dados fornecidos.`
+${ehNR_IA ? `Gere 5 textos em linguagem técnica formal para inspeção NR. Responda SOMENTE em JSON, sem markdown:
+{"rec51":"recomendações sobre manutenção das instalações","rec52":"recomendações sobre operação segura","rec53":"recomendações sobre condições físicas dos equipamentos","rec54":"recomendações sobre segurança e dispositivos de proteção","rec55":"recomendações sobre documentação técnica e prontuários"}
+Cada campo deve ter entre 150-500 chars. Baseie-se APENAS nos dados fornecidos.` : `Gere 4 textos em linguagem técnica formal. Responda SOMENTE em JSON, sem markdown:
+{"rec51":"avaliação e recomendações da manutenção","rec52":"avaliação e recomendações do uso da edificação","rec53":"avaliação e recomendações da sustentabilidade","rec54":"outras avaliações e recomendações pertinentes"}
+Cada campo deve ter entre 200-600 chars. Baseie-se APENAS nos dados fornecidos.`}
 
     // ── Prompt 4: Recomendação por sistema (item 4.1) ─────────────────────────
     } else if (tipo === 'recomendacao_sistema') {
