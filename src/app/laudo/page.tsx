@@ -191,22 +191,14 @@ function LaudoComplemento() {
         if (Array.isArray(dadosE) && dadosE.length > 0) {
           const e = dadosE[0]
           setEstab(e)
-          // Buscar contato_cliente mais recente (tenta com tipo mapeado, fallback sem tipo)
+          // Buscar contato_cliente mais recente
           try {
-            const tsVist: Record<string,string> = {'45':'35 Vistoria elevador','46':'36 Vistoria nr-10','47':'37 Vistoria nr-12','48':'38 Vistoria nr-13'}
-            const tsV = tsVist[tipoServico] ?? ''
-            // Tenta com tipo_servico mapeado
-            let urlCC = `${SUPA_URL}/rest/v1/contato_cliente?cpf_inspetor=eq.${cpfInspetor}&cnpjoucpf=eq.${cnpjoucpf}&order=data_cadastro.desc&limit=1`
-            if (tsV) urlCC = `${SUPA_URL}/rest/v1/contato_cliente?cpf_inspetor=eq.${cpfInspetor}&cnpjoucpf=eq.${cnpjoucpf}&tipo_servico=eq.${encodeURIComponent(tsV)}&order=data_cadastro.desc&limit=1`
-            let resCC = await fetch(urlCC, { headers: { apikey: SUPA_SVC, Authorization: `Bearer ${SUPA_SVC}` } })
-            let dadosCC = await resCC.json()
-            // Fallback sem filtro de tipo
-            if (!Array.isArray(dadosCC) || dadosCC.length === 0) {
-              const urlCC2 = `${SUPA_URL}/rest/v1/contato_cliente?cpf_inspetor=eq.${cpfInspetor}&cnpjoucpf=eq.${cnpjoucpf}&order=data_cadastro.desc&limit=1`
-              resCC = await fetch(urlCC2, { headers: { apikey: SUPA_SVC, Authorization: `Bearer ${SUPA_SVC}` } })
-              dadosCC = await resCC.json()
-            }
-            if (Array.isArray(dadosCC) && dadosCC.length > 0) setContato(dadosCC[0])
+            const tsVistCC: Record<string,string> = {'45':'35 Vistoria elevador','46':'36 Vistoria nr-10','47':'37 Vistoria nr-12','48':'38 Vistoria nr-13'}
+            const tsV = tsVistCC[tipoServico] ?? tipoServico
+            const urlCC = `/api/contato-cliente?cpf_inspetor=${cpfInspetor}&cnpjoucpf=${cnpjoucpf}&tipo_servico=${encodeURIComponent(tsV)}`
+            const resCC = await fetch(urlCC)
+            const djCC  = await resCC.json()
+            if (Array.isArray(djCC.data) && djCC.data.length > 0) setContato(djCC.data[0])
           } catch { /* contato não encontrado */ }
           // Buscar endereço pelo CEP sempre (sobrescreve campos do BD)
           if (e.cep || e.cep_estabelecimento) {
