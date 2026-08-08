@@ -336,10 +336,22 @@ export async function POST(request: NextRequest) {
           '47':'37 Vistoria nr-12',  '48':'38 Vistoria nr-13'
         }
         const tsV = tsVist[tipoServico] ?? ''
-        // Buscar ativos — sem filtro de tipo_servico, RLS do BD filtra por regra
-        const { data: ativosDB } = await supabase
+        // Buscar ativos filtrando por tipo_servico (formato longo '37 Vistoria nr-12')
+        let { data: ativosDB } = await supabase
           .from('ativos_a_vistoriar').select('*')
           .eq('cpf_inspetor', cpfInspetor).eq('cnpjoucpf', cnpjoucpf)
+          .eq('tipo_servico', tsV)
+        // Fallback: buscar sem filtro e filtrar no cliente
+        if (!ativosDB || ativosDB.length === 0) {
+          const { data: todosAtivos } = await supabase
+            .from('ativos_a_vistoriar').select('*')
+            .eq('cpf_inspetor', cpfInspetor).eq('cnpjoucpf', cnpjoucpf)
+          const tsNum = {'45':'35','46':'36','47':'37','48':'38'}[tipoServico] ?? ''
+          ativosDB = (todosAtivos ?? []).filter((a:any) => {
+            const ts = String(a.tipo_servico || '')
+            return ts === tsV || ts === tipoServico || (tsNum && ts.startsWith(tsNum))
+          })
+        }
         estab = { ...estab, ativos: ativosDB ?? [] }
         const { data: ccDB } = await supabase
           .from('contato_cliente').select('*')
@@ -749,56 +761,73 @@ export async function POST(request: NextRequest) {
         '08_Tomadas/Pontos Energia':'Tomadas e pontos de energia adequados às cargas instaladas.',
         '09_Iluminação':'Iluminação normal e de emergência das áreas de trabalho.',
       }
+      // Agrupar NCs por ativo (tag) para o Anexo 3
+      const ncsPorAtivo: Record<string, Record<string, any[]>> = {}
+      ;(ncs ?? []).forEach((nc: any) => {
+        const tag = nc.tag || nc.tag_ativo_nr_serie || 'Sem tag'
+        const sis = nc.sistema || 'Geral'
+        if (!ncsPorAtivo[tag]) ncsPorAtivo[tag] = {}
+        if (!ncsPorAtivo[tag][sis]) ncsPorAtivo[tag][sis] = []
+        ncsPorAtivo[tag][sis].push(nc)
+      })
+
+      const TD_A3 = 'border:1px solid #cbd5e1;padding:4px 6px;vertical-align:middle;font-size:8pt'
+      const TH_A3 = 'border:1px solid #1E3A8A;background:#1E3A8A;color:#fff;padding:4px 6px;font-weight:700;font-size:8pt;vertical-align:middle'
+      const TH_SIS_A3 = 'border:1px solid #3b5fa0;background:#2d4e8a;color:#fff;padding:3px 6px;font-size:8pt;font-weight:700'
+
       const S41_blocos = Object.keys(ncsPorSistema41).length === 0
-        ? '<tr><td colspan="6" style="' + TD11 + ';color:#9a3412;font-style:italic">Nenhuma não conformidade registrada.</td></tr>'
-        : Object.entries(ncsPorSistema41).map(([sis, ncsSis]) => {
-            const sisNome = sis.length > 2 ? sis.slice(3).replace(/_/g,' ') : sis
-            const descSis = xe(DESC_SIS[sis] ?? '')
-            const recSis  = xe(recsSis[sis] ?? '')
-            const tagEx   = xe(ncsSis[0]?.tag || '')
-            const TH_SIS  = 'background:#1E3A8A;color:#fff;padding:4px 8px;font-size:8.5pt;font-weight:700'
-            return (
+        ? '<tr><td colspan="7" style="' + TD_A3 + ';color:#9a3412;font-style:italic">Nenhuma não conformidade registrada.</td></tr>'
+        : Object.entries(ncsPorAtivo).map(([tag, sistemasDoAtivo], ativoIdx) => {
+            const tipoAtivo = (ncs ?? []).find((n:any) => (n.tag||n.tag_ativo_nr_serie||'Sem tag') === tag)?.tipoAtivo || ''
+            const pbAtivo = ativoIdx > 0 ? '<tr><td colspan="7" style="border:none;page-break-before:always;height:0"></td></tr>' : ''
+            const cabAtivo =
               '<tr>' +
-              (is45
-                ? '<td style="' + TH_SIS + ';width:20%">Tag: ' + tagEx + '</td>'
-                : '<td style="' + TH_SIS + ';width:20%">Tag/Nº Série: ' + tagEx + '</td>') +
-              '<td style="' + TH_SIS + '">Sistema: ' + sisNome + '</td>' +
-              '</tr>' +
-              '<tr>' +
-              '<td style="' + TD11 + ';background:#F8FAFC;font-size:7.5pt;font-weight:700;color:#1E3A8A;vertical-align:top">Descrição<br>do sistema:</td>' +
-              '<td style="' + TD11 + ';background:#F8FAFC;font-size:8pt">' + (descSis || 'Sistema construtivo/normativo.') + '</td>' +
-              '</tr>' +
-              '<tr>' +
-              '<td style="' + TD11 + ';background:#EEF2FF;font-size:7.5pt;font-weight:700;color:#1E3A8A;vertical-align:top">Recomendação:</td>' +
-              '<td style="' + TD11 + ';background:#EEF2FF;font-size:8pt">' + (recSis || 'Corrigir as não conformidades identificadas conforme prioridades.') + '</td>' +
-              '</tr>' +
-              '<tr style="background:#E8EEF7">' +
-              '<td style="' + TD11 + ';font-weight:700;font-size:8pt;text-align:center;width:6%">Foto</td>' +
-              '<td style="' + TD11 + ';font-weight:700;font-size:8pt">' +
-                '<span style="width:30%;display:inline-block">Não Conformidade</span>' +
-                '<span style="width:20%;display:inline-block;text-align:center">Local</span>' +
-                '<span style="width:8%;display:inline-block;text-align:center">GR</span>' +
-                '<span style="width:12%;display:inline-block;text-align:center">Prioridade</span>' +
-                '<span style="flex:1;display:inline-block">Sugestões</span>' +
+              '<td colspan="7" style="' + TH_A3 + ';font-size:9pt">' +
+              'Tag/Nº Série: ' + xe(tag) + (tipoAtivo ? ' &nbsp;|&nbsp; Tipo: ' + xe(tipoAtivo) : '') +
               '</td>' +
-              '</tr>' +
-              ncsSis.map(nc => {
-                const grNnr = Number(nc.grauRisco)||0
-                const corP = grNnr > 80 ? '#CC0000' : grNnr >= 50 ? '#EA580C' : grNnr >= 30 ? '#D4A017' : '#16A34A'
-                const priP = grNnr > 80 ? 'Muito Alta' : grNnr >= 50 ? 'Alta' : grNnr >= 30 ? 'Média' : 'Baixa'
-                return '<tr>' +
-                  '<td style="' + TDS + ';text-align:center;font-size:9pt;width:6%">' + xe(nc.fotoNr||'') + '</td>' +
-                  '<td style="' + TDS + ';font-size:8pt">' +
-                    '<span style="width:30%;display:inline-block">' + xe(nc.nc||nc.anomalia||'') + '</span>' +
-                    '<span style="width:20%;display:inline-block;text-align:center;color:#4a6480">' + xe(nc.local||'') + '</span>' +
-                    '<span style="width:8%;display:inline-block;text-align:center;font-weight:700;color:' + corP + '">' + grNnr + '</span>' +
-                    '<span style="width:12%;display:inline-block;text-align:center;font-weight:700;color:' + corP + '">' + priP + '</span>' +
-                    '<span style="flex:1;display:inline-block;color:#374151">' + xe(nc.cp||nc.solucao||'') + '</span>' +
-                  '</td>' +
-                  '</tr>'
-              }).join('')
-            )
-          }).join('<tr><td colspan="2" style="border:none;height:6pt"></td></tr>')
+              '</tr>'
+            const blocosSistema = Object.entries(sistemasDoAtivo).map(([sis, ncsSis]) => {
+              const sisNome = sis.length > 2 ? sis.slice(3).replace(/_/g,' ') : sis
+              const descSis = xe(DESC_SIS[sis] ?? '')
+              const recSis  = xe(recsSis[sis] ?? '')
+              return (
+                '<tr>' +
+                '<td colspan="7" style="' + TH_SIS_A3 + '">Sistema: ' + sisNome + '</td>' +
+                '</tr>' +
+                '<tr>' +
+                '<td style="' + TD_A3 + ';background:#f8fafc;font-weight:700;color:#1E3A8A">Descrição do sistema</td>' +
+                '<td colspan="6" style="' + TD_A3 + ';background:#f8fafc">' + (descSis || '—') + '</td>' +
+                '</tr>' +
+                '<tr>' +
+                '<td style="' + TD_A3 + ';background:#eef2ff;font-weight:700;color:#1E3A8A">Recomendação</td>' +
+                '<td colspan="6" style="' + TD_A3 + ';background:#eef2ff">' + (recSis || 'Corrigir as não conformidades conforme prioridades.') + '</td>' +
+                '</tr>' +
+                '<tr style="background:#E8EEF7">' +
+                '<td style="' + TH_A3 + ';width:6%">Foto</td>' +
+                '<td style="' + TH_A3 + ';width:22%">Não Conformidade</td>' +
+                '<td style="' + TH_A3 + ';width:12%">Local</td>' +
+                '<td style="' + TH_A3 + ';width:6%;text-align:center">GR</td>' +
+                '<td style="' + TH_A3 + ';width:10%;text-align:center">Prioridade</td>' +
+                '<td style="' + TH_A3 + ';width:44%">Solução sugerida</td>' +
+                '</tr>' +
+                ncsSis.map((nc:any) => {
+                  const grNnr = Number(nc.grauRisco)||0
+                  const corP = grNnr > 80 ? '#CC0000' : grNnr >= 50 ? '#EA580C' : grNnr >= 30 ? '#D4A017' : '#16A34A'
+                  const priP = grNnr > 80 ? 'Muito Alta' : grNnr >= 50 ? 'Alta' : grNnr >= 30 ? 'Média' : 'Baixa'
+                  const solucao = xe(nc.cp || nc.solucao || nc.sugestao || '')
+                  return '<tr>' +
+                    '<td style="' + TD_A3 + ';text-align:center">' + xe(nc.fotoNr||'') + '</td>' +
+                    '<td style="' + TD_A3 + '">' + xe(nc.nc||nc.anomalia||'') + '</td>' +
+                    '<td style="' + TD_A3 + '">' + xe(nc.local||'') + '</td>' +
+                    '<td style="' + TD_A3 + ';text-align:center;font-weight:700;color:' + corP + '">' + grNnr + '</td>' +
+                    '<td style="' + TD_A3 + ';text-align:center;font-weight:700;color:' + corP + '">' + priP + '</td>' +
+                    '<td style="' + TD_A3 + '">' + solucao + '</td>' +
+                    '</tr>'
+                }).join('')
+              )
+            }).join('')
+            return pbAtivo + cabAtivo + blocosSistema
+          }).join('')
 
 
       const S41nr =
@@ -812,8 +841,8 @@ export async function POST(request: NextRequest) {
 
       // Tabela de NCs — vai para o Anexo 3 (orientação paisagem futura)
       const A3nr =
-        '<table style="width:100%;border-collapse:collapse">' +
-        '<tr><td colspan="2" style="' + TH11 + '">' + titulo41 + '</td></tr>' +
+        '<table style="width:100%;border-collapse:collapse;table-layout:fixed">' +
+        '<tr><td colspan="6" style="background:#1E3A8A;color:#fff;padding:6px 8px;font-weight:700;font-size:9pt;border:1px solid #1E3A8A">' + titulo41 + '</td></tr>' +
         S41_blocos +
         '</table>'
 
