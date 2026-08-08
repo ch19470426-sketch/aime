@@ -750,7 +750,7 @@ export async function POST(request: NextRequest) {
         '08_Tomadas/Pontos Energia':'Tomadas e pontos de energia adequados às cargas instaladas.',
         '09_Iluminação':'Iluminação normal e de emergência das áreas de trabalho.',
       }
-      // Agrupar NCs por ativo (tag) para o Anexo 3
+      // ── Agrupar NCs por ativo+sistema para o Anexo 3 ─────────────────────────
       const ncsPorAtivo: Record<string, Record<string, any[]>> = {}
       ;(ncs ?? []).forEach((nc: any) => {
         const tag = nc.tag || nc.tag_ativo_nr_serie || 'Sem tag'
@@ -760,61 +760,69 @@ export async function POST(request: NextRequest) {
         ncsPorAtivo[tag][sis].push(nc)
       })
 
-      const TD_A3 = 'border:1px solid #cbd5e1;padding:4px 6px;vertical-align:middle;font-size:8pt'
-      const TH_A3 = 'border:1px solid #1E3A8A;background:#1E3A8A;color:#fff;padding:4px 6px;font-weight:700;font-size:8pt;vertical-align:middle'
-      const TH_SIS_A3 = 'border:1px solid #3b5fa0;background:#2d4e8a;color:#fff;padding:3px 6px;font-size:8pt;font-weight:700'
+      // Estilos do Anexo 3 — fiel ao template xlsx
+      const TH_TOPO  = 'background:#1E3A8A;color:#fff;padding:5px 8px;font-weight:700;font-size:9pt;text-align:center;border:1px solid #1E3A8A;vertical-align:middle'
+      const TH_CAB   = 'background:#1E3A8A;color:#fff;padding:4px 6px;font-weight:700;font-size:8pt;border:1px solid #1E3A8A;vertical-align:middle'
+      const TH_DADO  = 'background:#dbeafe;padding:4px 6px;font-weight:700;font-size:8pt;border:1px solid #93c5fd;vertical-align:middle;color:#1E3A8A'
+      const TD_BODY  = 'border:1px solid #cbd5e1;padding:4px 6px;font-size:8pt;vertical-align:middle'
+      const TD_LABEL = 'border:1px solid #1E3A8A;background:#f1f5f9;padding:3px 6px;font-weight:700;font-size:8pt;color:#1E3A8A;vertical-align:middle'
 
       const S41_blocos = Object.keys(ncsPorSistema41).length === 0
-        ? '<tr><td colspan="7" style="' + TD_A3 + ';color:#9a3412;font-style:italic">Nenhuma não conformidade registrada.</td></tr>'
+        ? '<tr><td colspan="6" style="' + TD_BODY + ';color:#9a3412;font-style:italic">Nenhuma não conformidade registrada.</td></tr>'
         : Object.entries(ncsPorAtivo).map(([tag, sistemasDoAtivo], ativoIdx) => {
-            const tipoAtivo = (ncs ?? []).find((n:any) => (n.tag||n.tag_ativo_nr_serie||'Sem tag') === tag)?.tipoAtivo || ''
-            const pbAtivo = ativoIdx > 0 ? '<tr><td colspan="7" style="border:none;page-break-before:always;height:0"></td></tr>' : ''
-            const cabAtivo =
-              '<tr>' +
-              '<td style="' + TH_A3 + ';width:50%;font-size:9pt">Tag/Nº Série: ' + xe(tag) + '</td>' +
-              '<td style="' + TH_A3 + ';width:50%;font-size:9pt">Tipo de ativo: ' + xe(tipoAtivo||'—') + '</td>' +
-              '</tr>'
-            const blocosSistema = Object.entries(sistemasDoAtivo).map(([sis, ncsSis]) => {
+            const tipoAtivo = (ncs ?? []).find((n:any) =>
+              (n.tag || n.tag_ativo_nr_serie || 'Sem tag') === tag
+            )?.tipoAtivo || ''
+
+            return Object.entries(sistemasDoAtivo).map(([sis, ncsSis], sisIdx) => {
               const sisNome = sis.length > 2 ? sis.slice(3).replace(/_/g,' ') : sis
-              const descSis = xe(DESC_SIS[sis] ?? '')
-              const recSis  = xe(recsSis[sis] ?? '')
-              return (
+              const descSis = DESC_SIS[sis] ?? ''
+              const recSis  = recsSis[sis] ?? 'Corrigir as não conformidades conforme prioridades.'
+              const pb = (ativoIdx > 0 || sisIdx > 0)
+                ? '<tr style="page-break-before:always"><td colspan="6" style="border:none;height:0"></td></tr>'
+                : ''
+              return pb +
+                // Linha Tag/Série | Tipo ativo | Sistema
                 '<tr>' +
-                '<td colspan="7" style="' + TH_SIS_A3 + '">Sistema: ' + sisNome + '</td>' +
+                '<td style="' + TH_DADO + ';width:20%"><b>Tag/Nº Série:</b> ' + xe(tag) + '</td>' +
+                '<td style="' + TH_DADO + ';width:20%"><b>Tipo ativo:</b> ' + xe(tipoAtivo||'—') + '</td>' +
+                '<td style="' + TH_DADO + ';width:60%" colspan="4"><b>Sistema:</b> ' + xe(sisNome) + '</td>' +
                 '</tr>' +
+                // Descrição do sistema
                 '<tr>' +
-                '<td style="' + TD_A3 + ';background:#f8fafc;font-weight:700;color:#1E3A8A">Descrição do sistema</td>' +
-                '<td colspan="6" style="' + TD_A3 + ';background:#f8fafc">' + (descSis || '—') + '</td>' +
+                '<td style="' + TD_LABEL + '" colspan="1">Descrição do<br>sistema:</td>' +
+                '<td style="' + TD_BODY + '" colspan="5">' + xe(descSis || '—') + '</td>' +
                 '</tr>' +
+                // Recomendação para o sistema
                 '<tr>' +
-                '<td style="' + TD_A3 + ';background:#eef2ff;font-weight:700;color:#1E3A8A">Recomendação</td>' +
-                '<td colspan="6" style="' + TD_A3 + ';background:#eef2ff">' + (recSis || 'Corrigir as não conformidades conforme prioridades.') + '</td>' +
+                '<td style="' + TD_LABEL + '" colspan="1">Recomendação<br>para o sistema:</td>' +
+                '<td style="' + TD_BODY + '" colspan="5">' + xe(recSis) + '</td>' +
                 '</tr>' +
-                '<tr style="background:#E8EEF7">' +
-                '<td style="' + TH_A3 + ';width:5%;text-align:center">Foto</td>' +
-                '<td style="' + TH_A3 + ';width:30%">Não Conformidade</td>' +
-                '<td style="' + TH_A3 + ';width:8%">Local</td>' +
-                '<td style="' + TH_A3 + ';width:5%;text-align:center">GR</td>' +
-                '<td style="' + TH_A3 + ';width:8%;text-align:center">Prioridade</td>' +
-                '<td style="' + TH_A3 + ';width:44%">Solução sugerida</td>' +
+                // Cabeçalho da tabela de NCs
+                '<tr>' +
+                '<td style="' + TH_CAB + ';width:5%;text-align:center">Foto</td>' +
+                '<td style="' + TH_CAB + ';width:30%">Não Conformidade</td>' +
+                '<td style="' + TH_CAB + ';width:10%">Local</td>' +
+                '<td style="' + TH_CAB + ';width:5%;text-align:center">G Risco</td>' +
+                '<td style="' + TH_CAB + ';width:8%;text-align:center">Prioridade</td>' +
+                '<td style="' + TH_CAB + ';width:42%">Solução sugerida</td>' +
                 '</tr>' +
+                // Linhas de NCs
                 ncsSis.map((nc:any) => {
-                  const grNnr = Number(nc.grauRisco)||0
-                  const corP = grNnr > 80 ? '#CC0000' : grNnr >= 50 ? '#EA580C' : grNnr >= 30 ? '#D4A017' : '#16A34A'
-                  const priP = grNnr > 80 ? 'Muito Alta' : grNnr >= 50 ? 'Alta' : grNnr >= 30 ? 'Média' : 'Baixa'
-                  const solucao = xe(nc.cp || nc.solucao || nc.sugestao || '')
+                  const grNnr = Number(nc.grauRisco) || 0
+                  const corP  = grNnr > 80 ? '#CC0000' : grNnr >= 50 ? '#EA580C' : grNnr >= 30 ? '#D4A017' : '#16A34A'
+                  const priP  = grNnr > 80 ? 'Muito Alta' : grNnr >= 50 ? 'Alta' : grNnr >= 30 ? 'Média' : 'Baixa'
+                  const sol   = xe(nc.cp || nc.solucao || nc.sugestao || '')
                   return '<tr>' +
-                    '<td style="' + TD_A3 + ';width:5%;text-align:center">' + xe(nc.fotoNr||'') + '</td>' +
-                    '<td style="' + TD_A3 + ';width:30%">' + xe(nc.nc||nc.anomalia||'') + '</td>' +
-                    '<td style="' + TD_A3 + ';width:8%">' + xe(nc.local||'') + '</td>' +
-                    '<td style="' + TD_A3 + ';width:5%;text-align:center;font-weight:700;color:' + corP + '">' + grNnr + '</td>' +
-                    '<td style="' + TD_A3 + ';width:8%;text-align:center;font-weight:700;color:' + corP + '">' + priP + '</td>' +
-                    '<td style="' + TD_A3 + ';width:44%">' + solucao + '</td>' +
+                    '<td style="' + TD_BODY + ';text-align:center">' + xe(nc.fotoNr||'') + '</td>' +
+                    '<td style="' + TD_BODY + '">' + xe(nc.nc||nc.anomalia||'') + '</td>' +
+                    '<td style="' + TD_BODY + '">' + xe(nc.local||'') + '</td>' +
+                    '<td style="' + TD_BODY + ';text-align:center;font-weight:700;color:' + corP + '">' + grNnr + '</td>' +
+                    '<td style="' + TD_BODY + ';text-align:center;font-weight:700;color:' + corP + '">' + priP + '</td>' +
+                    '<td style="' + TD_BODY + '">' + sol + '</td>' +
                     '</tr>'
                 }).join('')
-              )
             }).join('')
-            return pbAtivo + cabAtivo + blocosSistema
           }).join('')
 
 
@@ -830,7 +838,7 @@ export async function POST(request: NextRequest) {
       // Tabela de NCs — vai para o Anexo 3 (orientação paisagem futura)
       const A3nr =
         '<table style="width:100%;border-collapse:collapse;table-layout:fixed">' +
-        '<tr><td colspan="6" style="background:#1E3A8A;color:#fff;padding:6px 8px;font-weight:700;font-size:9pt;border:1px solid #1E3A8A;text-align:center">' + titulo41 + '</td></tr>' +
+        '<tr><td colspan="6" style="background:#1E3A8A;color:#fff;padding:8px;font-weight:700;font-size:10pt;text-align:center;border:1px solid #1E3A8A">' + titulo41 + '</td></tr>' +
         S41_blocos +
         '</table>'
 
