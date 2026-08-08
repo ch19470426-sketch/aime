@@ -336,11 +336,18 @@ export async function POST(request: NextRequest) {
           '47':'37 Vistoria nr-12',  '48':'38 Vistoria nr-13'
         }
         const tsV = tsVist[tipoServico] ?? ''
-        const { data: ativosDB } = await supabase
+        // Buscar ativos — tentar com tipo longo ('37 Vistoria nr-12') e curto ('47')
+        let { data: ativosDB } = await supabase
           .from('ativos_a_vistoriar').select('*')
           .eq('cpf_inspetor', cpfInspetor).eq('cnpjoucpf', cnpjoucpf)
           .eq('tipo_servico', tsV)
-        // Sempre sobrescrever — ativos devem vir APENAS do BD filtrado por tipo
+        if (!ativosDB || ativosDB.length === 0) {
+          const { data: ativosDB2 } = await supabase
+            .from('ativos_a_vistoriar').select('*')
+            .eq('cpf_inspetor', cpfInspetor).eq('cnpjoucpf', cnpjoucpf)
+            .eq('tipo_servico', tipoServico)
+          ativosDB = ativosDB2
+        }
         estab = { ...estab, ativos: ativosDB ?? [] }
         const { data: ccDB } = await supabase
           .from('contato_cliente').select('*')
@@ -519,7 +526,7 @@ export async function POST(request: NextRequest) {
         '</tr>' +
         linhaExtra45 +
         '<tr><td colspan="3" style="' + TD11 + '"><b>' + labelDesc + '</b><br>' +
-          '<div style="min-height:28mm;text-align:justify;padding:4px 0">' + xe(complemento?.sinteseEdif||'') + '</div>' +
+          '<div style="min-height:28mm;text-align:justify;padding:4px 0">' + (complemento?.sinteseEdif||'').replace(/^[\d]+[^\n]*\n/,'') + '</div>' +
         '</td></tr>' +
         (is45
           ? '<tr><td colspan="3" style="' + TH11 + '">Identificação dos Elevadores</td></tr>' +
@@ -622,7 +629,7 @@ export async function POST(request: NextRequest) {
         '<div>' +
         '<table style="width:100%;border-collapse:collapse">' +
         '<tr><td style="' + TD11 + ';min-height:40mm"><div style="min-height:35mm;text-align:justify;white-space:pre-wrap">' +
-        xe(complemento?.descVistoria||complemento?.dadosVistoria||'') + '</div></td></tr>' +
+        (complemento?.descVistoria||complemento?.dadosVistoria||'').replace(/^[\d]+\.\d+[^\n]*\n/,'') + '</div></td></tr>' +
         '</table>' +
         '<p style="text-align:justify;margin:6pt 0">O resultado da vistoria é apresentado num conjunto de formulários, contendo o sistema e subsistema, requisitos normativos com suas classificações, priorizações, localizações, descrição das não conformidades, sugestões e a respectiva evidência fotográfica.</p>' +
         '</div>'
@@ -1188,8 +1195,12 @@ export async function POST(request: NextRequest) {
       // ANEXOS
       partsNR.push('<div class="section">' + A1nr + '</div>')
       partsNR.push('<div class="section"><div class="titulo" style="text-align:center">Anexo 2 – Resultado da Vistoria</div><br>' + A2nr + '</div>')
-      partsNR.push('<div class="section"><div class="titulo" style="text-align:center">Anexo 3 – Relação de Não Conformidades e Soluções</div>' + A3nr + '</div>')
-      partsNR.push('<div class="section"><div class="titulo" style="text-align:center">Anexo 4 – Anotação de Responsabilidade Técnica</div><br><p>Inserir neste espaço a ART (Anotação de Responsabilidade Técnica) registrada no CREA ou RRT (Registro de Responsabilidade Técnica) registrada no CAU, referente a este serviço.</p></div>')
+      partsNR.push('<div class="section a3-landscape"><style>.a3-landscape{} @media print{.a3-landscape{page:landscape-page}} @page landscape-page{size:A4 landscape;margin:10mm}</style><div class="titulo" style="text-align:center">Anexo 3 – Relação de Não Conformidades e Soluções</div>' + A3nr + '</div>')
+      partsNR.push('<div class="section"><div class="titulo" style="text-align:center">Anexo 4 – Anotação de Responsabilidade Técnica</div>' +
+        '<div style="border:2px dashed #1E3A8A;min-height:180mm;margin:10mm 0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px">' +
+        '<p style="color:#1E3A8A;font-weight:700;font-size:10pt;text-align:center">ART / RRT</p>' +
+        '<p style="color:#6b7280;font-size:8.5pt;text-align:center">Inserir neste espaço a ART (Anotação de Responsabilidade Técnica)<br>registrada no CREA ou RRT (Registro de Responsabilidade Técnica)<br>registrada no CAU, referente a este serviço.</p>' +
+        '</div></div>')
       partsNR.push('</body></html>')
 
       const htmlNR = partsNR.join('\n')
