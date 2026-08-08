@@ -531,8 +531,10 @@ export async function POST(request: NextRequest) {
             '</tr>' +
             (Array.isArray(estab?.ativos) && estab.ativos.length > 0
               ? estab.ativos.filter((a:any) => {
+                const tsVistMap: Record<string,string> = {'45':'35','46':'36','47':'37','48':'38'}
+                const tsNum = tsVistMap[tipoServico] ?? ''
                 const ts = String(a.tipo_servico||'')
-                return !ts || ts === tsV || ts.slice(0,2) === tsV.slice(0,2)
+                return !ts || !tsNum || ts.startsWith(tsNum)
               }).map((a:any) =>
                   '<tr>' +
                   '<td style="' + TD11 + '">' + xe(a.tag||a.tag_ativo_nr_serie||'') + '</td>' +
@@ -579,8 +581,10 @@ export async function POST(request: NextRequest) {
           '</tr>' +
           (Array.isArray(estab?.ativos) && estab.ativos.length > 0
             ? estab.ativos.filter((a:any) => {
+                const tsVistMap: Record<string,string> = {'45':'35','46':'36','47':'37','48':'38'}
+                const tsNum = tsVistMap[tipoServico] ?? ''
                 const ts = String(a.tipo_servico||'')
-                return !ts || ts === tsV || ts.slice(0,2) === tsV.slice(0,2)
+                return !ts || !tsNum || ts.startsWith(tsNum)
               }).map((a:any) =>
                 '<tr>' +
                 '<td style="' + TDS + '">' + xe(a.tipo_ativo||a.tipo||'') + '</td>' +
