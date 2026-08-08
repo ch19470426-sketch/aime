@@ -444,19 +444,19 @@ cpf_inspetor=eq.${cpfInspetor}&cnpjoucpf=eq.${cnpjoucpf}&tipo_servico=eq.${encod
                         onClick={async () => {
                           if (!nomeResp) { informa('Atenção', 'Informe o nome do responsável.'); return }
                           try {
-                            const resCC = await fetch(`${SUPA_URL}/rest/v1/contato_cliente`, {
+                            const resCC = await fetch('/api/contato-cliente', {
                               method: 'POST',
-                              headers: { apikey: SUPA_SVC, Authorization: `Bearer ${SUPA_SVC}`, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+                              headers: { 'Content-Type': 'application/json' },
                               body: JSON.stringify({ cpf_inspetor: cpfInspetor, cnpjoucpf, tipo_servico: tsVistoria,
                                 nome_responsavel: nomeResp, funcao_responsavel: funcaoResp || null,
                                 cpf_responsavel: cpfResp || null, whatsapp_responsavel: whatsResp || null,
                                 email_responsavel: emailResp || null, finalidade_vistoria: finalidade || null })
                             })
+                            const djCC = await resCC.json()
                             if (resCC.ok) {
                               agradece('Contato salvo com sucesso.')
                             } else {
-                              const err = await resCC.text()
-                              informa('Erro', 'Não foi possível salvar: ' + err.slice(0,200))
+                              informa('Erro', 'Não foi possível salvar: ' + (djCC.erro ?? ''))
                             }
                           } catch (e) {
                             informa('Erro', 'Falha na conexão: ' + String(e))
