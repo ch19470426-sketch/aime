@@ -570,35 +570,24 @@ export async function POST(request: NextRequest) {
         '</table>'
 
       // Tabela ativos para 46/47/48 (campos plano de trabalho)
+      // Colunas por tipo de serviço — só exibir colunas com dados
+      const colsAtivos = is46
+        ? [{h:'Tipo ativo',f:'tipo_ativo'},{h:'Tag/Nº Série',f:'tag_ativo_nr_serie'},{h:'Dt. Início Op.',f:'data_inicio_operacao'},{h:'Subtipo',f:'subtipo'},{h:'Tensão kV',f:'tensao_pressao_kv_kpa'},{h:'Fabricante',f:'fabricante_marca'}]
+        : is47
+        ? [{h:'Tipo ativo',f:'tipo_ativo'},{h:'Tag/Nº Série',f:'tag_ativo_nr_serie'},{h:'Dt. Início Op.',f:'data_inicio_operacao'},{h:'Subtipo',f:'subtipo'},{h:'Fabricante',f:'fabricante_marca'},{h:'Capacidade/Potência',f:'capacidade_potencia'}]
+        : is48
+        ? [{h:'Tipo ativo',f:'tipo_ativo'},{h:'Tag/Nº Série',f:'tag_ativo_nr_serie'},{h:'Dt. Início Op.',f:'data_inicio_operacao'},{h:'Subtipo',f:'subtipo'},{h:'Pressão kPa',f:'tensao_pressao_kv_kpa'},{h:'Fluido/Classe',f:'fluido_classe_fluido'},{h:'Vol. Interno m³',f:'volume_interno_m3'}]
+        : [{h:'Tipo ativo',f:'tipo_ativo'},{h:'Tag/Nº Série',f:'tag_ativo_nr_serie'},{h:'Dt. Início Op.',f:'data_inicio_operacao'}]
+      const ativos = Array.isArray(estab?.ativos) ? estab.ativos : []
       const tabelaAtivos4648 = !is45
         ? '<p style="margin:8pt 0 4pt;font-weight:700;color:#1E3A8A;font-size:8.5pt">Relação de Ativos Vistoriados</p>' +
           '<table style="width:100%;border-collapse:collapse">' +
-          '<tr>' +
-            '<td style="' + TH11 + '">Tipo ativo</td>' +
-            '<td style="' + TH11 + '">Tag/Nº Série</td>' +
-            '<td style="' + TH11 + '">Dt. Início Op.</td>' +
-                        '<td style="' + TH11 + '">Subtipo</td>' +
-            '<td style="' + TH11 + '">Tensão/Pressão kV/kPa</td>' +
-            '<td style="' + TH11 + '">Fabricante</td>' +
-            '<td style="' + TH11 + '">Capacidade/Potência</td>' +
-            '<td style="' + TH11 + '">Fluido/Classe</td>' +
-            '<td style="' + TH11 + '">Vol. Interno</td>' +
-          '</tr>' +
-          (Array.isArray(estab?.ativos) && estab.ativos.length > 0
-            ? estab.ativos.map((a:any) =>
-                '<tr>' +
-                '<td style="' + TDS + '">' + xe(a.tipo_ativo||a.tipo||'') + '</td>' +
-                '<td style="' + TDS + '">' + xe(a.tag_ativo_nr_serie||a.tag||'') + '</td>' +
-                '<td style="' + TDS + '">' + xe(a.data_inicio_operacao||'') + '</td>' +
-                                '<td style="' + TDS + '">' + xe(a.subtipo||'') + '</td>' +
-                '<td style="' + TDS + '">' + xe(a.tensao_pressao_kv_kpa||'') + '</td>' +
-                '<td style="' + TDS + '">' + xe(a.fabricante_marca||'') + '</td>' +
-                '<td style="' + TDS + '">' + xe(a.capacidade_potencia||'') + '</td>' +
-                '<td style="' + TDS + '">' + xe(a.fluido_classe_fluido||'') + '</td>' +
-                '<td style="' + TDS + '">' + xe(a.volume_interno_m3||'') + '</td>' +
-                '</tr>'
+          '<tr>' + colsAtivos.map(col => '<td style="' + TH11 + '">' + col.h + '</td>').join('') + '</tr>' +
+          (ativos.length > 0
+            ? ativos.map((a:any) =>
+                '<tr>' + colsAtivos.map(col => '<td style="' + TDS + '">' + xe(String(a[col.f]||'')) + '</td>').join('') + '</tr>'
               ).join('')
-            : '<tr><td colspan="10" style="' + TDS + ';color:#9a3412;font-style:italic">Cadastrar ativos no plano de trabalho deste serviço.</td></tr>') +
+            : '<tr><td colspan="' + colsAtivos.length + '" style="' + TDS + ';color:#9a3412;font-style:italic">Cadastrar ativos na tela de Plano de Trabalho.</td></tr>') +
           '</table>'
         : ''
 
@@ -782,9 +771,8 @@ export async function POST(request: NextRequest) {
             const pbAtivo = ativoIdx > 0 ? '<tr><td colspan="7" style="border:none;page-break-before:always;height:0"></td></tr>' : ''
             const cabAtivo =
               '<tr>' +
-              '<td colspan="7" style="' + TH_A3 + ';font-size:9pt">' +
-              'Tag/Nº Série: ' + xe(tag) + (tipoAtivo ? ' &nbsp;|&nbsp; Tipo: ' + xe(tipoAtivo) : '') +
-              '</td>' +
+              '<td style="' + TH_A3 + ';width:50%;font-size:9pt">Tag/Nº Série: ' + xe(tag) + '</td>' +
+              '<td style="' + TH_A3 + ';width:50%;font-size:9pt">Tipo de ativo: ' + xe(tipoAtivo||'—') + '</td>' +
               '</tr>'
             const blocosSistema = Object.entries(sistemasDoAtivo).map(([sis, ncsSis]) => {
               const sisNome = sis.length > 2 ? sis.slice(3).replace(/_/g,' ') : sis
@@ -803,11 +791,11 @@ export async function POST(request: NextRequest) {
                 '<td colspan="6" style="' + TD_A3 + ';background:#eef2ff">' + (recSis || 'Corrigir as não conformidades conforme prioridades.') + '</td>' +
                 '</tr>' +
                 '<tr style="background:#E8EEF7">' +
-                '<td style="' + TH_A3 + ';width:6%">Foto</td>' +
-                '<td style="' + TH_A3 + ';width:22%">Não Conformidade</td>' +
-                '<td style="' + TH_A3 + ';width:12%">Local</td>' +
-                '<td style="' + TH_A3 + ';width:6%;text-align:center">GR</td>' +
-                '<td style="' + TH_A3 + ';width:10%;text-align:center">Prioridade</td>' +
+                '<td style="' + TH_A3 + ';width:5%;text-align:center">Foto</td>' +
+                '<td style="' + TH_A3 + ';width:30%">Não Conformidade</td>' +
+                '<td style="' + TH_A3 + ';width:8%">Local</td>' +
+                '<td style="' + TH_A3 + ';width:5%;text-align:center">GR</td>' +
+                '<td style="' + TH_A3 + ';width:8%;text-align:center">Prioridade</td>' +
                 '<td style="' + TH_A3 + ';width:44%">Solução sugerida</td>' +
                 '</tr>' +
                 ncsSis.map((nc:any) => {
@@ -816,12 +804,12 @@ export async function POST(request: NextRequest) {
                   const priP = grNnr > 80 ? 'Muito Alta' : grNnr >= 50 ? 'Alta' : grNnr >= 30 ? 'Média' : 'Baixa'
                   const solucao = xe(nc.cp || nc.solucao || nc.sugestao || '')
                   return '<tr>' +
-                    '<td style="' + TD_A3 + ';text-align:center">' + xe(nc.fotoNr||'') + '</td>' +
-                    '<td style="' + TD_A3 + '">' + xe(nc.nc||nc.anomalia||'') + '</td>' +
-                    '<td style="' + TD_A3 + '">' + xe(nc.local||'') + '</td>' +
-                    '<td style="' + TD_A3 + ';text-align:center;font-weight:700;color:' + corP + '">' + grNnr + '</td>' +
-                    '<td style="' + TD_A3 + ';text-align:center;font-weight:700;color:' + corP + '">' + priP + '</td>' +
-                    '<td style="' + TD_A3 + '">' + solucao + '</td>' +
+                    '<td style="' + TD_A3 + ';width:5%;text-align:center">' + xe(nc.fotoNr||'') + '</td>' +
+                    '<td style="' + TD_A3 + ';width:30%">' + xe(nc.nc||nc.anomalia||'') + '</td>' +
+                    '<td style="' + TD_A3 + ';width:8%">' + xe(nc.local||'') + '</td>' +
+                    '<td style="' + TD_A3 + ';width:5%;text-align:center;font-weight:700;color:' + corP + '">' + grNnr + '</td>' +
+                    '<td style="' + TD_A3 + ';width:8%;text-align:center;font-weight:700;color:' + corP + '">' + priP + '</td>' +
+                    '<td style="' + TD_A3 + ';width:44%">' + solucao + '</td>' +
                     '</tr>'
                 }).join('')
               )
@@ -842,7 +830,7 @@ export async function POST(request: NextRequest) {
       // Tabela de NCs — vai para o Anexo 3 (orientação paisagem futura)
       const A3nr =
         '<table style="width:100%;border-collapse:collapse;table-layout:fixed">' +
-        '<tr><td colspan="6" style="background:#1E3A8A;color:#fff;padding:6px 8px;font-weight:700;font-size:9pt;border:1px solid #1E3A8A">' + titulo41 + '</td></tr>' +
+        '<tr><td colspan="6" style="background:#1E3A8A;color:#fff;padding:6px 8px;font-weight:700;font-size:9pt;border:1px solid #1E3A8A;text-align:center">' + titulo41 + '</td></tr>' +
         S41_blocos +
         '</table>'
 
