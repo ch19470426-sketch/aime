@@ -427,9 +427,9 @@ export async function POST(request: NextRequest) {
       // ── Item 1.2 — Objetivo e Escopo ──────────────────────────────────────
       const OBJETIVO: Record<string,string> = {
         '45': 'Avaliar as condições de segurança, operação e desempenho do sistema de transporte vertical, verificando a conformidade com as normas técnicas e requisitos legais, identificando falhas, desgastes e riscos operacionais, visando garantir segurança dos usuários, assegurar a confiabilidade operacional e subsidiar a manutenção e modernização dos equipamentos.',
-        '46': 'O presente Laudo Técnico tem por objetivo avaliar as condições de segurança das instalações elétricas da unidade identificada em estudo, verificando a conformidade com os requisitos da Norma Regulamentadora NR-10 – Segurança em Instalações e Serviços em Eletricidade, bem como com as normas técnicas da ABNT aplicáveis.\n\nA inspeção abrange o seguinte escopo:\n- Prontuário das instalações elétricas e documentação técnica\n- Medidas de controle do risco elétrico (proteção contra contatos diretos e indiretos)\n- Sistema de aterramento e equipotencialização\n- Quadros de distribuição, circuitos e dispositivos de proteção\n- Sistema de proteção contra descargas atmosféricas (SPDA)\n- Sinalização de segurança elétrica\n- Procedimentos de bloqueio e etiquetagem (LOTO elétrico)\n- Equipamentos de Proteção Individual (EPI) e coletivo (EPC) elétricos\n- Habilitação e qualificação dos trabalhadores expostos ao risco elétrico\n- Manutenção das instalações elétricas',
-        '47': 'O presente Laudo Técnico tem por objetivo avaliar as condições de segurança das máquinas e equipamentos instalados na unidade em estudo, verificando a conformidade com os requisitos estabelecidos pela Norma Regulamentadora NR-12 – Segurança no Trabalho em Máquinas e Equipamentos, suas Anexos e normas técnicas complementares.\n\nEste laudo abrange a inspeção visual, funcional e documental dos seguintes aspectos:\n- Proteções físicas fixas e móveis das zonas de perigo\n- Dispositivos de segurança (intertravamentos, sensores, cortinas de luz, etc.)\n- Dispositivos de partida, parada e emergência\n- Sistemas elétricos das máquinas\n- Ergonomia e condições do posto de trabalho\n- Documentação técnica (prontuário, manuais, análise de risco)\n- Capacitação e habilitação dos operadores\n- Procedimentos de bloqueio e etiquetagem (LOTO)\n- Sinalização de segurança e EPI',
-        '48': 'O presente Laudo Técnico tem por objetivo avaliar as condições de segurança de Caldeiras, Vasos de Pressão, Tubulações e Tanques da unidade em estudo, verificando a conformidade com os requisitos da Norma Regulamentadora NR-13 – Caldeiras, Vasos de Pressão, Tubulações e Tanques Metálicos de Armazenamento, bem como com as normas técnicas da ABNT aplicáveis.\n\nA inspeção abrange os seguintes escopos:\n- Prontuário e documentação técnica dos equipamentos\n- Caldeiras a vapor: categoria, dispositivos de segurança e operação\n- Vasos de pressão: classificação, inspeções e dispositivos de segurança\n- Tubulações de processo: identificação, suportes e ensaios\n- Tanques metálicos de armazenamento: contenção, SPDA e proteção catódica\n- Dispositivos de segurança: válvulas de alívio, manômetros e pressostatos\n- Habilitação e capacitação de operadores\n- EPI, EPC e sinalização de segurança\n- Plano de manutenção e registros de inspeção',
+        '46': 'O presente Laudo Técnico tem por objetivo avaliar as condições de segurança das instalações elétricas da unidade identificada em estudo, verificando a conformidade com os requisitos da Norma Regulamentadora NR-10 – Segurança em Instalações e Serviços em Eletricidade, bem como com as normas técnicas da ABNT aplicáveis.\n\nA inspeção abrange o seguinte escopo:</p>\n<p style=\"margin:2pt 0 2pt 10pt\">. Prontuário das instalações elétricas e documentação técnica</p>\n<p style=\"margin:2pt 0 2pt 10pt\">. Medidas de controle do risco elétrico (proteção contra contatos diretos e indiretos)</p>\n<p style=\"margin:2pt 0 2pt 10pt\">. Sistema de aterramento e equipotencialização</p>\n<p style=\"margin:2pt 0 2pt 10pt\">. Quadros de distribuição, circuitos e dispositivos de proteção</p>\n<p style=\"margin:2pt 0 2pt 10pt\">. Sistema de proteção contra descargas atmosféricas (SPDA)</p>\n<p style=\"margin:2pt 0 2pt 10pt\">. Sinalização de segurança elétrica</p>\n<p style=\"margin:2pt 0 2pt 10pt\">. Procedimentos de bloqueio e etiquetagem (LOTO elétrico)</p>\n<p style=\"margin:2pt 0 2pt 10pt\">. Equipamentos de Proteção Individual (EPI) e coletivo (EPC) elétricos</p>\n<p style=\"margin:2pt 0 2pt 10pt\">. Habilitação e qualificação dos trabalhadores expostos ao risco elétrico</p>\n<p style=\"margin:2pt 0 2pt 10pt\">. Manutenção das instalações elétricas',
+        '47': 'O presente Laudo Técnico tem por objetivo avaliar as condições de segurança das máquinas e equipamentos instalados na unidade em estudo, verificando a conformidade com os requisitos estabelecidos pela Norma Regulamentadora NR-12 – Segurança no Trabalho em Máquinas e Equipamentos, suas Anexos e normas técnicas complementares.\n\nEste laudo abrange a inspeção visual, funcional e documental dos seguintes aspectos:</p>\n<p style=\"margin:2pt 0 2pt 10pt\">. Proteções físicas fixas e móveis das zonas de perigo</p>\n<p style=\"margin:2pt 0 2pt 10pt\">. Dispositivos de segurança (intertravamentos, sensores, cortinas de luz, etc.)</p>\n<p style=\"margin:2pt 0 2pt 10pt\">. Dispositivos de partida, parada e emergência</p>\n<p style=\"margin:2pt 0 2pt 10pt\">. Sistemas elétricos das máquinas</p>\n<p style=\"margin:2pt 0 2pt 10pt\">. Ergonomia e condições do posto de trabalho</p>\n<p style=\"margin:2pt 0 2pt 10pt\">. Documentação técnica (prontuário, manuais, análise de risco)</p>\n<p style=\"margin:2pt 0 2pt 10pt\">. Capacitação e habilitação dos operadores</p>\n<p style=\"margin:2pt 0 2pt 10pt\">. Procedimentos de bloqueio e etiquetagem (LOTO)</p>\n<p style=\"margin:2pt 0 2pt 10pt\">. Sinalização de segurança e EPI',
+        '48': 'O presente Laudo Técnico tem por objetivo avaliar as condições de segurança de Caldeiras, Vasos de Pressão, Tubulações e Tanques da unidade em estudo, verificando a conformidade com os requisitos da Norma Regulamentadora NR-13 – Caldeiras, Vasos de Pressão, Tubulações e Tanques Metálicos de Armazenamento, bem como com as normas técnicas da ABNT aplicáveis.\n\nA inspeção abrange os seguintes escopos:</p>\n<p style=\"margin:2pt 0 2pt 10pt\">. Prontuário e documentação técnica dos equipamentos</p>\n<p style=\"margin:2pt 0 2pt 10pt\">. Caldeiras a vapor: categoria, dispositivos de segurança e operação</p>\n<p style=\"margin:2pt 0 2pt 10pt\">. Vasos de pressão: classificação, inspeções e dispositivos de segurança</p>\n<p style=\"margin:2pt 0 2pt 10pt\">. Tubulações de processo: identificação, suportes e ensaios</p>\n<p style=\"margin:2pt 0 2pt 10pt\">. Tanques metálicos de armazenamento: contenção, SPDA e proteção catódica</p>\n<p style=\"margin:2pt 0 2pt 10pt\">. Dispositivos de segurança: válvulas de alívio, manômetros e pressostatos</p>\n<p style=\"margin:2pt 0 2pt 10pt\">. Habilitação e capacitação de operadores</p>\n<p style=\"margin:2pt 0 2pt 10pt\">. EPI, EPC e sinalização de segurança</p>\n<p style=\"margin:2pt 0 2pt 10pt\">. Plano de manutenção e registros de inspeção',
       }
 
       // ── Item 2.1 — Base normativa ──────────────────────────────────────────
@@ -530,7 +530,10 @@ export async function POST(request: NextRequest) {
               '<td style="' + TH11.replace('background:#1E3A8A;color:#fff', 'background:#e8eef7;color:#1E3A8A') + '">Capacidade kg: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Nr paradas:</td>' +
             '</tr>' +
             (Array.isArray(estab?.ativos) && estab.ativos.length > 0
-              ? estab.ativos.map((a:any) =>
+              ? estab.ativos.filter((a:any) => {
+                const ts = String(a.tipo_servico||'')
+                return !ts || ts === tsV || ts.slice(0,2) === tsV.slice(0,2)
+              }).map((a:any) =>
                   '<tr>' +
                   '<td style="' + TD11 + '">' + xe(a.tag||a.tag_ativo_nr_serie||'') + '</td>' +
                   '<td style="' + TD11 + '">' + xe(a.fabricante||a.fabricante_marca||'') + '</td>' +
@@ -575,7 +578,10 @@ export async function POST(request: NextRequest) {
             '<td style="' + TH11 + '">Vol. Interno</td>' +
           '</tr>' +
           (Array.isArray(estab?.ativos) && estab.ativos.length > 0
-            ? estab.ativos.map((a:any) =>
+            ? estab.ativos.filter((a:any) => {
+                const ts = String(a.tipo_servico||'')
+                return !ts || ts === tsV || ts.slice(0,2) === tsV.slice(0,2)
+              }).map((a:any) =>
                 '<tr>' +
                 '<td style="' + TDS + '">' + xe(a.tipo_ativo||a.tipo||'') + '</td>' +
                 '<td style="' + TDS + '">' + xe(a.tag_ativo_nr_serie||a.tag||'') + '</td>' +
@@ -604,7 +610,7 @@ export async function POST(request: NextRequest) {
       // ── BLOCO 3.1 ──────────────────────────────────────────────────────────
       const S31 =
         '<div class="titulo">3.1.- Descrição da Vistoria Técnica.</div>' +
-        '<div class="section">' +
+        '<div>' +
         '<table style="width:100%;border-collapse:collapse">' +
         '<tr><td style="' + TH11 + '">Descrição da Realização da Vistoria</td></tr>' +
         '<tr><td style="' + TD11 + ';min-height:40mm"><div style="min-height:35mm;text-align:justify;white-space:pre-wrap">' +
@@ -890,11 +896,18 @@ export async function POST(request: NextRequest) {
         const { data: blobP } = await supabase.storage.from('aime').download('documentos_inspetor/' + nomePlano)
         if (blobP) {
           const htmlP = await blobP.text()
-          const idxAtiv = htmlP.indexOf('id="tbAtiv"')
-          const idxHead = htmlP.indexOf('Atividades')
-          const idxTb   = idxAtiv >= 0 ? idxAtiv : (idxHead >= 0 ? htmlP.lastIndexOf('<table', idxHead) : -1)
-          if (idxTb >= 0) {
-            tabelaPlano = htmlP.slice(idxTb, htmlP.indexOf('</table>', idxTb) + 8)
+          // Buscar tabela de ATIVIDADES (agenda) — não a tabela de ativos
+          const idxHead = htmlP.indexOf('>Atividades<')
+          if (idxHead >= 0) {
+            const idxTb = htmlP.lastIndexOf('<table', idxHead)
+            if (idxTb >= 0) {
+              tabelaPlano = htmlP.slice(idxTb, htmlP.indexOf('</table>', idxTb) + 8)
+            }
+          } else {
+            const idxAgenda = htmlP.indexOf('id="tbAgenda"')
+            if (idxAgenda >= 0) {
+              tabelaPlano = htmlP.slice(idxAgenda, htmlP.indexOf('</table>', idxAgenda) + 8)
+            }
           }
         }
       } catch { /* sem plano */ }
@@ -911,7 +924,7 @@ export async function POST(request: NextRequest) {
         ? Object.keys(complemento.docsAnexo1) : docsAnexo
       const A1nr =
         '<div class="titulo" style="text-align:center">Anexo 1 — ' + (A1_TITULO[tipoServico]??'Documentação Solicitada') + '</div>' +
-        '<div class="section">' +
+        '<div>' +
         '<table style="width:100%;border-collapse:collapse">' +
         '<tr>' +
           '<td style="' + TH11 + ';width:58%">Documentos</td>' +
@@ -1073,7 +1086,7 @@ export async function POST(request: NextRequest) {
 
       // 1.2
       partsNR.push('<div class="titulo">' + titulo12 + '</div>')
-      partsNR.push(xe(OBJETIVO[tipoServico]||'').split('\n').map(ln => ln.startsWith('<p') ? ln+'</p>' : (ln ? '<p style="text-align:justify">'+ln+'</p>' : '')).join(''))
+      partsNR.push(xe(OBJETIVO[tipoServico]||'').split('\\n').map((ln:string) => ln ? '<p style="margin:2pt 0;text-align:justify">' + ln + '</p>' : '').join(''))
 
       // 1.3
       partsNR.push('<div class="titulo">1.3.- Plano de Trabalho.</div>')
