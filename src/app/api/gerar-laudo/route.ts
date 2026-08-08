@@ -340,8 +340,8 @@ export async function POST(request: NextRequest) {
           .from('ativos_a_vistoriar').select('*')
           .eq('cpf_inspetor', cpfInspetor).eq('cnpjoucpf', cnpjoucpf)
           .eq('tipo_servico', tsV)
-        if (ativosDB && ativosDB.length > 0)
-          estab = { ...estab, ativos: ativosDB }
+        // Sempre sobrescrever — ativos devem vir APENAS do BD filtrado por tipo
+        estab = { ...estab, ativos: ativosDB ?? [] }
         const { data: ccDB } = await supabase
           .from('contato_cliente').select('*')
           .eq('cpf_inspetor', cpfInspetor).eq('cnpjoucpf', cnpjoucpf)
@@ -496,7 +496,6 @@ export async function POST(request: NextRequest) {
 
       const tabelaCaract =
         '<table style="width:100%;border-collapse:collapse">' +
-        '<tr><td colspan="3" style="' + TH11 + '">' + (is45 ? 'Características da Edificação e Elevadores' : 'Características do Estabelecimento') + '</td></tr>' +
         '<tr><td colspan="3" style="' + TD11 + ';background:#f1f5f9"><b>' + (is45 ? 'Identificação e características da edificação:' : 'Características do Estabelecimento:') + '</b></td></tr>' +
         '<tr>' +
           '<td style="' + TD11 + ';width:40%"><b>' + labelInst + ':</b><br>' + xe(estab?.razao_social_nome) + '</td>' +
@@ -622,7 +621,6 @@ export async function POST(request: NextRequest) {
         '<div class="titulo">3.1.- Descrição da Vistoria Técnica.</div>' +
         '<div>' +
         '<table style="width:100%;border-collapse:collapse">' +
-        '<tr><td style="' + TH11 + '">Descrição da Realização da Vistoria</td></tr>' +
         '<tr><td style="' + TD11 + ';min-height:40mm"><div style="min-height:35mm;text-align:justify;white-space:pre-wrap">' +
         xe(complemento?.descVistoria||complemento?.dadosVistoria||'') + '</div></td></tr>' +
         '</table>' +
@@ -823,14 +821,19 @@ export async function POST(request: NextRequest) {
       const S41nr =
         '<div class="titulo">4.1.- Relação de Não Conformidades e Soluções.</div>' +
         '<div>' +
-        '<p style="text-align:justify">Neste item é apresentado, de forma clara e concisa, o conjunto de requisitos normativos identificados na vistoria, suas localizações e o número da fotonr no respectivo formulário de vistoria. Na tabela constam as prioridades para retificação dos problemas de cada um dos componentes, visando mitigar os riscos e garantir a conformidade e eficiência dos equipamentos, segundo normas técnicas vigentes.</p>' +
+        '<p style="text-align:justify">Neste item é apresentado, de forma clara e concisa, o conjunto de requisitos normativos identificados na vistoria, suas localizações e o número da foto no respectivo formulário de vistoria. Na tabela constam as prioridades para retificação dos problemas de cada um dos componentes, visando mitigar os riscos e garantir a conformidade e eficiência dos equipamentos, segundo normas técnicas vigentes.</p>' +
         '<p style="text-align:justify">A prioridade para manutenção de cada uma das não conformidades foi obtida pelo grau de risco (0 a 100), calculado com base nos parâmetros: gravidade (40%); abrangência (30%); urgência (20%); e exposição (10%); observado no requisito normativo.</p>' +
-        '<p style="text-align:justify">Quanto à definição das prioridades foi adotado o critério: grau de risco superior a 80 pontos, prioridade <b>Muito Alta</b>; grau de risco menor que 80 pontos e maior que 49 pontos, prioridade <b>Alta</b>; grau de risco menor que 50 pontos e maior que 29 pontos, prioridade <b>Média</b>; grau de risco inferior a 30 pontos, prioridade <b>Baixa</b>.</p>' +
+        '<p style="text-align:justify">Quanto à definição das prioridades foi adotado o critério: grau de risco superior a 80 pontos, prioridade Muito Alta; grau de risco menor que 80 pontos e maior que 49 pontos, prioridade Alta; grau de risco menor que 50 pontos e maior que 29 pontos, prioridade Média; grau de risco inferior a 30 pontos, prioridade Baixa.</p>' +
+        '<p style="text-align:justify">A Relação de Não Conformidades com o resultado da análise e da classificação é apresentada no Anexo 3 deste laudo.</p>' +
+        '</div>'
+
+      // Tabela de NCs — vai para o Anexo 3 (orientação paisagem futura)
+      const A3nr =
         '<table style="width:100%;border-collapse:collapse">' +
         '<tr><td colspan="2" style="' + TH11 + '">' + titulo41 + '</td></tr>' +
         S41_blocos +
-        '</table>' +
-        '</div>'
+        '</table>'
+
       const S42nr =
         '<div class="titulo">4.2.- Análise Estatística das Manifestações Patológicas.</div>' +
         '<div>' +
@@ -1041,7 +1044,8 @@ export async function POST(request: NextRequest) {
         {n:'7.3.-',pg:'14',t:'Termo de Encerramento',nivel:2},
         {n:'Anexo 1',pg:'15',t:A1_TITULO[tipoServico]??'Documentação Solicitada',nivel:1},
         {n:'Anexo 2',pg:'16',t:'Resultado da Vistoria',nivel:1},
-        {n:'Anexo 3',pg:'18',t:'Anotação de Responsabilidade Técnica',nivel:1},
+        {n:'Anexo 3',pg:'18',t:'Relação de Não Conformidades e Soluções',nivel:1},
+        {n:'Anexo 4',pg:'19',t:'Anotação de Responsabilidade Técnica',nivel:1},
       ]
       const indiceHtmlNR = indiceNR.map(it =>
         '<div class="indice-item' + (it.nivel===2?' nivel2':'') + '">' +
@@ -1165,7 +1169,7 @@ export async function POST(request: NextRequest) {
       // 7. Encerramento
       partsNR.push('<div class="titulo">7.- Encerramento.</div>')
       partsNR.push('<div class="titulo">7.1.- Anexos:</div>')
-      partsNR.push('<ul><li>Anexo 1 – Relação de documentos solicitados e analisados;</li><li>Anexo 2 – Resultado da Vistoria;</li><li>Anexo 3 – Anotação de Responsabilidade Técnica.</li></ul>')
+      partsNR.push('<ul><li>Anexo 1 – Relação de documentos solicitados e analisados;</li><li>Anexo 2 – Resultado da Vistoria;</li><li>Anexo 3 – Relação de Não Conformidades e Soluções;</li><li>Anexo 4 – Anotação de Responsabilidade Técnica.</li></ul>')
       partsNR.push('<div class="titulo">7.2.- Declaração de Conformidade com o Código de Ética.</div>')
       partsNR.push('<p style="text-align:justify">O signatário atesta que a presente inspeção segue criteriosamente os seguintes princípios:</p>')
       partsNR.push('<ul><li>Os itens deste trabalho foram revisados pessoalmente pelo responsável técnico;</li><li>O responsável técnico não possui no presente, nem contempla para o futuro, interesse nos bens envolvidos neste trabalho;</li><li>O trabalho encontra-se abrigado por absoluta confidencialidade, sendo garantido o sigilo perante terceiros;</li><li>Este trabalho foi elaborado em observância estrita aos princípios dos Códigos de Ética Profissional do CONFEA e do IBAPE.</li></ul>')
@@ -1184,7 +1188,8 @@ export async function POST(request: NextRequest) {
       // ANEXOS
       partsNR.push('<div class="section">' + A1nr + '</div>')
       partsNR.push('<div class="section"><div class="titulo" style="text-align:center">Anexo 2 – Resultado da Vistoria</div><br>' + A2nr + '</div>')
-      partsNR.push('<div class="section"><div class="titulo" style="text-align:center">Anexo 3 – Anotação de Responsabilidade Técnica</div><br><p>Inserir neste espaço a ART (Anotação de Responsabilidade Técnica) registrada no CREA ou RRT (Registro de Responsabilidade Técnica) registrada no CAU, referente a este serviço.</p></div>')
+      partsNR.push('<div class="section"><div class="titulo" style="text-align:center">Anexo 3 – Relação de Não Conformidades e Soluções</div>' + A3nr + '</div>')
+      partsNR.push('<div class="section"><div class="titulo" style="text-align:center">Anexo 4 – Anotação de Responsabilidade Técnica</div><br><p>Inserir neste espaço a ART (Anotação de Responsabilidade Técnica) registrada no CREA ou RRT (Registro de Responsabilidade Técnica) registrada no CAU, referente a este serviço.</p></div>')
       partsNR.push('</body></html>')
 
       const htmlNR = partsNR.join('\n')
