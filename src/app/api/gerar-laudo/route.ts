@@ -336,18 +336,10 @@ export async function POST(request: NextRequest) {
           '47':'37 Vistoria nr-12',  '48':'38 Vistoria nr-13'
         }
         const tsV = tsVist[tipoServico] ?? ''
-        // Buscar ativos — tentar com tipo longo ('37 Vistoria nr-12') e curto ('47')
-        let { data: ativosDB } = await supabase
+        // Buscar ativos — sem filtro de tipo_servico, RLS do BD filtra por regra
+        const { data: ativosDB } = await supabase
           .from('ativos_a_vistoriar').select('*')
           .eq('cpf_inspetor', cpfInspetor).eq('cnpjoucpf', cnpjoucpf)
-          .eq('tipo_servico', tsV)
-        if (!ativosDB || ativosDB.length === 0) {
-          const { data: ativosDB2 } = await supabase
-            .from('ativos_a_vistoriar').select('*')
-            .eq('cpf_inspetor', cpfInspetor).eq('cnpjoucpf', cnpjoucpf)
-            .eq('tipo_servico', tipoServico)
-          ativosDB = ativosDB2
-        }
         estab = { ...estab, ativos: ativosDB ?? [] }
         const { data: ccDB } = await supabase
           .from('contato_cliente').select('*')
@@ -536,15 +528,7 @@ export async function POST(request: NextRequest) {
               '<td style="' + TH11.replace('background:#1E3A8A;color:#fff', 'background:#e8eef7;color:#1E3A8A') + '">Capacidade kg: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Nr paradas:</td>' +
             '</tr>' +
             (Array.isArray(estab?.ativos) && estab.ativos.length > 0
-              ? estab.ativos.filter((a:any) => {
-                // Aceitar tipo_servico no formato '35 Vistoria elevador', '37 Vistoria nr-12', ou '45','47' etc
-                const tsMap: Record<string,string[]> = {
-                  '45':['35','45'],'46':['36','46'],'47':['37','47'],'48':['38','48']
-                }
-                const tsOk = tsMap[tipoServico] ?? []
-                const ts = String(a.tipo_servico||'')
-                return !ts || tsOk.some(t => ts === t || ts.startsWith(t+' '))
-              }).map((a:any) =>
+              ? estab.ativos.map((a:any) =>
                   '<tr>' +
                   '<td style="' + TD11 + '">' + xe(a.tag||a.tag_ativo_nr_serie||'') + '</td>' +
                   '<td style="' + TD11 + '">' + xe(a.fabricante||a.fabricante_marca||'') + '</td>' +
@@ -589,15 +573,7 @@ export async function POST(request: NextRequest) {
             '<td style="' + TH11 + '">Vol. Interno</td>' +
           '</tr>' +
           (Array.isArray(estab?.ativos) && estab.ativos.length > 0
-            ? estab.ativos.filter((a:any) => {
-                // Aceitar tipo_servico no formato '35 Vistoria elevador', '37 Vistoria nr-12', ou '45','47' etc
-                const tsMap: Record<string,string[]> = {
-                  '45':['35','45'],'46':['36','46'],'47':['37','47'],'48':['38','48']
-                }
-                const tsOk = tsMap[tipoServico] ?? []
-                const ts = String(a.tipo_servico||'')
-                return !ts || tsOk.some(t => ts === t || ts.startsWith(t+' '))
-              }).map((a:any) =>
+            ? estab.ativos.map((a:any) =>
                 '<tr>' +
                 '<td style="' + TDS + '">' + xe(a.tipo_ativo||a.tipo||'') + '</td>' +
                 '<td style="' + TDS + '">' + xe(a.tag_ativo_nr_serie||a.tag||'') + '</td>' +
@@ -1197,10 +1173,11 @@ export async function POST(request: NextRequest) {
       partsNR.push('<div class="section"><div class="titulo" style="text-align:center">Anexo 2 – Resultado da Vistoria</div><br>' + A2nr + '</div>')
       partsNR.push('<div class="section a3-landscape"><style>.a3-landscape{} @media print{.a3-landscape{page:landscape-page}} @page landscape-page{size:A4 landscape;margin:10mm}</style><div class="titulo" style="text-align:center">Anexo 3 – Relação de Não Conformidades e Soluções</div>' + A3nr + '</div>')
       partsNR.push('<div class="section"><div class="titulo" style="text-align:center">Anexo 4 – Anotação de Responsabilidade Técnica</div>' +
-        '<div style="border:2px dashed #1E3A8A;min-height:180mm;margin:10mm 0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px">' +
-        '<p style="color:#1E3A8A;font-weight:700;font-size:10pt;text-align:center">ART / RRT</p>' +
-        '<p style="color:#6b7280;font-size:8.5pt;text-align:center">Inserir neste espaço a ART (Anotação de Responsabilidade Técnica)<br>registrada no CREA ou RRT (Registro de Responsabilidade Técnica)<br>registrada no CAU, referente a este serviço.</p>' +
-        '</div></div>')
+        (complemento?.artRrt
+          ? '<div style="text-align:center;margin:8mm 0"><img src="' + complemento.artRrt + '" style="max-width:180mm;max-height:240mm;object-fit:contain"/></div>'
+          : '<div style="border:2px dashed #1E3A8A;min-height:180mm;margin:10mm 0;display:flex;align-items:center;justify-content:center"><p style="color:#6b7280;font-size:8.5pt;text-align:center">ART / RRT não anexada.<br>Inserir a ART ou RRT na tela de coleta de dados.</p></div>'
+        ) +
+        '</div>')
       partsNR.push('</body></html>')
 
       const htmlNR = partsNR.join('\n')
