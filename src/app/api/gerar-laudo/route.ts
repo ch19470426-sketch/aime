@@ -531,10 +531,13 @@ export async function POST(request: NextRequest) {
             '</tr>' +
             (Array.isArray(estab?.ativos) && estab.ativos.length > 0
               ? estab.ativos.filter((a:any) => {
-                const tsVistMap: Record<string,string> = {'45':'35','46':'36','47':'37','48':'38'}
-                const tsNum = tsVistMap[tipoServico] ?? ''
+                // Aceitar tipo_servico no formato '35 Vistoria elevador', '37 Vistoria nr-12', ou '45','47' etc
+                const tsMap: Record<string,string[]> = {
+                  '45':['35','45'],'46':['36','46'],'47':['37','47'],'48':['38','48']
+                }
+                const tsOk = tsMap[tipoServico] ?? []
                 const ts = String(a.tipo_servico||'')
-                return !ts || !tsNum || ts.startsWith(tsNum)
+                return !ts || tsOk.some(t => ts === t || ts.startsWith(t+' '))
               }).map((a:any) =>
                   '<tr>' +
                   '<td style="' + TD11 + '">' + xe(a.tag||a.tag_ativo_nr_serie||'') + '</td>' +
@@ -581,10 +584,13 @@ export async function POST(request: NextRequest) {
           '</tr>' +
           (Array.isArray(estab?.ativos) && estab.ativos.length > 0
             ? estab.ativos.filter((a:any) => {
-                const tsVistMap: Record<string,string> = {'45':'35','46':'36','47':'37','48':'38'}
-                const tsNum = tsVistMap[tipoServico] ?? ''
+                // Aceitar tipo_servico no formato '35 Vistoria elevador', '37 Vistoria nr-12', ou '45','47' etc
+                const tsMap: Record<string,string[]> = {
+                  '45':['35','45'],'46':['36','46'],'47':['37','47'],'48':['38','48']
+                }
+                const tsOk = tsMap[tipoServico] ?? []
                 const ts = String(a.tipo_servico||'')
-                return !ts || !tsNum || ts.startsWith(tsNum)
+                return !ts || tsOk.some(t => ts === t || ts.startsWith(t+' '))
               }).map((a:any) =>
                 '<tr>' +
                 '<td style="' + TDS + '">' + xe(a.tipo_ativo||a.tipo||'') + '</td>' +
@@ -1090,7 +1096,15 @@ export async function POST(request: NextRequest) {
 
       // 1.2
       partsNR.push('<div class="titulo">' + titulo12 + '</div>')
-      partsNR.push('<div style="text-align:justify">' + xe(OBJETIVO[tipoServico]||'').replace(/\\n\\n/g,'</p><p style="margin:4pt 0">').replace(/\\n<\/p>/g,'</p>').replace(/\\n/g,' ') + '</div>')
+      {
+        const objTxt = (OBJETIVO[tipoServico]||'')
+        const objHtml = '<p style="text-align:justify">' +
+          objTxt.replace(/\n- /g, '</p><p style="margin:2pt 0 2pt 10pt">&#8226;&nbsp;')
+                .replace(/\n\n/g, '</p><p style="margin:4pt 0">')
+                .replace(/\n/g, ' ') +
+          '</p>'
+        partsNR.push(objHtml)
+      }
 
       // 1.3
       partsNR.push('<div class="titulo">1.3.- Plano de Trabalho.</div>')
