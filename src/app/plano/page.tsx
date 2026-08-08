@@ -443,15 +443,24 @@ cpf_inspetor=eq.${cpfInspetor}&cnpjoucpf=eq.${cnpjoucpf}&tipo_servico=eq.${encod
                       <button style={{ ...S.btn, ...S.btnPri, padding: '6px 20px', fontSize: '11px' }}
                         onClick={async () => {
                           if (!nomeResp) { informa('Atenção', 'Informe o nome do responsável.'); return }
-                          await fetch(`${SUPA_URL}/rest/v1/contato_cliente`, {
-                            method: 'POST',
-                            headers: { apikey: SUPA_SVC, Authorization: `Bearer ${SUPA_SVC}`, 'Content-Type': 'application/json', Prefer: 'resolution=merge-duplicates' },
-                            body: JSON.stringify({ cpf_inspetor: cpfInspetor, cnpjoucpf, tipo_servico: tsVistoria,
-                              nome_responsavel: nomeResp, funcao_responsavel: funcaoResp || null,
-                              cpf_responsavel: cpfResp || null, whatsapp_responsavel: whatsResp || null,
-                              email_responsavel: emailResp || null, finalidade_vistoria: finalidade || null })
-                          })
-                          agradece('Contato salvo com sucesso.')
+                          try {
+                            const resCC = await fetch(`${SUPA_URL}/rest/v1/contato_cliente`, {
+                              method: 'POST',
+                              headers: { apikey: SUPA_SVC, Authorization: `Bearer ${SUPA_SVC}`, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+                              body: JSON.stringify({ cpf_inspetor: cpfInspetor, cnpjoucpf, tipo_servico: tsVistoria,
+                                nome_responsavel: nomeResp, funcao_responsavel: funcaoResp || null,
+                                cpf_responsavel: cpfResp || null, whatsapp_responsavel: whatsResp || null,
+                                email_responsavel: emailResp || null, finalidade_vistoria: finalidade || null })
+                            })
+                            if (resCC.ok) {
+                              agradece('Contato salvo com sucesso.')
+                            } else {
+                              const err = await resCC.text()
+                              informa('Erro', 'Não foi possível salvar: ' + err.slice(0,200))
+                            }
+                          } catch (e) {
+                            informa('Erro', 'Falha na conexão: ' + String(e))
+                          }
                         }}>
                         Salvar contato
                       </button>
