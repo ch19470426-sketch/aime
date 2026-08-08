@@ -604,7 +604,7 @@ export async function POST(request: NextRequest) {
 
       const S11nr =
         '<div class="titulo">' + titulo11 + '</div>' +
-        '<div class="section">' +
+        '<div>' +
         tabelaCaract +
         tabelaLocal +
         tabelaAtivos4648 +
@@ -639,7 +639,7 @@ export async function POST(request: NextRequest) {
 
       const S33nr =
         '<div class="titulo">3.3.- Resultado da Classificação da Instalação.</div>' +
-        '<div class="section">' +
+        '<div>' +
         '<p style="text-align:justify;margin-bottom:6pt">O resultado da classificação das instalações seguindo a metodologia apresentada para execução deste trabalho é apresentada a seguir.</p>' +
         '<table style="width:100%;border-collapse:collapse">' +
         '<tr>' +
@@ -816,7 +816,7 @@ export async function POST(request: NextRequest) {
 
       const S41nr =
         '<div class="titulo">4.1.- Relação de Não Conformidades e Soluções.</div>' +
-        '<div class="section">' +
+        '<div>' +
         '<p style="text-align:justify">Neste item é apresentado, de forma clara e concisa, o conjunto de requisitos normativos identificados na vistoria, suas localizações e o número da fotonr no respectivo formulário de vistoria. Na tabela constam as prioridades para retificação dos problemas de cada um dos componentes, visando mitigar os riscos e garantir a conformidade e eficiência dos equipamentos, segundo normas técnicas vigentes.</p>' +
         '<p style="text-align:justify">A prioridade para manutenção de cada uma das não conformidades foi obtida pelo grau de risco (0 a 100), calculado com base nos parâmetros: gravidade (40%); abrangência (30%); urgência (20%); e exposição (10%); observado no requisito normativo.</p>' +
         '<p style="text-align:justify">Quanto à definição das prioridades foi adotado o critério: grau de risco superior a 80 pontos, prioridade <b>Muito Alta</b>; grau de risco menor que 80 pontos e maior que 49 pontos, prioridade <b>Alta</b>; grau de risco menor que 50 pontos e maior que 29 pontos, prioridade <b>Média</b>; grau de risco inferior a 30 pontos, prioridade <b>Baixa</b>.</p>' +
@@ -824,13 +824,10 @@ export async function POST(request: NextRequest) {
         '<tr><td colspan="2" style="' + TH11 + '">' + titulo41 + '</td></tr>' +
         S41_blocos +
         '</table>' +
-        (svgBarH ? '<div class="bloco"><div class="bloco-header">Distribuição de Ocorrências por Sistema</div>' + svgBarH + '</div>' : '') +
-        (svgPieH ? '<div class="bloco"><div class="bloco-header">Distribuição por Prioridade</div>' + svgPieH + '</div>' : '') +
-        '</div>'
 
       const S42nr =
         '<div class="titulo">4.2.- Análise Estatística das Manifestações Patológicas.</div>' +
-        '<div class="section">' +
+        '<div>' +
         '<p style="text-align:justify">A tabela que segue apresenta a estatística de ocorrências de requisitos normativos não conformes identificados na instalação, e classificados por sistema e prioridades, onde se pode observar a situação de cada um dos sistemas, possibilitando uma clara compreensão do estado das instalações e um adequado planejamento para execução das atividades corretivas.</p>' +
         '<table style="width:100%;border-collapse:collapse">' +
         '<tr>' +
@@ -871,12 +868,15 @@ export async function POST(request: NextRequest) {
         '</tr>' +
         '<tr><td colspan="11" style="' + TD42 + ';text-align:left;font-size:7.5pt"><b>A+</b> = Muito Alta &nbsp;|&nbsp; <b>A</b> = Alta &nbsp;|&nbsp; <b>M</b> = Média &nbsp;|&nbsp; <b>B</b> = Baixa</td></tr>' +
         '</table>' +
+        '</div>' +
+        (svgBarH ? '<div class="bloco"><div class="bloco-header">Distribuição de Ocorrências por Sistema</div>' + svgBarH + '</div>' : '') +
+        (svgPieH ? '<div class="bloco"><div class="bloco-header">Distribuição por Prioridade</div>' + svgPieH + '</div>' : '') +
         '</div>'
 
       // ── BLOCO 5 — Recomendações ────────────────────────────────────────────
       const S5nr =
         '<div class="titulo">5.- Recomendações Gerais.</div>' +
-        '<div class="section">' +
+        '<div>' +
         '<p style="text-align:justify">No decorrer do processo de inspeção foi efetuada a análise da documentação, a vistoria nas instalações e a classificação das anomalias e dos requisitos normativos, o que possibilitou uma completa avaliação que possibilita apresentar as recomendações que seguem, considerando a manutenção, operação, condições físicas, segurança e documentação.</p>' +
         '<table style="width:100%;border-collapse:collapse">' +
         '<tr><td style="' + TH11 + '">5.1.- Recomendações sobre manutenção:</td></tr>' +
@@ -1077,7 +1077,7 @@ export async function POST(request: NextRequest) {
       partsNR.push('<div class="section"><div class="pg-indice"><div class="indice-titulo">ÍNDICE</div>' + indiceHtmlNR + '</div></div>')
 
       // CORPO
-      partsNR.push('<div class="section">')
+      partsNR.push('<div>')
       if (cabNR) partsNR.push('<div class="cab">' + cabNR + '</div>')
       partsNR.push('<br><br><br><br><br>')
 
@@ -1090,7 +1090,7 @@ export async function POST(request: NextRequest) {
 
       // 1.2
       partsNR.push('<div class="titulo">' + titulo12 + '</div>')
-      partsNR.push(xe(OBJETIVO[tipoServico]||'').split('\\n').map((ln:string) => ln ? '<p style="margin:2pt 0;text-align:justify">' + ln + '</p>' : '').join(''))
+      partsNR.push('<div style="text-align:justify">' + xe(OBJETIVO[tipoServico]||'').replace(/\\n\\n/g,'</p><p style="margin:4pt 0">').replace(/\\n<\/p>/g,'</p>').replace(/\\n/g,' ') + '</div>')
 
       // 1.3
       partsNR.push('<div class="titulo">1.3.- Plano de Trabalho.</div>')
