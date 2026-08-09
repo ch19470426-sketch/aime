@@ -994,41 +994,66 @@ export async function POST(request: NextRequest) {
           const bgnr  = grNnr > 80 ? '#FEE2E2' : grNnr >= 50 ? '#FEF9C3' : '#DCFCE7'
           const prinr = grNnr > 80 ? 'Muito Alta' : grNnr >= 50 ? 'Alta' : grNnr >= 30 ? 'Média' : 'Baixa'
           const fotonr = nc.fotoBase64?.startsWith('data:image')
-            ? '<img src="' + nc.fotoBase64 + '" style="max-width:100%;max-height:115mm;object-fit:contain;display:block;margin:0 auto">'
-            : '<div style="height:60mm;display:flex;align-items:center;justify-content:center;color:#94a3b8;border:1px dashed #c3d4f0;font-size:7pt">[Sem fotonr]</div>'
-          const LBLnr = 'font-size:5.5pt;color:#4a6480;font-weight:700;display:block;text-transform:uppercase;margin-bottom:1px'
-          const TDR = 'border:1px solid #dde5f0;padding:3px 6px;vertical-align:top'
-          const THR = 'background:#1E3A8A;color:#fff;font-weight:700;padding:4px 6px;font-size:7.5pt'
-          const pb  = idx > 0 ? '<div style="page-break-before:always"></div>' : ''
+            ? '<img src="' + nc.fotoBase64 + '" style="width:100%;max-height:90mm;object-fit:contain;display:block;border-radius:4px">'
+            : '<div style="border:1.5px dashed #c3d4f0;border-radius:5px;background:#E8EEF7;height:90mm;display:flex;align-items:center;justify-content:center;color:#8aa3c4;font-size:8pt">Foto não disponível</div>'
+          const pb = idx > 0 ? '<div style="page-break-before:always"></div>' : ''
           const GMAP:Record<string,string> = {'1':'Estética','2':'Leve','3':'Moderada','4':'Alta','5':'Crítica'}
           const UMAP:Record<string,string> = {'1':'Pode aguardar','2':'Pode aguardar','3':'Planejar','4':'Planejar','5':'Imediata'}
           const AMAP:Record<string,string> = {'1':'Ponto isolado','2':'Ponto isolado','3':'Vários pontos','4':'Vários pontos','5':'Sistema completo'}
           const EMAP:Record<string,string> = {'1':'Baixa','2':'Baixa','3':'Média','4':'Média','5':'Alta'}
           const gv=String(nc.gravidade||''), uv=String(nc.urgencia||''), av=String(nc.abrangencia||''), ev=String(nc.exposicao||'')
+          const fld = (lbl:string, val:string) =>
+            '<div style="display:flex;flex-direction:column;gap:1px">' +
+            '<label style="font-size:6.5pt;font-weight:600;color:#4a6480">' + lbl + '</label>' +
+            '<div style="border:1px solid #c3d4f0;border-radius:4px;padding:2px 5px;font-size:7.5pt;color:#1a1a2e;background:#f5f7fc;min-height:18px">' + (val||'&nbsp;') + '</div>' +
+            '</div>'
+          const card = (title:string, body:string) =>
+            '<div style="border:1px solid #c3d4f0;border-radius:6px;overflow:hidden">' +
+            '<div style="background:#1E3A8A;color:#fff;font-size:7.5pt;font-weight:700;padding:3px 10px">' + title + '</div>' +
+            '<div style="padding:5px 10px;display:flex;flex-direction:column;gap:4px">' + body + '</div>' +
+            '</div>'
+          const gN = (...items:string[]) => '<div style="display:grid;gap:4px;grid-template-columns:' + items.map(()=>'1fr').join(' ') + '">' + items.join('') + '</div>'
+          const sisNome = xe((nc.sistema||'').slice(3).replace(/_/g,' '))
           return pb +
-            '<table style="width:100%;border-collapse:collapse;font-size:7.5pt;outline:1px solid #1E3A8A">' +
-            '<tr><td colspan="4" style="' + THR + '">Identificação</td></tr>' +
-            '<tr>' +
-            '<td style="' + TDR + ';width:32%"><span style="' + LBLnr + '">CNPJ/CPF</span>' + xe(nc.cnpjoucpf||'') + '</td>' +
-            '<td style="' + TDR + ';text-align:right"><span style="' + LBLnr + '">Data da Vistoria</span>' + xe(nc.dataVistoria||nc.data||'') + '</td>' +
-            '</tr>' +
-            '<tr><td style="' + TDR + '"><span style="' + LBLnr + '">Razão Social</span>' + xe(nc.razaoSocial||estab?.razao_social_nome||'') + '</td>' +
-            '<td style="' + TDR + '"><span style="' + LBLnr + '">Tag/Nº Série</span>' + xe(nc.tagNrSerie||nc.tag||'') + '</td>' +
-            '</tr>' +
-            '<tr><td colspan="4" style="' + THR + '">Requisito Normativo — Não Conformidade</td></tr>' +
-            '<tr><td style="' + TDR + '"><span style="' + LBLnr + '">Tipo de Ativo</span>' + xe(nc.tipoAtivo||'') + '</td><td style="' + TDR + '"><span style="' + LBLnr + '">Tag/Nº Série</span>' + xe(nc.tagNrSerie||nc.tag||'') + '</td></tr>' +
-            '<tr><td style="' + TDR + '"><span style="' + LBLnr + '">Sistema</span>' + xe((nc.sistema||'').slice(3).replace(/_/g,' ')) + '</td><td style="' + TDR + '"><span style="' + LBLnr + '">Subsistema</span>' + xe(nc.subsistema||'') + '</td><td colspan="2" style="' + TDR + '"><span style="' + LBLnr + '">Item Normativo</span>' + xe(nc.anomalia||nc.nc||'') + '</td></tr>' +
-            '<tr><td style="' + TDR + '"><span style="' + LBLnr + '">Resultado</span>' + xe(nc.resultado||nc.origem||'') + '</td><td style="' + TDR + '"><span style="' + LBLnr + '">Local</span>' + xe(nc.local||'') + '</td><td colspan="2" style="' + TDR + '"><span style="' + LBLnr + '">Complemento</span>' + xe(nc.complemento||'') + '</td></tr>' +
-            '<tr><td colspan="4" style="' + THR + '">Classificação de Risco</td></tr>' +
-            '<tr><td style="' + TDR + '"><span style="' + LBLnr + '">Gravidade</span>' + (GMAP[gv]||gv||'—') + '</td><td style="' + TDR + '"><span style="' + LBLnr + '">Urgência</span>' + (UMAP[uv]||uv||'—') + '</td><td style="' + TDR + '"><span style="' + LBLnr + '">Abrangência</span>' + (AMAP[av]||av||'—') + '</td><td style="' + TDR + '"><span style="' + LBLnr + '">Exposição</span>' + (EMAP[ev]||ev||'—') + '</td></tr>' +
-            '<tr><td colspan="2" style="' + TDR + ';background:' + bgnr + ';border-color:' + cornr + '"><span style="' + LBLnr + '">Grau de Risco</span><span style="font-size:16pt;font-weight:700;color:' + cornr + '">' + grNnr + '</span></td><td colspan="2" style="' + TDR + ';background:' + bgnr + ';border-color:' + cornr + ';text-align:center"><span style="' + LBLnr + '">Prioridade</span><span style="font-size:11pt;font-weight:700;color:' + cornr + '">' + prinr + '</span></td></tr>' +
-            '<tr><td colspan="4" style="' + THR + '">Evidência Fotográfica</td></tr>' +
-            '<tr><td style="' + TDR + ';width:40%"><span style="' + LBLnr + '">Foto Nº</span>' + xe(nc.fotoNr||'') + '</td><td colspan="3" style="' + TDR + ';text-align:right"><span style="' + LBLnr + '">Data da Vistoria</span>' + xe(nc.dataVistoria||nc.data||'') + '</td></tr>' +
-            '<tr><td colspan="4" style="' + TDR + ';padding:4px 2px">' + fotonr + '</td></tr>' +
-            '<tr><td colspan="4" style="' + THR + '">Resultado da Análise</td></tr>' +
-            '<tr><td colspan="4" style="' + TDR + '"><span style="' + LBLnr + '">Descrição da Não Conformidade (NC)</span>' + xe(nc.nc||nc.anomalia||'') + '</td></tr>' +
-            '<tr><td colspan="4" style="' + TDR + '"><span style="' + LBLnr + '">Causa Provável (CP)</span>' + xe(nc.cp||'') + '</td></tr>' +
-            '</table>'
+            '<div style="width:100%;background:#fff;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,.08);overflow:hidden">' +
+            '<div style="background:#1E3A8A;padding:6px 14px;text-align:center">' +
+            '<div style="font-size:10pt;font-weight:700;color:#fff">' + xe(inspetor?.cabecalho_documentos||'AIME') + '</div>' +
+            '<div style="font-size:6.5pt;color:#B5D4F4;margin-top:1px">Formulário de Registro de Conformidade Regulatória</div>' +
+            '</div>' +
+            '<div style="height:2px;background:#1E3A8A"></div>' +
+            '<div style="padding:8px 12px;display:flex;flex-direction:column;gap:5px">' +
+            card('Identificação',
+              gN(fld('CNPJ/CPF', xe(nc.cnpjoucpf||'')), fld('Razão Social', xe(nc.razaoSocial||estab?.razao_social_nome||''))) +
+              gN(fld('Ativo a vistoriar', xe(nc.tipoAtivo||'')), fld('Tag / Nº série', xe(nc.tagNrSerie||nc.tag||'')), fld('Finalidade da vistoria', xe(nc.finalidade||'')))
+            ) +
+            card('Apuração da Conformidade Regulatória',
+              gN(fld('Sistema', sisNome), fld('Subsistema / Componente', xe(nc.subsistema||''))) +
+              fld('Requisito Normativo', xe(nc.nc||nc.anomalia||'')) +
+              gN(fld('Resultado', xe(nc.resultado||nc.origem||'')), fld('Local/Instalação/Setor/Área', xe(nc.local||'')), fld('Complemento', xe(nc.complemento||'')))
+            ) +
+            card('Classificação de Risco',
+              gN(fld('Gravidade', GMAP[gv]||gv||'—'), fld('Urgência', UMAP[uv]||uv||'—'), fld('Probabilidade', AMAP[av]||av||'—'), fld('Exposição risco', EMAP[ev]||ev||'—')) +
+              '<div style="display:grid;grid-template-columns:1fr 1fr;gap:4px">' +
+              '<div style="background:#E8EEF7;border:1px solid #c3d4f0;border-radius:5px;padding:3px 8px;display:flex;align-items:center;gap:8px">' +
+              '<span style="font-size:6.5pt;color:#4a6480;font-weight:600;white-space:nowrap">Grau de Risco</span>' +
+              '<span style="font-size:13pt;font-weight:700;color:' + cornr + '">' + grNnr + '</span>' +
+              '<div style="flex:1;height:5px;background:#c3d4f0;border-radius:99px;overflow:hidden">' +
+              '<div style="height:100%;border-radius:99px;width:' + Math.min(grNnr,100) + '%;background:' + cornr + '"></div></div>' +
+              '</div>' +
+              '<div style="background:#E8EEF7;border:1px solid #c3d4f0;border-radius:5px;padding:3px 8px;display:flex;align-items:center;justify-content:center;gap:8px">' +
+              '<span style="font-size:6.5pt;color:#4a6480;font-weight:600;white-space:nowrap">Prioridade</span>' +
+              '<span style="display:inline-flex;align-items:center;padding:2px 10px;border-radius:99px;font-size:7.5pt;font-weight:700;background:' + bgnr + ';color:' + cornr + '">' + prinr + '</span>' +
+              '</div></div>'
+            ) +
+            card('Evidência Fotográfica',
+              '<div style="display:grid;grid-template-columns:70px 1fr;gap:6px;align-items:end;margin-bottom:4px">' +
+              fld('Foto nº', xe(nc.fotoNr||'')) +
+              fld('Data da vistoria', xe(nc.dataVistoria||nc.data||'')) +
+              '</div>' + fotonr
+            ) +
+            card('Não Conformidade / Observações', fld('Observações', xe(nc.nc||nc.anomalia||''))) +
+            card('Causa Provável (CP)', fld('Causa provável (CP)', xe(nc.cp||''))) +
+            '</div></div>'
         }).join('\n')
 
       // ── Helpers assinatura ──────────────────────────────────────────────────
