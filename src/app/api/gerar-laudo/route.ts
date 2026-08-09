@@ -529,12 +529,12 @@ export async function POST(request: NextRequest) {
           '<td style="' + TD11 + '"><b>' + labelFinal + ':</b><br>' + xe(estab?.finalidade_vistoria||'') + '</td>' +
         '</tr>' +
         linhaExtra45 +
-        '<tr>' +
-          '<td style="' + TD11 + ';width:22%;vertical-align:top"><b>' + labelDesc + '</b></td>' +
-          '<td colspan="2" style="' + TD11 + ';min-height:28mm;vertical-align:middle;text-align:justify">' +
+        '<tr><td colspan="3" style="' + TD11 + ';min-height:28mm;vertical-align:middle">' +
+          '<b>' + labelDesc + '</b><br>' +
+          '<div style="text-align:justify;padding:4px 0;vertical-align:middle">' +
             (complemento?.sinteseEdif||'').replace(/^[\d]+[^\n]*\n/,'') +
-          '</td>' +
-          '</tr>' +
+          '</div>' +
+          '</td></tr>' +
         (is45
           ? '<tr><td colspan="3" style="' + TH11 + '">Identificação dos Elevadores</td></tr>' +
             '<tr>' +
@@ -559,12 +559,12 @@ export async function POST(request: NextRequest) {
         '<table style="width:100%;border-collapse:collapse;margin-top:6pt">' +
         '<tr><td colspan="2" style="' + TH11 + '">Localização do Estabelecimento</td></tr>' +
         '<tr>' +
-          '<td style="' + TD11 + ';width:50%;min-height:65mm;padding:4px">' +
+          '<td style="' + TD11 + ';width:50%;min-height:110mm;padding:4px">' +
             (complemento?.croquiBase64?.startsWith('data:image')
               ? '<img src="' + complemento.croquiBase64 + '" style="width:100%;max-height:110mm;object-fit:contain">'
               : '<div style="min-height:110mm;display:flex;align-items:center;justify-content:center;color:#94a3b8;font-size:8pt;border:1px dashed #c3d4f0">[Croqui de localização Maps]</div>') +
           '</td>' +
-          '<td style="' + TD11 + ';width:50%;min-height:65mm;padding:4px">' +
+          '<td style="' + TD11 + ';width:50%;min-height:110mm;padding:4px">' +
             (complemento?.fotoCapa?.startsWith('data:image')
               ? '<img src="' + complemento.fotoCapa + '" style="width:100%;max-height:110mm;object-fit:contain">'
               : '<div style="min-height:110mm;display:flex;align-items:center;justify-content:center;color:#94a3b8;font-size:8pt;border:1px dashed #c3d4f0">[Foto da fachada principal]</div>') +
@@ -974,8 +974,14 @@ export async function POST(request: NextRequest) {
           const { data: blob } = await supabase.storage.from('aime').download('vistorias_homologadas/' + nc._arquivo)
           if (!blob) return nc
           const h = await blob.text()
+          // Extrair só a imagem — ignorar botões e inputs do formulário
           const mImg = h.match(/<img[^>]+src="(data:image[^"]+)"/)
           if (mImg) return { ...nc, fotoBase64: mImg[1] }
+          // Fallback: extrair HTML limpo sem botões
+          const hClean = h.replace(/<button[^>]*>.*?<\/button>/gis, '')
+                          .replace(/<input[^>]*>/gi, '')
+                          .replace(/<select[^>]*>.*?<\/select>/gis, '')
+          return { ...nc, _htmlClean: hClean }
         } catch {}
         return nc
       }))
@@ -1078,8 +1084,8 @@ export async function POST(request: NextRequest) {
       partsNR.push('<div style="text-align:center;padding:10mm 0 0;flex-shrink:0;margin-bottom:16mm">' + logoTagNR + '</div>')
       partsNR.push('<div style="flex:1"></div>')
       partsNR.push('<div style="text-align:center;padding:0 20mm;flex-shrink:0">')
-      partsNR.push('<div style="font-size:13pt;font-weight:700;color:#374151;margin-bottom:4pt">' + xe(estab?.razao_social_nome||'') + '</div>')
       partsNR.push('<br><br><br><br>')
+      partsNR.push('<div style="font-size:13pt;font-weight:700;color:#374151;margin-bottom:4pt">' + xe(estab?.razao_social_nome||'') + '</div>')
       partsNR.push('<div style="font-size:8pt;color:#6B7280;letter-spacing:3px;text-transform:uppercase;margin-bottom:6pt">LAUDO TÉCNICO</div>')
       partsNR.push('<div style="font-size:18pt;font-weight:900;color:#1E3A8A;line-height:1.2;margin-bottom:2pt">' + TITULO_DOC[tipoServico] + '</div>')
       partsNR.push('</div><div style="flex:2"></div>')
