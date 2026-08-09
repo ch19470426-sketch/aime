@@ -507,7 +507,7 @@ export async function POST(request: NextRequest) {
 
       const tabelaCaract =
         '<table style="width:100%;border-collapse:collapse">' +
-        '<tr><td colspan="3" style="' + TD11 + ';background:#f1f5f9"><b>' + (is45 ? 'Identificação e características da edificação:' : 'Características do Estabelecimento:') + '</b></td></tr>' +
+        '<tr><td colspan="3" style="' + TH11 + '">' + (is45 ? 'Características da Edificação:' : 'Características do Estabelecimento:') + '</td></tr>' +
         '<tr>' +
           '<td style="' + TD11 + ';width:40%"><b>' + labelInst + ':</b><br>' + xe(estab?.razao_social_nome) + '</td>' +
           '<td style="' + TD11 + ';width:30%"><b>' + labelDoc + ':</b><br>' + xe(cnpjoucpf) + '</td>' +
@@ -529,9 +529,12 @@ export async function POST(request: NextRequest) {
           '<td style="' + TD11 + '"><b>' + labelFinal + ':</b><br>' + xe(estab?.finalidade_vistoria||'') + '</td>' +
         '</tr>' +
         linhaExtra45 +
-        '<tr><td colspan="3" style="' + TD11 + '"><b>' + labelDesc + '</b><br>' +
-          '<div style="min-height:28mm;text-align:justify;padding:4px 0">' + (complemento?.sinteseEdif||'').replace(/^[\d]+[^\n]*\n/,'') + '</div>' +
-        '</td></tr>' +
+        '<tr>' +
+          '<td style="' + TD11 + ';width:22%;vertical-align:top"><b>' + labelDesc + '</b></td>' +
+          '<td colspan="2" style="' + TD11 + ';min-height:28mm;vertical-align:middle;text-align:justify">' +
+            (complemento?.sinteseEdif||'').replace(/^[\d]+[^\n]*\n/,'') +
+          '</td>' +
+          '</tr>' +
         (is45
           ? '<tr><td colspan="3" style="' + TH11 + '">Identificação dos Elevadores</td></tr>' +
             '<tr>' +
@@ -558,13 +561,13 @@ export async function POST(request: NextRequest) {
         '<tr>' +
           '<td style="' + TD11 + ';width:50%;min-height:65mm;padding:4px">' +
             (complemento?.croquiBase64?.startsWith('data:image')
-              ? '<img src="' + complemento.croquiBase64 + '" style="width:100%;max-height:65mm;object-fit:contain">'
-              : '<div style="min-height:65mm;display:flex;align-items:center;justify-content:center;color:#94a3b8;font-size:8pt;border:1px dashed #c3d4f0">[Croqui de localização Maps]</div>') +
+              ? '<img src="' + complemento.croquiBase64 + '" style="width:100%;max-height:110mm;object-fit:contain">'
+              : '<div style="min-height:110mm;display:flex;align-items:center;justify-content:center;color:#94a3b8;font-size:8pt;border:1px dashed #c3d4f0">[Croqui de localização Maps]</div>') +
           '</td>' +
           '<td style="' + TD11 + ';width:50%;min-height:65mm;padding:4px">' +
             (complemento?.fotoCapa?.startsWith('data:image')
-              ? '<img src="' + complemento.fotoCapa + '" style="width:100%;max-height:65mm;object-fit:contain">'
-              : '<div style="min-height:65mm;display:flex;align-items:center;justify-content:center;color:#94a3b8;font-size:8pt;border:1px dashed #c3d4f0">[Foto da fachada principal]</div>') +
+              ? '<img src="' + complemento.fotoCapa + '" style="width:100%;max-height:110mm;object-fit:contain">'
+              : '<div style="min-height:110mm;display:flex;align-items:center;justify-content:center;color:#94a3b8;font-size:8pt;border:1px dashed #c3d4f0">[Foto da fachada principal]</div>') +
           '</td>' +
         '</tr>' +
         '</table>'
@@ -1075,10 +1078,10 @@ export async function POST(request: NextRequest) {
       partsNR.push('<div style="text-align:center;padding:10mm 0 0;flex-shrink:0;margin-bottom:16mm">' + logoTagNR + '</div>')
       partsNR.push('<div style="flex:1"></div>')
       partsNR.push('<div style="text-align:center;padding:0 20mm;flex-shrink:0">')
+      partsNR.push('<div style="font-size:13pt;font-weight:700;color:#374151;margin-bottom:4pt">' + xe(estab?.razao_social_nome||'') + '</div>')
+      partsNR.push('<br><br><br><br>')
       partsNR.push('<div style="font-size:8pt;color:#6B7280;letter-spacing:3px;text-transform:uppercase;margin-bottom:6pt">LAUDO TÉCNICO</div>')
       partsNR.push('<div style="font-size:18pt;font-weight:900;color:#1E3A8A;line-height:1.2;margin-bottom:2pt">' + TITULO_DOC[tipoServico] + '</div>')
-      partsNR.push('<div style="font-size:13pt;font-weight:700;color:#374151;margin-bottom:4pt">' + xe(estab?.razao_social_nome||'') + '</div>')
-      partsNR.push('<div style="font-size:9pt;color:#374151">' + xe(estab?.logradouro||'') + (estab?.numero_imovel?', '+xe(estab.numero_imovel):'') + ' — ' + xe(estab?.cidade||'') + '/' + xe(estab?.uf||'') + '</div>')
       partsNR.push('</div><div style="flex:2"></div>')
       partsNR.push('<div style="border-top:2px solid #1E3A8A;margin:0 20mm;flex-shrink:0"></div>')
       partsNR.push('<div style="padding:8mm 20mm;font-size:9.5pt;color:#222;line-height:1.9;flex-shrink:0">')
