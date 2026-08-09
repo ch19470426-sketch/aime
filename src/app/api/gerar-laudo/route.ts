@@ -851,7 +851,7 @@ export async function POST(request: NextRequest) {
         '<p style="text-align:justify">A tabela que segue apresenta a estatística de ocorrências de requisitos normativos não conformes identificados na instalação, e classificados por sistema e prioridades, onde se pode observar a situação de cada um dos sistemas, possibilitando uma clara compreensão do estado das instalações e um adequado planejamento para execução das atividades corretivas.</p>' +
         '<table style="width:100%;border-collapse:collapse">' +
         '<tr>' +
-          '<td colspan="11" style="' + TH42 + ';text-align:left">Estatística de Requisitos Normativos por Sistema e Prioridade</td>' +
+          '<td colspan="11" style="' + TH42 + ';text-align:center;font-weight:700"><b>Estatística de Requisitos Normativos por Sistema e Prioridade</b></td>' +
         '</tr>' +
         '<tr>' +
           '<td style="' + TH42 + ';text-align:left;width:28%">Sistema</td>' +
@@ -889,8 +889,8 @@ export async function POST(request: NextRequest) {
         '<tr><td colspan="11" style="' + TD42 + ';text-align:left;font-size:7.5pt"><b>A+</b> = Muito Alta &nbsp;|&nbsp; <b>A</b> = Alta &nbsp;|&nbsp; <b>M</b> = Média &nbsp;|&nbsp; <b>B</b> = Baixa</td></tr>' +
         '</table>' +
         '</div>' +
-        (svgBarH ? '<div class="bloco"><div class="bloco-header">Distribuição de Ocorrências por Sistema</div>' + svgBarH + '</div>' : '') +
-        (svgPieH ? '<div class="bloco"><div class="bloco-header">Distribuição por Prioridade</div>' + svgPieH + '</div>' : '') +
+        (svgBarH ? '<div class="bloco" style="margin:8pt auto"><div class="bloco-header">Distribuição de Ocorrências por Sistema</div>' + svgBarH + '</div>' : '') +
+        (svgPieH ? '<div class="bloco" style="margin:8pt auto"><div class="bloco-header">Distribuição por Prioridade</div>' + svgPieH + '</div>' : '') +
         '</div>'
 
       // ── BLOCO 5 — Recomendações ────────────────────────────────────────────
