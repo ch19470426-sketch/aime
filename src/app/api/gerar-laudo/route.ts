@@ -616,7 +616,7 @@ export async function POST(request: NextRequest) {
 
       // ── BLOCO 3.3 ──────────────────────────────────────────────────────────
       const COR33 = (v:string) =>
-        ['Garante','Plena','Excelente','Plenamente','Completa'].includes(v) ? '#16A34A' :
+        ['Garante','Plena','Excelente','Boa','Plenamente','Completa'].includes(v) ? '#16A34A' :
         ['Não garante','Interditada','Insegura','Péssima','Crítica','Não atende','Inexistentes','Ausente'].includes(v) ? '#CC0000' :
         v ? '#E8A000' : '#374151'
 
@@ -1008,8 +1008,15 @@ export async function POST(request: NextRequest) {
           return pb +
             '<table style="width:100%;border-collapse:collapse;font-size:7.5pt;outline:1px solid #1E3A8A">' +
             '<tr><td colspan="4" style="' + THR + '">Identificação</td></tr>' +
-            '<tr><td style="' + TDR + ';width:32%"><span style="' + LBLnr + '">CNPJ/CPF</span>' + xe(nc.cnpjoucpf||'') + '</td><td colspan="3" style="' + TDR + '"><span style="' + LBLnr + '">Razão Social</span>' + xe(nc.razaoSocial||estab?.razao_social_nome||'') + '</td></tr>' +
+            '<tr>' +
+            '<td style="' + TDR + ';width:32%"><span style="' + LBLnr + '">CNPJ/CPF</span>' + xe(nc.cnpjoucpf||'') + '</td>' +
+            '<td style="' + TDR + ';text-align:right"><span style="' + LBLnr + '">Data da Vistoria</span>' + xe(nc.dataVistoria||nc.data||'') + '</td>' +
+            '</tr>' +
+            '<tr><td style="' + TDR + '"><span style="' + LBLnr + '">Razão Social</span>' + xe(nc.razaoSocial||estab?.razao_social_nome||'') + '</td>' +
+            '<td style="' + TDR + '"><span style="' + LBLnr + '">Tag/Nº Série</span>' + xe(nc.tagNrSerie||nc.tag||'') + '</td>' +
+            '</tr>' +
             '<tr><td colspan="4" style="' + THR + '">Requisito Normativo — Não Conformidade</td></tr>' +
+            '<tr><td style="' + TDR + '"><span style="' + LBLnr + '">Tipo de Ativo</span>' + xe(nc.tipoAtivo||'') + '</td><td style="' + TDR + '"><span style="' + LBLnr + '">Tag/Nº Série</span>' + xe(nc.tagNrSerie||nc.tag||'') + '</td></tr>' +
             '<tr><td style="' + TDR + '"><span style="' + LBLnr + '">Sistema</span>' + xe((nc.sistema||'').slice(3).replace(/_/g,' ')) + '</td><td style="' + TDR + '"><span style="' + LBLnr + '">Subsistema</span>' + xe(nc.subsistema||'') + '</td><td colspan="2" style="' + TDR + '"><span style="' + LBLnr + '">Item Normativo</span>' + xe(nc.anomalia||nc.nc||'') + '</td></tr>' +
             '<tr><td style="' + TDR + '"><span style="' + LBLnr + '">Resultado</span>' + xe(nc.resultado||nc.origem||'') + '</td><td style="' + TDR + '"><span style="' + LBLnr + '">Local</span>' + xe(nc.local||'') + '</td><td colspan="2" style="' + TDR + '"><span style="' + LBLnr + '">Complemento</span>' + xe(nc.complemento||'') + '</td></tr>' +
             '<tr><td colspan="4" style="' + THR + '">Classificação de Risco</td></tr>' +
@@ -1084,10 +1091,10 @@ export async function POST(request: NextRequest) {
       partsNR.push('<div style="text-align:center;padding:10mm 0 0;flex-shrink:0;margin-bottom:16mm">' + logoTagNR + '</div>')
       partsNR.push('<div style="flex:1"></div>')
       partsNR.push('<div style="text-align:center;padding:0 20mm;flex-shrink:0">')
-      partsNR.push('<br><br><br><br>')
-      partsNR.push('<div style="font-size:13pt;font-weight:700;color:#374151;margin-bottom:4pt">' + xe(estab?.razao_social_nome||'') + '</div>')
       partsNR.push('<div style="font-size:8pt;color:#6B7280;letter-spacing:3px;text-transform:uppercase;margin-bottom:6pt">LAUDO TÉCNICO</div>')
       partsNR.push('<div style="font-size:18pt;font-weight:900;color:#1E3A8A;line-height:1.2;margin-bottom:2pt">' + TITULO_DOC[tipoServico] + '</div>')
+      partsNR.push('<br><br><br><br>')
+      partsNR.push('<div style="font-size:13pt;font-weight:700;color:#374151;margin-bottom:4pt">' + xe(estab?.razao_social_nome||'') + '</div>')
       partsNR.push('</div><div style="flex:2"></div>')
       partsNR.push('<div style="border-top:2px solid #1E3A8A;margin:0 20mm;flex-shrink:0"></div>')
       partsNR.push('<div style="padding:8mm 20mm;font-size:9.5pt;color:#222;line-height:1.9;flex-shrink:0">')
