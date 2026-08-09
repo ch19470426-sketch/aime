@@ -642,7 +642,7 @@ export async function POST(request: NextRequest) {
           '<tr>' +
           '<td style="' + TD11 + ';font-weight:700">' + r.c + '</td>' +
           '<td style="' + TD11 + '">' + r.q + '</td>' +
-          '<td style="' + TD11 + ';text-align:center;font-weight:700;color:' + COR33(r.val) + '">' + (r.val || '—') + '</td>' +
+          '<td style="' + TD11 + ';text-align:center;font-weight:700;color:' + COR33(r.val) + '">' + '<b>' + (r.val || '—') + '</b></td>' +
           '</tr>'
         ).join('') +
         '</table>' +
@@ -994,13 +994,13 @@ export async function POST(request: NextRequest) {
           const bgnr  = grNnr > 80 ? '#FEE2E2' : grNnr >= 50 ? '#FEF9C3' : '#DCFCE7'
           const prinr = grNnr > 80 ? 'Muito Alta' : grNnr >= 50 ? 'Alta' : grNnr >= 30 ? 'Média' : 'Baixa'
           const fotonr = nc.fotoBase64?.startsWith('data:image')
-            ? '<img src="' + nc.fotoBase64 + '" style="width:100%;max-height:90mm;object-fit:contain;display:block;border-radius:4px">'
-            : '<div style="border:1.5px dashed #c3d4f0;border-radius:5px;background:#E8EEF7;height:90mm;display:flex;align-items:center;justify-content:center;color:#8aa3c4;font-size:8pt">Foto não disponível</div>'
+            ? '<img src="' + nc.fotoBase64 + '" style="width:100%;height:auto;display:block;border-radius:4px">'
+            : '<div style="border:1.5px dashed #c3d4f0;border-radius:5px;background:#E8EEF7;height:80mm;display:flex;align-items:center;justify-content:center;color:#8aa3c4;font-size:8pt">Foto não disponível</div>'
           const pb = idx > 0 ? '<div style="page-break-before:always"></div>' : ''
-          const GMAP:Record<string,string> = {'1':'Estética','2':'Leve','3':'Moderada','4':'Alta','5':'Crítica'}
-          const UMAP:Record<string,string> = {'1':'Pode aguardar','2':'Pode aguardar','3':'Planejar','4':'Planejar','5':'Imediata'}
-          const AMAP:Record<string,string> = {'1':'Ponto isolado','2':'Ponto isolado','3':'Vários pontos','4':'Vários pontos','5':'Sistema completo'}
-          const EMAP:Record<string,string> = {'1':'Baixa','2':'Baixa','3':'Média','4':'Média','5':'Alta'}
+          const GMAP:Record<string,string> = {'1':'Estética','2':'Leve','3':'Moderada','4':'Alta','5':'Crítica','Lesão/dano baixo':'Lesão leve','Lesão/dano moderado':'Lesão moderada','Lesão/dano grave':'Lesão grave','Lesão/dano fatal':'Fatal','Sem risco':'Sem risco'}
+          const UMAP:Record<string,string> = {'1':'Pode aguardar','2':'Pode aguardar','3':'Planejar','4':'Planejar','5':'Imediata','Pode aguardar':'Pode aguardar','Planejar':'Planejar','Imediata':'Imediata'}
+          const AMAP:Record<string,string> = {'1':'Ponto isolado','2':'Ponto isolado','3':'Vários pontos','4':'Vários pontos','5':'Sistema completo','Improvável':'Improvável','Possível':'Possível','Provável/eminente':'Provável/eminente'}
+          const EMAP:Record<string,string> = {'1':'Baixa','2':'Baixa','3':'Média','4':'Média','5':'Alta','Eventual':'Eventual','Frequente':'Frequente','Muitas pessoas':'Muitas pessoas'}
           const gv=String(nc.gravidade||''), uv=String(nc.urgencia||''), av=String(nc.abrangencia||''), ev=String(nc.exposicao||'')
           const fld = (lbl:string, val:string) =>
             '<div style="display:flex;flex-direction:column;gap:1px">' +
@@ -1029,10 +1029,10 @@ export async function POST(request: NextRequest) {
             card('Apuração da Conformidade Regulatória',
               gN(fld('Sistema', sisNome), fld('Subsistema / Componente', xe(nc.subsistema||''))) +
               fld('Requisito Normativo', xe(nc.nc||nc.anomalia||'')) +
-              gN(fld('Resultado', xe(nc.resultado||nc.origem||'')), fld('Local/Instalação/Setor/Área', xe(nc.local||'')), fld('Complemento', xe(nc.complemento||'')))
+              gN(fld('Resultado', xe(nc.resultado||'')),  fld('Local/Instalação/Setor/Área', xe(nc.local||'')), fld('Complemento', xe(nc.complemento||'')))
             ) +
             card('Classificação de Risco',
-              gN(fld('Gravidade', GMAP[gv]||gv||'—'), fld('Urgência', UMAP[uv]||uv||'—'), fld('Probabilidade', AMAP[av]||av||'—'), fld('Exposição risco', EMAP[ev]||ev||'—')) +
+              gN(fld('Gravidade', GMAP[gv]||(gv||'—')), fld('Urgência', UMAP[uv]||(uv||'—')), fld('Probabilidade', AMAP[av]||(av||'—')), fld('Exposição risco', EMAP[ev]||(ev||'—'))) +
               '<div style="display:grid;grid-template-columns:1fr 1fr;gap:4px">' +
               '<div style="background:#E8EEF7;border:1px solid #c3d4f0;border-radius:5px;padding:3px 8px;display:flex;align-items:center;gap:8px">' +
               '<span style="font-size:6.5pt;color:#4a6480;font-weight:600;white-space:nowrap">Grau de Risco</span>' +
@@ -1046,7 +1046,7 @@ export async function POST(request: NextRequest) {
               '</div></div>'
             ) +
             card('Evidência Fotográfica',
-              '<div style="display:grid;grid-template-columns:70px 1fr;gap:6px;align-items:end;margin-bottom:4px">' +
+              '<div style="display:grid;grid-template-columns:auto 1fr;gap:6px;align-items:end;margin-bottom:4px">' + +
               fld('Foto nº', xe(nc.fotoNr||'')) +
               fld('Data da vistoria', xe(nc.dataVistoria||nc.data||'')) +
               '</div>' + fotonr
@@ -1118,8 +1118,8 @@ export async function POST(request: NextRequest) {
       partsNR.push('<div style="text-align:center;padding:0 20mm;flex-shrink:0">')
       partsNR.push('<div style="font-size:8pt;color:#6B7280;letter-spacing:3px;text-transform:uppercase;margin-bottom:6pt">LAUDO TÉCNICO</div>')
       partsNR.push('<div style="font-size:18pt;font-weight:900;color:#1E3A8A;line-height:1.2;margin-bottom:2pt">' + TITULO_DOC[tipoServico] + '</div>')
-      partsNR.push('<br><br><br><br>')
       partsNR.push('<div style="font-size:13pt;font-weight:700;color:#374151;margin-bottom:4pt">' + xe(estab?.razao_social_nome||'') + '</div>')
+      partsNR.push('<br><br><br><br>')
       partsNR.push('</div><div style="flex:2"></div>')
       partsNR.push('<div style="border-top:2px solid #1E3A8A;margin:0 20mm;flex-shrink:0"></div>')
       partsNR.push('<div style="padding:8mm 20mm;font-size:9.5pt;color:#222;line-height:1.9;flex-shrink:0">')
