@@ -981,6 +981,8 @@ export async function POST(request: NextRequest) {
         })
       } catch {}
 
+      console.log('DVMAP_KEYS:', Object.keys(dvMap))
+      if(Object.keys(dvMap).length>0){const k0=Object.keys(dvMap)[0];console.log('DVMAP_SAMPLE:', JSON.stringify(dvMap[k0]))}
       const ncsComFotoNR = await Promise.all((ncs ?? []).map(async (nc:any) => {
         const fotoKeyRaw = String(nc.fotoNr ?? '').replace(/^0+/,'') || '0'
         const dv = dvMap[fotoKeyRaw] ?? dvMap[fotoKeyRaw.padStart(3,'0')] ?? dvMap[fotoKeyRaw.padStart(2,'0')] ?? {} ?? {}
@@ -998,6 +1000,7 @@ export async function POST(request: NextRequest) {
         return { ...dv, ...nc }
       }))
 
+      if(ncsComFotoNR?.length>0)console.log('NC_MERGED:', JSON.stringify(Object.entries(ncsComFotoNR[0]).filter(([k,v])=>v!==undefined&&v!==null&&v!=='').map(([k])=>k)))
       const A2nr = (ncsComFotoNR ?? []).length === 0
         ? '<p style="color:#9a3412;font-style:italic">Nenhuma vistoria homologada encontrada.</p>'
         : (ncsComFotoNR ?? []).map((nc:any, idx:number) => {
