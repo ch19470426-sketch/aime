@@ -508,6 +508,7 @@ function Tela40Inner() {
             tipoServico: form.tipoServico,
             tipoAtivo: form.tipoAtivo,
             tagNrSerie: form.tagNrSerie,
+            finalidade: form.finalidade,
             chaveInspetor: form.chaveInspetor,
             sistema, subsistema, anomalia,
             origem, resultado,
