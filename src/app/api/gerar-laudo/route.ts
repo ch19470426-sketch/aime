@@ -754,13 +754,21 @@ export async function POST(request: NextRequest) {
         '09_Iluminação':'Iluminação normal e de emergência das áreas de trabalho.',
       }
       // ── Agrupar NCs por ativo+sistema para o Anexo 3 ─────────────────────────
+      // Agrupar NCs por sistema (tag vem dos ativos)
       const ncsPorAtivo: Record<string, Record<string, any[]>> = {}
       ;(ncs ?? []).forEach((nc: any) => {
-        const tag = nc.tag || nc.tag_ativo_nr_serie || 'Sem tag'
-        const sis = nc.sistema || 'Geral'
+        const sis = (nc.sistema || 'Geral').trim()
+        // Usar 'Geral' como chave de ativo quando não há tag nas NCs
+        const tag = nc.tag || nc.tag_ativo_nr_serie || 'Geral'
         if (!ncsPorAtivo[tag]) ncsPorAtivo[tag] = {}
         if (!ncsPorAtivo[tag][sis]) ncsPorAtivo[tag][sis] = []
         ncsPorAtivo[tag][sis].push(nc)
+      })
+      // Enriquecer com dados dos ativos (tag e tipo)
+      const ativosMap: Record<string, any> = {}
+      ;(estab?.ativos ?? []).forEach((a:any) => {
+        const tag = a.tag_ativo_nr_serie || a.tag || ''
+        if (tag) ativosMap[tag] = a
       })
 
       // Estilos do Anexo 3 — fiel ao template xlsx
@@ -773,15 +781,15 @@ export async function POST(request: NextRequest) {
       const S41_blocos = Object.keys(ncsPorSistema41).length === 0
         ? '<table style="width:100%;border-collapse:collapse"><tr><td style="padding:8px;color:#9a3412;font-style:italic">Nenhuma não conformidade registrada.</td></tr></table>'
         : Object.entries(ncsPorAtivo).map(([tag, sistemasDoAtivo], ativoIdx) => {
-            const tipoAtivo = (ncs ?? []).find((n:any) =>
-              (n.tag || n.tag_ativo_nr_serie || 'Sem tag') === tag
-            )?.tipoAtivo || ''
+            const ativoData = ativosMap[tag] ?? Object.values(ativosMap)[0] ?? {}
+            const tipoAtivo = ativoData.tipo_ativo || ativoData.tipo || ''
 
             return Object.entries(sistemasDoAtivo).map(([sis, ncsSis], sisIdx) => {
-              const sisNome = sis.length > 2 ? sis.slice(3).replace(/_/g,' ') : sis
-              const descSis = DESC_SIS[sis] ?? ''
+              const sisNome = sis.match(/^\d+_/) ? sis.slice(3).replace(/_/g,' ') : sis.replace(/_/g,' ')
+              const descSis = DESC_SIS[sis] ??
+                Object.entries(DESC_SIS).find(([k]) => k.toLowerCase().includes(sisNome.toLowerCase().slice(0,8)))?.[1] ?? ''
               const recSis  = recsSis[sis] ?? 'Corrigir as não conformidades conforme prioridades.'
-              const pb = (ativoIdx > 0 || sisIdx > 0) ? '<div style="page-break-before:always"></div>' : ''
+              const pb = (ativoIdx > 0 || sisIdx > 0) ? '<div style="height:8pt"></div>' : ''
               const BRD  = 'border:1px solid #cbd5e1'
               const ROT  = 'font-size:6.5pt;font-weight:700;color:#1E3A8A;background:#dbeafe;padding:2px 5px;border-bottom:1px solid #cbd5e1'
               const VAL  = 'font-size:8pt;padding:3px 5px;min-height:16px;background:#fff'
@@ -813,7 +821,7 @@ export async function POST(request: NextRequest) {
                 '<div style="' + VAL + ';min-height:20px">' + xe(recSis) + '</div>' +
                 '</td></tr></table>' +
                 // TABELA DE NCs — cabeçalho + linhas de dados
-                '<table style="width:100%;border-collapse:collapse;margin-bottom:8px">' +
+                '<table style="width:100%;border-collapse:collapse">' +
                 '<tr>' +
                 '<td style="' + TH_NC + ';width:4%">Foto</td>' +
                 '<td style="' + TH_NC + ';width:27%;text-align:left">Não Conformidade</td>' +
