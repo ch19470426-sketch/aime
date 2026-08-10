@@ -1067,9 +1067,9 @@ export async function POST(request: NextRequest) {
               '</div></div>'
             ) +
             card('Evidência Fotográfica',
-              '<div style="display:grid;grid-template-columns:auto 1fr;gap:6px;align-items:end;margin-bottom:4px">' + +
-              fld('Foto nº', xe(nc.fotoNrHtml || String(parseInt(String(nc.fotoNr||''))||'') || nc.fotoNr || '')) +
-              fld('Data da vistoria', xe(nc.dataVistoria||nc.data||'')) +
+              '<div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:4px">' +
+              '<div style="width:100px">' + fld('Foto nº', xe(nc.fotoNrHtml||nc.fotoNr||'')) + '</div>' +
+              '<div>' + fld('Data da vistoria', xe(nc.dataVistoria||nc.data||'')) + '</div>' +
               '</div>' + fotonr
             ) +
             card('Não Conformidade / Observações', fld('Observações', xe(nc.nc||nc.anomalia||''))) +
