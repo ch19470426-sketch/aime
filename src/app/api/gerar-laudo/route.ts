@@ -771,7 +771,7 @@ export async function POST(request: NextRequest) {
       const TD_LABEL = 'border:1px solid #1E3A8A;background:#f1f5f9;padding:3px 6px;font-weight:700;font-size:8pt;color:#1E3A8A;vertical-align:middle'
 
       const S41_blocos = Object.keys(ncsPorSistema41).length === 0
-        ? '<tr><td colspan="6" style="border:1px solid #cbd5e1;padding:8px;color:#9a3412;font-style:italic">Nenhuma não conformidade registrada.</td></tr>'
+        ? '<table style="width:100%;border-collapse:collapse"><tr><td style="padding:8px;color:#9a3412;font-style:italic">Nenhuma não conformidade registrada.</td></tr></table>'
         : Object.entries(ncsPorAtivo).map(([tag, sistemasDoAtivo], ativoIdx) => {
             const tipoAtivo = (ncs ?? []).find((n:any) =>
               (n.tag || n.tag_ativo_nr_serie || 'Sem tag') === tag
@@ -781,58 +781,47 @@ export async function POST(request: NextRequest) {
               const sisNome = sis.length > 2 ? sis.slice(3).replace(/_/g,' ') : sis
               const descSis = DESC_SIS[sis] ?? ''
               const recSis  = recsSis[sis] ?? 'Corrigir as não conformidades conforme prioridades.'
-              // Quebra de página a cada novo bloco Tag/Sistema
-              const pb = (ativoIdx > 0 || sisIdx > 0)
-                ? '<tr><td colspan="6" style="page-break-before:always;border:none;height:0;padding:0"></td></tr>'
-                : ''
-              // Estilos fiel ao template xlsx
-              const BRD  = 'border:1px solid #1E3A8A'
-              const BRD2 = 'border:1px solid #cbd5e1'
-              const TH_AZUL = BRD + ';background:#1E3A8A;color:#fff;font-weight:700;font-size:8pt;padding:3px 6px;vertical-align:middle'
-              const ROT   = BRD2 + ';background:#dbeafe;color:#1E3A8A;font-weight:700;font-size:8pt;padding:3px 6px;vertical-align:middle'
-              const VAL   = BRD2 + ';background:#fff;font-size:8pt;padding:3px 6px;vertical-align:middle'
-              const TH_NC = BRD + ';background:#1E3A8A;color:#fff;font-weight:700;font-size:7.5pt;padding:3px 4px;text-align:center;vertical-align:middle'
-              const TD_NC = BRD2 + ';font-size:7.5pt;padding:3px 4px;vertical-align:middle'
-              // Proporções colunas: A(3%) B(27%) C(18%) D(6%) E(7%) F(39%)
+              const pb = (ativoIdx > 0 || sisIdx > 0) ? '<div style="page-break-before:always"></div>' : ''
+              const BRD  = 'border:1px solid #cbd5e1'
+              const ROT  = 'font-size:6.5pt;font-weight:700;color:#1E3A8A;background:#dbeafe;padding:2px 5px;border-bottom:1px solid #cbd5e1'
+              const VAL  = 'font-size:8pt;padding:3px 5px;min-height:16px;background:#fff'
+              const CELL = BRD + ';vertical-align:top;padding:0'
+              const TH_NC = 'border:1px solid #1E3A8A;background:#1E3A8A;color:#fff;font-weight:700;font-size:7.5pt;padding:3px 4px;text-align:center;vertical-align:middle'
+              const TD_NC = BRD + ';font-size:7.5pt;padding:3px 4px;vertical-align:top'
+              const fld = (lbl:string, val:string) =>
+                '<td style="' + CELL + '">' +
+                '<div style="' + ROT + '">' + lbl + '</div>' +
+                '<div style="' + VAL + '">' + val + '</div>' +
+                '</td>'
               return pb +
-                // LINHA 2 — rótulos Tag/Série | Tipo ativo | Sistema
+                // BLOCO 1 — Tag/Nº Série | Tipo ativo | Sistema (larguras independentes)
+                '<table style="width:100%;border-collapse:collapse;margin-bottom:2px"><tr>' +
+                fld('Tag/Nº Série', xe(tag)) +
+                fld('Tipo ativo', xe(tipoAtivo||'—')) +
+                fld('Sistema', xe(sisNome)) +
+                '</tr></table>' +
+                // BLOCO 2 — Descrição do sistema (largura total)
+                '<table style="width:100%;border-collapse:collapse;margin-bottom:2px"><tr>' +
+                '<td style="' + CELL + ';width:100%">' +
+                '<div style="' + ROT + '">Descrição do sistema:</div>' +
+                '<div style="' + VAL + ';min-height:20px">' + xe(descSis || '—') + '</div>' +
+                '</td></tr></table>' +
+                // BLOCO 3 — Recomendação para o sistema (largura total)
+                '<table style="width:100%;border-collapse:collapse;margin-bottom:4px"><tr>' +
+                '<td style="' + CELL + ';width:100%">' +
+                '<div style="' + ROT + '">Recomendação para o sistema:</div>' +
+                '<div style="' + VAL + ';min-height:20px">' + xe(recSis) + '</div>' +
+                '</td></tr></table>' +
+                // TABELA DE NCs — cabeçalho + linhas de dados
+                '<table style="width:100%;border-collapse:collapse;margin-bottom:8px">' +
                 '<tr>' +
-                '<td colspan="2" style="' + ROT + ';width:30%">Tag/Nº Série:</td>' +
-                '<td style="' + ROT + ';width:17%">Tipo ativo:</td>' +
-                '<td colspan="3" style="' + ROT + ';width:53%">Sistema:</td>' +
-                '</tr>' +
-                // LINHA 3 — valores
-                '<tr>' +
-                '<td colspan="2" style="' + VAL + '">' + xe(tag) + '</td>' +
-                '<td style="' + VAL + '">' + xe(tipoAtivo||'—') + '</td>' +
-                '<td colspan="3" style="' + VAL + '">' + xe(sisNome) + '</td>' +
-                '</tr>' +
-                // LINHA 4 — rótulo descrição
-                '<tr>' +
-                '<td colspan="6" style="' + ROT + '">Descrição do sistema:</td>' +
-                '</tr>' +
-                // LINHA 5 — valor descrição
-                '<tr>' +
-                '<td colspan="6" style="' + VAL + ';min-height:16px">' + xe(descSis || '—') + '</td>' +
-                '</tr>' +
-                // LINHA 6 — rótulo recomendação
-                '<tr>' +
-                '<td colspan="6" style="' + ROT + '">Recomendação para o sistema:</td>' +
-                '</tr>' +
-                // LINHA 7 — valor recomendação
-                '<tr>' +
-                '<td colspan="6" style="' + VAL + ';min-height:16px">' + xe(recSis) + '</td>' +
-                '</tr>' +
-                // LINHA 8 — cabeçalho colunas NCs
-                '<tr>' +
-                '<td style="' + TH_NC + ';width:3%">Foto</td>' +
+                '<td style="' + TH_NC + ';width:4%">Foto</td>' +
                 '<td style="' + TH_NC + ';width:27%;text-align:left">Não Conformidade</td>' +
-                '<td style="' + TH_NC + ';width:18%;text-align:left">Local</td>' +
+                '<td style="' + TH_NC + ';width:17%;text-align:left">Local</td>' +
                 '<td style="' + TH_NC + ';width:6%">G Risco</td>' +
                 '<td style="' + TH_NC + ';width:7%">Prioridade</td>' +
                 '<td style="' + TH_NC + ';width:39%;text-align:left">Solução sugerida</td>' +
                 '</tr>' +
-                // LINHAS 9+ — dados de NCs
                 ncsSis.map((nc:any) => {
                   const grNnr = Number(nc.grauRisco) || 0
                   const corP  = grNnr > 80 ? '#CC0000' : grNnr >= 50 ? '#E8A000' : grNnr >= 30 ? '#EAB308' : '#16A34A'
@@ -846,7 +835,8 @@ export async function POST(request: NextRequest) {
                     '<td style="' + TD_NC + ';text-align:center;font-weight:700;color:' + corP + '">' + priP + '</td>' +
                     '<td style="' + TD_NC + '">' + sol + '</td>' +
                     '</tr>'
-                }).join('')
+                }).join('') +
+                '</table>'
             }).join('')
           }).join('')
 
@@ -863,10 +853,11 @@ export async function POST(request: NextRequest) {
 
       // Tabela de NCs — vai para o Anexo 3 (orientação paisagem futura)
       const A3nr =
-        '<table style="width:100%;border-collapse:collapse;table-layout:fixed">' +
-        '<tr><td colspan="6" style="background:#1E3A8A;color:#fff;font-weight:700;font-size:9pt;padding:6px 8px;text-align:center;border:1px solid #1E3A8A">' + titulo41 + '</td></tr>' +
+        '<div style="border:1px solid #1E3A8A;border-radius:4px;overflow:hidden">' +
+        '<div style="background:#1E3A8A;color:#fff;font-weight:700;font-size:9pt;padding:6px 8px;text-align:center">' + titulo41 + '</div>' +
+        '<div style="padding:6px">' +
         S41_blocos +
-        '</table>'
+        '</div></div>'
 
       const S42nr =
         '<div class="titulo">4.2.- Análise Estatística das Manifestações Patológicas.</div>' +
