@@ -450,7 +450,21 @@ function LaudoComplemento() {
             body: JSON.stringify({ tipo: 'solucao_nc', dados: nc })
           })
           const d = await r.json()
-          return { ...nc, solucaoNC: d.texto ?? '' }
+          const solucao = d.texto ?? ''
+          // Salvar descricao_solucao_nc em dados_vistoria
+          if (solucao && nc.fotoNr) {
+            fetch('/api/atualizar-solucao-nc', {
+              method: 'POST', headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                cpf_inspetor: cpfInspetor,
+                cnpjoucpf: cnpjoucpf,
+                tipo_servico: tipoServico,
+                foto_nr: nc.fotoNr,
+                descricao_solucao_nc: solucao
+              })
+            }).catch(() => {})
+          }
+          return { ...nc, solucaoNC: solucao }
         } catch { return nc }
       }))
 
