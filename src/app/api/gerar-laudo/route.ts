@@ -559,15 +559,15 @@ export async function POST(request: NextRequest) {
         '<table style="width:100%;border-collapse:collapse;margin-top:6pt">' +
         '<tr><td colspan="2" style="' + TH11 + '">Localização do Estabelecimento</td></tr>' +
         '<tr>' +
-          '<td style="' + TD11 + ';width:50%;min-height:110mm;padding:4px">' +
+          '<td style="' + TD11 + ';width:50%;height:70mm;padding:4px">' +
             (complemento?.croquiBase64?.startsWith('data:image')
-              ? '<img src="' + complemento.croquiBase64 + '" style="width:100%;max-height:110mm;object-fit:contain">'
-              : '<div style="min-height:110mm;display:flex;align-items:center;justify-content:center;color:#94a3b8;font-size:8pt;border:1px dashed #c3d4f0">[Croqui de localização Maps]</div>') +
+              ? '<img src="' + complemento.croquiBase64 + '" style="width:100%;height:70mm;max-height:70mm;object-fit:contain">'
+              : '<div style="height:70mm;display:flex;align-items:center;justify-content:center;color:#94a3b8;font-size:8pt;border:1px dashed #c3d4f0">[Croqui de localização Maps]</div>') +
           '</td>' +
-          '<td style="' + TD11 + ';width:50%;min-height:110mm;padding:4px">' +
+          '<td style="' + TD11 + ';width:50%;height:70mm;padding:4px">' +
             (complemento?.fotoCapa?.startsWith('data:image')
-              ? '<img src="' + complemento.fotoCapa + '" style="width:100%;max-height:110mm;object-fit:contain">'
-              : '<div style="min-height:110mm;display:flex;align-items:center;justify-content:center;color:#94a3b8;font-size:8pt;border:1px dashed #c3d4f0">[Foto da fachada principal]</div>') +
+              ? '<img src="' + complemento.fotoCapa + '" style="width:100%;height:70mm;max-height:70mm;object-fit:contain">'
+              : '<div style="height:70mm;display:flex;align-items:center;justify-content:center;color:#94a3b8;font-size:8pt;border:1px dashed #c3d4f0">[Foto da fachada principal]</div>') +
           '</td>' +
         '</tr>' +
         '</table>'
@@ -994,13 +994,13 @@ export async function POST(request: NextRequest) {
           const bgnr  = grNnr > 80 ? '#FEE2E2' : grNnr >= 50 ? '#FEF9C3' : '#DCFCE7'
           const prinr = grNnr > 80 ? 'Muito Alta' : grNnr >= 50 ? 'Alta' : grNnr >= 30 ? 'Média' : 'Baixa'
           const fotonr = nc.fotoBase64?.startsWith('data:image')
-            ? '<img src="' + nc.fotoBase64 + '" style="width:100%;height:auto;display:block;border-radius:4px">'
-            : '<div style="border:1.5px dashed #c3d4f0;border-radius:5px;background:#E8EEF7;height:80mm;display:flex;align-items:center;justify-content:center;color:#8aa3c4;font-size:8pt">Foto não disponível</div>'
+            ? '<img src="' + nc.fotoBase64 + '" style="width:100%;max-height:65mm;object-fit:contain;display:block;border-radius:4px">'
+            : '<div style="border:1.5px dashed #c3d4f0;border-radius:5px;background:#E8EEF7;height:65mm;display:flex;align-items:center;justify-content:center;color:#8aa3c4;font-size:8pt">Foto não disponível</div>'
           const pb = idx > 0 ? '<div style="page-break-before:always"></div>' : ''
-          const GMAP:Record<string,string> = {'1':'Estética','2':'Leve','3':'Moderada','4':'Alta','5':'Crítica','Lesão/dano baixo':'Lesão leve','Lesão/dano moderado':'Lesão moderada','Lesão/dano grave':'Lesão grave','Lesão/dano fatal':'Fatal','Sem risco':'Sem risco'}
-          const UMAP:Record<string,string> = {'1':'Pode aguardar','2':'Pode aguardar','3':'Planejar','4':'Planejar','5':'Imediata','Pode aguardar':'Pode aguardar','Planejar':'Planejar','Imediata':'Imediata'}
-          const AMAP:Record<string,string> = {'1':'Ponto isolado','2':'Ponto isolado','3':'Vários pontos','4':'Vários pontos','5':'Sistema completo','Improvável':'Improvável','Possível':'Possível','Provável/eminente':'Provável/eminente'}
-          const EMAP:Record<string,string> = {'1':'Baixa','2':'Baixa','3':'Média','4':'Média','5':'Alta','Eventual':'Eventual','Frequente':'Frequente','Muitas pessoas':'Muitas pessoas'}
+          const GMAP:Record<string,string> = {'1':'Sem risco','2':'Lesão/dano baixo','3':'Lesão/dano moderado','4':'Lesão/dano grave','5':'Lesão/dano fatal'}
+          const UMAP:Record<string,string> = {'1':'Pode aguardar','3':'Planejar','5':'Imediata'}
+          const AMAP:Record<string,string> = {'1':'Improvável','3':'Possível','5':'Provável/eminente'}
+          const EMAP:Record<string,string> = {'1':'Eventual','3':'Frequente','5':'Muitas pessoas'}
           const gv=String(nc.gravidade||''), uv=String(nc.urgencia||''), av=String(nc.abrangencia||''), ev=String(nc.exposicao||'')
           const fld = (lbl:string, val:string) =>
             '<div style="display:flex;flex-direction:column;gap:1px">' +
@@ -1029,7 +1029,7 @@ export async function POST(request: NextRequest) {
             card('Apuração da Conformidade Regulatória',
               gN(fld('Sistema', sisNome), fld('Subsistema / Componente', xe(nc.subsistema||''))) +
               fld('Requisito Normativo', xe(nc.nc||nc.anomalia||'')) +
-              gN(fld('Resultado', xe(nc.resultado||'')),  fld('Local/Instalação/Setor/Área', xe(nc.local||'')), fld('Complemento', xe(nc.complemento||'')))
+              gN(fld('Resultado', xe(nc.resultado && nc.resultado !== 'Funcional' ? nc.resultado : (nc.origem && nc.origem !== 'Funcional' ? nc.origem : ''))),    fld('Local/Instalação/Setor/Área', xe(nc.local||'')), fld('Complemento', xe(nc.complemento||'')))
             ) +
             card('Classificação de Risco',
               gN(fld('Gravidade', GMAP[gv]||(gv||'—')), fld('Urgência', UMAP[uv]||(uv||'—')), fld('Probabilidade', AMAP[av]||(av||'—')), fld('Exposição risco', EMAP[ev]||(ev||'—'))) +
