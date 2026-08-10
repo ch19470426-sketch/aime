@@ -495,7 +495,7 @@ function LaudoComplemento() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           cpfInspetor, chaveInspetor, cnpjoucpf, tipoServico,
-          estab: { ...estab, ...contato }, inspetor, ncs: ncsComSolucao, nomeArquivo: nome,
+          estab: { ...estab, ...contato }, inspetor, ncs: ncsComSolucao.map(({fotoBase64: _f, ...rest}: any) => rest), nomeArquivo: nome,
           complemento: {
             nomeConvencao, sinteseEdif,
             pathCroqui, croquiBase64, fotoCapa, artRrt,
