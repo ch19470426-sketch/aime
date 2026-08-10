@@ -1014,7 +1014,7 @@ export async function POST(request: NextRequest) {
           const UMAP:Record<string,string> = {'1':'Pode aguardar','3':'Planejar','5':'Imediata','Pode aguardar':'Pode aguardar','Planejar':'Planejar','Imediata':'Imediata'}
           const AMAP:Record<string,string> = {'1':'Improvável','3':'Possível','5':'Provável/eminente','Improvável':'Improvável','Possível':'Possível','Provável/eminente':'Provável/eminente'}
           const EMAP:Record<string,string> = {'1':'Eventual','3':'Frequente','5':'Muitas pessoas','Eventual':'Eventual','Frequente':'Frequente','Muitas pessoas':'Muitas pessoas'}
-          const gv=String(nc.gravidade||dv.gravidade||''), uv=String(nc.urgencia||dv.urgencia||''), av=String(nc.abrangencia||dv.abrangencia||''), ev=String(nc.exposicao||dv.exposicao||'')
+          const gv=String(nc.gravidade||nc.gravidade||''), uv=String(nc.urgencia||nc.urgencia||''), av=String(nc.abrangencia||nc.abrangencia||''), ev=String(nc.exposicao||nc.exposicao||'')
           const fld = (lbl:string, val:string) =>
             '<div style="display:flex;flex-direction:column;gap:1px">' +
             '<label style="font-size:6.5pt;font-weight:600;color:#4a6480">' + lbl + '</label>' +
@@ -1037,12 +1037,12 @@ export async function POST(request: NextRequest) {
             '<div style="padding:8px 12px;display:flex;flex-direction:column;gap:5px">' +
             card('Identificação',
               gN(fld('CNPJ/CPF', xe(nc.cnpjoucpf||'')), fld('Razão Social', xe(nc.razaoSocial||estab?.razao_social_nome||''))) +
-              gN(fld('Ativo a vistoriar', xe(nc.tipoAtivo||nc.tipo_ativo||dv.tipo_ativo||'')), fld('Tag / Nº série', xe(nc.tagNrSerie||nc.tag_ativo_nr_serie||dv.tag_ativo_nr_serie||'')), fld('Finalidade da vistoria', xe(nc.finalidade||nc.finalidade_vistoria||dv.finalidade_vistoria||'')))
+              gN(fld('Ativo a vistoriar', xe(nc.tipoAtivo||nc.tipo_ativo||nc.tipo_ativo||'')), fld('Tag / Nº série', xe(nc.tagNrSerie||nc.tag_ativo_nr_serie||nc.tag_ativo_nr_serie||'')), fld('Finalidade da vistoria', xe(nc.finalidade||nc.finalidade_vistoria||nc.finalidade_vistoria||'')))
             ) +
             card('Apuração da Conformidade Regulatória',
               gN(fld('Sistema', sisNome), fld('Subsistema / Componente', xe(nc.subsistema||''))) +
               fld('Requisito Normativo', xe(nc.nc||nc.anomalia||'')) +
-              gN(fld('Resultado', xe([nc.resultado, nc.origem_resultado, dv.origem_resultado, nc.origem].find((v:any) => v && v !== 'Funcional') || '')),   fld('Local/Instalação/Setor/Área', xe(nc.local||'')), fld('Complemento', xe(nc.complemento||'')))
+              gN(fld('Resultado', xe([nc.resultado, nc.origem_resultado, nc.origem_resultado, nc.origem].find((v:any) => v && v !== 'Funcional') || '')),   fld('Local/Instalação/Setor/Área', xe(nc.local||'')), fld('Complemento', xe(nc.complemento||'')))
             ) +
             card('Classificação de Risco',
               gN(fld('Gravidade', GMAP[gv]||(gv||'—')), fld('Urgência', UMAP[uv]||(uv||'—')), fld('Probabilidade', AMAP[av]||(av||'—')), fld('Exposição risco', EMAP[ev]||(ev||'—'))) +
