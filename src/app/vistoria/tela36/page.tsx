@@ -170,6 +170,19 @@ function Tela31Inner() {
           const atv = await query('ativos_a_vistoriar', `cpf_inspetor=eq.${cpfInspetor}&tipo_servico=eq.${encodeURIComponent(tipoServicoBanco)}&select=tipo_ativo,tag_ativo_nr_serie,finalidade_vistoria,data_cadastro&order=data_cadastro.desc`)
           if (Array.isArray(atv)) setAtivos(atv)
         }
+        // Buscar finalidade de contato_cliente
+        try {
+          const tsV = ({'36':'36 Vistoria nr-10','37':'37 Vistoria nr-12','38':'38 Vistoria nr-13'})[tipoServico] ?? tipoServicoBanco
+          const resCC = await fetch(`${SUPA_URL}/rest/v1/contato_cliente?cpf_inspetor=eq.${cpfInspetor}&cnpjoucpf=eq.${cnpjoucpf}&tipo_servico=eq.${encodeURIComponent(tsV)}&order=data_cadastro.desc&limit=1`, {
+            headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` }
+          })
+          const ccData = await resCC.json()
+          if (Array.isArray(ccData) && ccData.length > 0) {
+            setFinalidade(ccData[0].finalidade_vistoria || '')
+          }
+        } catch {}
+        if (false) {
+        }
 
         // Sistemas
         const sis = await query('sistemas_construtivos', `tipo_servico=eq.${encodeURIComponent(tipoServicoBanco)}&select=sistema&order=sistema`)
@@ -371,7 +384,7 @@ function Tela31Inner() {
                   <select style={S.input} value={tagNrSerie} onChange={e => {
                     setTagNrSerie(e.target.value)
                     const ativo = ativos.find(a => a.tipo_ativo === tipoAtivo && a.tag_ativo_nr_serie === e.target.value)
-                    setFinalidade(ativo?.finalidade_vistoria ?? '')
+                    // finalidade vem de contato_cliente — não sobrescrever
                   }} disabled={!tipoAtivo}>
                     <option value="">Selecione...</option>
                     {tagsFiltradas.map(t => <option key={t} value={t}>{t}</option>)}
