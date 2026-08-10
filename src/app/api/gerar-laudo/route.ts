@@ -967,40 +967,45 @@ export async function POST(request: NextRequest) {
         '</div>'
 
       // ── ANEXO 2 — Formulários homologados ──────────────────────────────────
-      // Buscar dados_vistoria para enriquecer campos ausentes no HTML antigo
-      let dvMap: Record<string,any> = {}
-      try {
-        const { data: dvRows } = await supabase
-          .from('dados_vistoria').select('*')
-          .eq('cpf_inspetor', cpfInspetor).eq('cnpjoucpf', cnpjoucpf)
-        if (dvRows) dvRows.forEach((r:any) => {
-          const k = String(r.foto_nr ?? '').replace(/^0+/,'') || '0'
-          dvMap[k] = r              // '1'
-          dvMap[k.padStart(3,'0')] = r  // '001'
-          dvMap[k.padStart(2,'0')] = r  // '01'
-        })
-      } catch {}
+      // dados_vistoria vazia — campos extraídos do HTML homologado
 
-      console.log('DVMAP_KEYS:', Object.keys(dvMap))
-      if(Object.keys(dvMap).length>0){const k0=Object.keys(dvMap)[0];console.log('DVMAP_SAMPLE:', JSON.stringify(dvMap[k0]))}
+            // Helper para extrair valor de campo do HTML homologado
+      const extrHtml = (h:string, lbl:string) => {
+        const m = h.match(new RegExp('<label>' + lbl + '<\\/label><span>([^<]*)<\\/span>'))
+        return m ? m[1].trim() : ''
+      }
+      const extrGUT = (h:string, lbl:string) => {
+        const m = h.match(new RegExp('<label>' + lbl + '<\\/label><span>([^<]+)<\\/span>'))
+        return m ? m[1].trim() : ''
+      }
+
       const ncsComFotoNR = await Promise.all((ncs ?? []).map(async (nc:any) => {
-        const fotoKeyRaw = String(nc.fotoNr ?? '').replace(/^0+/,'') || '0'
-        const dv = dvMap[fotoKeyRaw] ?? dvMap[fotoKeyRaw.padStart(3,'0')] ?? dvMap[fotoKeyRaw.padStart(2,'0')] ?? {} ?? {}
-        if (nc.fotoBase64?.startsWith('data:image')) return { ...dv, ...nc }
-        if (!nc._arquivo) return { ...dv, ...nc }
+        if (nc.fotoBase64?.startsWith('data:image')) return nc
+        if (!nc._arquivo) return nc
         try {
           const { data: blob } = await supabase.storage.from('aime').download('vistorias_homologadas/' + nc._arquivo)
-          if (!blob) return { ...dv, ...nc }
+          if (!blob) return nc
           const h = await blob.text()
-          // Extrair só a imagem — ignorar botões e inputs do formulário
+          // Extrair foto
           const mImg = h.match(/<img[^>]+src="(data:image[^"]+)"/)
-          if (mImg) return { ...dv, ...nc, fotoBase64: mImg[1] }
-          return { ...dv, ...nc }
+          // Extrair campos do HTML
+          const extra: Record<string,string> = {
+            tipoAtivo:   nc.tipoAtivo   || extrHtml(h, 'Ativo'),
+            tagNrSerie:  nc.tagNrSerie  || extrHtml(h, 'TAG \/ Nº Série'),
+            finalidade:  nc.finalidade  || extrHtml(h, 'Finalidade'),
+            resultado:   nc.resultado   || extrHtml(h, 'Resultado') || extrHtml(h, 'Resultado da Análise'),
+            gravidade:   nc.gravidade   || extrGUT(h, 'Gravidade'),
+            urgencia:    nc.urgencia    || extrGUT(h, 'Urgência'),
+            abrangencia: nc.abrangencia || extrGUT(h, 'Probabilidade') || extrGUT(h, 'Abrangência'),
+            exposicao:   nc.exposicao   || extrGUT(h, 'Exposição risco') || extrGUT(h, 'Exposição'),
+          }
+          if (mImg) return { ...nc, ...extra, fotoBase64: mImg[1] }
+          return { ...nc, ...extra }
         } catch {}
-        return { ...dv, ...nc }
+        return nc
       }))
 
-      if(ncsComFotoNR?.length>0)console.log('NC_MERGED:', JSON.stringify(Object.entries(ncsComFotoNR[0]).filter(([k,v])=>v!==undefined&&v!==null&&v!=='').map(([k])=>k)))
+
       const A2nr = (ncsComFotoNR ?? []).length === 0
         ? '<p style="color:#9a3412;font-style:italic">Nenhuma vistoria homologada encontrada.</p>'
         : (ncsComFotoNR ?? []).map((nc:any, idx:number) => {
@@ -1009,8 +1014,8 @@ export async function POST(request: NextRequest) {
           const bgnr  = grNnr > 80 ? '#FEE2E2' : grNnr >= 50 ? '#FEF9C3' : '#DCFCE7'
           const prinr = grNnr > 80 ? 'Muito Alta' : grNnr >= 50 ? 'Alta' : grNnr >= 30 ? 'Média' : 'Baixa'
           const fotonr = nc.fotoBase64?.startsWith('data:image')
-            ? '<img src="' + nc.fotoBase64 + '" style="width:100%;max-height:60mm;object-fit:contain;display:block;border-radius:4px">'
-            : '<div style="border:1.5px dashed #c3d4f0;border-radius:5px;background:#E8EEF7;height:55mm;display:flex;align-items:center;justify-content:center;color:#8aa3c4;font-size:8pt">Foto não disponível</div>'
+            ? '<img src="' + nc.fotoBase64 + '" style="width:100%;max-height:90mm;object-fit:cover;border-radius:5px;border:2px solid #1E3A8A;display:block">'
+            : '<div style="border:1.5px dashed #c3d4f0;border-radius:5px;background:#E8EEF7;height:80mm;display:flex;align-items:center;justify-content:center;color:#8aa3c4;font-size:8pt">Foto não disponível</div>'
           const pb = idx > 0 ? '<div style="page-break-before:always"></div>' : ''
           const GMAP:Record<string,string> = {'1':'Sem risco','2':'Lesão/dano baixo','3':'Lesão/dano moderado','4':'Lesão/dano grave','5':'Lesão/dano fatal','Sem risco':'Sem risco','Lesão/dano baixo':'Lesão/dano baixo','Lesão/dano moderado':'Lesão/dano moderado','Lesão/dano grave':'Lesão/dano grave','Lesão/dano fatal':'Lesão/dano fatal'}
           const UMAP:Record<string,string> = {'1':'Pode aguardar','3':'Planejar','5':'Imediata','Pode aguardar':'Pode aguardar','Planejar':'Planejar','Imediata':'Imediata'}
