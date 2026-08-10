@@ -755,19 +755,32 @@ export async function POST(request: NextRequest) {
       }
       // ── Agrupar NCs por ativo+sistema para o Anexo 3 ─────────────────────────
       // Agrupar NCs por sistema (tag vem dos ativos)
-      const ncsPorAtivo: Record<string, Record<string, any[]>> = {}
+      // Agrupar NCs por sistema
+      const ncsPorSistema: Record<string, any[]> = {}
       ;(ncs ?? []).forEach((nc: any) => {
         const sis = (nc.sistema || 'Geral').trim()
-        // Usar 'Geral' como chave de ativo quando não há tag nas NCs
-        const tag = nc.tag || nc.tag_ativo_nr_serie || 'Geral'
-        if (!ncsPorAtivo[tag]) ncsPorAtivo[tag] = {}
-        if (!ncsPorAtivo[tag][sis]) ncsPorAtivo[tag][sis] = []
-        ncsPorAtivo[tag][sis].push(nc)
+        if (!ncsPorSistema[sis]) ncsPorSistema[sis] = []
+        ncsPorSistema[sis].push(nc)
       })
-      // Enriquecer com dados dos ativos (tag e tipo)
+      // Montar ncsPorAtivo: para cada ativo, todas as NCs (por sistema)
+      // Se não há ativos, usar uma entrada 'Geral'
+      const ativos41 = (estab?.ativos ?? [])
+      const ncsPorAtivo: Record<string, Record<string, any[]>> = {}
+      if (ativos41.length > 0) {
+        ativos41.forEach((a:any) => {
+          const tag = a.tag_ativo_nr_serie || a.tag || a.tipo_ativo || 'Sem tag'
+          if (!ncsPorAtivo[tag]) ncsPorAtivo[tag] = {}
+          Object.entries(ncsPorSistema).forEach(([sis, ncsS]) => {
+            if (!ncsPorAtivo[tag][sis]) ncsPorAtivo[tag][sis] = ncsS
+          })
+        })
+      } else {
+        ncsPorAtivo['—'] = ncsPorSistema
+      }
+      // Map de ativos por tag para recuperar tipo_ativo
       const ativosMap: Record<string, any> = {}
-      ;(estab?.ativos ?? []).forEach((a:any) => {
-        const tag = a.tag_ativo_nr_serie || a.tag || ''
+      ativos41.forEach((a:any) => {
+        const tag = a.tag_ativo_nr_serie || a.tag || a.tipo_ativo || ''
         if (tag) ativosMap[tag] = a
       })
 
@@ -781,21 +794,26 @@ export async function POST(request: NextRequest) {
       const S41_blocos = Object.keys(ncsPorSistema41).length === 0
         ? '<table style="width:100%;border-collapse:collapse"><tr><td style="padding:8px;color:#9a3412;font-style:italic">Nenhuma não conformidade registrada.</td></tr></table>'
         : Object.entries(ncsPorAtivo).map(([tag, sistemasDoAtivo], ativoIdx) => {
-            const ativoData = ativosMap[tag] ?? Object.values(ativosMap)[0] ?? {}
-            const tipoAtivo = ativoData.tipo_ativo || ativoData.tipo || ''
+            const ativoData = ativosMap[tag] ?? {}
+            const tipoAtivo = ativoData.tipo_ativo || ativoData.tipo || tag
 
             return Object.entries(sistemasDoAtivo).map(([sis, ncsSis], sisIdx) => {
               const sisNome = sis.match(/^\d+_/) ? sis.slice(3).replace(/_/g,' ') : sis.replace(/_/g,' ')
               const descSis = DESC_SIS[sis] ??
-                Object.entries(DESC_SIS).find(([k]) => k.toLowerCase().includes(sisNome.toLowerCase().slice(0,8)))?.[1] ?? ''
+                Object.entries(DESC_SIS).find(([k]) =>
+                  sisNome.length > 3 && k.toLowerCase().includes(sisNome.toLowerCase().replace(/\s/g,'_').slice(0,10))
+                )?.[1] ??
+                Object.entries(DESC_SIS).find(([k]) =>
+                  k.toLowerCase().replace(/^\d+_/,'').startsWith(sisNome.toLowerCase().slice(0,6))
+                )?.[1] ?? ''
               const recSis  = recsSis[sis] ?? 'Corrigir as não conformidades conforme prioridades.'
               const pb = (ativoIdx > 0 || sisIdx > 0) ? '<div style="height:8pt"></div>' : ''
               const BRD  = 'border:1px solid #cbd5e1'
               const ROT  = 'font-size:6.5pt;font-weight:700;color:#1E3A8A;background:#dbeafe;padding:2px 5px;border-bottom:1px solid #cbd5e1'
-              const VAL  = 'font-size:8pt;padding:3px 5px;min-height:16px;background:#fff'
-              const CELL = BRD + ';vertical-align:top;padding:0'
+              const VAL  = 'font-size:8pt;padding:3px 5px;min-height:16px;background:#fff;vertical-align:middle'
+              const CELL = BRD + ';vertical-align:middle;padding:0'
               const TH_NC = 'border:1px solid #1E3A8A;background:#1E3A8A;color:#fff;font-weight:700;font-size:7.5pt;padding:3px 4px;text-align:center;vertical-align:middle'
-              const TD_NC = BRD + ';font-size:7.5pt;padding:3px 4px;vertical-align:top'
+              const TD_NC = BRD + ';font-size:7.5pt;padding:3px 4px;vertical-align:middle'
               const fld = (lbl:string, val:string) =>
                 '<td style="' + CELL + '">' +
                 '<div style="' + ROT + '">' + lbl + '</div>' +
@@ -1284,7 +1302,7 @@ export async function POST(request: NextRequest) {
       partsNR.push('<div class="section a3-landscape"><style>.a3-landscape{} @media print{.a3-landscape{page:landscape-page}} @page landscape-page{size:A4 landscape;margin:10mm}</style><div class="titulo" style="text-align:center">Anexo 3 – Relação de Não Conformidades e Soluções</div>' + A3nr + '</div>')
       partsNR.push('<div class="section"><div class="titulo" style="text-align:center">Anexo 4 – Anotação de Responsabilidade Técnica</div>' +
         (complemento?.artRrt
-          ? '<div style="text-align:center;margin:8mm 0"><img src="' + complemento.artRrt + '" style="max-width:180mm;max-height:240mm;object-fit:contain"/></div>'
+          ? '<div style="text-align:center;margin:8mm 0"><img src="' + complemento.artRrt + '" style="width:190mm;max-height:260mm;object-fit:contain"/></div>'
           : '<div style="border:2px dashed #1E3A8A;min-height:180mm;margin:10mm 0;display:flex;align-items:center;justify-content:center"><p style="color:#6b7280;font-size:8.5pt;text-align:center">ART / RRT não anexada.<br>Inserir a ART ou RRT na tela de coleta de dados.</p></div>'
         ) +
         '</div>')
