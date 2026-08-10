@@ -974,17 +974,16 @@ export async function POST(request: NextRequest) {
           .from('dados_vistoria').select('*')
           .eq('cpf_inspetor', cpfInspetor).eq('cnpjoucpf', cnpjoucpf)
         if (dvRows) dvRows.forEach((r:any) => {
-          // Indexar por várias formas possíveis do foto_nr
-          const k = String(r.foto_nr ?? '')
-          dvMap[k] = r
-          dvMap[k.padStart(2,'0')] = r  // '1' → '01'
-          dvMap[k.replace(/^0+/,'')] = r // '01' → '1'
+          const k = String(r.foto_nr ?? '').replace(/^0+/,'') || '0'
+          dvMap[k] = r              // '1'
+          dvMap[k.padStart(3,'0')] = r  // '001'
+          dvMap[k.padStart(2,'0')] = r  // '01'
         })
       } catch {}
 
       const ncsComFotoNR = await Promise.all((ncs ?? []).map(async (nc:any) => {
-        const fotoKey = String(nc.fotoNr ?? '')
-        const dv = dvMap[fotoKey] ?? dvMap[fotoKey.padStart(2,'0')] ?? dvMap[fotoKey.replace(/^0+/,'')] ?? {}
+        const fotoKeyRaw = String(nc.fotoNr ?? '').replace(/^0+/,'') || '0'
+        const dv = dvMap[fotoKeyRaw] ?? dvMap[fotoKeyRaw.padStart(3,'0')] ?? dvMap[fotoKeyRaw.padStart(2,'0')] ?? {} ?? {}
         if (nc.fotoBase64?.startsWith('data:image')) return { ...dv, ...nc }
         if (!nc._arquivo) return { ...dv, ...nc }
         try {
@@ -999,8 +998,6 @@ export async function POST(request: NextRequest) {
         return { ...dv, ...nc }
       }))
 
-      if (ncsComFotoNR?.length > 0) console.log('A2NR_NC_CAMPOS:', JSON.stringify(Object.keys(ncsComFotoNR[0])))
-      if (ncsComFotoNR?.length > 0) console.log('A2NR_NC_VALS:', JSON.stringify({tipoAtivo:ncsComFotoNR[0].tipoAtivo,tipo_ativo:ncsComFotoNR[0].tipo_ativo,tagNrSerie:ncsComFotoNR[0].tagNrSerie,fotoNr:ncsComFotoNR[0].fotoNr,foto_nr:ncsComFotoNR[0].foto_nr,gravidade:ncsComFotoNR[0].gravidade,resultado:ncsComFotoNR[0].resultado,finalidade:ncsComFotoNR[0].finalidade}))
       const A2nr = (ncsComFotoNR ?? []).length === 0
         ? '<p style="color:#9a3412;font-style:italic">Nenhuma vistoria homologada encontrada.</p>'
         : (ncsComFotoNR ?? []).map((nc:any, idx:number) => {
@@ -1009,34 +1006,34 @@ export async function POST(request: NextRequest) {
           const bgnr  = grNnr > 80 ? '#FEE2E2' : grNnr >= 50 ? '#FEF9C3' : '#DCFCE7'
           const prinr = grNnr > 80 ? 'Muito Alta' : grNnr >= 50 ? 'Alta' : grNnr >= 30 ? 'Média' : 'Baixa'
           const fotonr = nc.fotoBase64?.startsWith('data:image')
-            ? '<img src="' + nc.fotoBase64 + '" style="width:100%;height:auto;display:block;border-radius:4px">'
-            : '<div style="border:1.5px dashed #c3d4f0;border-radius:5px;background:#E8EEF7;height:80mm;display:flex;align-items:center;justify-content:center;color:#8aa3c4;font-size:8pt">Foto não disponível</div>'
+            ? '<img src="' + nc.fotoBase64 + '" style="width:100%;max-height:60mm;object-fit:contain;display:block;border-radius:4px">'
+            : '<div style="border:1.5px dashed #c3d4f0;border-radius:5px;background:#E8EEF7;height:55mm;display:flex;align-items:center;justify-content:center;color:#8aa3c4;font-size:8pt">Foto não disponível</div>'
           const pb = idx > 0 ? '<div style="page-break-before:always"></div>' : ''
           const GMAP:Record<string,string> = {'1':'Sem risco','2':'Lesão/dano baixo','3':'Lesão/dano moderado','4':'Lesão/dano grave','5':'Lesão/dano fatal','Sem risco':'Sem risco','Lesão/dano baixo':'Lesão/dano baixo','Lesão/dano moderado':'Lesão/dano moderado','Lesão/dano grave':'Lesão/dano grave','Lesão/dano fatal':'Lesão/dano fatal'}
           const UMAP:Record<string,string> = {'1':'Pode aguardar','3':'Planejar','5':'Imediata','Pode aguardar':'Pode aguardar','Planejar':'Planejar','Imediata':'Imediata'}
           const AMAP:Record<string,string> = {'1':'Improvável','3':'Possível','5':'Provável/eminente','Improvável':'Improvável','Possível':'Possível','Provável/eminente':'Provável/eminente'}
           const EMAP:Record<string,string> = {'1':'Eventual','3':'Frequente','5':'Muitas pessoas','Eventual':'Eventual','Frequente':'Frequente','Muitas pessoas':'Muitas pessoas'}
-          const gv=String(nc.gravidade||nc.gravidade||''), uv=String(nc.urgencia||nc.urgencia||''), av=String(nc.abrangencia||nc.abrangencia||''), ev=String(nc.exposicao||nc.exposicao||'')
+          const gv=String(nc.gravidade??dv.gravidade??''), uv=String(nc.urgencia??dv.urgencia??''), av=String(nc.abrangencia??dv.abrangencia??''), ev=String(nc.exposicao??dv.exposicao??'')
           const fld = (lbl:string, val:string) =>
-            '<div style="display:flex;flex-direction:column;gap:1px">' +
-            '<label style="font-size:6.5pt;font-weight:600;color:#4a6480">' + lbl + '</label>' +
-            '<div style="border:1px solid #c3d4f0;border-radius:4px;padding:2px 5px;font-size:7.5pt;color:#1a1a2e;background:#f5f7fc;min-height:18px">' + (val||'&nbsp;') + '</div>' +
+            '<div>' +
+            '<div style="font-size:6pt;font-weight:600;color:#4a6480">' + lbl + '</div>' +
+            '<div style="border:1px solid #c3d4f0;border-radius:3px;padding:1px 4px;font-size:7pt;color:#1a1a2e;background:#f5f7fc;min-height:15px">' + (val||'&nbsp;') + '</div>' +
             '</div>'
           const card = (title:string, body:string) =>
             '<div style="border:1px solid #c3d4f0;border-radius:6px;overflow:hidden">' +
-            '<div style="background:#1E3A8A;color:#fff;font-size:7.5pt;font-weight:700;padding:3px 10px">' + title + '</div>' +
+            '<div style="background:#1E3A8A;color:#fff;font-size:7pt;font-weight:700;padding:2px 8px">' + title + '</div>' +
             '<div style="padding:5px 10px;display:flex;flex-direction:column;gap:4px">' + body + '</div>' +
             '</div>'
           const gN = (...items:string[]) => '<div style="display:grid;gap:4px;grid-template-columns:' + items.map(()=>'1fr').join(' ') + '">' + items.join('') + '</div>'
           const sisNome = xe((nc.sistema||'').slice(3).replace(/_/g,' '))
           return pb +
             '<div style="width:100%;background:#fff;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,.08);overflow:hidden">' +
-            '<div style="background:#1E3A8A;padding:6px 14px;text-align:center">' +
+            '<div style="background:#1E3A8A;padding:3px 10px;text-align:center">' +
             '<div style="font-size:10pt;font-weight:700;color:#fff">' + xe(inspetor?.cabecalho_documentos||'AIME') + '</div>' +
             '<div style="font-size:6.5pt;color:#B5D4F4;margin-top:1px">Formulário de Registro de Conformidade Regulatória</div>' +
             '</div>' +
             '<div style="height:2px;background:#1E3A8A"></div>' +
-            '<div style="padding:8px 12px;display:flex;flex-direction:column;gap:5px">' +
+            '<div style="padding:4px 8px;display:flex;flex-direction:column;gap:3px">' +
             card('Identificação',
               gN(fld('CNPJ/CPF', xe(nc.cnpjoucpf||'')), fld('Razão Social', xe(nc.razaoSocial||estab?.razao_social_nome||''))) +
               gN(fld('Ativo a vistoriar', xe(nc.tipoAtivo||nc.tipo_ativo||nc.tipo_ativo||'')), fld('Tag / Nº série', xe(nc.tagNrSerie||nc.tag_ativo_nr_serie||nc.tag_ativo_nr_serie||'')), fld('Finalidade da vistoria', xe(nc.finalidade||nc.finalidade_vistoria||nc.finalidade_vistoria||'')))
@@ -1062,7 +1059,7 @@ export async function POST(request: NextRequest) {
             ) +
             card('Evidência Fotográfica',
               '<div style="display:grid;grid-template-columns:auto 1fr;gap:6px;align-items:end;margin-bottom:4px">' + +
-              fld('Foto nº', xe(nc.fotoNr||'')) +
+              fld('Foto nº', xe(String(parseInt(nc.fotoNr||'0')||0) || nc.fotoNr || '')) +
               fld('Data da vistoria', xe(nc.dataVistoria||nc.data||'')) +
               '</div>' + fotonr
             ) +
