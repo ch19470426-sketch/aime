@@ -967,23 +967,29 @@ export async function POST(request: NextRequest) {
         '</div>'
 
       // ── ANEXO 2 — Formulários homologados ──────────────────────────────────
+      // Buscar dados_vistoria para enriquecer campos ausentes no HTML antigo
+      let dvMap: Record<string,any> = {}
+      try {
+        const { data: dvRows } = await supabase
+          .from('dados_vistoria').select('*')
+          .eq('cpf_inspetor', cpfInspetor).eq('cnpjoucpf', cnpjoucpf)
+        if (dvRows) dvRows.forEach((r:any) => { dvMap[String(r.foto_nr)] = r })
+      } catch {}
+
       const ncsComFotoNR = await Promise.all((ncs ?? []).map(async (nc:any) => {
-        if (nc.fotoBase64?.startsWith('data:image')) return nc
-        if (!nc._arquivo) return nc
+        const dv = dvMap[String(nc.fotoNr)] ?? {}
+        if (nc.fotoBase64?.startsWith('data:image')) return { ...dv, ...nc }
+        if (!nc._arquivo) return { ...dv, ...nc }
         try {
           const { data: blob } = await supabase.storage.from('aime').download('vistorias_homologadas/' + nc._arquivo)
           if (!blob) return nc
           const h = await blob.text()
           // Extrair só a imagem — ignorar botões e inputs do formulário
           const mImg = h.match(/<img[^>]+src="(data:image[^"]+)"/)
-          if (mImg) return { ...nc, fotoBase64: mImg[1] }
-          // Fallback: extrair HTML limpo sem botões
-          const hClean = h.replace(/<button[^>]*>.*?<\/button>/gis, '')
-                          .replace(/<input[^>]*>/gi, '')
-                          .replace(/<select[^>]*>.*?<\/select>/gis, '')
-          return { ...nc, _htmlClean: hClean }
+          if (mImg) return { ...dv, ...nc, fotoBase64: mImg[1] }
+          return { ...dv, ...nc }
         } catch {}
-        return nc
+        return { ...dv, ...nc }
       }))
 
       const A2nr = (ncsComFotoNR ?? []).length === 0
@@ -997,10 +1003,10 @@ export async function POST(request: NextRequest) {
             ? '<img src="' + nc.fotoBase64 + '" style="width:100%;max-height:65mm;object-fit:contain;display:block;border-radius:4px">'
             : '<div style="border:1.5px dashed #c3d4f0;border-radius:5px;background:#E8EEF7;height:65mm;display:flex;align-items:center;justify-content:center;color:#8aa3c4;font-size:8pt">Foto não disponível</div>'
           const pb = idx > 0 ? '<div style="page-break-before:always"></div>' : ''
-          const GMAP:Record<string,string> = {'1':'Sem risco','2':'Lesão/dano baixo','3':'Lesão/dano moderado','4':'Lesão/dano grave','5':'Lesão/dano fatal'}
-          const UMAP:Record<string,string> = {'1':'Pode aguardar','3':'Planejar','5':'Imediata'}
-          const AMAP:Record<string,string> = {'1':'Improvável','3':'Possível','5':'Provável/eminente'}
-          const EMAP:Record<string,string> = {'1':'Eventual','3':'Frequente','5':'Muitas pessoas'}
+          const GMAP:Record<string,string> = {'1':'Sem risco','2':'Lesão/dano baixo','3':'Lesão/dano moderado','4':'Lesão/dano grave','5':'Lesão/dano fatal','Sem risco':'Sem risco','Lesão/dano baixo':'Lesão/dano baixo','Lesão/dano moderado':'Lesão/dano moderado','Lesão/dano grave':'Lesão/dano grave','Lesão/dano fatal':'Lesão/dano fatal'}
+          const UMAP:Record<string,string> = {'1':'Pode aguardar','3':'Planejar','5':'Imediata','Pode aguardar':'Pode aguardar','Planejar':'Planejar','Imediata':'Imediata'}
+          const AMAP:Record<string,string> = {'1':'Improvável','3':'Possível','5':'Provável/eminente','Improvável':'Improvável','Possível':'Possível','Provável/eminente':'Provável/eminente'}
+          const EMAP:Record<string,string> = {'1':'Eventual','3':'Frequente','5':'Muitas pessoas','Eventual':'Eventual','Frequente':'Frequente','Muitas pessoas':'Muitas pessoas'}
           const gv=String(nc.gravidade||''), uv=String(nc.urgencia||''), av=String(nc.abrangencia||''), ev=String(nc.exposicao||'')
           const fld = (lbl:string, val:string) =>
             '<div style="display:flex;flex-direction:column;gap:1px">' +
@@ -1024,12 +1030,12 @@ export async function POST(request: NextRequest) {
             '<div style="padding:8px 12px;display:flex;flex-direction:column;gap:5px">' +
             card('Identificação',
               gN(fld('CNPJ/CPF', xe(nc.cnpjoucpf||'')), fld('Razão Social', xe(nc.razaoSocial||estab?.razao_social_nome||''))) +
-              gN(fld('Ativo a vistoriar', xe(nc.tipoAtivo||'')), fld('Tag / Nº série', xe(nc.tagNrSerie||nc.tag||'')), fld('Finalidade da vistoria', xe(nc.finalidade||'')))
+              gN(fld('Ativo a vistoriar', xe(nc.tipoAtivo||nc.tipo_ativo||'')), fld('Tag / Nº série', xe(nc.tagNrSerie||nc.tag_ativo_nr_serie||'')), fld('Finalidade da vistoria', xe(nc.finalidade||nc.finalidade_vistoria||'')))
             ) +
             card('Apuração da Conformidade Regulatória',
               gN(fld('Sistema', sisNome), fld('Subsistema / Componente', xe(nc.subsistema||''))) +
               fld('Requisito Normativo', xe(nc.nc||nc.anomalia||'')) +
-              gN(fld('Resultado', xe(nc.resultado && nc.resultado !== 'Funcional' ? nc.resultado : (nc.origem && nc.origem !== 'Funcional' ? nc.origem : ''))),    fld('Local/Instalação/Setor/Área', xe(nc.local||'')), fld('Complemento', xe(nc.complemento||'')))
+              gN(fld('Resultado', xe([nc.resultado, nc.origem_resultado, nc.origem].find(v => v && v !== 'Funcional') || '')),   fld('Local/Instalação/Setor/Área', xe(nc.local||'')), fld('Complemento', xe(nc.complemento||'')))
             ) +
             card('Classificação de Risco',
               gN(fld('Gravidade', GMAP[gv]||(gv||'—')), fld('Urgência', UMAP[uv]||(uv||'—')), fld('Probabilidade', AMAP[av]||(av||'—')), fld('Exposição risco', EMAP[ev]||(ev||'—'))) +
