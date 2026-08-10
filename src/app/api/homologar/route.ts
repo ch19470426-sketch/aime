@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
 
     // 2. Gerar HTML
     const {
-      cnpjoucpf, cnpjDisplay, razaoSocial, tipoServico, tipoAtivo, tagNrSerie,
+      cnpjoucpf, cnpjDisplay, razaoSocial, tipoServico, tipoAtivo, tagNrSerie, finalidade,
       sistema, subsistema, anomalia, origem, resultado, local, complemento,
       gravidade, urgencia, abrangencia, exposicao, grauRisco, prioridade,
       fotoNr, dataVistoria, nc, cp, dataHomologacao, chaveInspetor, isNR
@@ -96,6 +96,7 @@ export async function POST(request: NextRequest) {
 <div class="f"><label>Tipo de serviço</label><span>${tipoServico || ''}</span></div>
 <div class="f"><label>Ativo</label><span>${tipoAtivo || ''}</span></div>
 <div class="f"><label>TAG / Nº Série</label><span>${tagNrSerie || ''}</span></div>
+<div class="f"><label>Finalidade</label><span>${finalidade || ''}</span></div>
 </div>
 </div></div>
 
