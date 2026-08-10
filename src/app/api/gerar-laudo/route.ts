@@ -999,6 +999,8 @@ export async function POST(request: NextRequest) {
         return { ...dv, ...nc }
       }))
 
+      if (ncsComFotoNR?.length > 0) console.log('A2NR_NC_CAMPOS:', JSON.stringify(Object.keys(ncsComFotoNR[0])))
+      if (ncsComFotoNR?.length > 0) console.log('A2NR_NC_VALS:', JSON.stringify({tipoAtivo:ncsComFotoNR[0].tipoAtivo,tipo_ativo:ncsComFotoNR[0].tipo_ativo,tagNrSerie:ncsComFotoNR[0].tagNrSerie,fotoNr:ncsComFotoNR[0].fotoNr,foto_nr:ncsComFotoNR[0].foto_nr,gravidade:ncsComFotoNR[0].gravidade,resultado:ncsComFotoNR[0].resultado,finalidade:ncsComFotoNR[0].finalidade}))
       const A2nr = (ncsComFotoNR ?? []).length === 0
         ? '<p style="color:#9a3412;font-style:italic">Nenhuma vistoria homologada encontrada.</p>'
         : (ncsComFotoNR ?? []).map((nc:any, idx:number) => {
