@@ -491,6 +491,7 @@ function Tela40Inner() {
           prioridade: prioridade || form.prioridade,
           nc_descricao: nc,
           cp_descricao: cp,
+          finalidade_vistoria: form.finalidade || null,
         })
       })
 
