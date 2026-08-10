@@ -752,32 +752,36 @@ export async function POST(request: NextRequest) {
         '06_Sistema de Aterramento':'Sistema de aterramento e equipotencialização.',
         '08_Tomadas/Pontos Energia':'Tomadas e pontos de energia adequados às cargas instaladas.',
         '09_Iluminação':'Iluminação normal e de emergência das áreas de trabalho.',
+        // Sistemas NR-12 com hífen
+        '03-Dispositivos de Parada de Emergência':'Dispositivos de parada de emergência (botão de emergência, E-Stop) que permitem interromper imediatamente o ciclo da máquina em situação de risco.',
+        '04-Proteções Fixas e Móveis':'Proteções físicas fixas e móveis que impedem o acesso às zonas de perigo durante o ciclo de operação da máquina.',
+        '05-Dispositivos de Segurança':'Intertravamentos, sensores, cortinas de luz e demais dispositivos que detectam presença humana na zona de perigo.',
+        '06-Comandos e Controles':'Painéis de comando, botoeiras, pedais e sistemas de controle da máquina, incluindo partida, parada e modos de operação.',
+        '07-Sinalização e Rotulagem':'Sinalização de segurança, alertas visuais e sonoros, etiquetas de advertência e identificação de zonas de perigo.',
+        '08-Ergonomia e Posto de Trabalho':'Condições ergonômicas do posto de trabalho, incluindo postura, iluminação, esforço físico e conforto do operador.',
+        '09-Capacitação e Treinamento':'Treinamento e habilitação dos operadores para operação segura das máquinas conforme NR-12.',
+        '10-Documentação Técnica':'Prontuário da máquina, manuais de operação, análise de risco e registros de manutenção exigidos pela NR-12.',
+        '11-Manutenção Preventiva':'Programa de manutenção preventiva e corretiva com registros, periodicidade e execução por profissional habilitado.',
+        '12-Instalações Elétricas':'Instalações elétricas da máquina, aterramento, proteções contra choques e conformidade com normas elétricas.',
       }
       // ── Agrupar NCs por ativo+sistema para o Anexo 3 ─────────────────────────
       // Agrupar NCs por sistema (tag vem dos ativos)
-      // Agrupar NCs por sistema
+      // Agrupar NCs por sistema (cada NC aparece UMA vez)
       const ncsPorSistema: Record<string, any[]> = {}
       ;(ncs ?? []).forEach((nc: any) => {
         const sis = (nc.sistema || 'Geral').trim()
         if (!ncsPorSistema[sis]) ncsPorSistema[sis] = []
         ncsPorSistema[sis].push(nc)
       })
-      // Montar ncsPorAtivo: para cada ativo, todas as NCs (por sistema)
-      // Se não há ativos, usar uma entrada 'Geral'
+      // ncsPorAtivo: chave = primeiro ativo (para exibir Tag/Tipo no cabeçalho)
+      // NCs organizadas por sistema, sem repetir
       const ativos41 = (estab?.ativos ?? [])
-      const ncsPorAtivo: Record<string, Record<string, any[]>> = {}
-      if (ativos41.length > 0) {
-        ativos41.forEach((a:any) => {
-          const tag = a.tag_ativo_nr_serie || a.tag || a.tipo_ativo || 'Sem tag'
-          if (!ncsPorAtivo[tag]) ncsPorAtivo[tag] = {}
-          Object.entries(ncsPorSistema).forEach(([sis, ncsS]) => {
-            if (!ncsPorAtivo[tag][sis]) ncsPorAtivo[tag][sis] = ncsS
-          })
-        })
-      } else {
-        ncsPorAtivo['—'] = ncsPorSistema
+      const primeiroAtivo = ativos41[0] ?? {}
+      const tagPrincipal = primeiroAtivo.tag_ativo_nr_serie || primeiroAtivo.tag || primeiroAtivo.tipo_ativo || '—'
+      const ncsPorAtivo: Record<string, Record<string, any[]>> = {
+        [tagPrincipal]: ncsPorSistema
       }
-      // Map de ativos por tag para recuperar tipo_ativo
+      // Map de ativos por tag
       const ativosMap: Record<string, any> = {}
       ativos41.forEach((a:any) => {
         const tag = a.tag_ativo_nr_serie || a.tag || a.tipo_ativo || ''
@@ -801,12 +805,18 @@ export async function POST(request: NextRequest) {
               const sisNome = sis.match(/^\d+_/) ? sis.slice(3).replace(/_/g,' ') : sis.replace(/_/g,' ')
               const descSis = DESC_SIS[sis] ??
                 Object.entries(DESC_SIS).find(([k]) =>
-                  sisNome.length > 3 && k.toLowerCase().includes(sisNome.toLowerCase().replace(/\s/g,'_').slice(0,10))
+                  k.replace(/^\d+[-_]/,'').toLowerCase().replace(/_/g,' ') === sisNome.toLowerCase()
                 )?.[1] ??
                 Object.entries(DESC_SIS).find(([k]) =>
-                  k.toLowerCase().replace(/^\d+_/,'').startsWith(sisNome.toLowerCase().slice(0,6))
+                  sisNome.length > 4 && k.toLowerCase().includes(sisNome.toLowerCase().slice(0,8))
                 )?.[1] ?? ''
-              const recSis  = recsSis[sis] ?? 'Corrigir as não conformidades conforme prioridades.'
+              const recBruto = recsSis[sis] ?? ''
+              // Remover prefixo gerado pela IA
+              const recSis = recBruto
+                .replace(/^(RECOMENDA[ÇC][ÃA]O T[EÉ]CNICA[^\n]*\n+)/i, '')
+                .replace(/^(Recomenda[çc][ãa]o T[eé]cnica[^\n]*\n+)/i, '')
+                .replace(/^[–—-]+\s*/,'').trim()
+                || 'Corrigir as não conformidades identificadas conforme prioridades.'
               const pb = (ativoIdx > 0 || sisIdx > 0) ? '<div style="height:8pt"></div>' : ''
               const BRD  = 'border:1px solid #cbd5e1'
               const ROT  = 'font-size:6.5pt;font-weight:700;color:#1E3A8A;background:#dbeafe;padding:2px 5px;border-bottom:1px solid #cbd5e1'
