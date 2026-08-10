@@ -771,7 +771,7 @@ export async function POST(request: NextRequest) {
       const TD_LABEL = 'border:1px solid #1E3A8A;background:#f1f5f9;padding:3px 6px;font-weight:700;font-size:8pt;color:#1E3A8A;vertical-align:middle'
 
       const S41_blocos = Object.keys(ncsPorSistema41).length === 0
-        ? '<tr><td colspan="6" style="' + TD_BODY + ';color:#9a3412;font-style:italic">Nenhuma não conformidade registrada.</td></tr>'
+        ? '<tr><td colspan="6" style="border:1px solid #cbd5e1;padding:8px;color:#9a3412;font-style:italic">Nenhuma não conformidade registrada.</td></tr>'
         : Object.entries(ncsPorAtivo).map(([tag, sistemasDoAtivo], ativoIdx) => {
             const tipoAtivo = (ncs ?? []).find((n:any) =>
               (n.tag || n.tag_ativo_nr_serie || 'Sem tag') === tag
@@ -781,52 +781,75 @@ export async function POST(request: NextRequest) {
               const sisNome = sis.length > 2 ? sis.slice(3).replace(/_/g,' ') : sis
               const descSis = DESC_SIS[sis] ?? ''
               const recSis  = recsSis[sis] ?? 'Corrigir as não conformidades conforme prioridades.'
+              // Quebra de página a cada novo bloco Tag/Sistema
               const pb = (ativoIdx > 0 || sisIdx > 0)
-                ? '<tr style="page-break-before:always"><td colspan="6" style="border:none;height:0"></td></tr>'
+                ? '<tr><td colspan="6" style="page-break-before:always;border:none;height:0;padding:0"></td></tr>'
                 : ''
+              // Estilos fiel ao template xlsx
+              const BRD  = 'border:1px solid #1E3A8A'
+              const BRD2 = 'border:1px solid #cbd5e1'
+              const TH_AZUL = BRD + ';background:#1E3A8A;color:#fff;font-weight:700;font-size:8pt;padding:3px 6px;vertical-align:middle'
+              const ROT   = BRD2 + ';background:#dbeafe;color:#1E3A8A;font-weight:700;font-size:8pt;padding:3px 6px;vertical-align:middle'
+              const VAL   = BRD2 + ';background:#fff;font-size:8pt;padding:3px 6px;vertical-align:middle'
+              const TH_NC = BRD + ';background:#1E3A8A;color:#fff;font-weight:700;font-size:7.5pt;padding:3px 4px;text-align:center;vertical-align:middle'
+              const TD_NC = BRD2 + ';font-size:7.5pt;padding:3px 4px;vertical-align:middle'
+              // Proporções colunas: A(3%) B(27%) C(18%) D(6%) E(7%) F(39%)
               return pb +
-                // Linha Tag/Série | Tipo ativo | Sistema
+                // LINHA 2 — rótulos Tag/Série | Tipo ativo | Sistema
                 '<tr>' +
-                '<td style="' + TH_DADO + ';width:20%"><b>Tag/Nº Série:</b> ' + xe(tag) + '</td>' +
-                '<td style="' + TH_DADO + ';width:20%"><b>Tipo ativo:</b> ' + xe(tipoAtivo||'—') + '</td>' +
-                '<td style="' + TH_DADO + ';width:60%" colspan="4"><b>Sistema:</b> ' + xe(sisNome) + '</td>' +
+                '<td colspan="2" style="' + ROT + ';width:30%">Tag/Nº Série:</td>' +
+                '<td style="' + ROT + ';width:17%">Tipo ativo:</td>' +
+                '<td colspan="3" style="' + ROT + ';width:53%">Sistema:</td>' +
                 '</tr>' +
-                // Descrição do sistema
+                // LINHA 3 — valores
                 '<tr>' +
-                '<td style="' + TD_LABEL + '" colspan="1">Descrição do<br>sistema:</td>' +
-                '<td style="' + TD_BODY + '" colspan="5">' + xe(descSis || '—') + '</td>' +
+                '<td colspan="2" style="' + VAL + '">' + xe(tag) + '</td>' +
+                '<td style="' + VAL + '">' + xe(tipoAtivo||'—') + '</td>' +
+                '<td colspan="3" style="' + VAL + '">' + xe(sisNome) + '</td>' +
                 '</tr>' +
-                // Recomendação para o sistema
+                // LINHA 4 — rótulo descrição
                 '<tr>' +
-                '<td style="' + TD_LABEL + '" colspan="1">Recomendação<br>para o sistema:</td>' +
-                '<td style="' + TD_BODY + '" colspan="5">' + xe(recSis) + '</td>' +
+                '<td colspan="6" style="' + ROT + '">Descrição do sistema:</td>' +
                 '</tr>' +
-                // Cabeçalho da tabela de NCs
+                // LINHA 5 — valor descrição
                 '<tr>' +
-                '<td style="' + TH_CAB + ';width:5%;text-align:center">Foto</td>' +
-                '<td style="' + TH_CAB + ';width:30%">Não Conformidade</td>' +
-                '<td style="' + TH_CAB + ';width:10%">Local</td>' +
-                '<td style="' + TH_CAB + ';width:5%;text-align:center">G Risco</td>' +
-                '<td style="' + TH_CAB + ';width:8%;text-align:center">Prioridade</td>' +
-                '<td style="' + TH_CAB + ';width:42%">Solução sugerida</td>' +
+                '<td colspan="6" style="' + VAL + ';min-height:16px">' + xe(descSis || '—') + '</td>' +
                 '</tr>' +
-                // Linhas de NCs
+                // LINHA 6 — rótulo recomendação
+                '<tr>' +
+                '<td colspan="6" style="' + ROT + '">Recomendação para o sistema:</td>' +
+                '</tr>' +
+                // LINHA 7 — valor recomendação
+                '<tr>' +
+                '<td colspan="6" style="' + VAL + ';min-height:16px">' + xe(recSis) + '</td>' +
+                '</tr>' +
+                // LINHA 8 — cabeçalho colunas NCs
+                '<tr>' +
+                '<td style="' + TH_NC + ';width:3%">Foto</td>' +
+                '<td style="' + TH_NC + ';width:27%;text-align:left">Não Conformidade</td>' +
+                '<td style="' + TH_NC + ';width:18%;text-align:left">Local</td>' +
+                '<td style="' + TH_NC + ';width:6%">G Risco</td>' +
+                '<td style="' + TH_NC + ';width:7%">Prioridade</td>' +
+                '<td style="' + TH_NC + ';width:39%;text-align:left">Solução sugerida</td>' +
+                '</tr>' +
+                // LINHAS 9+ — dados de NCs
                 ncsSis.map((nc:any) => {
                   const grNnr = Number(nc.grauRisco) || 0
-                  const corP  = grNnr > 80 ? '#CC0000' : grNnr >= 50 ? '#EA580C' : grNnr >= 30 ? '#D4A017' : '#16A34A'
+                  const corP  = grNnr > 80 ? '#CC0000' : grNnr >= 50 ? '#E8A000' : grNnr >= 30 ? '#EAB308' : '#16A34A'
                   const priP  = grNnr > 80 ? 'Muito Alta' : grNnr >= 50 ? 'Alta' : grNnr >= 30 ? 'Média' : 'Baixa'
                   const sol   = xe(nc.cp || nc.solucao || nc.sugestao || '')
                   return '<tr>' +
-                    '<td style="' + TD_BODY + ';text-align:center">' + xe(nc.fotoNr||'') + '</td>' +
-                    '<td style="' + TD_BODY + '">' + xe(nc.nc||nc.anomalia||'') + '</td>' +
-                    '<td style="' + TD_BODY + '">' + xe(nc.local||'') + '</td>' +
-                    '<td style="' + TD_BODY + ';text-align:center;font-weight:700;color:' + corP + '">' + grNnr + '</td>' +
-                    '<td style="' + TD_BODY + ';text-align:center;font-weight:700;color:' + corP + '">' + priP + '</td>' +
-                    '<td style="' + TD_BODY + '">' + sol + '</td>' +
+                    '<td style="' + TD_NC + ';text-align:center">' + xe(nc.fotoNr||'') + '</td>' +
+                    '<td style="' + TD_NC + '">' + xe(nc.nc||nc.anomalia||'') + '</td>' +
+                    '<td style="' + TD_NC + '">' + xe(nc.local||'') + '</td>' +
+                    '<td style="' + TD_NC + ';text-align:center;font-weight:700;color:' + corP + '">' + grNnr + '</td>' +
+                    '<td style="' + TD_NC + ';text-align:center;font-weight:700;color:' + corP + '">' + priP + '</td>' +
+                    '<td style="' + TD_NC + '">' + sol + '</td>' +
                     '</tr>'
                 }).join('')
             }).join('')
           }).join('')
+
 
 
       const S41nr =
@@ -841,7 +864,7 @@ export async function POST(request: NextRequest) {
       // Tabela de NCs — vai para o Anexo 3 (orientação paisagem futura)
       const A3nr =
         '<table style="width:100%;border-collapse:collapse;table-layout:fixed">' +
-        '<tr><td colspan="6" style="background:#1E3A8A;color:#fff;padding:8px;font-weight:700;font-size:10pt;text-align:center;border:1px solid #1E3A8A">' + titulo41 + '</td></tr>' +
+        '<tr><td colspan="6" style="background:#1E3A8A;color:#fff;font-weight:700;font-size:9pt;padding:6px 8px;text-align:center;border:1px solid #1E3A8A">' + titulo41 + '</td></tr>' +
         S41_blocos +
         '</table>'
 
