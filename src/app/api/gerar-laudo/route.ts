@@ -1011,8 +1011,8 @@ export async function POST(request: NextRequest) {
         ? '<p style="color:#9a3412;font-style:italic">Nenhuma vistoria homologada encontrada.</p>'
         : (ncsComFotoNR ?? []).map((nc:any, idx:number) => {
           const grNnr = Number(nc.grauRisco)||0
-          const cornr = grNnr > 80 ? '#CC0000' : grNnr >= 50 ? '#E8A000' : '#16A34A'
-          const bgnr  = grNnr > 80 ? '#FEE2E2' : grNnr >= 50 ? '#FEF9C3' : '#DCFCE7'
+          const cornr = grNnr > 80 ? '#CC0000' : grNnr >= 50 ? '#E8A000' : grNnr >= 30 ? '#EAB308' : '#16A34A'
+          const bgnr  = grNnr > 80 ? '#FEE2E2' : grNnr >= 50 ? '#FEF3CD' : grNnr >= 30 ? '#FEF9C3' : '#DCFCE7'
           const prinr = grNnr > 80 ? 'Muito Alta' : grNnr >= 50 ? 'Alta' : grNnr >= 30 ? 'Média' : 'Baixa'
           const fotonr = nc.fotoBase64?.startsWith('data:image')
             ? '<img src="' + nc.fotoBase64 + '" style="width:85%;max-height:100mm;object-fit:cover;border-radius:5px;border:2px solid #1E3A8A;display:block;margin:0 auto">'
@@ -1140,6 +1140,7 @@ export async function POST(request: NextRequest) {
       partsNR.push('<div style="font-size:8pt;color:#6B7280;letter-spacing:3px;text-transform:uppercase;margin-bottom:6pt">LAUDO TÉCNICO</div>')
       partsNR.push('<div style="font-size:18pt;font-weight:900;color:#1E3A8A;line-height:1.2;margin-bottom:2pt">' + TITULO_DOC[tipoServico] + '</div>')
       partsNR.push('<div style="font-size:13pt;font-weight:700;color:#374151;margin-bottom:4pt">' + xe(estab?.razao_social_nome||'') + '</div>')
+      partsNR.push('<br><br>')
       partsNR.push('<br><br><br><br>')
       partsNR.push('</div><div style="flex:2"></div>')
       partsNR.push('<div style="border-top:2px solid #1E3A8A;margin:0 20mm;flex-shrink:0"></div>')
