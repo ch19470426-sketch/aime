@@ -988,7 +988,7 @@ export async function POST(request: NextRequest) {
         if (!nc._arquivo) return { ...dv, ...nc }
         try {
           const { data: blob } = await supabase.storage.from('aime').download('vistorias_homologadas/' + nc._arquivo)
-          if (!blob) return nc
+          if (!blob) return { ...dv, ...nc }
           const h = await blob.text()
           // Extrair só a imagem — ignorar botões e inputs do formulário
           const mImg = h.match(/<img[^>]+src="(data:image[^"]+)"/)
@@ -1013,7 +1013,7 @@ export async function POST(request: NextRequest) {
           const UMAP:Record<string,string> = {'1':'Pode aguardar','3':'Planejar','5':'Imediata','Pode aguardar':'Pode aguardar','Planejar':'Planejar','Imediata':'Imediata'}
           const AMAP:Record<string,string> = {'1':'Improvável','3':'Possível','5':'Provável/eminente','Improvável':'Improvável','Possível':'Possível','Provável/eminente':'Provável/eminente'}
           const EMAP:Record<string,string> = {'1':'Eventual','3':'Frequente','5':'Muitas pessoas','Eventual':'Eventual','Frequente':'Frequente','Muitas pessoas':'Muitas pessoas'}
-          const gv=String(nc.gravidade??dv.gravidade??''), uv=String(nc.urgencia??dv.urgencia??''), av=String(nc.abrangencia??dv.abrangencia??''), ev=String(nc.exposicao??dv.exposicao??'')
+          const gv=String(nc.gravidade??''), uv=String(nc.urgencia??''), av=String(nc.abrangencia??''), ev=String(nc.exposicao??'')
           const fld = (lbl:string, val:string) =>
             '<div>' +
             '<div style="font-size:6pt;font-weight:600;color:#4a6480">' + lbl + '</div>' +
