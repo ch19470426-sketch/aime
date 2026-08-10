@@ -993,6 +993,7 @@ export async function POST(request: NextRequest) {
             tipoAtivo:   nc.tipoAtivo   || extrHtml(h, 'Ativo'),
             tagNrSerie:  nc.tagNrSerie  || extrHtml(h, 'TAG \/ Nº Série'),
             finalidade:  nc.finalidade  || extrHtml(h, 'Finalidade'),
+            fotoNrHtml:  extrHtml(h, 'Foto Nº') || extrHtml(h, 'Foto nº'),
             resultado:   nc.resultado   || extrHtml(h, 'Resultado') || extrHtml(h, 'Resultado da Análise'),
             gravidade:   nc.gravidade   || extrGUT(h, 'Gravidade'),
             urgencia:    nc.urgencia    || extrGUT(h, 'Urgência'),
@@ -1014,8 +1015,8 @@ export async function POST(request: NextRequest) {
           const bgnr  = grNnr > 80 ? '#FEE2E2' : grNnr >= 50 ? '#FEF9C3' : '#DCFCE7'
           const prinr = grNnr > 80 ? 'Muito Alta' : grNnr >= 50 ? 'Alta' : grNnr >= 30 ? 'Média' : 'Baixa'
           const fotonr = nc.fotoBase64?.startsWith('data:image')
-            ? '<img src="' + nc.fotoBase64 + '" style="width:100%;max-height:90mm;object-fit:cover;border-radius:5px;border:2px solid #1E3A8A;display:block">'
-            : '<div style="border:1.5px dashed #c3d4f0;border-radius:5px;background:#E8EEF7;height:80mm;display:flex;align-items:center;justify-content:center;color:#8aa3c4;font-size:8pt">Foto não disponível</div>'
+            ? '<img src="' + nc.fotoBase64 + '" style="width:85%;max-height:100mm;object-fit:cover;border-radius:5px;border:2px solid #1E3A8A;display:block;margin:0 auto">'
+            : '<div style="border:1.5px dashed #c3d4f0;border-radius:5px;background:#E8EEF7;height:90mm;display:flex;align-items:center;justify-content:center;color:#8aa3c4;font-size:8pt">Foto não disponível</div>'
           const pb = idx > 0 ? '<div style="page-break-before:always"></div>' : ''
           const GMAP:Record<string,string> = {'1':'Sem risco','2':'Lesão/dano baixo','3':'Lesão/dano moderado','4':'Lesão/dano grave','5':'Lesão/dano fatal','Sem risco':'Sem risco','Lesão/dano baixo':'Lesão/dano baixo','Lesão/dano moderado':'Lesão/dano moderado','Lesão/dano grave':'Lesão/dano grave','Lesão/dano fatal':'Lesão/dano fatal'}
           const UMAP:Record<string,string> = {'1':'Pode aguardar','3':'Planejar','5':'Imediata','Pode aguardar':'Pode aguardar','Planejar':'Planejar','Imediata':'Imediata'}
@@ -1067,7 +1068,7 @@ export async function POST(request: NextRequest) {
             ) +
             card('Evidência Fotográfica',
               '<div style="display:grid;grid-template-columns:auto 1fr;gap:6px;align-items:end;margin-bottom:4px">' + +
-              fld('Foto nº', xe(String(parseInt(nc.fotoNr||'0')||0) || nc.fotoNr || '')) +
+              fld('Foto nº', xe(nc.fotoNrHtml || String(parseInt(String(nc.fotoNr||''))||'') || nc.fotoNr || '')) +
               fld('Data da vistoria', xe(nc.dataVistoria||nc.data||'')) +
               '</div>' + fotonr
             ) +
