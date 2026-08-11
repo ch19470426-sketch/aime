@@ -26,7 +26,7 @@ ${d.texto_inspetor}` : ''
 
       prompt = `Você é um engenheiro civil experiente em inspeção predial. Redija uma síntese técnica da edificação/estabelecimento.${textoBase}
 
-DADOS COMPLEMENTARES:
+DADOS DO ESTABELECIMENTO/EDIFICAÇÃO:
 - Razão social / Nome: ${d.razao_social || 'não informado'}
 - Denominação oficial: ${d.nome_convencao || 'não informado'}
 - Uso do imóvel: ${d.uso || 'não informado'}
@@ -35,6 +35,9 @@ DADOS COMPLEMENTARES:
 - Número de unidades/salas: ${d.unidades || 'não informado'}
 - Área construída: ${d.area_construida || 'não informada'} m²
 - Área do terreno: ${d.area_terreno || 'não informada'} m²
+- Fabricante/marca: ${d.fabricante || 'não informado'}
+- Subtipo: ${d.subtipo || 'não informado'}
+- Capacidade/potência: ${d.capacidade || 'não informado'}
 
 INSTRUÇÕES:
 - Se houver texto do inspetor, use-o como base principal e melhore a redação técnica mantendo o conteúdo original
@@ -42,7 +45,8 @@ INSTRUÇÕES:
 - Linguagem técnica formal, terceira pessoa, texto corrido sem listas
 - NÃO mencione datas, vistoria ou como o trabalho foi realizado
 - NÃO inclua endereço
-- Máximo de 900 caracteres`
+- Máximo de 900 caracteres
+- NÃO inclua título, cabeçalho ou prefixo como 'SÍNTESE TÉCNICA DA EDIFICAÇÃO' — apenas o texto da síntese diretamente`
 
     // ── Prompt 2: Descrição da vistoria ──────────────────────────────────────
     } else if (tipo === 'descricao_vistoria') {
