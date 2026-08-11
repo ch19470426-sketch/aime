@@ -794,7 +794,8 @@ export async function POST(request: NextRequest) {
       // Agrupar NCs por sistema (cada NC aparece UMA vez)
       const ncsPorSistema: Record<string, any[]> = {}
       ncsOrdenadas.forEach((nc: any) => {
-        const sis = (nc.sistema || 'Geral').trim()
+        const sisRaw = (nc.sistema || 'Geral').trim()
+        const sis = sisRaw.replace(/^(\d+)-/, '$1_') // normalizar hífen→underscore
         if (!ncsPorSistema[sis]) ncsPorSistema[sis] = []
         ncsPorSistema[sis].push(nc)
       })
@@ -835,7 +836,7 @@ export async function POST(request: NextRequest) {
               const sisNome = sis.match(/^\d+_/) ? sis.slice(3).replace(/_/g,' ') : sis.replace(/_/g,' ')
               // Descrição: busca exata pelo sistema (chave do BD)
               const descSis = DESC_SIS[sis] ?? ''
-              const recBruto = recsSis[sis] ?? ''
+              const recBruto = recsSis[sisKey] ?? recsSis[sis] ?? ''
               // Remover prefixo gerado pela IA
               const recSis = recBruto
                 .replace(/^(RECOMENDA[ÇC][ÃA]O T[EÉ]CNICA[^\n]*\n+)/i, '')
