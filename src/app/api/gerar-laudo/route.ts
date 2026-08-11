@@ -897,6 +897,15 @@ export async function POST(request: NextRequest) {
         S41_blocos +
         '</div></div>'
 
+      const S41nr =
+        '<div class="titulo">4.1.- Relação de Não Conformidades e Soluções.</div>' +
+        '<div>' +
+        '<p style="text-align:justify">Neste item é apresentado, de forma clara e concisa, o conjunto de requisitos normativos identificados na vistoria, suas localizações e o número da foto no respectivo formulário de vistoria. Na tabela constam as prioridades para retificação dos problemas de cada um dos componentes, visando mitigar os riscos e garantir a conformidade e eficiência dos equipamentos, segundo normas técnicas vigentes.</p>' +
+        '<p style="text-align:justify">A prioridade para manutenção de cada uma das não conformidades foi obtida pelo grau de risco (0 a 100), calculado com base nos parâmetros: gravidade (40%); abrangência (30%); urgência (20%); e exposição (10%); observado no requisito normativo.</p>' +
+        '<p style="text-align:justify">Quanto à definição das prioridades foi adotado o critério: grau de risco superior a 80 pontos, prioridade Muito Alta; grau de risco menor que 80 pontos e maior que 49 pontos, prioridade Alta; grau de risco menor que 50 pontos e maior que 29 pontos, prioridade Média; grau de risco inferior a 30 pontos, prioridade Baixa.</p>' +
+        '<p style="text-align:justify">A Relação de Não Conformidades com o resultado da análise e da classificação é apresentada no Anexo 3 deste laudo.</p>' +
+        '</div>'
+
       const S42nr =
         '<div class="titulo">4.2.- Análise Estatística das Manifestações Patológicas.</div>' +
         '<div>' +
