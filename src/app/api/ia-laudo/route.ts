@@ -19,28 +19,30 @@ export async function POST(request: NextRequest) {
     // ── Prompt 1: Síntese da edificação ──────────────────────────────────────
     if (tipo === 'sintese_edificacao') {
       const d = dados
-      prompt = `Você é um engenheiro civil experiente em inspeção predial. Redija uma síntese objetiva da edificação para o item 1.1 de um laudo técnico.
+      const textoBase = d.texto_inspetor ? `
 
-DADOS DA EDIFICAÇÃO:
+TEXTO DIGITADO PELO INSPETOR (use como base principal):
+${d.texto_inspetor}` : ''
+
+      prompt = `Você é um engenheiro civil experiente em inspeção predial. Redija uma síntese técnica da edificação/estabelecimento.${textoBase}
+
+DADOS COMPLEMENTARES:
 - Razão social / Nome: ${d.razao_social || 'não informado'}
-- Denominação oficial (convenção/escritura): ${d.nome_convencao || 'não informado'}
+- Denominação oficial: ${d.nome_convencao || 'não informado'}
 - Uso do imóvel: ${d.uso || 'não informado'}
 - Tipo do imóvel: ${d.tipo || 'não informado'}
 - Número de pavimentos: ${d.pavimentos || 'não informado'}
 - Número de unidades/salas: ${d.unidades || 'não informado'}
 - Área construída: ${d.area_construida || 'não informada'} m²
 - Área do terreno: ${d.area_terreno || 'não informada'} m²
-- Nome do responsável: ${d.responsavel || 'não informado'}
-- Função do responsável: ${d.funcao || 'não informada'}
+
 INSTRUÇÕES:
-- Redija em linguagem técnica formal, em terceira pessoa
-- Use a denominação oficial quando informada, caso contrário use a razão social
-- Descreva as características físicas da edificação: uso, tipo, número de pavimentos, número de unidades/salas, área construída e área do terreno
-- NÃO descreva a vistoria, datas, ou como o trabalho foi realizado — apenas as características da edificação
-- Se algum dado não foi informado, omita-o da síntese
-- Máximo de 900 caracteres
-- Não inclua endereço
-- Não use marcadores ou listas — texto corrido`
+- Se houver texto do inspetor, use-o como base principal e melhore a redação técnica mantendo o conteúdo original
+- Se não houver texto do inspetor, gere a síntese com base nos dados complementares
+- Linguagem técnica formal, terceira pessoa, texto corrido sem listas
+- NÃO mencione datas, vistoria ou como o trabalho foi realizado
+- NÃO inclua endereço
+- Máximo de 900 caracteres`
 
     // ── Prompt 2: Descrição da vistoria ──────────────────────────────────────
     } else if (tipo === 'descricao_vistoria') {
