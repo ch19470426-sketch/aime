@@ -337,6 +337,18 @@ export async function POST(request: NextRequest) {
         }
         const tsV = tsVist[tipoServico] ?? ''
         // Buscar ativos filtrando por tipo_servico (formato longo '37 Vistoria nr-12')
+      // Buscar descrições dos sistemas do BD
+      const { data: sistDB } = await supabase
+        .from('sistemas_construtivos')
+        .select('sistema,descricao_sistema')
+        .eq('tipo_servico', tsV)
+        .order('sistema')
+      const DESC_SIS: Record<string,string> = {}
+      ;(sistDB ?? []).forEach((s:any) => {
+        if (s.sistema && s.descricao_sistema)
+          DESC_SIS[s.sistema] = s.descricao_sistema
+      })
+
         let { data: ativosDB } = await supabase
           .from('ativos_a_vistoriar').select('*')
           .eq('cpf_inspetor', cpfInspetor).eq('cnpjoucpf', cnpjoucpf)
@@ -733,17 +745,6 @@ export async function POST(request: NextRequest) {
       })()
 
 
-      // Buscar descrições dos sistemas do BD
-      const { data: sistDB } = await supabase
-        .from('sistemas_construtivos')
-        .select('sistema,descricao_sistema')
-        .eq('tipo_servico', tsV)
-        .order('sistema')
-      const DESC_SIS: Record<string,string> = {}
-      ;(sistDB ?? []).forEach((s:any) => {
-        if (s.sistema && s.descricao_sistema)
-          DESC_SIS[s.sistema] = s.descricao_sistema
-      })
 
 
 
