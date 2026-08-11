@@ -782,16 +782,16 @@ export async function POST(request: NextRequest) {
       // NCs organizadas por sistema, sem repetir
       const ativos41 = (estab?.ativos ?? [])
       // Montar ncsPorAtivo: um bloco por ativo com TODOS os sistemas/NCs
-      // ncsPorAtivo: UMA entrada com todos os ativos como chave
-      // Cada sistema aparece UMA vez — não repetir por ativo
-      const tagLabel = ativos41.length > 0
-        ? ativos41.map((a:any) => a.tag_ativo_nr_serie || a.tag || a.tipo_ativo || '—').join(' | ')
-        : '—'
-      const tipoLabel = ativos41.length > 0
-        ? [...new Set(ativos41.map((a:any) => a.tipo_ativo || ''))].filter(Boolean).join(' | ')
-        : ''
-      const ncsPorAtivo: Record<string, Record<string, any[]>> = {
-        [tagLabel]: ncsPorSistema
+      // ncsPorAtivo: um bloco por ativo, sistemas/NCs compartilhados (não repetir NCs)
+      // Estrutura: { tag: { sistema: [ncs] } } — sistemas iguais para todos os ativos
+      const ncsPorAtivo: Record<string, Record<string, any[]>> = {}
+      if (ativos41.length > 0) {
+        ativos41.forEach((a:any) => {
+          const tag = a.tag_ativo_nr_serie || a.tag || a.tipo_ativo || '—'
+          if (!ncsPorAtivo[tag]) ncsPorAtivo[tag] = ncsPorSistema
+        })
+      } else {
+        ncsPorAtivo['—'] = ncsPorSistema
       }
       // Map de ativos por tag
       const ativosMap: Record<string, any> = {}
@@ -810,8 +810,8 @@ export async function POST(request: NextRequest) {
       const S41_blocos = Object.keys(ncsPorSistema41).length === 0
         ? '<table style="width:100%;border-collapse:collapse"><tr><td style="padding:8px;color:#9a3412;font-style:italic">Nenhuma não conformidade registrada.</td></tr></table>'
         : Object.entries(ncsPorAtivo).map(([tag, sistemasDoAtivo], ativoIdx) => {
-            // tag já contém todos os ativos concatenados
-            const tipoAtivo = tipoLabel
+            const ativoData = ativosMap[tag] ?? {}
+            const tipoAtivo = ativoData.tipo_ativo || ativoData.tipo || ''
 
             return Object.entries(sistemasDoAtivo).map(([sis, ncsSis], sisIdx) => {
               // Normalizar: converter hífen→underscore (padrão BD após UPDATE)
