@@ -812,9 +812,11 @@ export async function POST(request: NextRequest) {
             const tipoAtivo = ativoData.tipo_ativo || ativoData.tipo || tag
 
             return Object.entries(sistemasDoAtivo).map(([sis, ncsSis], sisIdx) => {
-              const sisNome = sis.match(/^\d+_/) ? sis.slice(3).replace(/_/g,' ') : sis.replace(/_/g,' ')
-              // Descrição: busca exata pelo sistema (chave do BD)
-              const descSis = DESC_SIS[sis] ?? ''
+              // Normalizar: converter hífen→underscore (padrão BD após UPDATE)
+              const sisKey  = sis.replace(/^(\d+)-/, '$1_')
+              const sisNome = sisKey.replace(/^\d+_/, '').replace(/_/g, ' ').trim()
+              // Descrição: busca por chave normalizada
+              const descSis = DESC_SIS[sisKey] ?? DESC_SIS[sis] ?? ''
               const recBruto = recsSis[sisKey] ?? recsSis[sis] ?? ''
               // Remover prefixo gerado pela IA
               const recSis = recBruto
