@@ -1051,10 +1051,10 @@ export async function POST(request: NextRequest) {
       let dvA2: Record<string,any> = {}
       try {
         const { data: dvRows } = await supabase
-          .from('dados_vistoria').select('foto_nr,tipo_ativo,tag_ativo_nr_serie,finalidade_vistoria')
+          .from('dados_vistoria').select('numero_foto,tipo_ativo,tag_ativo_nr_serie,finalidade_vistoria')
           .eq('cpf_inspetor', cpfInspetor).eq('cnpjoucpf', cnpjoucpf)
         if (dvRows) dvRows.forEach((r:any) => {
-          const k = String(r.foto_nr ?? '').replace(/^0+/,'') || '0'
+          const k = String(r.numero_foto ?? '').replace(/^0+/,'') || '0'
           dvA2[k] = r
           dvA2[k.padStart(3,'0')] = r
           dvA2[k.padStart(2,'0')] = r
