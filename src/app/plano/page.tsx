@@ -436,8 +436,8 @@ function PlanoInner() {
                           placeholder="Ex: Inspeção periódica" />
                       </Field>
                     </div>
-                    <div style={{ textAlign: 'right', marginTop: '6px' }}>
-                      <button style={{ ...S.btn, ...S.btnPri, padding: '6px 20px', fontSize: '11px' }}
+                    <div style={{ display:'flex', justifyContent:'flex-end', marginTop:'10px' }}>
+                      <button style={{ ...S.btn, ...S.btnPri, padding:'8px 28px', fontSize:'12px', fontWeight:700 }}
                         onClick={async () => {
                           if (!nomeResp) { informa('Atenção', 'Informe o nome do responsável.'); return }
                           try {
