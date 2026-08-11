@@ -23,10 +23,10 @@ if (typeof window !== 'undefined') {
 }
 
 const permissoes: Record<string, number[]> = {
-  "Arquiteto":          [11,12,13,19,21,22,23,29,31,32,33,40,41,42,43,49,61,62,99],
-  "Eng Civil":          [11,12,13,14,19,21,22,23,24,26,29,31,32,33,34,36,40,41,42,43,44,49,61,62,99],
-  "Eng Elétrico":       [16,26,36,40,46,61,62,99],
-  "Eng Mecânico":       [15,17,18,25,27,28,35,37,38,40,45,47,48,61,62,99],
+  "Arquiteto":          [11,12,13,19,21,22,23,29,31,32,33,40,41,42,43,51,52,53,54,55,61,62,99],
+  "Eng Civil":          [11,12,13,14,19,21,22,23,24,26,29,31,32,33,34,36,40,41,42,43,44,51,52,53,54,55,61,62,99],
+  "Eng Elétrico":       [16,26,36,40,46,56,61,62,99],
+  "Eng Mecânico":       [15,17,18,25,27,28,35,37,38,40,45,47,48,55,57,58,61,62,99],
   "Técnico Edificação": [13,23,33,40,43,61,62,99],
   "Corretor Imóvel":    [13,23,33,40,43,61,62,99],
 }
@@ -76,7 +76,16 @@ const menuGrupos = [
     { codigo: 46, label: "Laudo NR-10" },
     { codigo: 47, label: "Laudo NR-12" },
     { codigo: 48, label: "Laudo NR-13" },
-    { codigo: 49, label: "Plano Manutenção Edificação" },
+  ]},
+  { grupo: "Planos de Manutenção", itens: [
+    { codigo: 51, label: "Plano Manutenção Autovistoria" },
+    { codigo: 52, label: "Plano Manutenção Inspeção" },
+    { codigo: 53, label: "Plano Manutenção Imóvel Novo" },
+    { codigo: 54, label: "Plano Manutenção Fachada" },
+    { codigo: 55, label: "Plano Manutenção Elevador" },
+    { codigo: 56, label: "Plano Manutenção NR-10" },
+    { codigo: 57, label: "Plano Manutenção NR-12" },
+    { codigo: 58, label: "Plano Manutenção NR-13" },
   ]},
   { grupo: "Consultas e Relatórios", itens: [
     { codigo: 61, label: "Baixar Documentos" },
