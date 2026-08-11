@@ -820,23 +820,23 @@ export async function POST(request: NextRequest) {
         '<div style="' + VAL + '">' + val + '</div>' +
         '</td>'
 
+      // Índice de ativo para o Anexo 3 — avança ao mudar sistema
+      const ativosA3 = ativos41.length > 0 ? ativos41 : []
+      let ativoIdxA3 = 0
+
       let htmlA3 = ''
-      let curTagA3 = ''
-      let curTipoA3 = ''
       let curSisA3 = ''
       let primeiroA3 = true
 
       ncsOrdenadas.forEach((nc:any) => {
         const ncSis  = String(nc.sistema||'Geral').trim()
-        const ncFkRaw = String(nc.fotoNr ?? '').replace(/^0+/,'') || '0'
-        const ncDv    = dvA2[ncFkRaw] ?? dvA2[ncFkRaw.padStart(3,'0')] ?? dvA2[ncFkRaw.padStart(2,'0')] ?? {}
-        // Quando muda o sistema, atualizar tag e tipo da variável auxiliar
-        if (ncSis !== curSisA3) {
-          curTagA3  = String(nc.tagNrSerie||nc.tag_ativo_nr_serie||ncDv.tag_ativo_nr_serie||curTagA3||'—')
-          curTipoA3 = String(nc.tipoAtivo||nc.tipo_ativo||ncDv.tipo_ativo||curTipoA3||'—')
+        // Quando muda o sistema, avança para o próximo ativo
+        if (ncSis !== curSisA3 && curSisA3 !== '') {
+          if (ativoIdxA3 < ativosA3.length - 1) ativoIdxA3++
         }
-        const ncTag  = curTagA3
-        const ncTipo = curTipoA3
+        const ativo  = ativosA3[ativoIdxA3] ?? {}
+        const ncTag  = ativo.tag_ativo_nr_serie || ativo.tag || '—'
+        const ncTipo = ativo.tipo_ativo || ativo.tipo || '—'
         const sisKey  = ncSis.replace(/^(\d+)-/, '$1_')
         const sisNome = sisKey.replace(/^\d+_/, '').replace(/_/g, ' ').trim()
         const mudou = ncTag !== curTagA3 || ncSis !== curSisA3
