@@ -323,6 +323,7 @@ function LaudoComplemento() {
             area_construida: estab.area_construida, area_terreno: estab.area_terreno,
             responsavel: estab.nome_responsavel, funcao: contato.funcao_responsavel,
             nome_convencao: nomeConvencao, nivel_inspecao: nivelInspecao,
+            texto_inspetor: sinteseTemp || sinteseEdif || '',
           }
         })
       })
