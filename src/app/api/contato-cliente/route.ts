@@ -43,15 +43,25 @@ export async function GET(request: NextRequest) {
     if (!cpf_inspetor || !cnpjoucpf)
       return NextResponse.json({ erro: 'Parâmetros obrigatórios ausentes.' }, { status: 400 })
 
-    let q = supabase.from('contato_cliente').select('*')
+    // Tentar com tipo_servico primeiro
+    if (tipo_servico) {
+      const { data, error } = await supabase.from('contato_cliente').select('*')
+        .eq('cpf_inspetor', cpf_inspetor)
+        .eq('cnpjoucpf', cnpjoucpf)
+        .eq('tipo_servico', tipo_servico)
+        .order('data_cadastro', { ascending: false })
+        .limit(1)
+      if (!error && data && data.length > 0)
+        return NextResponse.json({ data })
+    }
+
+    // Fallback: buscar sem filtro de tipo (mais recente do CPF+CNPJ)
+    const { data, error } = await supabase.from('contato_cliente').select('*')
       .eq('cpf_inspetor', cpf_inspetor)
       .eq('cnpjoucpf', cnpjoucpf)
       .order('data_cadastro', { ascending: false })
       .limit(1)
 
-    if (tipo_servico) q = q.eq('tipo_servico', tipo_servico)
-
-    const { data, error } = await q
     if (error) return NextResponse.json({ erro: error.message }, { status: 400 })
     return NextResponse.json({ data: data ?? [] })
   } catch (e) {
