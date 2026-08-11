@@ -578,7 +578,7 @@ export async function POST(request: NextRequest) {
       // Tabela localização (croqui + fotonr)
       const tabelaLocal =
         '<div style="display:flex;justify-content:center;margin-top:6pt">' +
-        '<table style="width:100%;border-collapse:collapse;border:2px solid #1E3A8A">' +
+        '<table style="width:auto;min-width:60%;border-collapse:collapse;border:2px solid #1E3A8A">' +
         '<tr><td colspan="2" style="' + TH11 + '">Localização do Estabelecimento</td></tr>' +
         '<tr>' +
           '<td style="' + TD11 + ';width:50%;height:70mm;padding:4px">' +
