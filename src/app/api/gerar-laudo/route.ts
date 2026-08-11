@@ -805,7 +805,7 @@ export async function POST(request: NextRequest) {
       const TD_BODY  = 'border:1px solid #cbd5e1;padding:4px 6px;font-size:8pt;vertical-align:middle'
       const TD_LABEL = 'border:1px solid #1E3A8A;background:#f1f5f9;padding:3px 6px;font-weight:700;font-size:8pt;color:#1E3A8A;vertical-align:middle'
 
-      // ── ANEXO 3 — lógica linear: lê ncsOrdenadas (tag→sistema→GR) ──────────
+      // ── ANEXO 3 — lógica: ativo externo × sistema interno ──────────────────
       const BRD   = 'border:1px solid #cbd5e1'
       const ROT   = 'font-size:6.5pt;font-weight:700;color:#1E3A8A;background:#dbeafe;padding:2px 5px;border-bottom:1px solid #cbd5e1'
       const VAL   = 'font-size:8pt;padding:3px 5px;min-height:16px;background:#fff;vertical-align:middle'
@@ -818,43 +818,47 @@ export async function POST(request: NextRequest) {
         '<div style="' + VAL + '">' + val + '</div>' +
         '</td>'
 
+      // Sistemas únicos ordenados (já ordenados em ncsOrdenadas)
+      const sistemasUnicos = [...new Set(ncsOrdenadas.map((nc:any) => (nc.sistema||'Geral').trim()))]
+
+      // Ativos disponíveis (ou placeholder se nenhum cadastrado)
+      const ativosA3 = ativos41.length > 0 ? ativos41 : [{ tag_ativo_nr_serie:'—', tipo_ativo:'—' }]
+
       let htmlA3 = ''
-      let curTag = ''
-      let curSis = ''
       let primeiroBloco = true
 
-      ncsOrdenadas.forEach((nc: any, idx: number) => {
-        const ncTag = String(nc.tag_ativo_nr_serie || nc.tag || '—')
-        const ncSis = String(nc.sistema || 'Geral').trim()
-        const sisKey  = ncSis.replace(/^(\d+)-/, '$1_')
-        const sisNome = sisKey.replace(/^\d+_/, '').replace(/_/g, ' ').trim()
-        const mudouTag = ncTag !== curTag
-        const mudouSis = ncSis !== curSis
+      // a. Loop externo: cada ativo
+      ativosA3.forEach((ativo:any) => {
+        const tagAtivo  = ativo.tag_ativo_nr_serie || ativo.tag || '—'
+        const tipoAtivo = ativo.tipo_ativo || ativo.tipo || '—'
 
-        if (mudouTag || mudouSis) {
-          // Fechar tabela anterior se existir
-          if (!primeiroBloco) htmlA3 += '</table>'
+        // b/c/d/e/f: Loop interno: cada sistema com suas NCs
+        sistemasUnicos.forEach((sis:string) => {
+          const ncsSis = ncsOrdenadas.filter((nc:any) => (nc.sistema||'Geral').trim() === sis)
+          if (ncsSis.length === 0) return
+
+          const sisKey  = sis.replace(/^(\d+)-/, '$1_')
+          const sisNome = sisKey.replace(/^\d+_/, '').replace(/_/g, ' ').trim()
+          const descSis  = DESC_SIS[sisKey] ?? DESC_SIS[sis] ?? ''
+          const recBruto = recsSis[sisKey] ?? recsSis[sis] ?? ''
+          const recSis   = recBruto
+            .replace(/^(RECOMENDA[ÇC][ÃA]O T[EÉ]CNICA[^\n]*\n+)/i, '')
+            .replace(/^(Recomenda[çc][ãa]o T[eé]cnica[^\n]*\n+)/i, '')
+            .replace(/^[–—-]+\s*/,'').trim()
+            || 'Corrigir as não conformidades identificadas conforme prioridades.'
 
           // Separador entre blocos
           if (!primeiroBloco) htmlA3 += '<div style="height:8pt"></div>'
           primeiroBloco = false
 
-          // Buscar tipo do ativo pelo tag
-          const ativoNc = ativos41.find((a:any) =>
-            (a.tag_ativo_nr_serie || a.tag || '') === ncTag
-          ) ?? ativos41[0] ?? {}
-          const tipoAtivo = ativoNc.tipo_ativo || ativoNc.tipo || '—'
-
-          // b. Linha cabeçalho já está no A3nr (título geral)
           // c. Tag/Série | Tipo ativo | Sistema
           htmlA3 += '<table style="width:100%;border-collapse:collapse;margin-bottom:2px"><tr>' +
-            fldA3('Tag/Nº Série', xe(ncTag)) +
+            fldA3('Tag/Nº Série', xe(tagAtivo)) +
             fldA3('Tipo ativo', xe(tipoAtivo)) +
             fldA3('Sistema', xe(sisNome)) +
             '</tr></table>'
 
           // d. Descrição do sistema
-          const descSis = DESC_SIS[sisKey] ?? DESC_SIS[ncSis] ?? ''
           htmlA3 += '<table style="width:100%;border-collapse:collapse;margin-bottom:2px"><tr>' +
             '<td style="' + CELL + ';width:100%">' +
             '<div style="' + ROT + '">Descrição do sistema:</div>' +
@@ -862,19 +866,13 @@ export async function POST(request: NextRequest) {
             '</td></tr></table>'
 
           // e. Recomendação
-          const recBruto = recsSis[sisKey] ?? recsSis[ncSis] ?? ''
-          const recSis = recBruto
-            .replace(/^(RECOMENDA[ÇC][ÃA]O T[EÉ]CNICA[^\n]*\n+)/i, '')
-            .replace(/^(Recomenda[çc][ãa]o T[eé]cnica[^\n]*\n+)/i, '')
-            .replace(/^[–—-]+\s*/,'').trim()
-            || 'Corrigir as não conformidades identificadas conforme prioridades.'
           htmlA3 += '<table style="width:100%;border-collapse:collapse;margin-bottom:4px"><tr>' +
             '<td style="' + CELL + ';width:100%">' +
             '<div style="' + ROT + '">Recomendação para o sistema:</div>' +
             '<div style="' + VAL + ';min-height:20px">' + xe(recSis) + '</div>' +
             '</td></tr></table>'
 
-          // Cabeçalho da tabela de NCs
+          // f. Tabela de NCs
           htmlA3 += '<table style="width:100%;border-collapse:collapse">' +
             '<tr>' +
             '<td style="' + TH_NC + ';width:4%">Foto</td>' +
@@ -885,28 +883,25 @@ export async function POST(request: NextRequest) {
             '<td style="' + TH_NC + ';width:39%;text-align:left">Solução sugerida</td>' +
             '</tr>'
 
-          curTag = ncTag
-          curSis = ncSis
-        }
+          ncsSis.forEach((nc:any) => {
+            const grNnr = Number(nc.grauRisco) || 0
+            const corP  = grNnr > 80 ? '#CC0000' : grNnr >= 50 ? '#E8A000' : grNnr >= 30 ? '#EAB308' : '#16A34A'
+            const priP  = grNnr > 80 ? 'Muito Alta' : grNnr >= 50 ? 'Alta' : grNnr >= 30 ? 'Média' : 'Baixa'
+            htmlA3 += '<tr>' +
+              '<td style="' + TD_NC + ';text-align:center">' + xe(nc.fotoNr||'') + '</td>' +
+              '<td style="' + TD_NC + '">' + xe(nc.nc||nc.anomalia||'') + '</td>' +
+              '<td style="' + TD_NC + '">' + xe(nc.local||'') + '</td>' +
+              '<td style="' + TD_NC + ';text-align:center;font-weight:700;color:' + corP + '">' + grNnr + '</td>' +
+              '<td style="' + TD_NC + ';text-align:center;font-weight:700;color:' + corP + '">' + priP + '</td>' +
+              '<td style="' + TD_NC + '">' + xe(nc.cp||nc.solucao||nc.sugestao||'') + '</td>' +
+              '</tr>'
+          })
 
-        // f. Linha detalhe
-        const grNnr = Number(nc.grauRisco) || 0
-        const corP  = grNnr > 80 ? '#CC0000' : grNnr >= 50 ? '#E8A000' : grNnr >= 30 ? '#EAB308' : '#16A34A'
-        const priP  = grNnr > 80 ? 'Muito Alta' : grNnr >= 50 ? 'Alta' : grNnr >= 30 ? 'Média' : 'Baixa'
-        const sol   = xe(nc.cp || nc.solucao || nc.sugestao || '')
-        htmlA3 += '<tr>' +
-          '<td style="' + TD_NC + ';text-align:center">' + xe(nc.fotoNr||'') + '</td>' +
-          '<td style="' + TD_NC + '">' + xe(nc.nc||nc.anomalia||'') + '</td>' +
-          '<td style="' + TD_NC + '">' + xe(nc.local||'') + '</td>' +
-          '<td style="' + TD_NC + ';text-align:center;font-weight:700;color:' + corP + '">' + grNnr + '</td>' +
-          '<td style="' + TD_NC + ';text-align:center;font-weight:700;color:' + corP + '">' + priP + '</td>' +
-          '<td style="' + TD_NC + '">' + sol + '</td>' +
-          '</tr>'
+          htmlA3 += '</table>'
+        })
       })
 
-      // Fechar última tabela
-      if (ncsOrdenadas.length > 0) htmlA3 += '</table>'
-      if (ncsOrdenadas.length === 0) htmlA3 = '<p style="color:#9a3412;font-style:italic">Nenhuma não conformidade registrada.</p>'
+      if (htmlA3 === '') htmlA3 = '<p style="color:#9a3412;font-style:italic">Nenhuma não conformidade registrada.</p>'
 
       const S41_blocos = htmlA3
 
