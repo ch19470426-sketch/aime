@@ -577,7 +577,8 @@ export async function POST(request: NextRequest) {
 
       // Tabela localização (croqui + fotonr)
       const tabelaLocal =
-        '<table style="width:100%;border-collapse:collapse;margin:6pt auto 0;border:2px solid #1E3A8A">' +
+        '<div style="display:flex;justify-content:center;margin-top:6pt">' +
+        '<table style="width:100%;border-collapse:collapse;border:2px solid #1E3A8A">' +
         '<tr><td colspan="2" style="' + TH11 + '">Localização do Estabelecimento</td></tr>' +
         '<tr>' +
           '<td style="' + TD11 + ';width:50%;height:70mm;padding:4px">' +
@@ -591,7 +592,8 @@ export async function POST(request: NextRequest) {
               : '<div style="height:70mm;display:flex;align-items:center;justify-content:center;color:#94a3b8;font-size:8pt;border:1px dashed #c3d4f0">[Foto da fachada principal]</div>') +
           '</td>' +
         '</tr>' +
-        '</table>'
+        '</table>' +
+        '</div>'
 
       // Tabela ativos para 46/47/48 (campos plano de trabalho)
       // Colunas por tipo de serviço — só exibir colunas com dados
@@ -820,13 +822,21 @@ export async function POST(request: NextRequest) {
 
       let htmlA3 = ''
       let curTagA3 = ''
+      let curTipoA3 = ''
       let curSisA3 = ''
       let primeiroA3 = true
 
       ncsOrdenadas.forEach((nc:any) => {
-        const ncTag  = String(nc.tagNrSerie||nc.tag_ativo_nr_serie||nc.tag||'—')
-        const ncTipo = String(nc.tipoAtivo||nc.tipo_ativo||'—')
         const ncSis  = String(nc.sistema||'Geral').trim()
+        const ncFkRaw = String(nc.fotoNr ?? '').replace(/^0+/,'') || '0'
+        const ncDv    = dvA2[ncFkRaw] ?? dvA2[ncFkRaw.padStart(3,'0')] ?? dvA2[ncFkRaw.padStart(2,'0')] ?? {}
+        // Quando muda o sistema, atualizar tag e tipo da variável auxiliar
+        if (ncSis !== curSisA3) {
+          curTagA3  = String(nc.tagNrSerie||nc.tag_ativo_nr_serie||ncDv.tag_ativo_nr_serie||curTagA3||'—')
+          curTipoA3 = String(nc.tipoAtivo||nc.tipo_ativo||ncDv.tipo_ativo||curTipoA3||'—')
+        }
+        const ncTag  = curTagA3
+        const ncTipo = curTipoA3
         const sisKey  = ncSis.replace(/^(\d+)-/, '$1_')
         const sisNome = sisKey.replace(/^\d+_/, '').replace(/_/g, ' ').trim()
         const mudou = ncTag !== curTagA3 || ncSis !== curSisA3
