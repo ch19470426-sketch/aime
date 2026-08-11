@@ -786,10 +786,15 @@ export async function POST(request: NextRequest) {
       // ncsPorAtivo: chave = primeiro ativo (para exibir Tag/Tipo no cabeçalho)
       // NCs organizadas por sistema, sem repetir
       const ativos41 = (estab?.ativos ?? [])
-      const primeiroAtivo = ativos41[0] ?? {}
-      const tagPrincipal = primeiroAtivo.tag_ativo_nr_serie || primeiroAtivo.tag || primeiroAtivo.tipo_ativo || '—'
-      const ncsPorAtivo: Record<string, Record<string, any[]>> = {
-        [tagPrincipal]: ncsPorSistema
+      // Montar ncsPorAtivo: um bloco por ativo com TODOS os sistemas/NCs
+      const ncsPorAtivo: Record<string, Record<string, any[]>> = {}
+      if (ativos41.length > 0) {
+        ativos41.forEach((a:any) => {
+          const tag = a.tag_ativo_nr_serie || a.tag || a.tipo_ativo || '—'
+          ncsPorAtivo[tag] = ncsPorSistema
+        })
+      } else {
+        ncsPorAtivo['—'] = ncsPorSistema
       }
       // Map de ativos por tag
       const ativosMap: Record<string, any> = {}
@@ -813,12 +818,14 @@ export async function POST(request: NextRequest) {
 
             return Object.entries(sistemasDoAtivo).map(([sis, ncsSis], sisIdx) => {
               const sisNome = sis.match(/^\d+_/) ? sis.slice(3).replace(/_/g,' ') : sis.replace(/_/g,' ')
+              // Buscar descrição: exata → sem prefixo → parcial → BD (recsSis vem do BD)
               const descSis = DESC_SIS[sis] ??
+                DESC_SIS[sis.replace(/^\d+[-_]/,'')] ??
                 Object.entries(DESC_SIS).find(([k]) =>
-                  k.replace(/^\d+[-_]/,'').toLowerCase().replace(/_/g,' ') === sisNome.toLowerCase()
+                  k.replace(/^\d+[-_]/,'').toLowerCase() === sisNome.toLowerCase()
                 )?.[1] ??
                 Object.entries(DESC_SIS).find(([k]) =>
-                  sisNome.length > 4 && k.toLowerCase().includes(sisNome.toLowerCase().slice(0,8))
+                  sisNome.length > 5 && k.toLowerCase().includes(sisNome.toLowerCase().slice(0,10))
                 )?.[1] ?? ''
               const recBruto = recsSis[sis] ?? ''
               // Remover prefixo gerado pela IA
