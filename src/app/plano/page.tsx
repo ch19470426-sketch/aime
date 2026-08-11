@@ -178,14 +178,11 @@ function PlanoInner() {
         setAtivos(ativoData)
         setShowForm(ativoData.length === 0)
       }
-      // Carregar contato_cliente mais recente
-      const resCC = await fetch(`${SUPA_URL}/rest/v1/contato_cliente?
-cpf_inspetor=eq.${cpfInspetor}&cnpjoucpf=eq.${cnpjoucpf}&tipo_servico=eq.${encodeURIComponent(tsVistoria)}&order=data_cadastro.desc&limit=1`, {
-          headers: { apikey: SUPA_SVC, Authorization: `Bearer ${SUPA_SVC}` }
-        })
+      // Carregar contato_cliente mais recente via /api/contato-cliente
+      const resCC = await fetch(`/api/contato-cliente?cpf_inspetor=${cpfInspetor}&cnpjoucpf=${cnpjoucpf}&tipo_servico=${encodeURIComponent(tsVistoria)}`)
       const dadosCC = await resCC.json()
-      if (Array.isArray(dadosCC) && dadosCC.length > 0) {
-        const cc = dadosCC[0]
+      if (Array.isArray(dadosCC?.data) && dadosCC.data.length > 0) {
+        const cc = dadosCC.data[0]
         setNomeResp(cc.nome_responsavel ?? '')
         setFuncaoResp(cc.funcao_responsavel ?? '')
         setCpfResp(cc.cpf_responsavel ?? '')
