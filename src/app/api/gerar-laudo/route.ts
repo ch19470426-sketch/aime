@@ -782,17 +782,20 @@ export async function POST(request: NextRequest) {
       // NCs organizadas por sistema, sem repetir
       const ativos41 = (estab?.ativos ?? [])
       // Montar ncsPorAtivo: um bloco por ativo com TODOS os sistemas/NCs
-      // ncsPorAtivo: um bloco por ativo, sistemas/NCs compartilhados (não repetir NCs)
-      // Estrutura: { tag: { sistema: [ncs] } } — sistemas iguais para todos os ativos
+      // ncsPorAtivo: estrutura para o S41_blocos
+      // Cada ativo tem seu próprio bloco, mas os sistemas são os mesmos
+      // Para evitar repetição: criar cópia independente por ativo
       const ncsPorAtivo: Record<string, Record<string, any[]>> = {}
-      if (ativos41.length > 0) {
-        ativos41.forEach((a:any) => {
-          const tag = a.tag_ativo_nr_serie || a.tag || a.tipo_ativo || '—'
-          if (!ncsPorAtivo[tag]) ncsPorAtivo[tag] = ncsPorSistema
-        })
-      } else {
-        ncsPorAtivo['—'] = ncsPorSistema
-      }
+      const ativosParaA3 = ativos41.length > 0 ? ativos41 : [{ tag_ativo_nr_serie: '—', tipo_ativo: '' }]
+      ativosParaA3.forEach((a:any) => {
+        const tag = a.tag_ativo_nr_serie || a.tag || a.tipo_ativo || '—'
+        if (!ncsPorAtivo[tag]) {
+          // Cópia dos sistemas para este ativo
+          const sistemaCopy: Record<string, any[]> = {}
+          Object.entries(ncsPorSistema).forEach(([s, ncs]) => { sistemaCopy[s] = ncs })
+          ncsPorAtivo[tag] = sistemaCopy
+        }
+      })
       // Map de ativos por tag
       const ativosMap: Record<string, any> = {}
       ativos41.forEach((a:any) => {
@@ -1200,9 +1203,8 @@ export async function POST(request: NextRequest) {
       partsNR.push('<div style="font-size:8pt;color:#6B7280;letter-spacing:3px;text-transform:uppercase;margin-bottom:6pt">LAUDO TÉCNICO</div>')
       partsNR.push('<div style="font-size:18pt;font-weight:900;color:#1E3A8A;line-height:1.2;margin-bottom:2pt">' + TITULO_DOC[tipoServico] + '</div>')
       partsNR.push('<div style="font-size:13pt;font-weight:700;color:#374151;margin-bottom:4pt">' + xe(estab?.razao_social_nome||'') + '</div>')
-      partsNR.push('<br><br>')
-      partsNR.push('<br><br><br><br>')
-      partsNR.push('</div><div style="flex:2"></div>')
+      partsNR.push('</div>')
+      partsNR.push('<div style="flex:1"></div>')
       partsNR.push('<div style="border-top:2px solid #1E3A8A;margin:0 20mm;flex-shrink:0"></div>')
       partsNR.push('<div style="padding:8mm 20mm;font-size:9.5pt;color:#222;line-height:1.9;flex-shrink:0">')
       partsNR.push('<b style="color:#1E3A8A">Inspetor Responsável:</b> ' + xe(inspetor?.nome_inspetor) + '<br>')
