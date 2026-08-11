@@ -145,6 +145,14 @@ function HomologarProdutoInner() {
 
   async function carregarDocumento() {
     setCarregando(true)
+    // Verificar se HTML foi passado via sessionStorage (evita cache do Storage)
+    const htmlCached = sessionStorage.getItem('laudoHtml_' + nomeArquivo)
+    if (htmlCached) {
+      sessionStorage.removeItem('laudoHtml_' + nomeArquivo)
+      setHtml(htmlCached)
+      setCarregando(false)
+      return
+    }
     try {
       const res = await fetch(`/api/ler-documento?nome=${encodeURIComponent(nomeArquivo)}&pasta=documentos_inspetor`)
       const data = await res.json()
