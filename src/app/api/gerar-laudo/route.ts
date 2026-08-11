@@ -748,37 +748,6 @@ export async function POST(request: NextRequest) {
 
 
       const recsSis = complemento?.recsSistema ?? {}
-      const DESC_SIS: Record<string,string> = {
-        '01_Documentação Técnica':'Prontuários, manuais, registros de inspeção e análise de riscos obrigatórios pela NR.',
-        '02_Capacitação':'Treinamento e habilitação dos operadores conforme exigências da NR.',
-        '03_Proteções e Dispositivos':'Proteções fixas, móveis, intertravamentos e sensores nas zonas de perigo.',
-        '04_Partida e Parada':'Dispositivos de partida, parada normal e emergência, incluindo LOTO.',
-        '05_Sistema Elétrico':'Instalações elétricas, aterramento e proteções contra choques elétricos.',
-        '06_Ergonomia':'Condições ergonômicas do posto de trabalho: postura, iluminação, ruído.',
-        '07_EPIs e EPCs':'Equipamentos de Proteção Individual e Coletiva adequados e disponíveis.',
-        '08_Sinalização':'Sinalização de segurança, advertências de perigo e identificação de zonas de risco.',
-        '09_Manutenção':'Manutenção preventiva e corretiva com registros e execução por profissional habilitado.',
-        '10_SPDA':'Sistema de Proteção contra Descargas Atmosféricas.',
-        '11_Procedimentos Segurança':'Procedimentos operacionais de segurança, LOTO e análise de risco.',
-        '12_Gestão de Risco':'Análise e gestão de riscos, metodologia de avaliação e plano de ação.',
-        '03_Quadros Elétricos':'Quadros de distribuição, barramentos e dispositivos de proteção.',
-        '04_Cabos e Condutores':'Condutores elétricos, isolamento, dimensionamento e identificação.',
-        '05_Proteção Elétrica':'Dispositivos de proteção contra sobrecorrente e curto-circuito.',
-        '06_Sistema de Aterramento':'Sistema de aterramento e equipotencialização.',
-        '08_Tomadas/Pontos Energia':'Tomadas e pontos de energia adequados às cargas instaladas.',
-        '09_Iluminação':'Iluminação normal e de emergência das áreas de trabalho.',
-        // Sistemas NR-12 com hífen
-        '03-Dispositivos de Parada de Emergência':'Dispositivos de parada de emergência (botão de emergência, E-Stop) que permitem interromper imediatamente o ciclo da máquina em situação de risco.',
-        '04-Proteções Fixas e Móveis':'Proteções físicas fixas e móveis que impedem o acesso às zonas de perigo durante o ciclo de operação da máquina.',
-        '05-Dispositivos de Segurança':'Intertravamentos, sensores, cortinas de luz e demais dispositivos que detectam presença humana na zona de perigo.',
-        '06-Comandos e Controles':'Painéis de comando, botoeiras, pedais e sistemas de controle da máquina, incluindo partida, parada e modos de operação.',
-        '07-Sinalização e Rotulagem':'Sinalização de segurança, alertas visuais e sonoros, etiquetas de advertência e identificação de zonas de perigo.',
-        '08-Ergonomia e Posto de Trabalho':'Condições ergonômicas do posto de trabalho, incluindo postura, iluminação, esforço físico e conforto do operador.',
-        '09-Capacitação e Treinamento':'Treinamento e habilitação dos operadores para operação segura das máquinas conforme NR-12.',
-        '10-Documentação Técnica':'Prontuário da máquina, manuais de operação, análise de risco e registros de manutenção exigidos pela NR-12.',
-        '11-Manutenção Preventiva':'Programa de manutenção preventiva e corretiva com registros, periodicidade e execução por profissional habilitado.',
-        '12-Instalações Elétricas':'Instalações elétricas da máquina, aterramento, proteções contra choques e conformidade com normas elétricas.',
-      }
       // ── Agrupar NCs por ativo+sistema para o Anexo 3 ─────────────────────────
       // Agrupar NCs por sistema (tag vem dos ativos)
       // Ordenar NCs por tag_ativo_nr_serie → sistema → grauRisco DESC
