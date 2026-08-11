@@ -553,7 +553,7 @@ export async function POST(request: NextRequest) {
         '<tr><td colspan="3" style="' + TD11 + ';min-height:28mm;vertical-align:middle">' +
           '<b>' + labelDesc + '</b><br>' +
           '<div style="text-align:justify;padding:4px 0;vertical-align:middle">' +
-            (complemento?.sinteseEdif||'').replace(/^[\d]+[^\n]*\n/,'') +
+            (complemento?.sinteseEdif||'').replace(/^[\d]+[^\n]*\n/,'').replace(/^SÍ?NTESE TÉ?CNICA[^\n]*\n+/i,'').replace(/^SÍ?NTESE[^\n]*\n+/i,'') +
           '</div>' +
           '</td></tr>' +
         (is45
@@ -577,7 +577,7 @@ export async function POST(request: NextRequest) {
 
       // Tabela localização (croqui + fotonr)
       const tabelaLocal =
-        '<table style="width:100%;border-collapse:collapse;margin-top:6pt">' +
+        '<table style="width:100%;border-collapse:collapse;margin-top:6pt;border:2px solid #1E3A8A">' +
         '<tr><td colspan="2" style="' + TH11 + '">Localização do Estabelecimento</td></tr>' +
         '<tr>' +
           '<td style="' + TD11 + ';width:50%;height:70mm;padding:4px">' +
@@ -746,7 +746,7 @@ export async function POST(request: NextRequest) {
         }
         let cum=0
         const slices=pieD.map(d=>{const p=d.val/pieT;const s=arcP(cum,cum+p,d.cornr);cum+=p;return s}).join('')
-        const leg=pieD.map((d,i)=>'<div style="display:flex;align-items:center;gap:8px"><span style="display:inline-block;width:14px;height:14px;background:'+d.cornr+';border-radius:3px;flex-shrink:0"></span><span>'+d.label+' — '+d.val+'</span></div>').join('')
+        const leg=pieD.map((d,i)=>'<div style="display:flex;align-items:center;gap:8px"><span style="display:inline-block;width:14px;height:14px;background:'+d.cornr+';border-radius:3px;flex-shrink:0"></span> '+d.label+': '+(pieT>0?(d.val/pieT*100).toFixed(1)+'%':'0%')+'</div>').join('')
         return '<div style="display:flex;align-items:center;justify-content:center;gap:24px;padding:8px">'+
           '<svg width="160" height="160" viewBox="0 0 160 160" style="flex-shrink:0">'+slices+'</svg>'+
           '<div style="font-size:8.5pt;display:flex;flex-direction:column;gap:8px">'+leg+
