@@ -1210,9 +1210,8 @@ export async function POST(request: NextRequest) {
       partsNR.push('<div style="font-size:8pt;color:#6B7280;letter-spacing:3px;text-transform:uppercase;margin-bottom:6pt">LAUDO TÉCNICO</div>')
       partsNR.push('<div style="font-size:18pt;font-weight:900;color:#1E3A8A;line-height:1.2;margin-bottom:2pt">' + TITULO_DOC[tipoServico] + '</div>')
       partsNR.push('<div style="font-size:13pt;font-weight:700;color:#374151;margin-bottom:4pt">' + xe(estab?.razao_social_nome||'') + '</div>')
-      partsNR.push('<br><br>')
-      partsNR.push('<br><br><br><br>')
-      partsNR.push('</div><div style="flex:2"></div>')
+      partsNR.push('</div>')
+      partsNR.push('<div style="flex:1"></div>')
       partsNR.push('<div style="border-top:2px solid #1E3A8A;margin:0 20mm;flex-shrink:0"></div>')
       partsNR.push('<div style="padding:8mm 20mm;font-size:9.5pt;color:#222;line-height:1.9;flex-shrink:0">')
       partsNR.push('<b style="color:#1E3A8A">Inspetor Responsável:</b> ' + xe(inspetor?.nome_inspetor) + '<br>')
@@ -1332,7 +1331,7 @@ export async function POST(request: NextRequest) {
       partsNR.push('<div class="section a3-landscape"><style>.a3-landscape{} @media print{.a3-landscape{page:landscape-page}} @page landscape-page{size:A4 landscape;margin:10mm}</style><div class="titulo" style="text-align:center">Anexo 3 – Relação de Não Conformidades e Soluções</div>' + A3nr + '</div>')
       partsNR.push('<div class="section"><div class="titulo" style="text-align:center">Anexo 4 – Anotação de Responsabilidade Técnica</div>' +
         (complemento?.artRrt
-          ? '<div style="text-align:center;margin:8mm 0"><img src="' + complemento.artRrt + '" style="width:190mm;max-height:390mm;object-fit:contain"/></div>'
+          ? '<div style="text-align:center;margin:8mm 0"><img src="' + complemento.artRrt + '" style="width:190mm;max-height:780mm;object-fit:contain"/></div>'
           : '<div style="border:2px dashed #1E3A8A;min-height:180mm;margin:10mm 0;display:flex;align-items:center;justify-content:center"><p style="color:#6b7280;font-size:8.5pt;text-align:center">ART / RRT não anexada.<br>Inserir a ART ou RRT na tela de coleta de dados.</p></div>'
         ) +
         '</div>')
