@@ -385,6 +385,25 @@ export async function POST(request: NextRequest) {
       const dataHojeNR = new Date().toLocaleDateString('pt-BR', {day:'2-digit', month:'long', year:'numeric'})
 
       // ── Textos individualizados por tipo ────────────────────────────────────
+
+      // tsV — tipo de vistoria longo (disponível em todo o bloco ehNR)
+      const tsVistNR: Record<string,string> = {
+        '45':'35 Vistoria elevador','46':'36 Vistoria nr-10',
+        '47':'37 Vistoria nr-12',  '48':'38 Vistoria nr-13'
+      }
+      const tsV = tsVistNR[tipoServico] ?? ''
+
+      // Buscar descrições dos sistemas do BD
+      const { data: sistDB } = await supabase
+        .from('sistemas_construtivos')
+        .select('sistema,descricao_sistema')
+        .eq('tipo_servico', tsV)
+        .order('sistema')
+      const DESC_SIS: Record<string,string> = {}
+      ;(sistDB ?? []).forEach((s:any) => {
+        if (s.sistema && s.descricao_sistema)
+          DESC_SIS[s.sistema] = s.descricao_sistema
+      })
       const is45 = tipoServico === '45'
       const is46 = tipoServico === '46'
       const is47 = tipoServico === '47'
@@ -482,17 +501,6 @@ export async function POST(request: NextRequest) {
       const nomeAtivo   = NOME_ATIVO[tipoServico] ?? 'Ativos'
       const titulo41    = TITULO_41[tipoServico] ?? 'Relação de Não Conformidades'
 
-      // Buscar descrições dos sistemas do BD
-      const { data: sistDB } = await supabase
-        .from('sistemas_construtivos')
-        .select('sistema,descricao_sistema')
-        .eq('tipo_servico', tsV)
-        .order('sistema')
-      const DESC_SIS: Record<string,string> = {}
-      ;(sistDB ?? []).forEach((s:any) => {
-        if (s.sistema && s.descricao_sistema)
-          DESC_SIS[s.sistema] = s.descricao_sistema
-      })
 
 
       // ── CSS helper ─────────────────────────────────────────────────────────
