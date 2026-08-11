@@ -577,7 +577,7 @@ export async function POST(request: NextRequest) {
 
       // Tabela localização (croqui + fotonr)
       const tabelaLocal =
-        '<table style="width:100%;border-collapse:collapse;margin-top:6pt;border:2px solid #1E3A8A">' +
+        '<table style="width:100%;border-collapse:collapse;margin:6pt auto 0;border:2px solid #1E3A8A">' +
         '<tr><td colspan="2" style="' + TH11 + '">Localização do Estabelecimento</td></tr>' +
         '<tr>' +
           '<td style="' + TD11 + ';width:50%;height:70mm;padding:4px">' +
@@ -1037,7 +1037,19 @@ export async function POST(request: NextRequest) {
         '</div>'
 
       // ── ANEXO 2 — Formulários homologados ──────────────────────────────────
-      // dados_vistoria vazia — campos extraídos do HTML homologado
+      // Buscar dados_vistoria para tag/série e tipo ativo por foto_nr
+      let dvA2: Record<string,any> = {}
+      try {
+        const { data: dvRows } = await supabase
+          .from('dados_vistoria').select('foto_nr,tipo_ativo,tag_ativo_nr_serie,finalidade_vistoria')
+          .eq('cpf_inspetor', cpfInspetor).eq('cnpjoucpf', cnpjoucpf)
+        if (dvRows) dvRows.forEach((r:any) => {
+          const k = String(r.foto_nr ?? '').replace(/^0+/,'') || '0'
+          dvA2[k] = r
+          dvA2[k.padStart(3,'0')] = r
+          dvA2[k.padStart(2,'0')] = r
+        })
+      } catch {}
 
             // Helper para extrair valor de campo do HTML homologado
       const extrHtml = (h:string, lbl:string) => {
@@ -1050,8 +1062,10 @@ export async function POST(request: NextRequest) {
       }
 
       const ncsComFotoNR = await Promise.all((ncs ?? []).map(async (nc:any) => {
-        if (nc.fotoBase64?.startsWith('data:image')) return nc
-        if (!nc._arquivo) return nc
+        const fkRaw = String(nc.fotoNr ?? '').replace(/^0+/,'') || '0'
+        const dvNC = dvA2[fkRaw] ?? dvA2[fkRaw.padStart(3,'0')] ?? dvA2[fkRaw.padStart(2,'0')] ?? {}
+        if (nc.fotoBase64?.startsWith('data:image')) return { ...dvNC, ...nc }
+        if (!nc._arquivo) return { ...dvNC, ...nc }
         try {
           const { data: blob } = await supabase.storage.from('aime').download('vistorias_homologadas/' + nc._arquivo)
           if (!blob) return nc
@@ -1060,9 +1074,10 @@ export async function POST(request: NextRequest) {
           const mImg = h.match(/<img[^>]+src="(data:image[^"]+)"/)
           // Extrair campos do HTML
           const extra: Record<string,string> = {
-            tipoAtivo:   nc.tipoAtivo   || extrHtml(h, 'Ativo'),
-            tagNrSerie:  nc.tagNrSerie  || extrHtml(h, 'TAG \/ Nº Série'),
-            finalidade:  nc.finalidade  || extrHtml(h, 'Finalidade'),
+            tipoAtivo:   nc.tipoAtivo   || extrHtml(h, 'Ativo')   || dvNC.tipo_ativo || '',
+            tagNrSerie:  nc.tagNrSerie  || extrHtml(h, 'TAG \/ Nº Série') || dvNC.tag_ativo_nr_serie || '',
+            finalidade:  estab?.finalidade_vistoria || nc.finalidade || extrHtml(h, 'Finalidade') || dvNC.finalidade_vistoria || '',
+            finalidade_vistoria: estab?.finalidade_vistoria || nc.finalidade || dvNC.finalidade_vistoria || '',
             fotoNrHtml:  extrHtml(h, 'Foto Nº') || extrHtml(h, 'Foto nº'),
             resultado:   nc.resultado   || extrHtml(h, 'Resultado') || extrHtml(h, 'Resultado da Análise'),
             gravidade:   nc.gravidade   || extrGUT(h, 'Gravidade'),
@@ -1070,10 +1085,10 @@ export async function POST(request: NextRequest) {
             abrangencia: nc.abrangencia || extrGUT(h, 'Probabilidade') || extrGUT(h, 'Abrangência'),
             exposicao:   nc.exposicao   || extrGUT(h, 'Exposição risco') || extrGUT(h, 'Exposição'),
           }
-          if (mImg) return { ...nc, ...extra, fotoBase64: mImg[1] }
-          return { ...nc, ...extra }
+          if (mImg) return { ...dvNC, ...nc, ...extra, fotoBase64: mImg[1] }
+          return { ...dvNC, ...nc, ...extra }
         } catch {}
-        return nc
+        return { ...dvNC, ...nc }
       }))
 
 
