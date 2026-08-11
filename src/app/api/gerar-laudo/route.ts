@@ -1343,7 +1343,7 @@ export async function POST(request: NextRequest) {
       const { error: errSave } = await supabase.storage.from('aime')
         .upload('documentos_inspetor/' + nomeArquivo, new Blob([htmlNR], { type:'text/html' }), { upsert: true })
       if (errSave) throw new Error('Erro ao salvar: ' + errSave.message)
-      return NextResponse.json({ sucesso: true, nome: nomeArquivo })
+      return NextResponse.json({ sucesso: true, nome: nomeArquivo, html: htmlNR })
     }
     // ── FIM GERADOR NR (45-48) ────────────────────────────────────────────────
 
