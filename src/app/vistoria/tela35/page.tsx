@@ -169,7 +169,7 @@ function Tela31Inner() {
         if (cpfInspetor) {
           const atv = await query('ativos_a_vistoriar', `cpf_inspetor=eq.${cpfInspetor}&tipo_servico=eq.${encodeURIComponent(tipoServicoBanco)}&select=tipo_ativo,tag_ativo_nr_serie,data_cadastro&order=data_cadastro.desc`)
           if (Array.isArray(atv)) setAtivos(atv)
-          // Finalidade de contato_cliente
+          // Buscar finalidade_vistoria de contato_cliente
           try {
             const rCC = await fetch(`/api/contato-cliente?cpf_inspetor=${cpfInspetor}&cnpjoucpf=${cnpjoucpf}&tipo_servico=${encodeURIComponent('35 Vistoria elevador')}`)
             const dCC = await rCC.json()
