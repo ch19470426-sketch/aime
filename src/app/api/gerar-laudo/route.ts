@@ -839,7 +839,7 @@ export async function POST(request: NextRequest) {
         const ncTipo = ativo.tipo_ativo || ativo.tipo || '—'
         const sisKey  = ncSis.replace(/^(\d+)-/, '$1_')
         const sisNome = sisKey.replace(/^\d+_/, '').replace(/_/g, ' ').trim()
-        const mudou = ncTag !== curTagA3 || ncSis !== curSisA3
+        const mudou = ncSis !== curSisA3
 
         if (mudou) {
           if (!primeiroA3) htmlA3 += '</table><div style="height:8pt"></div>'
@@ -884,7 +884,6 @@ export async function POST(request: NextRequest) {
             '<td style="' + TH_NC + ';width:39%;text-align:left">Solução sugerida</td>' +
             '</tr>'
 
-          curTagA3 = ncTag
           curSisA3 = ncSis
         }
 
