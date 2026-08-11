@@ -805,13 +805,17 @@ export async function POST(request: NextRequest) {
       const TD_BODY  = 'border:1px solid #cbd5e1;padding:4px 6px;font-size:8pt;vertical-align:middle'
       const TD_LABEL = 'border:1px solid #1E3A8A;background:#f1f5f9;padding:3px 6px;font-weight:700;font-size:8pt;color:#1E3A8A;vertical-align:middle'
 
+      // Para o Anexo 3: tag e tipo do primeiro ativo (exibido no cabeçalho)
+      const primeiroAtivo41 = ativos41[0] ?? {}
+      const tagA3    = primeiroAtivo41.tag_ativo_nr_serie || primeiroAtivo41.tag || primeiroAtivo41.tipo_ativo || '—'
+      const tipoA3   = primeiroAtivo41.tipo_ativo || primeiroAtivo41.tipo || '—'
+
       const S41_blocos = Object.keys(ncsPorSistema41).length === 0
         ? '<table style="width:100%;border-collapse:collapse"><tr><td style="padding:8px;color:#9a3412;font-style:italic">Nenhuma não conformidade registrada.</td></tr></table>'
-        : Object.entries(ncsPorAtivo).map(([tag, sistemasDoAtivo], ativoIdx) => {
-            const ativoData = ativosMap[tag] ?? {}
-            const tipoAtivo = ativoData.tipo_ativo || ativoData.tipo || tag
-
-            return Object.entries(sistemasDoAtivo).map(([sis, ncsSis], sisIdx) => {
+        : Object.entries(ncsPorSistema).map(([sis, ncsSis], sisIdx) => {
+            const tag       = tagA3
+            const tipoAtivo = tipoA3
+            const ativoIdx  = 0
               // Normalizar: converter hífen→underscore (padrão BD após UPDATE)
               const sisKey  = sis.replace(/^(\d+)-/, '$1_')
               const sisNome = sisKey.replace(/^\d+_/, '').replace(/_/g, ' ').trim()
@@ -880,7 +884,6 @@ export async function POST(request: NextRequest) {
                     '</tr>'
                 }).join('') +
                 '</table>'
-            }).join('')
           }).join('')
 
 
