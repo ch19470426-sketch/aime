@@ -170,6 +170,14 @@ function Tela31Inner() {
         if (cpfInspetor) {
           const atv = await query('ativos_a_vistoriar', `cpf_inspetor=eq.${cpfInspetor}&tipo_servico=eq.${encodeURIComponent(tipoServicoBanco)}&select=tipo_ativo,tag_ativo_nr_serie,data_cadastro&order=data_cadastro.desc`)
           if (Array.isArray(atv)) setAtivos(atv)
+          // Buscar finalidade_vistoria via /api/contato-cliente
+          try {
+            const resCC = await fetch(`/api/contato-cliente?cpf_inspetor=${cpfInspetor}&cnpjoucpf=${cnpjoucpf}&tipo_servico=${encodeURIComponent('33 Vistoria imóvel novo')}`)
+            const ccData = await resCC.json()
+            if (ccData && !ccData.erro) {
+              setFinalidade(ccData.finalidade_vistoria || '')
+            }
+          } catch {}
           // Buscar finalidade_vistoria de contato_cliente
           try {
             const resCC = await fetch(`${SUPA_URL}/rest/v1/contato_cliente?cpf_inspetor=eq.${cpfInspetor}&cnpjoucpf=eq.${cnpjoucpf}&tipo_servico=eq.${encodeURIComponent('33 Vistoria imóvel novo')}&order=data_cadastro.desc&limit=1`, {
