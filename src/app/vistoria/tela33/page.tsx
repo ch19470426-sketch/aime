@@ -174,8 +174,9 @@ function Tela31Inner() {
           try {
             const resCC = await fetch(`/api/contato-cliente?cpf_inspetor=${cpfInspetor}&cnpjoucpf=${cnpjoucpf}&tipo_servico=${encodeURIComponent('33 Vistoria imóvel novo')}`)
             const ccData = await resCC.json()
-            if (ccData && !ccData.erro) {
-              setFinalidade(ccData.finalidade_vistoria || '')
+            const cc = Array.isArray(ccData?.data) && ccData.data.length > 0 ? ccData.data[0] : null
+            if (cc) {
+              setFinalidade(cc.finalidade_vistoria || '')
             }
           } catch {}
           // Buscar finalidade_vistoria de contato_cliente
