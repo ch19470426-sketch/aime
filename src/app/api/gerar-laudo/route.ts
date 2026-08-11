@@ -732,6 +732,21 @@ export async function POST(request: NextRequest) {
           '<div style="border-top:1px solid #e5e7eb;padding-top:6px;margin-top:4px"><b>Total: '+pieT+' NCs</b></div></div></div>'
       })()
 
+
+      // Buscar descrições dos sistemas do BD
+      const { data: sistDB } = await supabase
+        .from('sistemas_construtivos')
+        .select('sistema,descricao_sistema')
+        .eq('tipo_servico', tsV)
+        .order('sistema')
+      const DESC_SIS: Record<string,string> = {}
+      ;(sistDB ?? []).forEach((s:any) => {
+        if (s.sistema && s.descricao_sistema)
+          DESC_SIS[s.sistema] = s.descricao_sistema
+      })
+
+
+
       const recsSis = complemento?.recsSistema ?? {}
       const DESC_SIS: Record<string,string> = {
         '01_Documentação Técnica':'Prontuários, manuais, registros de inspeção e análise de riscos obrigatórios pela NR.',
@@ -818,15 +833,8 @@ export async function POST(request: NextRequest) {
 
             return Object.entries(sistemasDoAtivo).map(([sis, ncsSis], sisIdx) => {
               const sisNome = sis.match(/^\d+_/) ? sis.slice(3).replace(/_/g,' ') : sis.replace(/_/g,' ')
-              // Buscar descrição: exata → sem prefixo → parcial → BD (recsSis vem do BD)
-              const descSis = DESC_SIS[sis] ??
-                DESC_SIS[sis.replace(/^\d+[-_]/,'')] ??
-                Object.entries(DESC_SIS).find(([k]) =>
-                  k.replace(/^\d+[-_]/,'').toLowerCase() === sisNome.toLowerCase()
-                )?.[1] ??
-                Object.entries(DESC_SIS).find(([k]) =>
-                  sisNome.length > 5 && k.toLowerCase().includes(sisNome.toLowerCase().slice(0,10))
-                )?.[1] ?? ''
+              // Descrição: busca exata pelo sistema (chave do BD)
+              const descSis = DESC_SIS[sis] ?? ''
               const recBruto = recsSis[sis] ?? ''
               // Remover prefixo gerado pela IA
               const recSis = recBruto
