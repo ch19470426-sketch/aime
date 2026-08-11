@@ -169,26 +169,13 @@ function Tela31Inner() {
         if (cpfInspetor) {
           const atv = await query('ativos_a_vistoriar', `cpf_inspetor=eq.${cpfInspetor}&tipo_servico=eq.${encodeURIComponent(tipoServicoBanco)}&select=tipo_ativo,tag_ativo_nr_serie,data_cadastro&order=data_cadastro.desc`)
           if (Array.isArray(atv)) setAtivos(atv)
-          // Finalidade de contato_cliente
+          // Buscar finalidade_vistoria de contato_cliente
           try {
             const rCC = await fetch(`/api/contato-cliente?cpf_inspetor=${cpfInspetor}&cnpjoucpf=${cnpjoucpf}&tipo_servico=${encodeURIComponent('38 Vistoria nr-13')}`)
             const dCC = await rCC.json()
             const cc  = dCC?.data?.[0] ?? null
             if (cc?.finalidade_vistoria) setFinalidade(cc.finalidade_vistoria)
           } catch {}
-        }
-        // Buscar finalidade de contato_cliente
-        try {
-          const tsV = ({'36':'36 Vistoria nr-10','37':'37 Vistoria nr-12','38':'38 Vistoria nr-13'})[tipoServico] ?? tipoServicoBanco
-          const resCC = await fetch(`${SUPA_URL}/rest/v1/contato_cliente?cpf_inspetor=eq.${cpfInspetor}&cnpjoucpf=eq.${cnpjoucpf}&tipo_servico=eq.${encodeURIComponent(tsV)}&order=data_cadastro.desc&limit=1`, {
-            headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` }
-          })
-          const ccData = await resCC.json()
-          if (Array.isArray(ccData) && ccData.length > 0) {
-            setFinalidade(ccData[0].finalidade_vistoria || '')
-          }
-        } catch {}
-        if (false) {
         }
 
         // Sistemas
