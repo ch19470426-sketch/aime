@@ -337,18 +337,6 @@ export async function POST(request: NextRequest) {
         }
         const tsV = tsVist[tipoServico] ?? ''
         // Buscar ativos filtrando por tipo_servico (formato longo '37 Vistoria nr-12')
-      // Buscar descrições dos sistemas do BD
-      const { data: sistDB } = await supabase
-        .from('sistemas_construtivos')
-        .select('sistema,descricao_sistema')
-        .eq('tipo_servico', tsV)
-        .order('sistema')
-      const DESC_SIS: Record<string,string> = {}
-      ;(sistDB ?? []).forEach((s:any) => {
-        if (s.sistema && s.descricao_sistema)
-          DESC_SIS[s.sistema] = s.descricao_sistema
-      })
-
         let { data: ativosDB } = await supabase
           .from('ativos_a_vistoriar').select('*')
           .eq('cpf_inspetor', cpfInspetor).eq('cnpjoucpf', cnpjoucpf)
@@ -493,6 +481,19 @@ export async function POST(request: NextRequest) {
       const titulo12    = TITULO_12[tipoServico] ?? '1.2.- Objetivo e Escopo.'
       const nomeAtivo   = NOME_ATIVO[tipoServico] ?? 'Ativos'
       const titulo41    = TITULO_41[tipoServico] ?? 'Relação de Não Conformidades'
+
+      // Buscar descrições dos sistemas do BD
+      const { data: sistDB } = await supabase
+        .from('sistemas_construtivos')
+        .select('sistema,descricao_sistema')
+        .eq('tipo_servico', tsV)
+        .order('sistema')
+      const DESC_SIS: Record<string,string> = {}
+      ;(sistDB ?? []).forEach((s:any) => {
+        if (s.sistema && s.descricao_sistema)
+          DESC_SIS[s.sistema] = s.descricao_sistema
+      })
+
 
       // ── CSS helper ─────────────────────────────────────────────────────────
       const TH11 = 'background:#1E3A8A;color:#fff;padding:4px 8px;font-size:8.5pt;font-weight:700;border:1px solid #1E3A8A'
