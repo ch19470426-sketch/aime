@@ -1338,6 +1338,8 @@ export async function POST(request: NextRequest) {
       partsNR.push('</body></html>')
 
       const htmlNR = partsNR.join('\n')
+      // Deletar arquivo anterior para forçar bypass do CDN cache
+      await supabase.storage.from('aime').remove(['documentos_inspetor/' + nomeArquivo])
       const { error: errSave } = await supabase.storage.from('aime')
         .upload('documentos_inspetor/' + nomeArquivo, new Blob([htmlNR], { type:'text/html' }), { upsert: true })
       if (errSave) throw new Error('Erro ao salvar: ' + errSave.message)
@@ -2117,7 +2119,8 @@ ${rodInspetor?`<div class="rod">${rodInspetor}</div>`:''}
 </body>
 </html>`
 
-    // ── Salvar ────────────────────────────────────────────────────────────────
+    // ── Salvar — deletar antes para forçar bypass CDN cache ─────────────────
+    await supabase.storage.from('aime').remove([`documentos_inspetor/${nomeArquivo}`])
     const { error } = await supabase.storage.from('aime')
       .upload(`documentos_inspetor/${nomeArquivo}`, Buffer.from(html,'utf-8'), {
         contentType:'text/html', upsert:true,
