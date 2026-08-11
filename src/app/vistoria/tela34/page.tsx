@@ -303,7 +303,7 @@ function Tela31Inner() {
 
     // Limpa formulário preservando CNPJ/RS
     setSistema(''); setSubsistema(''); setAnomalia(''); setOrigem(''); setLocal('')
-    setComplemento(''); setTipoAtivo(''); setTagNrSerie(''); setFinalidade('')
+    setComplemento(''); setTipoAtivo(''); setTagNrSerie('')
     setDescGravidade(''); setDescUrgencia(''); setDescAbrangencia(''); setDescExposicao('')
     setFotoBase64(''); setNc(''); setCp(''); setFeedbackIA('')
     setSalvando(false); setSalvoOk(true); setArquivoSalvo(nomeArquivo)
@@ -359,7 +359,7 @@ function Tela31Inner() {
               </div>
               <div style={{ ...S.row, ...S.c3 }}>
                 <Field label="Ativo a vistoriar">
-                  <select style={S.input} value={tipoAtivo} onChange={e => { setTipoAtivo(e.target.value); setTagNrSerie(''); setFinalidade('') }}>
+                  <select style={S.input} value={tipoAtivo} onChange={e => { setTipoAtivo(e.target.value); setTagNrSerie('') }}>
                     <option value="">Selecione...</option>
                     {tiposAtivo.map(t => <option key={t} value={t}>{t}</option>)}
                   </select>
