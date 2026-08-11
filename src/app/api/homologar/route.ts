@@ -149,6 +149,7 @@ ${!isNR ? `<div class="f"><label>Causa provável (CP)</label><span style="white-
 </div>
 <!-- AIME-NC-DATA:${JSON.stringify({
   chaveInspetor, cpfInspetor: dadosVistoria.cpfInspetor, cnpjoucpf, tipoServico: dadosVistoria.tipoServico,
+  tipoAtivo, tagNrSerie,
   sistema: dadosVistoria.sistema, subsistema: dadosVistoria.subsistema, anomalia: dadosVistoria.anomalia,
   origem: dadosVistoria.origem, local: dadosVistoria.local, complemento: dadosVistoria.complemento,
   grauRisco: dadosVistoria.grauRisco, prioridade: dadosVistoria.prioridade,
