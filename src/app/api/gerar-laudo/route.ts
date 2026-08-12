@@ -529,7 +529,7 @@ export async function POST(request: NextRequest) {
 
       const linhaExtra45 = is45
         ? '<tr>' +
-            '<td style="' + TD11 + '"><b>Uso Edificação:</b> ' + xe(estab?.uso_imovel||'') + '</td>' +
+            '<td style="' + TD11 + '"><b>Uso Edificação:</b> ' + xe(estab?.uso_estabelecimento||'') + '</td>' +
             '<td style="' + TD11 + '"><b>Tipo imóvel:</b> ' + xe(estab?.tipo_imovel||'') + '</td>' +
             '<td style="' + TD11 + '"><b>Nr pavimentos:</b> ' + xe(estab?.numero_pavimentos||'') + '</td>' +
             '<td style="' + TD11 + '"><b>Nr elevadores:</b> ' + xe(estab?.nr_elevadores||estab?.numero_unidades_salas||'') + '</td>' +
@@ -1477,7 +1477,7 @@ export async function POST(request: NextRequest) {
     <div class="cell cell-2"><label>e-Mail</label><div class="val">${xe(estab?.email_responsavel||estab?.email)}</div></div>
   </div>
   <div class="row">
-    <div class="cell"><label>Uso do Imóvel</label><div class="val">${xe(estab?.uso_estabelecimento||estab?.uso_imovel||"")}</div></div>
+    <div class="cell"><label>Uso do Imóvel</label><div class="val">${xe(estab?.uso_estabelecimento||"")}</div></div>
     <div class="cell"><label>Tipo</label><div class="val">${xe(estab?.tipo_imovel)}</div></div>
     <div class="cell"><label>Nº Pavimentos</label><div class="val" style="text-align:center">${xe(estab?.numero_pavimentos)}</div></div>
     <div class="cell"><label>Nº Unidades/Salas</label><div class="val" style="text-align:center">${xe(estab?.numero_unidades_salas)}</div></div>
