@@ -29,8 +29,8 @@ ${d.texto_inspetor}` : ''
 DADOS DO ESTABELECIMENTO/EDIFICAÇÃO:
 - Razão social / Nome: ${d.razao_social || 'não informado'}
 - Denominação oficial: ${d.nome_convencao || 'não informado'}
-- Uso do imóvel: ${d.uso || 'não informado'}
-- Tipo do imóvel: ${d.tipo || 'não informado'}
+- Uso do imóvel/estabelecimento: ${d.uso_estabelecimento || d.uso || 'não informado'}
+- Tipo do imóvel: ${d.tipo_imovel || d.tipo || 'não informado'}
 - Número de pavimentos: ${d.pavimentos || 'não informado'}
 - Número de unidades/salas: ${d.unidades || 'não informado'}
 - Área construída: ${d.area_construida || 'não informada'} m²
