@@ -1460,7 +1460,7 @@ export async function POST(request: NextRequest) {
 <div class="titulo">1.1 – Características e Localização ${tipoServico==='43'?'do Imóvel':'da Edificação'}</div>
 <div class="bloco">
   <div class="bloco-header">Características da Edificação</div>
-  <div style="font-size:7pt;color:#1E3A8A;padding:2px 4px;font-style:italic">Identificação e características da edificação:</div>
+
   <div class="row">
     <div class="cell cell-3"><label>${labelEst}</label><div class="val">${xe(estab?.razao_social_nome)}</div></div>
     <div class="cell"><label>${labelDoc}</label><div class="val">${fmtDoc(cnpjoucpf)}</div></div>
