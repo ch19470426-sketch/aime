@@ -88,6 +88,16 @@ function fmtDoc(v: string): string {
   if(n.length===11) return n.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/,'$1.$2.$3-$4')
   return v
 }
+function fmtCep(v: string): string {
+  const n = (v||'').replace(/\D/g, '')
+  return n.length >= 8 ? n.slice(0,5) + '-' + n.slice(5,8) : v || ''
+}
+function fmtTel(v: string): string {
+  const n = (v||'').replace(/\D/g, '')
+  if (n.length === 11) return '(' + n.slice(0,2) + ') ' + n.slice(2,7) + '-' + n.slice(7)
+  if (n.length === 10) return '(' + n.slice(0,2) + ') ' + n.slice(2,6) + '-' + n.slice(6)
+  return v || ''
+}
 function fmtData(): string {
   const d=new Date()
   const M=['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro']
@@ -1379,10 +1389,15 @@ export async function POST(request: NextRequest) {
     // cl já declarado acima
     const labelEst = tipoServico === '43' ? 'Proprietário' : 'Condomínio / Empresa'
 
-    // NCs por sistema
+    // NCs ordenadas por sistema → grau risco DESC
+    const ncsOrd41 = [...(ncs ?? [])].sort((a:any, b:any) => {
+      const sa = String(a.sistema||''), sb = String(b.sistema||'')
+      if (sa !== sb) return sa.localeCompare(sb)
+      return (Number(b.grauRisco)||0) - (Number(a.grauRisco)||0)
+    })
     const ncsPorSistema: Record<string, any[]> = {}
     sistemas.forEach(s => { ncsPorSistema[s] = [] })
-    ;(ncs ?? []).forEach((nc: any) => {
+    ncsOrd41.forEach((nc: any) => {
       if (ncsPorSistema[nc.sistema] !== undefined) ncsPorSistema[nc.sistema].push(nc)
     })
 
@@ -1447,7 +1462,7 @@ export async function POST(request: NextRequest) {
   <div class="row">
     <div class="cell cell-3"><label>${labelEst}</label><div class="val">${xe(estab?.razao_social_nome)}</div></div>
     <div class="cell"><label>${labelDoc}</label><div class="val">${fmtDoc(cnpjoucpf)}</div></div>
-    <div class="cell"><label>CEP</label><div class="val">${xe(estab?.cep_estabelecimento||estab?.cep)}</div></div>
+    <div class="cell"><label>CEP</label><div class="val">${fmtCep(estab?.cep_estabelecimento||estab?.cep||"")}</div></div>
   </div>
   <div class="row">
     <div class="cell cell-3"><label>Endereço</label><div class="val">${xe(estab?.logradouro)}${estab?.numero_imovel?', '+xe(estab.numero_imovel):''}${estab?.complemento?' — '+xe(estab.complemento):''}</div></div>
@@ -1457,16 +1472,16 @@ export async function POST(request: NextRequest) {
   <div class="row">
     <div class="cell cell-2"><label>Responsável</label><div class="val">${xe(estab?.nome_responsavel)}</div></div>
     <div class="cell"><label>Função</label><div class="val">${xe(estab?.funcao_responsavel)}</div></div>
-    <div class="cell"><label>Tel / WhatsApp</label><div class="val">${xe(estab?.whatsapp_responsavel||estab?.whatsapp)}</div></div>
+    <div class="cell"><label>Tel / WhatsApp</label><div class="val">${fmtTel(estab?.whatsapp_responsavel||estab?.whatsapp||"")}</div></div>
     <div class="cell cell-2"><label>e-Mail</label><div class="val">${xe(estab?.email_responsavel||estab?.email)}</div></div>
   </div>
   <div class="row">
-    <div class="cell"><label>Uso do Imóvel</label><div class="val">${xe(estab?.uso_imovel||estab?.subtipo||estab?.ativos?.[0]?.subtipo||'')}</div></div>
+    <div class="cell"><label>Uso do Imóvel</label><div class="val">${xe(estab?.uso_estabelecimento||estab?.uso_imovel||"")}</div></div>
     <div class="cell"><label>Tipo</label><div class="val">${xe(estab?.tipo_imovel)}</div></div>
-    <div class="cell"><label>Nº Pavimentos</label><div class="val">${xe(estab?.numero_pavimentos)}</div></div>
-    <div class="cell"><label>Nº Unidades/Salas</label><div class="val">${xe(estab?.numero_unidades_salas)}</div></div>
-    <div class="cell"><label>Área construída m²</label><div class="val">${xe(estab?.area_construida)}</div></div>
-    <div class="cell"><label>Área terreno m²</label><div class="val">${xe(estab?.area_terreno)}</div></div>
+    <div class="cell"><label>Nº Pavimentos</label><div class="val" style="text-align:center">${xe(estab?.numero_pavimentos)}</div></div>
+    <div class="cell"><label>Nº Unidades/Salas</label><div class="val" style="text-align:center">${xe(estab?.numero_unidades_salas)}</div></div>
+    <div class="cell"><label>Área construída m²</label><div class="val" style="text-align:center">${xe(estab?.area_construida)}</div></div>
+    <div class="cell"><label>Área terreno m²</label><div class="val" style="text-align:center">${xe(estab?.area_terreno)}</div></div>
   </div>
   <div class="row">
     <div class="cell"><label>Síntese da descrição da Edificação (Convenção ou Escritura)</label><div class="val">${xe(complemento?.sinteseEdif)}</div></div>
@@ -2052,7 +2067,7 @@ ${S13}
 <div class="bloco">
   <div class="bloco-header">Descrição da Realização da Vistoria — Nível da Inspeção: ${xe(nivel)||'—'}</div>
   <div style="padding:8px 10px">
-    <p>${xe(complemento?.descVistoria||complemento?.dadosVistoria)||'<i>Descrição da vistoria a ser preenchida.</i>'}</p>
+    <p>${(xe(complemento?.descVistoria||complemento?.dadosVistoria)||'').replace(/^3\.1[^\n]*\n+/im,'').replace(/^Realiza[çc][^\n]*\n+/im,'')||'<i>Descrição da vistoria a ser preenchida.</i>'}</p>
   </div>
 </div>
 
