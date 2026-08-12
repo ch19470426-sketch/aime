@@ -515,6 +515,8 @@ function LaudoComplemento() {
       console.log('GERAR: data recebido ok=', res.ok, 'erro=', data.erro?.slice?.(0,100))
       if (!res.ok || data.erro) { setErro(data.erro ?? 'Erro ao gerar laudo.'); setEtapa('complemento'); return }
       setNomeArquivo(nome)
+      // Salvar HTML no sessionStorage para bypass do cache do Supabase Storage CDN
+      if (data.html) { try { sessionStorage.setItem('laudoHtml_' + nome, data.html) } catch {} }
       // Redirecionar diretamente usando a variável local (não o estado que pode não ter atualizado)
       console.log('GERAR: redirecionando para homologar')
       window.location.href = `/homologar-produto?cpf_inspetor=${cpfInspetor}&chave_inspetor=${chaveInspetor}&cnpjoucpf=${cnpjoucpf}&tipo_servico=${tipoServico}&nome_arquivo=${encodeURIComponent(nome)}&titulo=${encodeURIComponent(cfg?.titulo ?? 'Laudo Técnico')}`

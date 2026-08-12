@@ -587,8 +587,8 @@ export async function POST(request: NextRequest) {
 
       // Tabela localização (croqui + fotonr)
       const tabelaLocal =
-        '<div style="display:flex;justify-content:center;margin-top:6pt">' +
-        '<table style="width:auto;min-width:60%;border-collapse:collapse;border:2px solid #1E3A8A">' +
+        '<table style="width:60%;border-collapse:collapse;border:2px solid #1E3A8A;margin:6pt auto 0">' +
+        '<table style="width:60%;border-collapse:collapse;border:2px solid #1E3A8A;margin:0 auto">' +
         '<tr><td colspan="2" style="' + TH11 + '">Localização do Estabelecimento</td></tr>' +
         '<tr>' +
           '<td style="' + TD11 + ';width:50%;height:70mm;padding:4px">' +
@@ -602,8 +602,7 @@ export async function POST(request: NextRequest) {
               : '<div style="height:70mm;display:flex;align-items:center;justify-content:center;color:#94a3b8;font-size:8pt;border:1px dashed #c3d4f0">[Foto da fachada principal]</div>') +
           '</td>' +
         '</tr>' +
-        '</table>' +
-        '</div>'
+        '</table>'
 
       // Tabela ativos para 46/47/48 (campos plano de trabalho)
       // Colunas por tipo de serviço — só exibir colunas com dados
@@ -998,8 +997,7 @@ export async function POST(request: NextRequest) {
         '<tr><td style="' + TD11 + ';min-height:16mm"><div style="min-height:14mm;text-align:justify">' + (xe(rec54NR||'') || 'Nada a registrar para este item.') + '</div></td></tr>' +
         '<tr><td style="' + TH11 + '">5.5.- Recomendações sobre documentação:</td></tr>' +
         '<tr><td style="' + TD11 + ';min-height:16mm"><div style="min-height:14mm;text-align:justify">' + (xe(rec55NR||'') || 'Nada a registrar para este item.') + '</div></td></tr>' +
-        '</table>' +
-        '</div>'
+        '</table>'
 
       // ── TABELA AGENDA (plano de trabalho) ──────────────────────────────────
       const slugPlanoNR: Record<string,string> = { '45':'plano_elevador','46':'plano_nr10','47':'plano_nr12','48':'plano_nr13' }
@@ -1052,8 +1050,7 @@ export async function POST(request: NextRequest) {
             '<td style="' + TDS + '">' + (infonr.resultado||'—') + '</td>' +
             '</tr>'
         }).join('') +
-        '</table>' +
-        '</div>'
+        '</table>'
 
       // ── ANEXO 2 — Formulários homologados ──────────────────────────────────
       // Buscar dados_vistoria para tag/série e tipo ativo por foto_nr
@@ -1239,7 +1236,7 @@ export async function POST(request: NextRequest) {
       partsNR.push('<div class="pg-capa" style="counter-reset:page 0">')
       partsNR.push('<div style="height:1cm;background:#fff;flex-shrink:0"></div>')
       partsNR.push('<div style="background:#1E3A8A;height:8mm;flex-shrink:0"></div>')
-      partsNR.push('<div style="text-align:center;padding:10mm 0 0;flex-shrink:0;margin-bottom:16mm">' + logoTagNR + '</div>')
+      partsNR.push('<div style="text-align:center;padding:10mm 0 0;flex-shrink:0;margin-bottom:0">' + logoTagNR + '</div>')
       partsNR.push('<div style="flex:1"></div>')
       partsNR.push('<div style="text-align:center;padding:0 20mm;flex-shrink:0">')
       partsNR.push('<div style="font-size:8pt;color:#6B7280;letter-spacing:3px;text-transform:uppercase;margin-bottom:6pt">LAUDO TÉCNICO</div>')
