@@ -1485,8 +1485,13 @@ export async function POST(request: NextRequest) {
     <div class="cell"><label>Tipo imóvel</label><div class="val">${xe(estab?.tipo_imovel||"")}</div></div>
     <div class="cell"><label>Nr pavimentos</label><div class="val" style="text-align:center">${xe(estab?.numero_pavimentos||"")}</div></div>
     <div class="cell"><label>Nr unidades/salas</label><div class="val" style="text-align:center">${xe(estab?.numero_unidades_salas||"")}</div></div>
+    ${tipoServico==='44'?`
+    <div class="cell"><label>Nº Fachadas</label><div class="val" style="text-align:center">${xe(estab?.numero_fachadas||"")}</div></div>
+    <div class="cell"><label>Per. Fachadas (m)</label><div class="val" style="text-align:center">${xe(estab?.perimetro_fachadas||"")}</div></div>
+    `:`
     <div class="cell"><label>Área construída m²</label><div class="val" style="text-align:center">${xe(estab?.area_construida||"")}</div></div>
     <div class="cell"><label>Área do terreno m²</label><div class="val" style="text-align:center">${xe(estab?.area_terreno||"")}</div></div>
+    `}
   </div>
   <div class="row">
     <div class="cell"><label>Síntese da descrição da edificação seguindo a convenção do condomínio:</label><div class="val" style="min-height:30px">${xe(sinteseEdif||"")}</div></div>
