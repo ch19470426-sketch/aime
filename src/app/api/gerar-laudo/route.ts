@@ -1478,7 +1478,7 @@ export async function POST(request: NextRequest) {
   <div class="row">
     <div class="cell"><label>Telefone contato</label><div class="val">${fmtTel(estab?.whatsapp_responsavel||estab?.whatsapp||"")}</div></div>
     <div class="cell cell-2"><label>eMail contato</label><div class="val">${xe(estab?.email_responsavel||estab?.email||"")}</div></div>
-    <div class="cell cell-2"><label>Finalidade da vistoria</label><div class="val">${xe(contato?.finalidade_vistoria||estab?.finalidade_vistoria||"")}</div></div>
+    <div class="cell cell-2"><label>Finalidade da vistoria</label><div class="val">${xe(estab?.finalidade_vistoria||"")}</div></div>
   </div>
   <div class="row">
     <div class="cell"><label>Uso imóvel</label><div class="val">${xe(estab?.uso_estabelecimento||"")}</div></div>
