@@ -318,7 +318,7 @@ function LaudoComplemento() {
           tipo: 'sintese_edificacao',
           dados: {
             razao_social: estab.razao_social_nome,
-            uso: estab.uso_imovel, tipo: estab.tipo_imovel,
+            uso: estab.uso_estabelecimento, uso_estabelecimento: estab.uso_estabelecimento, tipo: estab.tipo_imovel, tipo_imovel: estab.tipo_imovel,
             pavimentos: estab.numero_pavimentos, unidades: estab.numero_unidades_salas,
             area_construida: estab.area_construida, area_terreno: estab.area_terreno,
             responsavel: estab.nome_responsavel, funcao: contato.funcao_responsavel,
@@ -366,7 +366,7 @@ function LaudoComplemento() {
           tipo: 'recomendacoes',
           dados: {
             ncs: ncsAM, tipo_servico: tipoServico,
-            uso: estab.uso_imovel, tipo: estab.tipo_imovel,
+            uso: estab.uso_estabelecimento, uso_estabelecimento: estab.uso_estabelecimento, tipo: estab.tipo_imovel, tipo_imovel: estab.tipo_imovel,
             data_habite_se: dataHabitese,
             classificacao: { nivel, risco, desempenho, manut, uso, desempGeral }
           }
