@@ -146,7 +146,7 @@ i, em { font-style: italic; }
   .titulo + .bloco { page-break-before: avoid; }
 }
 
-table.tbl-plano { border: 1.5px solid #1E3A8A !important; }
+table.tbl-plano { border: 1.5px solid #1E3A8A !important; margin: 0 auto; width: 80%; }
 /* Cabeçalho/rodapé do inspetor */
 .cab { text-align: center; font-weight: bold; padding-bottom: 4pt; border-bottom: 2px solid #1E3A8A; margin-bottom: 10pt; font-size: 9pt; color: #374151; white-space: pre-line; }
 .rod { margin-top: 10pt; padding-top: 4pt; border-top: 1px solid #ccc; font-size: 8pt; text-align: center; white-space: pre-line; color: #374151; }
@@ -587,8 +587,8 @@ export async function POST(request: NextRequest) {
 
       // Tabela localização (croqui + fotonr)
       const tabelaLocal =
-        '<table style="width:60%;border-collapse:collapse;border:2px solid #1E3A8A;margin:6pt auto 0">' +
-        '<table style="width:60%;border-collapse:collapse;border:2px solid #1E3A8A;margin:0 auto">' +
+        '<div style="display:flex;justify-content:center;margin-top:6pt">' +
+        '<table style="width:100%;border-collapse:collapse;border:2px solid #1E3A8A">' +
         '<tr><td colspan="2" style="' + TH11 + '">Localização do Estabelecimento</td></tr>' +
         '<tr>' +
           '<td style="' + TD11 + ';width:50%;height:70mm;padding:4px">' +
@@ -602,7 +602,8 @@ export async function POST(request: NextRequest) {
               : '<div style="height:70mm;display:flex;align-items:center;justify-content:center;color:#94a3b8;font-size:8pt;border:1px dashed #c3d4f0">[Foto da fachada principal]</div>') +
           '</td>' +
         '</tr>' +
-        '</table>'
+        '</table>' +
+        '</div>'
 
       // Tabela ativos para 46/47/48 (campos plano de trabalho)
       // Colunas por tipo de serviço — só exibir colunas com dados
@@ -1236,7 +1237,7 @@ export async function POST(request: NextRequest) {
       partsNR.push('<div class="pg-capa" style="counter-reset:page 0">')
       partsNR.push('<div style="height:1cm;background:#fff;flex-shrink:0"></div>')
       partsNR.push('<div style="background:#1E3A8A;height:8mm;flex-shrink:0"></div>')
-      partsNR.push('<div style="text-align:center;padding:10mm 0 0;flex-shrink:0;margin-bottom:0">' + logoTagNR + '</div>')
+      partsNR.push('<div style="text-align:center;padding:6mm 0 0;flex-shrink:0;margin-bottom:0">' + logoTagNR + '</div>')
       partsNR.push('<div style="flex:1"></div>')
       partsNR.push('<div style="text-align:center;padding:0 20mm;flex-shrink:0">')
       partsNR.push('<div style="font-size:8pt;color:#6B7280;letter-spacing:3px;text-transform:uppercase;margin-bottom:6pt">LAUDO TÉCNICO</div>')
