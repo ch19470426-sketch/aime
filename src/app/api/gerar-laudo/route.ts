@@ -1098,6 +1098,7 @@ export async function POST(request: NextRequest) {
             finalidade:  estab?.finalidade_vistoria || nc.finalidade || extrHtml(h, 'Finalidade') || dvNC.finalidade_vistoria || '',
             finalidade_vistoria: estab?.finalidade_vistoria || nc.finalidade || dvNC.finalidade_vistoria || '',
             fotoNrHtml:  extrHtml(h, 'Foto Nº') || extrHtml(h, 'Foto nº'),
+            dataVistoria: nc.dataVistoria || extrHtml(h, 'Data Vistoria') || extrHtml(h, 'Data da vistoria') || '',
             resultado:   nc.resultado   || extrHtml(h, 'Resultado') || extrHtml(h, 'Resultado da Análise'),
             gravidade:   nc.gravidade   || extrGUT(h, 'Gravidade'),
             urgencia:    nc.urgencia    || extrGUT(h, 'Urgência'),
@@ -1606,7 +1607,10 @@ export async function POST(request: NextRequest) {
     const S41 = sistemas.map(s => {
       const arr = ncsPorSistema[s]
       if (arr.length===0) return ''
-      const rec = xe(complemento?.recsSistema?.[s] ?? '')
+      const rec = xe((complemento?.recsSistema?.[s] ?? '')
+        .replace(/^Recomenda[çc][ãa]o T[eé]cnica[\s\S]*?\n+/im, '')
+        .replace(/^Recomenda[çc][ãa]o T[eé]cnica[^:]*:[\s]*/im, '')
+        .trim())
       const badgeP = (p:string) => {
         const cls = p==='Alta'?'b-alto':p==='Média'?'b-medio':'b-baixo'
         return `<span class="badge ${cls}">${xe(p)}</span>`
