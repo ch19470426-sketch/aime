@@ -1368,7 +1368,7 @@ export async function POST(request: NextRequest) {
       partsNR.push('<div class="section a3-landscape"><style>.a3-landscape{} @media print{.a3-landscape{page:landscape-page}} @page landscape-page{size:A4 landscape;margin:10mm}</style><div class="titulo" style="text-align:center">Anexo 3 – Relação de Não Conformidades e Soluções</div>' + A3nr + '</div>')
       partsNR.push('<div class="section"><div class="titulo" style="text-align:center">Anexo 4 – Anotação de Responsabilidade Técnica</div>' +
         (complemento?.artRrt
-          ? '<div style="text-align:center;margin:8mm 0"><img src="' + complemento.artRrt + '" style="width:190mm;height:260mm;object-fit:fill"/></div>'
+          ? '<div style="text-align:center;margin:8mm 0"><img src="' + complemento.artRrt + '" style="width:190mm;min-height:260mm;max-height:280mm;object-fit:contain"/></div>'
           : '<div style="border:2px dashed #1E3A8A;min-height:180mm;margin:10mm 0;display:flex;align-items:center;justify-content:center"><p style="color:#6b7280;font-size:8.5pt;text-align:center">ART / RRT não anexada.<br>Inserir a ART ou RRT na tela de coleta de dados.</p></div>'
         ) +
         '</div>')
