@@ -632,7 +632,7 @@ export async function POST(request: NextRequest) {
         '<div>' +
         '<table style="width:100%;border-collapse:collapse">' +
         '<tr><td style="' + TD11 + ';min-height:40mm"><div style="min-height:35mm;text-align:justify;white-space:pre-wrap">' +
-        (complemento?.descVistoria||complemento?.dadosVistoria||'').replace(/^[\d]+\.\d+[^\n]*\n/,'') + '</div></td></tr>' +
+        (complemento?.descVistoria||complemento?.dadosVistoria||'').replace(/^[\d]+\.\d+[^\n]*\n/,'').replace(/^3\.1\.?-?\s*[^\n]*\n+/i,'').replace(/^Descrição da Vistoria Técnica\.?\s*\n+/i,'') + '</div></td></tr>' +
         '</table>' +
         '<p style="text-align:justify;margin:6pt 0">O resultado da vistoria é apresentado num conjunto de formulários, contendo o sistema e subsistema, requisitos normativos com suas classificações, priorizações, localizações, descrição das não conformidades, sugestões e a respectiva evidência fotográfica.</p>' +
         '</div>'
@@ -1457,11 +1457,11 @@ export async function POST(request: NextRequest) {
   <div class="row">
     <div class="cell cell-2"><label>Responsável</label><div class="val">${xe(estab?.nome_responsavel)}</div></div>
     <div class="cell"><label>Função</label><div class="val">${xe(estab?.funcao_responsavel)}</div></div>
-    <div class="cell"><label>Tel / WhatsApp</label><div class="val">${xe(estab?.whatsapp)}</div></div>
-    <div class="cell cell-2"><label>e-Mail</label><div class="val">${xe(estab?.email)}</div></div>
+    <div class="cell"><label>Tel / WhatsApp</label><div class="val">${xe(estab?.whatsapp_responsavel||estab?.whatsapp)}</div></div>
+    <div class="cell cell-2"><label>e-Mail</label><div class="val">${xe(estab?.email_responsavel||estab?.email)}</div></div>
   </div>
   <div class="row">
-    <div class="cell"><label>Uso do Imóvel</label><div class="val">${xe(estab?.uso_imovel)}</div></div>
+    <div class="cell"><label>Uso do Imóvel</label><div class="val">${xe(estab?.uso_imovel||estab?.subtipo||estab?.ativos?.[0]?.subtipo||'')}</div></div>
     <div class="cell"><label>Tipo</label><div class="val">${xe(estab?.tipo_imovel)}</div></div>
     <div class="cell"><label>Nº Pavimentos</label><div class="val">${xe(estab?.numero_pavimentos)}</div></div>
     <div class="cell"><label>Nº Unidades/Salas</label><div class="val">${xe(estab?.numero_unidades_salas)}</div></div>
@@ -1609,12 +1609,12 @@ export async function POST(request: NextRequest) {
   </div>`:''}
   <table>
     <tr>
-      <th style="width:6%">Foto</th>
-      <th style="width:30%;text-align:left">Não Conformidade</th>
-      <th style="width:18%;text-align:left">Local</th>
-      <th style="width:8%">G.R.</th>
-      <th style="width:10%">Prioridade</th>
-      <th style="width:28%;text-align:left">Solução</th>
+      <th style="width:4%">Foto</th>
+      <th style="width:28%;text-align:left">Não Conformidade</th>
+      <th style="width:16%;text-align:left">Local</th>
+      <th style="width:6%">G.R.</th>
+      <th style="width:8%">Prioridade</th>
+      <th style="width:38%;text-align:left">Solução</th>
     </tr>
     ${arr.map((nc:any,i:number)=>`
     <tr${i%2===1?' style="background:#f7f9ff"':''}>
