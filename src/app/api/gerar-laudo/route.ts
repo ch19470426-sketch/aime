@@ -1460,32 +1460,36 @@ export async function POST(request: NextRequest) {
 <div class="titulo">1.1 – Características e Localização ${tipoServico==='43'?'do Imóvel':'da Edificação'}</div>
 <div class="bloco">
   <div class="bloco-header">Características da Edificação</div>
+  <div style="font-size:7pt;color:#1E3A8A;padding:2px 4px;font-style:italic">Identificação e características da edificação:</div>
   <div class="row">
     <div class="cell cell-3"><label>${labelEst}</label><div class="val">${xe(estab?.razao_social_nome)}</div></div>
     <div class="cell"><label>${labelDoc}</label><div class="val">${fmtDoc(cnpjoucpf)}</div></div>
     <div class="cell"><label>CEP</label><div class="val">${fmtCep(estab?.cep_estabelecimento||estab?.cep||"")}</div></div>
   </div>
   <div class="row">
-    <div class="cell cell-3"><label>Endereço</label><div class="val">${xe(estab?.logradouro)}${estab?.numero_imovel?', '+xe(estab.numero_imovel):''}${estab?.complemento?' — '+xe(estab.complemento):''}</div></div>
+    <div class="cell cell-3"><label>Endereço</label><div class="val">${xe(estab?.logradouro)}${estab?.numero_imovel?', '+xe(estab.numero_imovel):''}</div></div>
     <div class="cell cell-2"><label>Bairro</label><div class="val">${xe(estab?.bairro)}</div></div>
-    <div class="cell"><label>Cidade / UF</label><div class="val">${xe(estab?.cidade)}/${xe(estab?.uf)}</div></div>
   </div>
   <div class="row">
-    <div class="cell cell-2"><label>Responsável</label><div class="val">${xe(estab?.nome_responsavel)}</div></div>
-    <div class="cell"><label>Função</label><div class="val">${xe(estab?.funcao_responsavel)}</div></div>
-    <div class="cell"><label>Tel / WhatsApp</label><div class="val">${fmtTel(estab?.whatsapp_responsavel||estab?.whatsapp||"")}</div></div>
-    <div class="cell cell-2"><label>e-Mail</label><div class="val">${xe(estab?.email_responsavel||estab?.email)}</div></div>
+    <div class="cell cell-2"><label>Cidade e UF</label><div class="val">${xe(estab?.cidade)}/${xe(estab?.uf)}</div></div>
+    <div class="cell cell-2"><label>Nome do responsável</label><div class="val">${xe(estab?.nome_responsavel)}</div></div>
+    <div class="cell"><label>Função do responsável</label><div class="val">${xe(estab?.funcao_responsavel)}</div></div>
   </div>
   <div class="row">
-    <div class="cell"><label>Uso do Imóvel</label><div class="val">${xe(estab?.uso_estabelecimento||"")}</div></div>
-    <div class="cell"><label>Tipo</label><div class="val">${xe(estab?.tipo_imovel)}</div></div>
-    <div class="cell"><label>Nº Pavimentos</label><div class="val" style="text-align:center">${xe(estab?.numero_pavimentos)}</div></div>
-    <div class="cell"><label>Nº Unidades/Salas</label><div class="val" style="text-align:center">${xe(estab?.numero_unidades_salas)}</div></div>
-    <div class="cell"><label>Área construída m²</label><div class="val" style="text-align:center">${xe(estab?.area_construida)}</div></div>
-    <div class="cell"><label>Área terreno m²</label><div class="val" style="text-align:center">${xe(estab?.area_terreno)}</div></div>
+    <div class="cell"><label>Telefone contato</label><div class="val">${fmtTel(estab?.whatsapp_responsavel||estab?.whatsapp||"")}</div></div>
+    <div class="cell cell-2"><label>eMail contato</label><div class="val">${xe(estab?.email_responsavel||estab?.email||"")}</div></div>
+    <div class="cell cell-2"><label>Finalidade da vistoria</label><div class="val">${xe(contato?.finalidade_vistoria||estab?.finalidade_vistoria||"")}</div></div>
   </div>
   <div class="row">
-    <div class="cell"><label>Síntese da descrição da Edificação (Convenção ou Escritura)</label><div class="val">${xe(complemento?.sinteseEdif)}</div></div>
+    <div class="cell"><label>Uso imóvel</label><div class="val">${xe(estab?.uso_estabelecimento||"")}</div></div>
+    <div class="cell"><label>Tipo imóvel</label><div class="val">${xe(estab?.tipo_imovel||"")}</div></div>
+    <div class="cell"><label>Nr pavimentos</label><div class="val" style="text-align:center">${xe(estab?.numero_pavimentos||"")}</div></div>
+    <div class="cell"><label>Nr unidades/salas</label><div class="val" style="text-align:center">${xe(estab?.numero_unidades_salas||"")}</div></div>
+    <div class="cell"><label>Área construída m²</label><div class="val" style="text-align:center">${xe(estab?.area_construida||"")}</div></div>
+    <div class="cell"><label>Área do terreno m²</label><div class="val" style="text-align:center">${xe(estab?.area_terreno||"")}</div></div>
+  </div>
+  <div class="row">
+    <div class="cell"><label>Síntese da descrição da edificação seguindo a convenção do condomínio:</label><div class="val" style="min-height:30px">${xe(sinteseEdif||"")}</div></div>
   </div>
 </div>
 <div class="bloco">
@@ -1493,11 +1497,11 @@ export async function POST(request: NextRequest) {
   <div class="row">
     <div class="cell">
       <label>Croqui de localização</label>
-      <div class="foto-box">${srcCroqui?'<img src="'+srcCroqui+'" style="width:100%;height:100%;object-fit:cover">'  :'[ croqui de localização ]'}</div>
+      <div class="foto-box">${srcCroqui?'<img src="'+srcCroqui+'" style="width:100%;height:auto">':'<span class="sem-foto">Sem croqui</span>'}</div>
     </div>
     <div class="cell">
       <label>Foto da fachada principal</label>
-      <div class="foto-box">${srcFachada?'<img src="'+srcFachada+'" style="width:100%;height:100%;object-fit:cover">':'[ foto da fachada principal ]'}</div>
+      <div class="foto-box">${srcFachada?'<img src="'+srcFachada+'" style="width:100%;height:auto">':'<span class="sem-foto">Sem foto</span>'}</div>
     </div>
   </div>
 </div>`
