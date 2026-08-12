@@ -1494,7 +1494,7 @@ export async function POST(request: NextRequest) {
     `}
   </div>
   <div class="row">
-    <div class="cell"><label>Síntese da descrição da edificação seguindo a convenção do condomínio:</label><div class="val" style="min-height:30px">${xe(sinteseEdif||"")}</div></div>
+    <div class="cell"><label>Síntese da descrição da edificação seguindo a convenção do condomínio:</label><div class="val" style="min-height:30px">${xe(complemento?.sinteseEdif||"")}</div></div>
   </div>
 </div>
 <div class="bloco">
