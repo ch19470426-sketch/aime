@@ -356,6 +356,11 @@ export default function Dashboard() {
       window.location.href = `/proposta?cpf_inspetor=${cpfInspetor}&chave_inspetor=${chaveInspetor}&cnpjoucpf=${docLimpo}&tipo_servico=${tipoServico}`
       return
     }
+    // Códigos 51-58: Planos de Manutenção
+    if (Number(tipoServico) >= 51 && Number(tipoServico) <= 58) {
+      window.location.href = `/plano-manutencao?cpf_inspetor=${cpfInspetor}&chave_inspetor=${chaveInspetor}&cnpjoucpf=${dados.cnpjoucpf}&tipo_servico=${tipoServico}`
+      return
+    }
     // Códigos 41-48: Laudos (Autovistoria, Inspeção, Imóvel Novo, Fachada, Elevador, NR-10, NR-12, NR-13)
     if (Number(tipoServico) >= 41 && Number(tipoServico) <= 48) {
       window.location.href = `/laudo?cpf_inspetor=${cpfInspetor}&chave_inspetor=${chaveInspetor}&cnpjoucpf=${docLimpo}&tipo_servico=${tipoServico}`
