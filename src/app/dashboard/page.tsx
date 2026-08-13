@@ -329,6 +329,15 @@ export default function Dashboard() {
 
   async function handleIniciarVistoria() {
     const docLimpo = documentoSemMascara(documento)
+    // Códigos 51-58: Planos de Manutenção — redirecionar antes da validação de tamanho
+    if (Number(tipoServico) >= 51 && Number(tipoServico) <= 58) {
+      if (docLimpo.length < 11) {
+        setMsgErro(`CNPJ incompleto (${docLimpo.length} dígitos)`)
+        return
+      }
+      window.location.href = `/plano-manutencao?cpf_inspetor=${cpfInspetor}&chave_inspetor=${chaveInspetor}&cnpjoucpf=${docLimpo}&tipo_servico=${tipoServico}`
+      return
+    }
     if (aceitaAmbos) {
       if (docLimpo.length !== 11 && docLimpo.length !== 14) {
         setMsgErro(`CNPJ ou CPF incompleto (${docLimpo.length} dígitos — informe 11 para CPF ou 14 para CNPJ)`)
@@ -354,11 +363,6 @@ export default function Dashboard() {
     // Códigos 11-19: Propostas
     if (Number(tipoServico) >= 11 && Number(tipoServico) <= 19) {
       window.location.href = `/proposta?cpf_inspetor=${cpfInspetor}&chave_inspetor=${chaveInspetor}&cnpjoucpf=${docLimpo}&tipo_servico=${tipoServico}`
-      return
-    }
-    // Códigos 51-58: Planos de Manutenção
-    if (Number(tipoServico) >= 51 && Number(tipoServico) <= 58) {
-      window.location.href = `/plano-manutencao?cpf_inspetor=${cpfInspetor}&chave_inspetor=${chaveInspetor}&cnpjoucpf=${docLimpo}&tipo_servico=${tipoServico}`
       return
     }
     // Códigos 41-48: Laudos (Autovistoria, Inspeção, Imóvel Novo, Fachada, Elevador, NR-10, NR-12, NR-13)
