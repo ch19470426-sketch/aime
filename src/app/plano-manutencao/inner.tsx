@@ -1,6 +1,6 @@
 'use client'
 import { useSearchParams } from 'next/navigation'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 
 const SUPA_URL = 'https://asgorarunzhiojqioxzq.supabase.co'
 const SUPA_KEY = 'sb_publishable_dH85HYKGxv3X0te627VfOw_OGaPoNMF'
@@ -15,15 +15,12 @@ const TITULO: Record<string,string> = {
   '57':'Plano de Manutenção — Máquinas e Equipamentos NR-12',
   '58':'Plano de Manutenção — Caldeiras e Vasos de Pressão NR-13',
 }
-
-// Tipo de vistoria de apoio (onde buscar as NCs)
 const TIPO_APOIO: Record<string,string> = {
   '51':'31 Autovistoria','52':'32 Vistoria inspeção',
   '53':'33 Vistoria imóvel novo','54':'34 Vistoria fachada',
   '55':'35 Vistoria elevador','56':'36 Vistoria nr-10',
   '57':'37 Vistoria nr-12','58':'38 Vistoria nr-13',
 }
-
 const SLUG: Record<string,string> = {
   '51':'plano_manut_autovistoria','52':'plano_manut_inspecao',
   '53':'plano_manut_imovel_novo','54':'plano_manut_fachada',
@@ -31,36 +28,42 @@ const SLUG: Record<string,string> = {
   '57':'plano_manut_nr12','58':'plano_manut_nr13',
 }
 
-const S: Record<string,any> = {
-  body: { backgroundColor:'#E8EEF7', minHeight:'100vh', fontFamily:'Arial,sans-serif' },
-  header: { background:'#1E3A8A', padding:'12px 20px', display:'flex', alignItems:'center', gap:12 },
-  titulo: { color:'#fff', fontWeight:700, fontSize:16 },
-  card: { background:'#fff', borderRadius:16, boxShadow:'0 2px 8px rgba(0,0,0,.08)', padding:24, margin:'20px auto', maxWidth:700 },
-  label: { fontSize:12, fontWeight:600, color:'#1E3A8A', marginBottom:4, display:'block' },
-  val: { fontSize:14, color:'#1a1a2e' },
-  btn: { borderRadius:999, border:'none', padding:'10px 28px', fontSize:14, fontWeight:700, cursor:'pointer' },
-  btnPri: { background:'#1E3A8A', color:'#fff' },
-  btnSec: { background:'#fff', color:'#1E3A8A', border:'2px solid #1E3A8A' },
-  etapa: { textAlign:'center' as const, color:'#4a6480', fontSize:14, padding:20 },
+const S: Record<string,React.CSSProperties> = {
+  body:     { background:'#E8EEF7', display:'flex', justifyContent:'center', padding:'24px', fontFamily:'Arial,sans-serif', minHeight:'100vh' },
+  page:     { width:'210mm', maxWidth:'100%', background:'#ffffff', borderRadius:'16px', boxShadow:'0 4px 24px rgba(0,0,0,0.12)', overflow:'hidden' },
+  header:   { background:'#1E3A8A', padding:'8px 16px', display:'flex', alignItems:'center', gap:'12px' },
+  divider:  { height:'2px', background:'#1E3A8A' },
+  formBody: { padding:'10px 14px', display:'flex', flexDirection:'column', gap:'8px' },
+  block:    { border:'1px solid #c3d4f0', borderRadius:'6px', overflow:'hidden' },
+  blockTitle:{ background:'#1E3A8A', color:'#fff', fontSize:'7.5pt', fontWeight:700, padding:'3px 10px' },
+  footer:   { display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:'8px', marginTop:'4px' },
+  btn:      { padding:'8px 0', fontSize:'8pt', fontWeight:700, borderRadius:'50px', cursor:'pointer', border:'none' },
+  btnSec:   { background:'#fff', border:'2px solid #1E3A8A', color:'#1E3A8A' },
+  btnPri:   { background:'#1E3A8A', border:'2px solid #1E3A8A', color:'#fff' },
 }
 
 export default function PlanoManutencaoInner() {
-  const params = useSearchParams()
+  const params        = useSearchParams()
   const cpfInspetor   = params.get('cpf_inspetor')   ?? ''
   const chaveInspetor = params.get('chave_inspetor') ?? ''
   const cnpjoucpf     = params.get('cnpjoucpf')      ?? ''
   const tipoServico   = params.get('tipo_servico')   ?? ''
 
-  const [etapa,  setEtapa]  = useState<'carregando'|'pronto'|'gerando'|'gerado'|'erro'>('carregando')
-  const [erro,   setErro]   = useState('')
-  const [estab,  setEstab]  = useState<Record<string,any>>({})
+  type Etapa = 'carregando'|'pronto'|'gerando'|'gerado'|'erro'
+  const [etapa,    setEtapa]    = useState<Etapa>('carregando')
+  const [erro,     setErro]     = useState('')
+  const [estab,    setEstab]    = useState<Record<string,any>>({})
   const [inspetor, setInspetor] = useState<Record<string,any>>({})
-  const [ncs,    setNcs]    = useState<any[]>([])
-  const [nomeArq, setNomeArq] = useState('')
-  const [blobUrl, setBlobUrl] = useState('')
-  const [status,  setStatus] = useState('')
+  const [ncs,      setNcs]      = useState<any[]>([])
+  const [nomeArq,  setNomeArq]  = useState('')
+  const [blobUrl,  setBlobUrl]  = useState('')
+  const [html,     setHtml]     = useState('')
+  const [status,   setStatus]   = useState('')
+  const [enviando, setEnviando] = useState(false)
+  const [gerandoPdf, setGerandoPdf] = useState(false)
+  const inputPdfRef = useRef<HTMLInputElement>(null)
 
-  async function query(table: string, qp: string) {
+  async function q(table: string, qp: string) {
     const r = await fetch(`${SUPA_URL}/rest/v1/${table}?${qp}`, {
       headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` }
     })
@@ -72,54 +75,37 @@ export default function PlanoManutencaoInner() {
       setErro('Parâmetros obrigatórios ausentes.'); setEtapa('erro'); return
     }
     carregar()
-  }, [cpfInspetor, cnpjoucpf, tipoServico])
+  }, [])
 
   async function carregar() {
-    setEtapa('carregando')
     try {
-      // Estabelecimento
-      const eArr = await query('estabelecimento', `cnpjoucpf=eq.${cnpjoucpf}&select=*`)
-      const e = Array.isArray(eArr) && eArr.length > 0 ? eArr[0] : {}
-
-      // Ativos
       const tsApoio = TIPO_APOIO[tipoServico] ?? ''
-      const aArr = await query('ativos_a_vistoriar',
-        `cpf_inspetor=eq.${cpfInspetor}&cnpjoucpf=eq.${cnpjoucpf}&tipo_servico=eq.${encodeURIComponent(tsApoio)}&select=*`)
-      const ativos = Array.isArray(aArr) ? aArr : []
-
-      // Contato
-      const ccArr = await query('contato_cliente',
-        `cpf_inspetor=eq.${cpfInspetor}&cnpjoucpf=eq.${cnpjoucpf}&tipo_servico=eq.${encodeURIComponent(tsApoio)}&order=data_cadastro.desc&limit=1`)
+      const [eArr, aArr, ccArr, dvArr, inArr] = await Promise.all([
+        q('estabelecimento', `cnpjoucpf=eq.${cnpjoucpf}&select=*`),
+        q('ativos_a_vistoriar', `cpf_inspetor=eq.${cpfInspetor}&cnpjoucpf=eq.${cnpjoucpf}&tipo_servico=eq.${encodeURIComponent(tsApoio)}&select=*`),
+        q('contato_cliente', `cpf_inspetor=eq.${cpfInspetor}&cnpjoucpf=eq.${cnpjoucpf}&tipo_servico=eq.${encodeURIComponent(tsApoio)}&order=data_cadastro.desc&limit=1`),
+        q('dados_vistoria', `cpf_inspetor=eq.${cpfInspetor}&cnpjoucpf=eq.${cnpjoucpf}&tipo_servico=eq.${encodeURIComponent(tsApoio)}&select=*`),
+        q('inspetor', `cpf_inspetor=eq.${cpfInspetor}&select=*`),
+      ])
+      const e  = Array.isArray(eArr)  && eArr.length  > 0 ? eArr[0]  : {}
       const cc = Array.isArray(ccArr) && ccArr.length > 0 ? ccArr[0] : {}
-
-      // NCs de dados_vistoria — filtra Não conforme
-      const dvArr = await query('dados_vistoria',
-        `cpf_inspetor=eq.${cpfInspetor}&cnpjoucpf=eq.${cnpjoucpf}&tipo_servico=eq.${encodeURIComponent(tsApoio)}&select=*`)
-      const ncsRaw = Array.isArray(dvArr) ? dvArr : []
-
-      // Inspetor
-      const inArr = await query('inspetor', `cpf_inspetor=eq.${cpfInspetor}&select=*`)
       const ins = Array.isArray(inArr) && inArr.length > 0 ? inArr[0] : {}
-
-      setEstab({ ...e, ...cc, ativos })
+      setEstab({ ...e, ...cc, ativos: Array.isArray(aArr) ? aArr : [] })
       setInspetor(ins)
-      setNcs(ncsRaw)
+      setNcs(Array.isArray(dvArr) ? dvArr : [])
       setEtapa('pronto')
-    } catch (err) {
-      setErro(String(err)); setEtapa('erro')
-    }
+    } catch (err) { setErro(String(err)); setEtapa('erro') }
   }
 
   async function gerarPlano() {
     setEtapa('gerando')
-    setStatus('Gerando procedimentos corretivos via IA...')
     try {
-      // Para cada NC — gerar procedimento corretivo
+      setStatus('Gerando procedimentos corretivos via IA...')
       const ncsComPC = await Promise.all(ncs.map(async (nc: any) => {
         try {
           const r = await fetch('/api/ia-laudo', {
-            method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ tipo: 'procedimento_corretivo', dados: { ...nc, tipo_servico: TIPO_APOIO[tipoServico] } })
+            method:'POST', headers:{'Content-Type':'application/json'},
+            body: JSON.stringify({ tipo:'procedimento_corretivo', dados:{ ...nc, tipo_servico: tipoServico } })
           })
           const d = await r.json()
           return { ...nc, procedimento_corretivo: d.texto ?? '' }
@@ -131,103 +117,143 @@ export default function PlanoManutencaoInner() {
       const nome = `${chaveInspetor}_${cnpjoucpf}_${slug}.html`
 
       const res = await fetch('/api/gerar-plano-manutencao', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          cpfInspetor, chaveInspetor, cnpjoucpf, tipoServico,
-          estab, inspetor, nomeArquivo: nome, ncs: ncsComPC
-        })
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ cpfInspetor, chaveInspetor, cnpjoucpf, tipoServico, estab, inspetor, nomeArquivo: nome, ncs: ncsComPC })
       })
       const data = await res.json()
       if (!res.ok || data.erro) { setErro(data.erro ?? 'Erro ao gerar plano.'); setEtapa('erro'); return }
 
-      // sessionStorage para bypass cache
-      if (data.html) { try { sessionStorage.setItem('laudoHtml_' + nome, data.html) } catch {} }
+      if (data.html) { try { sessionStorage.setItem('laudoHtml_'+nome, data.html) } catch {} }
       setNomeArq(nome)
-
-      // Criar blob para visualização
-      const blob = new Blob([data.html], { type: 'text/html;charset=utf-8' })
+      setHtml(data.html)
+      const blob = new Blob([data.html], { type:'text/html;charset=utf-8' })
       setBlobUrl(URL.createObjectURL(blob))
       setEtapa('gerado')
-    } catch (err) {
-      setErro(String(err)); setEtapa('erro')
-    }
+    } catch (err) { setErro(String(err)); setEtapa('erro') }
   }
 
-  function baixarPDF() {
-    const a = document.createElement('a')
-    a.href = blobUrl; a.target = '_blank'; a.rel = 'noopener'
-    a.download = nomeArq.replace('.html', '.html')
-    a.click()
+  async function salvarPdf() {
+    setGerandoPdf(true)
+    try {
+      const printCss = `@media print { @page { margin: 20mm 15mm 20mm 20mm; } }`
+      const htmlPrint = html.replace('</head>', `<style>${printCss}</style><script>window.addEventListener('load',()=>{setTimeout(()=>window.print(),600)})</script></head>`)
+      const blob = new Blob([htmlPrint], { type:'text/html;charset=utf-8' })
+      const url  = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url; a.target = '_blank'; a.rel = 'noopener'
+      document.body.appendChild(a); a.click(); document.body.removeChild(a)
+      setTimeout(()=>URL.revokeObjectURL(url), 60000)
+    } catch (err) { alert('Erro ao gerar PDF: '+String(err)) }
+    setGerandoPdf(false)
   }
 
-  function homologar() {
-    window.location.href = `/homologar-produto?cpf_inspetor=${cpfInspetor}&chave_inspetor=${chaveInspetor}&cnpjoucpf=${cnpjoucpf}&tipo_servico=${tipoServico}&nome=${encodeURIComponent(nomeArq)}&pasta=documentos_inspetor`
+  async function onArquivoPdfEscolhido(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setEnviando(true)
+    try {
+      const form = new FormData()
+      form.append('arquivo', file)
+      form.append('nome', nomeArq.replace('.html','.pdf'))
+      form.append('pasta', 'documentos_inspetor')
+      const res = await fetch('/api/upload-pdf', { method:'POST', body: form })
+      if (!res.ok) throw new Error('Falha ao enviar PDF')
+      alert('PDF enviado com sucesso!')
+    } catch (err) { alert('Erro ao enviar PDF: '+String(err)) }
+    setEnviando(false)
   }
 
   const titulo = TITULO[tipoServico] ?? 'Plano de Manutenção'
 
   return (
     <div style={S.body}>
-      <div style={S.header}>
-        <span style={S.titulo}>{titulo}</span>
+      <div style={S.page}>
+        {/* Header padrão */}
+        <div style={S.header}>
+          <div style={{ flex:1, textAlign:'center' }}>
+            <h1 style={{ fontSize:'11pt', fontWeight:700, color:'#fff', margin:0 }}>Homologar e Armazenar Documento</h1>
+            <p style={{ fontSize:'7pt', color:'#B5D4F4', marginTop:'2px' }}>{titulo}</p>
+          </div>
+        </div>
+        <div style={S.divider} />
+
+        <div style={S.formBody}>
+
+          {etapa === 'carregando' && (
+            <p style={{ textAlign:'center', color:'#4a6480', padding:'40px', fontSize:'9pt' }}>Carregando dados...</p>
+          )}
+
+          {etapa === 'erro' && (
+            <div style={{ padding:'20px' }}>
+              <p style={{ color:'#9a3412', fontSize:'9pt', textAlign:'center', marginBottom:'12px' }}>{erro}</p>
+              <button style={{ ...S.btn, ...S.btnSec, width:'100%' }} onClick={() => window.history.back()}>Voltar</button>
+            </div>
+          )}
+
+          {etapa === 'pronto' && (
+            <>
+              <div style={S.block}>
+                <div style={S.blockTitle}>Dados carregados</div>
+                <div style={{ padding:'10px', fontSize:'8.5pt', color:'#374151', lineHeight:1.6 }}>
+                  <p style={{ margin:'2px 0' }}><b>Estabelecimento:</b> {estab.razao_social_nome || estab.razao_social || cnpjoucpf}</p>
+                  <p style={{ margin:'2px 0' }}><b>Tipo de Plano:</b> {titulo}</p>
+                  <p style={{ margin:'2px 0' }}><b>Não conformidades:</b> {ncs.length} registro(s)</p>
+                  <p style={{ margin:'2px 0' }}><b>Ativos:</b> {estab.ativos?.length ?? 0} ativo(s) cadastrado(s)</p>
+                </div>
+              </div>
+              <div style={{ ...S.footer, gridTemplateColumns:'1fr 1fr' }}>
+                <button style={{ ...S.btn, ...S.btnSec }} onClick={() => window.history.back()}>Voltar</button>
+                <button style={{ ...S.btn, ...S.btnPri }} onClick={gerarPlano}>Gerar Plano de Manutenção →</button>
+              </div>
+            </>
+          )}
+
+          {etapa === 'gerando' && (
+            <div style={{ textAlign:'center', padding:'40px' }}>
+              <p style={{ fontSize:'13pt', fontWeight:700, color:'#1E3A8A', marginBottom:'8px' }}>Gerando Plano...</p>
+              <p style={{ fontSize:'9pt', color:'#4a6480' }}>{status}</p>
+            </div>
+          )}
+
+          {etapa === 'gerado' && (
+            <>
+              {/* Banner padrão igual ao homologar-produto */}
+              <div style={S.block}>
+                <div style={{ padding:'12px' }}>
+                  <p style={{ fontSize:'8.5pt', color:'#374151', lineHeight:1.5, margin:0 }}>
+                    Baixe o documento, revise e o assine digitalmente. Após faça upload para rastreabilidade e armazenamento seguro no AIMÊ.
+                  </p>
+                </div>
+              </div>
+
+              <input ref={inputPdfRef} type="file" accept="application/pdf"
+                style={{ position:'absolute', width:1, height:1, opacity:0, overflow:'hidden', pointerEvents:'none' }}
+                onChange={onArquivoPdfEscolhido} />
+
+              {/* Preview iframe */}
+              <div style={{ border:'1px solid #c3d4f0', borderRadius:'6px', overflow:'hidden' }}>
+                <div style={{ background:'#1E3A8A', color:'#fff', fontSize:'7.5pt', fontWeight:700, padding:'3px 10px' }}>
+                  Preview do documento
+                </div>
+                <iframe src={blobUrl} style={{ width:'100%', height:'800px', border:'none', display:'block' }} title="Preview do plano" />
+              </div>
+
+              {/* Botões padrão */}
+              <div style={S.footer}>
+                <button style={{ ...S.btn, ...S.btnSec }} onClick={() => window.history.back()}>Voltar</button>
+                <button style={{ ...S.btn, ...S.btnSec, opacity: gerandoPdf ? 0.6 : 1 }} onClick={salvarPdf} disabled={gerandoPdf}>
+                  {gerandoPdf ? 'Aguarde...' : '↓ Salvar como PDF'}
+                </button>
+                <button style={{ ...S.btn, ...S.btnPri, opacity: enviando ? 0.6 : 1 }}
+                  onClick={() => inputPdfRef.current?.click()} disabled={enviando}>
+                  {enviando ? 'Enviando...' : '↑ Salvar PDF no AIMÊ'}
+                </button>
+              </div>
+            </>
+          )}
+
+        </div>
       </div>
-
-      {etapa === 'carregando' && (
-        <div style={S.etapa}>Carregando dados...</div>
-      )}
-
-      {etapa === 'erro' && (
-        <div style={{ ...S.card, color: '#9a3412' }}>
-          <b>Erro:</b> {erro}
-          <br /><br />
-          <button style={{ ...S.btn, ...S.btnSec }} onClick={() => window.history.back()}>Voltar</button>
-        </div>
-      )}
-
-      {etapa === 'pronto' && (
-        <div style={S.card}>
-          <div style={{ marginBottom: 16 }}>
-            <span style={S.label}>Estabelecimento</span>
-            <span style={S.val}>{estab.razao_social_nome || estab.razao_social || cnpjoucpf}</span>
-          </div>
-          <div style={{ marginBottom: 16 }}>
-            <span style={S.label}>Tipo de Plano</span>
-            <span style={S.val}>{titulo}</span>
-          </div>
-          <div style={{ marginBottom: 16 }}>
-            <span style={S.label}>Não conformidades encontradas</span>
-            <span style={S.val}>{ncs.length} registro(s)</span>
-          </div>
-          <div style={{ marginBottom: 24 }}>
-            <span style={S.label}>Ativos</span>
-            <span style={S.val}>{estab.ativos?.length ?? 0} ativo(s) cadastrado(s)</span>
-          </div>
-          <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end' }}>
-            <button style={{ ...S.btn, ...S.btnSec }} onClick={() => window.history.back()}>Voltar</button>
-            <button style={{ ...S.btn, ...S.btnPri }} onClick={gerarPlano}>
-              Gerar Plano de Manutenção
-            </button>
-          </div>
-        </div>
-      )}
-
-      {etapa === 'gerando' && (
-        <div style={S.etapa}>
-          <div style={{ fontSize: 16, fontWeight: 700, color: '#1E3A8A', marginBottom: 8 }}>Gerando Plano...</div>
-          <div>{status}</div>
-        </div>
-      )}
-
-      {etapa === 'gerado' && (
-        <div style={S.card}>
-          <div style={{ color: '#15803d', fontWeight: 700, marginBottom: 12 }}>✅ Plano gerado com sucesso!</div>
-          <iframe src={blobUrl} style={{ width: '100%', height: 500, border: '1px solid #c3d4f0', borderRadius: 8, marginBottom: 16 }} />
-          <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end' }}>
-            <button style={{ ...S.btn, ...S.btnSec }} onClick={baixarPDF}>Baixar HTML</button>
-            <button style={{ ...S.btn, ...S.btnPri }} onClick={homologar}>Homologar →</button>
-          </div>
-        </div>
-      )}
     </div>
   )
 }
