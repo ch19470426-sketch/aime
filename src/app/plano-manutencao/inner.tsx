@@ -38,7 +38,7 @@ const S: Record<string, React.CSSProperties> = {
   header:     { background: '#1E3A8A', padding: '8px 16px', display: 'flex',
                 alignItems: 'center', gap: '12px', borderRadius: '16px 16px 0 0' },
   divider:    { height: '2px', background: '#1E3A8A' },
-  formBody:   { padding: '10px 14px', display: 'flex', flexDirection: 'column', gap: '8px' },
+  formBody:   { padding: '10px 14px 6px', display: 'flex', flexDirection: 'column', gap: '8px' },
   block:      { border: '1px solid #c3d4f0', borderRadius: '6px', overflow: 'hidden' },
   blockTitle: { background: '#1E3A8A', color: '#fff', fontSize: '7.5pt',
                 fontWeight: 700, padding: '3px 10px' },
@@ -150,9 +150,14 @@ export default function PlanoManutencaoInner() {
     } catch (err) { setErro(String(err)); setEtapa('erro') }
   }
 
-  async function salvarPDF() {
-    // Abre o HTML em nova aba para impressão como PDF
-    window.open(blobUrl, '_blank')
+  function salvarPDF() {
+    const a = document.createElement('a')
+    a.href = blobUrl
+    a.target = '_blank'
+    a.rel = 'noopener'
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
   }
 
   async function enviarPdfAssinado(e: React.ChangeEvent<HTMLInputElement>) {
@@ -210,15 +215,18 @@ export default function PlanoManutencaoInner() {
               </div>
             )}
 
-            {/* Dados */}
+            {/* Bloco 1 */}
             <div style={S.block}>
-              <div style={S.blockTitle}>Estabelecimento</div>
-              <div style={{ padding: '8px 10px', fontSize: '9pt' }}>{estabNome}</div>
+              <div style={S.blockTitle}>Edificação/Estabelecimento</div>
+              <div style={{ padding: '8px 10px', fontSize: '9pt', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontWeight: 600 }}>{estabNome}</span>
+                <span style={{ color: '#6B7280', fontSize: '8pt' }}>{cnpjoucpf}</span>
+              </div>
             </div>
 
             {/* Orientação */}
             <div style={S.block}>
-              <div style={S.blockTitle}>Procedimento para Execução do Serviço</div>
+              <div style={S.blockTitle}>Informações gerais para Geração do Plano</div>
               <div style={{ padding: '8px 10px', fontSize: '8.5pt', color: '#374151', lineHeight: 1.7 }}>
                 <p>▶ Confirme que existe vistoria homologada para este estabelecimento.</p>
                 <p>▶ Foram encontradas <b style={{ color: '#1E3A8A' }}>{ncs.length}</b> não conformidade(s) na vistoria homologada.</p>

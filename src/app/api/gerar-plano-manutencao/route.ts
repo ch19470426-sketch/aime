@@ -352,9 +352,7 @@ tr:nth-child(even) td { background: #f7f9ff; }
 <div class="pg-capa" style="counter-reset:page 0">
   <div style="height:1cm;background:#fff;flex-shrink:0"></div>
   <div style="background:#1E3A8A;height:8mm;flex-shrink:0"></div>
-  <div style="background:#1E3A8A;padding:3mm 20mm;flex-shrink:0;text-align:center">
-    <span style="color:#fff;font-size:9pt;font-weight:700">${razaoSocialIns}</span>
-  </div>
+
   <div style="text-align:center;padding:6mm 0 0;flex-shrink:0">${logoTag}</div>
   <div style="flex:1"></div>
   <div style="text-align:center;padding:0 20mm;flex-shrink:0">
@@ -376,6 +374,7 @@ tr:nth-child(even) td { background: #f7f9ff; }
 
 <!-- ÍNDICE -->
 <div class="section"><div class="pg-indice">
+  ${cabIns?`<div style="text-align:center;font-size:9pt;font-weight:700;color:#1E3A8A;padding-bottom:6pt;border-bottom:1px solid #1E3A8A;margin-bottom:10pt">${cabIns}</div>`:''}
   <div class="indice-titulo">ÍNDICE</div>
   ${indiceHtml}
   <br>
