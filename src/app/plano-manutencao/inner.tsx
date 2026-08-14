@@ -118,7 +118,7 @@ export default function PlanoManutencaoInner() {
 
       const res = await fetch('/api/gerar-plano-manutencao', {
         method:'POST', headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({ cpfInspetor, chaveInspetor, cnpjoucpf, tipoServico, estab, inspetor, nomeArquivo: nome, ncs: ncsComPC })
+        body: JSON.stringify({ cpfInspetor, chaveInspetor, cnpjoucpf, tipoServico, nomeArquivo: nome, ncs: ncsComPC })
       })
       const data = await res.json()
       if (!res.ok || data.erro) { setErro(data.erro ?? 'Erro ao gerar plano.'); setEtapa('erro'); return }
