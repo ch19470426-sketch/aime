@@ -175,8 +175,21 @@ export async function POST(request: NextRequest) {
 
     // ── CSS idêntico aos laudos 41-44 ─────────────────────────────────────
     const CSS = `
-@page { size: A4; margin: 25mm 20mm 20mm 25mm; @bottom-right { content: "Pág. " counter(page); font-family: Arial, sans-serif; font-size: 7.5pt; color: #374151; } }
+@page { size: A4; margin: 25mm 20mm 20mm 25mm;
+  @top-left { content: none; }
+  @top-center { content: none; }
+  @top-right { content: none; }
+  @bottom-left { content: none; }
+  @bottom-center { content: none; }
+  @bottom-right { content: "Pág. " counter(page); font-family: Arial, sans-serif; font-size: 7.5pt; color: #374151; }
+}
+@media print {
+  @page { margin: 25mm 20mm 20mm 25mm; }
+  head, title { display: none; }
+}
 * { box-sizing: border-box; margin: 0; padding: 0; }
+.rodape-fixo { position: running(rodapefixo); }
+@page { @bottom-center { content: element(rodapefixo); font-size: 8pt; color: #374151; } }
 body { font-family: Arial, sans-serif; color: #000; background: #fff; font-size: 9pt; line-height: 1.5; }
 p { margin: 4pt 0; text-align: justify; color: #000; }
 h1, h2, h3 { font-weight: bold; color: #000; margin: 10pt 0 4pt; }
@@ -230,7 +243,7 @@ tr:nth-child(even) td { background: #f7f9ff; }
 </tr>`).join('')
         : `<tr><td>${xe(estab?.tipo_imovel||'—')}</td><td style="text-align:center">${fmtData(estab?.data_habite_se)}</td><td style="text-align:center">${xe(estab?.numero_pavimentos||'')}</td><td style="text-align:center">${xe(estab?.numero_unidades_salas||'')}</td></tr>`
       tabAtivos = `<div class="titulo">1.2.- Ativos para Manutenção.</div>
-<table><tr><th style="text-align:left;width:40%">Tipo de ativo</th><th style="width:20%">Data Habite-se</th><th style="width:20%">Nº pavtos</th><th style="width:20%">Aptos/Salas</th></tr>${rowsAtivos}</table>`
+<div class="bloco"><div class="bloco-header">Ativos para Manutenção</div><table style="outline:none"><tr><th style="text-align:left;width:40%">Tipo de ativo</th><th style="width:20%">Data Habite-se</th><th style="width:20%">Nº pavtos</th><th style="width:20%">Aptos/Salas</th></tr>${rowsAtivos}</table></div>`
     } else {
       const rowsAtivos = ativos.length > 0
         ? ativos.map((a:any) => `<tr>
@@ -241,7 +254,7 @@ tr:nth-child(even) td { background: #f7f9ff; }
 </tr>`).join('')
         : '<tr><td colspan="4" style="color:#9a3412;font-style:italic">Nenhum ativo cadastrado.</td></tr>'
       tabAtivos = `<div class="titulo">1.2.- Ativos para Manutenção.</div>
-<table><tr><th style="text-align:left;width:30%">Tipo de ativo</th><th style="width:25%">Tag/Nº Série</th><th style="width:25%">Início operação</th><th style="width:20%">Subtipo</th></tr>${rowsAtivos}</table>`
+<div class="bloco"><div class="bloco-header">Ativos para Manutenção</div><table style="outline:none"><tr><th style="text-align:left;width:30%">Tipo de ativo</th><th style="width:25%">Tag/Nº Série</th><th style="width:25%">Início operação</th><th style="width:20%">Subtipo</th></tr>${rowsAtivos}</table></div>`
     }
 
     // ── Item 1.1 ──────────────────────────────────────────────────────────
@@ -384,8 +397,6 @@ ${tabAtivos}
 
 </div>
 
-<div class="section">
-${cabIns?`<div class="cab">${cabIns}</div>`:''}
 
 <div class="titulo">2.- Objetivos.</div>
 ${paragrafoHtml(grupo5154?OBJETIVOS_51_54:OBJETIVOS_55_58)}
@@ -407,8 +418,6 @@ ${paragrafoHtml(grupo5154?OBJETIVOS_51_54:OBJETIVOS_55_58)}
 
 </div>
 
-<div class="section">
-${cabIns?`<div class="cab">${cabIns}</div>`:''}
 
 <div class="titulo">5.- Exigências Mínimas para Execução dos Serviços.</div>
 <p>Todas as intervenções deverão ser executadas mediante planejamento prévio, observando critérios técnicos, operacionais e de segurança.</p>
@@ -459,13 +468,11 @@ ${cabIns?`<div class="cab">${cabIns}</div>`:''}
 <p>Recomenda-se que este Plano seja periodicamente revisado e atualizado, assegurando a melhoria contínua dos processos de manutenção e da gestão dos ativos.</p>
 
 <div style="margin-top:40pt">
-  <p style="text-align:right">${cidade}/${uf}, ${dataHoje}.</p>
+  <p>${cidade}/${uf}, ${dataHoje}.</p>
   <br><br><br>
-  <div style="text-align:center">
-    <p style="border-top:1px solid #000;display:inline-block;min-width:200pt;padding-top:4pt;font-weight:700">${nomeIns}</p>
-    <p style="font-size:9pt">${xe(tituloIns)} — ${siglaIns} ${xe(numIns)}</p>
-    ${espIns?`<p style="font-size:8pt;color:#374151">Especialista ${espIns}</p>`:''}
-  </div>
+  <p style="border-top:1px solid #000;min-width:200pt;max-width:280pt;padding-top:4pt;font-weight:700">${nomeIns}</p>
+  <p style="font-size:9pt">${xe(tituloIns)} — ${siglaIns} ${xe(numIns)}</p>
+  ${espIns?`<p style="font-size:8pt;color:#374151">Especialista ${espIns}</p>`:''}
 </div>
 
 ${rodIns?`<div class="rod">${rodIns}</div>`:''}
@@ -476,8 +483,8 @@ ${rodIns?`<div class="rod">${rodIns}</div>`:''}
 ${cabIns?`<div class="cab">${cabIns}</div>`:''}
 <div class="titulo">Anexo 1 – Plano Executivo dos Serviços de Manutenção</div>
 <table>
-<tr><th colspan="8" style="text-align:left;font-size:9.5pt">Plano Executivo para os Serviços de Manutenção</th></tr>
-<tr>
+<tr><th colspan="8" style="text-align:center;font-size:10pt;background:#1E3A8A;color:#fff;padding:8pt">Plano Executivo para os Serviços de Manutenção</th></tr>
+<tr style="border-bottom:2px solid #1E3A8A">
 <th style="width:4%">ID</th>
 <th style="width:25%;text-align:left">Não Conformidade</th>
 <th style="width:6%">G Risco</th>
@@ -487,7 +494,7 @@ ${cabIns?`<div class="cab">${cabIns}</div>`:''}
 <th style="width:6%">Foto Nº</th>
 <th style="width:13%">Responsável</th>
 </tr>
-${anx1Rows||'<tr><td colspan="8" style="color:#9a3412;font-style:italic;padding:8pt">Nenhuma não conformidade registrada.</td></tr>'}
+${anx1Rows||'<tr><td colspan="8" style="text-align:center;color:#9a3412;font-style:italic;padding:12pt;font-size:9pt">Nenhuma não conformidade registrada para este estabelecimento.</td></tr>'}
 </table>
 ${rodIns?`<div class="rod">${rodIns}</div>`:''}
 </div>
