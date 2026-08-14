@@ -84,7 +84,7 @@ export default function PlanoManutencaoInner() {
         q('estabelecimento', `cnpjoucpf=eq.${cnpjoucpf}&select=*`),
         q('ativos_a_vistoriar', `cpf_inspetor=eq.${cpfInspetor}&cnpjoucpf=eq.${cnpjoucpf}&tipo_servico=eq.${encodeURIComponent(tsApoio)}&select=*`),
         q('contato_cliente', `cpf_inspetor=eq.${cpfInspetor}&cnpjoucpf=eq.${cnpjoucpf}&tipo_servico=eq.${encodeURIComponent(tsApoio)}&order=data_cadastro.desc&limit=1`),
-        q('dados_vistoria', `cpf_inspetor=eq.${cpfInspetor}&cnpjoucpf=eq.${cnpjoucpf}&tipo_servico=eq.${encodeURIComponent(tsApoio)}&select=*`),
+        q('dados_vistoria', `cpf_inspetor=eq.${cpfInspetor}&cnpjoucpf=eq.${cnpjoucpf}&tipo_servico=eq.${encodeURIComponent(tsApoio)}&select=*${['55','56','57','58'].includes(tipoServico)?'&origem_resultado=eq.N%C3%A3o%20conforme':''}`),
         q('inspetor', `cpf_inspetor=eq.${cpfInspetor}&select=*`),
       ])
       const e  = Array.isArray(eArr)  && eArr.length  > 0 ? eArr[0]  : {}

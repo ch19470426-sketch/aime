@@ -126,7 +126,7 @@ ${ativos.length>0
     // Item 1.1
     const S11 = `<div class="titulo">1.1.- Identificação da Edificação/Estabelecimento.</div>
 <div class="bloco">
-  <div class="bloco-header">Identificação da Edificação/Estabelecimento</div>
+  <div class="bloco-header" style="background:#1E3A8A;color:#fff">Identificação da Edificação/Estabelecimento</div>
   <div class="row">
     <div class="cell cell-3"><label>Razão Social / Nome</label><div class="val">${xe(estab?.razao_social_nome||estab?.razao_social||'')}</div></div>
     <div class="cell"><label>CNPJ/CPF</label><div class="val">${fmtDoc(cnpjoucpf||'')}</div></div>
@@ -149,45 +149,68 @@ ${ativos.length>0
 </div>`
 
     // Anexo 1 — NCs
-    const ncsArr: any[] = Array.isArray(ncs) ? ncs : []
-    const anx1Rows = ncsArr.map((nc:any, idx:number)=>{
-      const gr = Number(nc.grau_risco||nc.grauRisco)||0
+        const ncsArr: any[] = Array.isArray(ncs) ? ncs : []
+    // Agrupar por local+complemento para cabeçalho do Anexo 1
+    let anx1Html = ''
+    let curLocal = ''
+    let curCompl = ''
+    ncsArr.forEach((nc:any, idx:number) => {
+      const local = xe(nc.local_ocorrencia||nc.local||'')
+      const compl = xe(nc.complemento_local||nc.complemento||'')
+      const tag   = xe(nc.tag_ativo_nr_serie||nc.tagNrSerie||'')
+      const ativo = xe(nc.tipo_ativo||nc.tipoAtivo||'')
+      const gr  = Number(nc.grau_risco||nc.grauRisco)||0
       const cor = gr>80?'#CC0000':gr>=50?'#E8A000':gr>=30?'#EAB308':'#16A34A'
       const pri = gr>80?'Muito Alta':gr>=50?'Alta':gr>=30?'Média':'Baixa'
-      return `<tr>
-<td style="text-align:center">${idx+1}</td>
-<td>${xe(nc.descricao_nao_conformidade||nc.nc||'')}</td>
-<td style="text-align:center;font-weight:700;color:${cor}">${gr}</td>
-<td style="text-align:center;font-weight:700;color:${cor}">${pri}</td>
-<td>${xe(nc.descricao_solucao_nc||nc.solucao||'')}</td>
-<td>${xe(nc.procedimento_corretivo||'')}</td>
-<td style="text-align:center">${xe(nc.numero_foto||nc.fotoNr||'')}</td>
-<td></td></tr>`
-    }).join('')
+      if (local !== curLocal || compl !== curCompl) {
+        anx1Html += `<tr style="background:#dbeafe">
+<td colspan="2" style="font-weight:700;color:#1E3A8A;font-size:7.5pt"><b>Local:</b> ${local}</td>
+<td colspan="2" style="font-weight:700;color:#1E3A8A;font-size:7.5pt"><b>Complemento:</b> ${compl}</td>
+<td style="font-weight:700;color:#1E3A8A;font-size:7.5pt"><b>Tag/Nº Série:</b> ${tag}</td>
+<td style="font-weight:700;color:#1E3A8A;font-size:7.5pt"><b>Ativo:</b> ${ativo}</td>
+<td colspan="2" style="font-weight:700;color:#1E3A8A;font-size:7.5pt">Conclusão / Rubrica</td>
+</tr>`
+        curLocal = local; curCompl = compl
+      }
+      anx1Html += `<tr>
+<td style="text-align:center;width:4%">${idx+1}</td>
+<td style="width:25%">${xe(nc.descricao_nao_conformidade||nc.nc||'')}</td>
+<td style="text-align:center;font-weight:700;color:${cor};width:6%">${gr}</td>
+<td style="text-align:center;font-weight:700;color:${cor};width:8%">${pri}</td>
+<td style="width:18%">${xe(nc.descricao_solucao_nc||nc.solucao||'')}</td>
+<td style="width:20%">${xe(nc.procedimento_corretivo||'')}</td>
+<td style="text-align:center;width:6%">${xe(nc.numero_foto||nc.fotoNr||'')}</td>
+<td style="width:13%"></td>
+</tr>`
+    })
+    const anx1Rows = anx1Html
+
 
     // Índice
     const indiceItens = [
-      {n:'1.',    t:'Considerações Preliminares'},
-      {n:'1.1.-', t:'Identificação da Edificação/Estabelecimento'},
-      {n:'1.2.-', t:'Ativos para Manutenção'},
-      {n:'2.',    t:'Objetivos'},
-      {n:'3.',    t:'Base Normativa'},
-      {n:'4.',    t:'Responsabilidade da Contratada'},
-      {n:'5.',    t:'Exigências Mínimas para Execução dos Serviços'},
-      {n:'5.1.-', t:'Planejamento'},
-      {n:'5.2.-', t:'Segurança'},
-      {n:'5.3.-', t:'Recursos'},
-      {n:'5.4.-', t:'Execução'},
-      {n:'6.',    t:'Recebimento dos Serviços'},
-      {n:'7.',    t:'Apresentação da Proposta'},
-      {n:'8.',    t:'Critérios para Priorização das Intervenções'},
-      {n:'9.',    t:'Controle da Execução e Indicadores de Desempenho'},
-      {n:'10.',   t:'Considerações Finais'},
-      {n:'Anx.1', t:'Plano Executivo dos Serviços'},
-      {n:'Anx.2', t:'Modelo de Termo de Recebimento'},
+      {n:'1.',    t:'Considerações Preliminares', nivel:1},
+      {n:'1.1.-', t:'Identificação da Edificação/Estabelecimento', nivel:2},
+      {n:'1.2.-', t:'Ativos para Manutenção', nivel:2},
+      {n:'2.',    t:'Objetivos', nivel:1},
+      {n:'3.',    t:'Base Normativa', nivel:1},
+      {n:'4.',    t:'Responsabilidade da Contratada', nivel:1},
+      {n:'5.',    t:'Exigências Mínimas para Execução dos Serviços', nivel:1},
+      {n:'5.1.-', t:'Planejamento', nivel:2},
+      {n:'5.2.-', t:'Segurança', nivel:2},
+      {n:'5.3.-', t:'Recursos', nivel:2},
+      {n:'5.4.-', t:'Execução', nivel:2},
+      {n:'6.',    t:'Recebimento dos Serviços', nivel:1},
+      {n:'7.',    t:'Apresentação da Proposta', nivel:1},
+      {n:'8.',    t:'Critérios para Priorização das Intervenções', nivel:1},
+      {n:'9.',    t:'Controle da Execução e Indicadores de Desempenho', nivel:1},
+      {n:'10.',   t:'Considerações Finais', nivel:1},
+      {n:'Anexo 1', t:'Plano Executivo dos Serviços de Manutenção', nivel:1},
+      {n:'Anexo 2', t:'Modelo de Termo de Recebimento de Serviços', nivel:1},
     ]
     const indiceHtml = indiceItens.map(it=>
-      `<div class="indice-item"><span class="indice-num">${it.n}</span><span>${xe(it.t)}</span><span class="indice-dots"></span></div>`
+      `<div class="indice-item${it.nivel===2?' nivel2':''}" style="${it.nivel===1?'font-weight:700;':'padding-left:16pt;'}">` +
+      `<span class="indice-num" style="${it.nivel===1?'color:#1E3A8A;':'color:#374151;font-weight:400;'}">${it.n}</span>` +
+      `<span>${xe(it.t)}</span><span class="indice-dots"></span></div>`
     ).join('')
 
     const html = `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>${xe(titulo)}</title><style>
@@ -248,6 +271,9 @@ tr:nth-child(even) td { background: #f7f9ff; }
 <div class="pg-capa" style="counter-reset:page 0">
   <div style="height:1cm;background:#fff;flex-shrink:0"></div>
   <div style="background:#1E3A8A;height:8mm;flex-shrink:0"></div>
+  <div style="background:#1E3A8A;padding:4mm 20mm;flex-shrink:0;text-align:center">
+    <span style="color:#fff;font-size:9pt;font-weight:700">${xe(inspetor?.razao_social||inspetor?.nome_inspetor||'')}</span>
+  </div>
   <div style="text-align:center;padding:6mm 0 0;flex-shrink:0">${logoTag}</div>
   <div style="flex:1"></div>
   <div style="text-align:center;padding:0 20mm;flex-shrink:0">
@@ -348,12 +374,12 @@ ${cabIns?`<div class="cab">${cabIns}</div>`:''}
 <div class="titulo">10.- Considerações Finais.</div>
 <p>A execução das ações de manutenção previstas neste Plano contribui para a preservação das condições de segurança, confiabilidade e desempenho dos ativos, reduzindo a ocorrência de falhas e riscos operacionais. Sua implementação contínua favorece a proteção da vida e da integridade das pessoas, a preservação do patrimônio, a continuidade das atividades e o aumento da vida útil dos sistemas e equipamentos. Recomenda-se que este Plano seja periodicamente revisado e atualizado.</p>
 
-<div class="ass">
+<div class="ass" style="margin-top:40pt;text-align:center">
   <p>${cidade}/${uf}, ${dataHoje}.</p>
-  <br><br>
-  <p>______________________________</p>
-  <p>${nomeIns}</p>
-  <p>${xe(tituloIns)} — ${siglaIns} ${xe(numIns)}${espIns?`<br>${espIns}`:''}</p>
+  <br><br><br>
+  <p style="border-top:1px solid #000;display:inline-block;min-width:200pt;padding-top:4pt">${nomeIns}</p>
+  <p style="font-size:9pt">${xe(tituloIns)} — ${siglaIns} ${xe(numIns)}</p>
+  ${espIns?`<p style="font-size:8pt;color:#374151">Especialista ${espIns}</p>`:''}
 </div>
 
 ${rodIns?`<div class="rod">${rodIns}</div>`:''}
@@ -364,16 +390,16 @@ ${rodIns?`<div class="rod">${rodIns}</div>`:''}
 ${cabIns?`<div class="cab">${cabIns}</div>`:''}
 <div class="titulo">Anexo 1 – Plano Executivo dos Serviços</div>
 <table>
-<tr><th colspan="8" style="text-align:left;font-size:9.5pt">Plano Executivo para os Serviços de Manutenção</th></tr>
+<tr><th colspan="8" style="text-align:left;font-size:9.5pt;background:#1E3A8A;color:#fff">Plano Executivo para os Serviços de Manutenção</th></tr>
 <tr>
   <th style="width:4%">ID</th>
-  <th style="width:26%;text-align:left">Não Conformidade</th>
+  <th style="width:25%;text-align:left">Não Conformidade</th>
   <th style="width:6%">G Risco</th>
   <th style="width:8%">Prioridade</th>
   <th style="width:18%;text-align:left">Solução sugerida</th>
-  <th style="width:22%;text-align:left">Procedimento corretivo</th>
-  <th style="width:6%">Foto</th>
-  <th style="width:10%">Responsável</th>
+  <th style="width:20%;text-align:left">Intervenção sugerida</th>
+  <th style="width:6%">Foto Nº</th>
+  <th style="width:13%;text-align:left">Responsável</th>
 </tr>
 ${anx1Rows||'<tr><td colspan="8" style="color:#9a3412;font-style:italic;padding:8pt">Nenhuma não conformidade registrada.</td></tr>'}
 </table>
