@@ -1,6 +1,7 @@
 'use client'
 import { useSearchParams } from 'next/navigation'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
+import Image from 'next/image'
 
 const SUPA_URL = 'https://asgorarunzhiojqioxzq.supabase.co'
 const SUPA_KEY = 'sb_publishable_dH85HYKGxv3X0te627VfOw_OGaPoNMF'
@@ -16,7 +17,6 @@ const TITULO: Record<string,string> = {
   '58':'Plano de Manutenção — Caldeiras e Vasos de Pressão NR-13',
 }
 
-// Tipo de vistoria apoio (número) para listar-vistorias
 const TIPO_APOIO_NUM: Record<string,string> = {
   '51':'31','52':'32','53':'33','54':'34',
   '55':'35','56':'36','57':'37','58':'38',
@@ -24,50 +24,67 @@ const TIPO_APOIO_NUM: Record<string,string> = {
 
 const SLUG: Record<string,string> = {
   '51':'plano_manut_autovistoria','52':'plano_manut_inspecao',
-  '53':'plano_manut_imovel_novo','54':'plano_manut_fachada',
-  '55':'plano_manut_elevador','56':'plano_manut_nr10',
-  '57':'plano_manut_nr12','58':'plano_manut_nr13',
+  '53':'plano_manut_imovel_novo', '54':'plano_manut_fachada',
+  '55':'plano_manut_elevador',    '56':'plano_manut_nr10',
+  '57':'plano_manut_nr12',        '58':'plano_manut_nr13',
 }
 
-// Estilos AIMÊ padrão
-const BG   = '#E8EEF7'
-const AZUL = '#1E3A8A'
-const S = {
-  body:   { backgroundColor: BG, minHeight: '100vh', fontFamily: 'Arial, sans-serif' },
-  header: { background: AZUL, padding: '12px 20px', display: 'flex', alignItems: 'center', gap: 12 },
-  titulo: { color: '#fff', fontWeight: 700, fontSize: 16 },
-  card:   { background: '#fff', borderRadius: 16, boxShadow: '0 2px 8px rgba(0,0,0,.08)',
-            padding: 24, margin: '20px auto', maxWidth: 680 },
-  row:    { display: 'flex', gap: 12, alignItems: 'center', marginBottom: 12 },
-  label:  { fontSize: 12, fontWeight: 700, color: AZUL, marginBottom: 3, display: 'block' } as React.CSSProperties,
-  val:    { fontSize: 14, color: '#1a1a2e' },
-  btnPri: { borderRadius: 999, border: 'none', padding: '10px 28px', fontSize: 14,
-            fontWeight: 700, cursor: 'pointer', background: AZUL, color: '#fff' },
-  btnSec: { borderRadius: 999, border: `2px solid ${AZUL}`, padding: '10px 28px',
-            fontSize: 14, fontWeight: 700, cursor: 'pointer', background: '#fff', color: AZUL },
-  divider:{ borderTop: `2px solid ${AZUL}`, margin: '12px 0' },
-  badge:  { background: '#dbeafe', color: AZUL, borderRadius: 8,
-            padding: '2px 10px', fontSize: 12, fontWeight: 700 },
+// Estilos idênticos ao homologar-produto
+const S: Record<string, React.CSSProperties> = {
+  body:       { background: '#E8EEF7', display: 'flex', justifyContent: 'center',
+                padding: '24px', fontFamily: 'Arial, sans-serif', minHeight: '100vh' },
+  page:       { width: '210mm', maxWidth: '100%', background: '#ffffff',
+                borderRadius: '16px', boxShadow: '0 2px 8px rgba(0,0,0,.1)' },
+  header:     { background: '#1E3A8A', padding: '8px 16px', display: 'flex',
+                alignItems: 'center', gap: '12px', borderRadius: '16px 16px 0 0' },
+  divider:    { height: '2px', background: '#1E3A8A' },
+  formBody:   { padding: '10px 14px', display: 'flex', flexDirection: 'column', gap: '8px' },
+  block:      { border: '1px solid #c3d4f0', borderRadius: '6px', overflow: 'hidden' },
+  blockTitle: { background: '#1E3A8A', color: '#fff', fontSize: '7.5pt',
+                fontWeight: 700, padding: '3px 10px' },
+  footer:     { display: 'grid', gridTemplateColumns: '1fr 1fr 1fr',
+                gap: '8px', marginTop: '4px' },
+  btn:        { padding: '8px 0', fontSize: '8pt', fontWeight: 700,
+                borderRadius: '50px', cursor: 'pointer', border: 'none' },
+  btnSec:     { background: '#fff', border: '2px solid #1E3A8A', color: '#1E3A8A' },
+  btnPri:     { background: '#1E3A8A', border: '2px solid #1E3A8A', color: '#fff' },
+}
+
+function HeaderBar({ subtitulo }: { subtitulo: string }) {
+  return (
+    <div style={S.header}>
+      <div style={{ width: 80, height: 36, flexShrink: 0, display: 'flex', alignItems: 'center' }}>
+        <Image src="/logo.png" alt="AIMÊ" width={80} height={36}
+          style={{ filter: 'brightness(0) invert(1)', objectFit: 'contain', display: 'block' }} />
+      </div>
+      <div style={{ flex: 1, textAlign: 'center' }}>
+        <h1 style={{ fontSize: '11pt', fontWeight: 700, color: '#fff', margin: 0 }}>{subtitulo}</h1>
+      </div>
+      <div style={{ width: 80 }} />
+    </div>
+  )
 }
 
 export default function PlanoManutencaoInner() {
-  const params       = useSearchParams()
-  const cpfInspetor  = params.get('cpf_inspetor')   ?? ''
-  const chaveInsp    = params.get('chave_inspetor') ?? ''
-  const cnpjoucpf    = params.get('cnpjoucpf')      ?? ''
-  const tipoServico  = params.get('tipo_servico')   ?? ''
+  const params      = useSearchParams()
+  const cpfInspetor = params.get('cpf_inspetor')   ?? ''
+  const chaveInsp   = params.get('chave_inspetor') ?? ''
+  const cnpjoucpf   = params.get('cnpjoucpf')      ?? ''
+  const tipoServico = params.get('tipo_servico')   ?? ''
 
-  const [etapa,    setEtapa]   = useState<'banner'|'gerando'|'gerado'|'erro'>('banner')
-  const [erro,     setErro]    = useState('')
-  const [ncs,      setNcs]     = useState<any[]>([])
-  const [estabNome,setEstabNome] = useState('')
-  const [qtdNCs,   setQtdNCs]  = useState(0)
-  const [nomeArq,  setNomeArq] = useState('')
-  const [blobUrl,  setBlobUrl] = useState('')
-  const [status,   setStatus]  = useState('')
+  const [etapa,     setEtapa]    = useState<'carregando'|'banner'|'gerando'|'gerado'|'erro'>('carregando')
+  const [erro,      setErro]     = useState('')
+  const [ncs,       setNcs]      = useState<any[]>([])
+  const [estabNome, setEstabNome]= useState('')
+  const [cabInspetor, setCabInspetor] = useState('')
+  const [blobUrl,   setBlobUrl]  = useState('')
+  const [nomeArq,   setNomeArq]  = useState('')
+  const [status,    setStatus]   = useState('')
+  const [enviando,  setEnviando] = useState(false)
+  const inputPdfRef = useRef<HTMLInputElement>(null)
 
-  const titulo = TITULO[tipoServico] ?? 'Plano de Manutenção'
-  const tsApoioNum = TIPO_APOIO_NUM[tipoServico] ?? ''
+  const titulo      = TITULO[tipoServico] ?? 'Plano de Manutenção'
+  const tsApoioNum  = TIPO_APOIO_NUM[tipoServico] ?? ''
 
   useEffect(() => {
     if (!cpfInspetor || !cnpjoucpf || !tipoServico) {
@@ -85,28 +102,24 @@ export default function PlanoManutencaoInner() {
 
   async function carregarInfo() {
     try {
-      // Buscar nome do estabelecimento para o banner
-      const eArr = await q('estabelecimento', `cnpjoucpf=eq.${cnpjoucpf}&select=razao_social_nome,razao_social`)
-      const e = Array.isArray(eArr) && eArr.length > 0 ? eArr[0] : {}
+      const [eArr, insArr, ncRes] = await Promise.all([
+        q('estabelecimento', `cnpjoucpf=eq.${cnpjoucpf}&select=razao_social_nome,razao_social`),
+        q('inspetor', `cpf_inspetor=eq.${cpfInspetor}&select=cabecalho_documentos,nome_inspetor`),
+        fetch(`/api/listar-vistorias?chave_inspetor=${chaveInsp}&cnpjoucpf=${cnpjoucpf}&tipo_servico=${tsApoioNum}`)
+      ])
+      const e   = Array.isArray(eArr)   && eArr.length   > 0 ? eArr[0]   : {}
+      const ins = Array.isArray(insArr) && insArr.length > 0 ? insArr[0] : {}
+      const dadosNCs = await ncRes.json()
       setEstabNome(e.razao_social_nome || e.razao_social || cnpjoucpf)
-
-      // Buscar NCs de vistorias homologadas via listar-vistorias
-      const resNCs = await fetch(
-        `/api/listar-vistorias?chave_inspetor=${chaveInsp}&cnpjoucpf=${cnpjoucpf}&tipo_servico=${tsApoioNum}`
-      )
-      const dadosNCs = await resNCs.json()
-      const ncsArr = dadosNCs.ncs ?? []
-      setNcs(ncsArr)
-      setQtdNCs(ncsArr.length)
-    } catch (err) {
-      setErro(String(err)); setEtapa('erro')
-    }
+      setCabInspetor(ins.cabecalho_documentos || ins.nome_inspetor || '')
+      setNcs(dadosNCs.ncs ?? [])
+      setEtapa('banner')
+    } catch (err) { setErro(String(err)); setEtapa('erro') }
   }
 
   async function gerarPlano() {
     setEtapa('gerando')
     try {
-      // Gerar procedimento corretivo via IA para cada NC
       setStatus('Gerando procedimentos corretivos via IA...')
       const ncsComPC = await Promise.all(ncs.map(async (nc: any) => {
         try {
@@ -137,6 +150,25 @@ export default function PlanoManutencaoInner() {
     } catch (err) { setErro(String(err)); setEtapa('erro') }
   }
 
+  async function salvarPDF() {
+    // Abre o HTML em nova aba para impressão como PDF
+    window.open(blobUrl, '_blank')
+  }
+
+  async function enviarPdfAssinado(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setEnviando(true)
+    try {
+      const { createClient } = await import('@/utils/supabase/client')
+      const supabase = createClient()
+      const nomePdf = nomeArq.replace('.html', '_assinado.pdf')
+      await supabase.storage.from('aime').upload(`documentos_inspetor/${nomePdf}`, file, { upsert: true })
+      alert('PDF assinado salvo com sucesso!')
+    } catch (err) { alert('Erro ao enviar: ' + String(err)) }
+    finally { setEnviando(false) }
+  }
+
   function homologar() {
     window.location.href =
       `/homologar-produto?cpf_inspetor=${cpfInspetor}&chave_inspetor=${chaveInsp}` +
@@ -144,82 +176,116 @@ export default function PlanoManutencaoInner() {
       `&nome=${encodeURIComponent(nomeArq)}&pasta=documentos_inspetor`
   }
 
+  const retorno = `/dashboard`
+
   return (
     <div style={S.body}>
-      {/* Header padrão AIMÊ */}
-      <div style={S.header}>
-        <img src="/logo.png" alt="AIMÊ" style={{ height: 32, filter: 'brightness(0) invert(1)' }}
-          onError={(e:any) => e.target.style.display='none'} />
-        <span style={S.titulo}>{titulo}</span>
+      <div style={S.page}>
+        <HeaderBar subtitulo={titulo} />
+        <div style={S.divider} />
+
+        {etapa === 'carregando' && (
+          <p style={{ padding: 40, textAlign: 'center', color: '#4a6480', fontSize: '9pt' }}>
+            Carregando dados...
+          </p>
+        )}
+
+        {etapa === 'erro' && (
+          <div style={S.formBody}>
+            <p style={{ color: '#9a3412', fontSize: '9pt', padding: 20 }}><b>Erro:</b> {erro}</p>
+            <div style={S.footer}>
+              <button style={{ ...S.btn, ...S.btnPri, gridColumn: '1 / -1' }}
+                onClick={() => window.location.href = retorno}>Voltar ao Dashboard</button>
+            </div>
+          </div>
+        )}
+
+        {etapa === 'banner' && (
+          <div style={S.formBody}>
+            {/* Cabeçalho inspetor */}
+            {cabInspetor && (
+              <div style={{ textAlign: 'center', color: '#1E3A8A', fontWeight: 700,
+                fontSize: '9pt', padding: '6px 0', borderBottom: '1px solid #1E3A8A' }}>
+                {cabInspetor}
+              </div>
+            )}
+
+            {/* Dados */}
+            <div style={S.block}>
+              <div style={S.blockTitle}>Estabelecimento</div>
+              <div style={{ padding: '8px 10px', fontSize: '9pt' }}>{estabNome}</div>
+            </div>
+
+            {/* Orientação */}
+            <div style={S.block}>
+              <div style={S.blockTitle}>Procedimento para Execução do Serviço</div>
+              <div style={{ padding: '8px 10px', fontSize: '8.5pt', color: '#374151', lineHeight: 1.7 }}>
+                <p>▶ Confirme que existe vistoria homologada para este estabelecimento.</p>
+                <p>▶ Foram encontradas <b style={{ color: '#1E3A8A' }}>{ncs.length}</b> não conformidade(s) na vistoria homologada.</p>
+                <p>▶ A IA irá gerar o procedimento corretivo para cada não conformidade.</p>
+                <p>▶ Revise o plano gerado antes de homologar e assinar.</p>
+                <p>▶ Após a geração, faça o upload do PDF assinado para finalizar.</p>
+              </div>
+            </div>
+
+            {ncs.length === 0 && (
+              <div style={{ background: '#fef3c7', borderRadius: 6, padding: '8px 12px',
+                fontSize: '8.5pt', color: '#92400e' }}>
+                ⚠️ Nenhuma não conformidade encontrada. Verifique se existe vistoria homologada.
+              </div>
+            )}
+
+            <div style={S.footer}>
+              <button style={{ ...S.btn, ...S.btnSec }} onClick={() => window.location.href = retorno}>
+                Voltar
+              </button>
+              <div />
+              <button style={{ ...S.btn, ...S.btnPri }} onClick={gerarPlano}>
+                Gerar Plano →
+              </button>
+            </div>
+          </div>
+        )}
+
+        {etapa === 'gerando' && (
+          <p style={{ padding: 40, textAlign: 'center', color: '#1E3A8A',
+            fontSize: '10pt', fontWeight: 700 }}>
+            {status || 'Gerando Plano de Manutenção...'}
+          </p>
+        )}
+
+        {etapa === 'gerado' && (
+          <div style={S.formBody}>
+            <div style={S.block}>
+              <div style={{ padding: '8px 10px', fontSize: '8.5pt', color: '#374151', lineHeight: 1.5 }}>
+                Plano gerado com sucesso. Baixe o documento, revise e assine digitalmente.
+                Após, faça o upload do PDF assinado para finalizar.<br />
+                <b>⚠️ Lembre-se de inserir a ART no Anexo 2 antes de assinar.</b>
+              </div>
+            </div>
+
+            <div style={{ border: '1px solid #c3d4f0', borderRadius: 6, overflow: 'hidden', height: 500 }}>
+              <iframe src={blobUrl} style={{ width: '100%', height: '100%', border: 'none' }} />
+            </div>
+
+            <input ref={inputPdfRef} type="file" accept=".pdf" style={{ display: 'none' }}
+              onChange={enviarPdfAssinado} />
+
+            <div style={S.footer}>
+              <button style={{ ...S.btn, ...S.btnSec }} onClick={() => window.location.href = retorno}>
+                Voltar
+              </button>
+              <button style={{ ...S.btn, ...S.btnSec }} onClick={salvarPDF}>
+                ↓ Baixar PDF
+              </button>
+              <button style={{ ...S.btn, ...S.btnPri, opacity: enviando ? 0.6 : 1 }}
+                onClick={() => inputPdfRef.current?.click()} disabled={enviando}>
+                {enviando ? 'Enviando...' : '↑ PDF Assinado'}
+              </button>
+            </div>
+          </div>
+        )}
       </div>
-
-      {etapa === 'erro' && (
-        <div style={{ ...S.card, color: '#9a3412' }}>
-          <b>Erro:</b> {erro}<br /><br />
-          <button style={S.btnSec} onClick={() => window.history.back()}>Voltar</button>
-        </div>
-      )}
-
-      {/* BANNER inicial — padrão AIMÊ com orientação */}
-      {etapa === 'banner' && (
-        <div style={S.card}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 }}>
-            <div>
-              <div style={{ ...S.label }}>Estabelecimento</div>
-              <div style={S.val}>{estabNome || cnpjoucpf}</div>
-            </div>
-            <span style={S.badge}>{titulo}</span>
-          </div>
-          <div style={S.divider} />
-
-          <div style={{ background: '#f0f4ff', borderRadius: 8, padding: '12px 16px', marginBottom: 16, fontSize: 13, color: '#1a1a2e', lineHeight: 1.7 }}>
-            <b style={{ color: AZUL }}>Procedimento para Execução do Serviço</b><br />
-            ▶ Confirme que existe vistoria homologada para este estabelecimento.<br />
-            ▶ Serão recuperadas <b>{qtdNCs}</b> não conformidade(s) da vistoria homologada.<br />
-            ▶ A IA irá gerar o procedimento corretivo para cada não conformidade.<br />
-            ▶ Revise o plano gerado antes de homologar e assinar.<br />
-            ▶ Após a geração, faça o upload do PDF assinado para finalizar.
-          </div>
-
-          {qtdNCs === 0 && (
-            <div style={{ background: '#fef3c7', borderRadius: 8, padding: '10px 14px', marginBottom: 16, fontSize: 13, color: '#92400e' }}>
-              ⚠️ Nenhuma não conformidade encontrada para este estabelecimento/tipo de serviço.
-              Verifique se existe vistoria homologada.
-            </div>
-          )}
-
-          <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end' }}>
-            <button style={S.btnSec} onClick={() => window.history.back()}>Voltar</button>
-            <button style={S.btnPri} onClick={gerarPlano}>
-              Gerar Plano de Manutenção →
-            </button>
-          </div>
-        </div>
-      )}
-
-      {etapa === 'gerando' && (
-        <div style={{ ...S.card, textAlign: 'center' }}>
-          <div style={{ fontSize: 16, fontWeight: 700, color: AZUL, marginBottom: 12 }}>Gerando Plano...</div>
-          <div style={{ color: '#4a6480', fontSize: 14 }}>{status}</div>
-        </div>
-      )}
-
-      {etapa === 'gerado' && (
-        <div style={S.card}>
-          <div style={{ color: '#15803d', fontWeight: 700, marginBottom: 12, fontSize: 15 }}>
-            ✅ Plano gerado com sucesso!
-          </div>
-          <iframe src={blobUrl}
-            style={{ width: '100%', height: 520, border: '1px solid #c3d4f0', borderRadius: 8, marginBottom: 16 }} />
-          <div style={{ background: '#fef9c3', borderRadius: 8, padding: '10px 14px', marginBottom: 16, fontSize: 13, color: '#713f12' }}>
-            ⚠️ Favor inserir a respectiva ART no Anexo 2 antes de assinar.
-          </div>
-          <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end' }}>
-            <button style={S.btnSec} onClick={() => window.open(blobUrl,'_blank')}>Baixar HTML</button>
-            <button style={S.btnPri} onClick={homologar}>Homologar →</button>
-          </div>
-        </div>
-      )}
     </div>
   )
 }

@@ -304,9 +304,11 @@ tr:nth-child(even) td { background: #f7f9ff; }
       {n:'Anexo 2', t:'Modelo de Termo de Recebimento de Serviços', n1:true},
     ]
     const indiceHtml = indiceItens.map(it =>
-      `<div class="indice-item" style="${it.n1?'font-weight:700':'padding-left:16pt'}">` +
-      `<span class="indice-num" style="color:${it.n1?'#1E3A8A':'#374151'};${it.n1?'':'font-weight:400'}">${it.n}</span>` +
-      `<span>${xe(it.t)}</span><span class="indice-dots"></span></div>`
+      `<div class="indice-item" style="${it.n1?'font-weight:700;':''}">` +
+      `<span class="indice-num" style="color:#1E3A8A;${it.n1?'':'font-weight:400'}">${it.n}</span>` +
+      `<span>${xe(it.t)}</span><span class="indice-dots"></span>` +
+      `<span style="min-width:24pt;text-align:right;color:#1E3A8A;font-weight:700">—</span>` +
+      `</div>`
     ).join('')
 
     // ── Anexo 1 (formato aba Excel) ────────────────────────────────────────
