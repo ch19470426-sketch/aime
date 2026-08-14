@@ -458,13 +458,14 @@ ${cabIns?`<div class="cab">${cabIns}</div>`:''}
 <p>Sua implementação contínua favorece a proteção da vida e da integridade das pessoas, a preservação do patrimônio, a continuidade das atividades e o aumento da vida útil dos sistemas e equipamentos.</p>
 <p>Recomenda-se que este Plano seja periodicamente revisado e atualizado, assegurando a melhoria contínua dos processos de manutenção e da gestão dos ativos.</p>
 
-<div class="ass">
-  <p>${cidade}/${uf}, ${dataHoje}.</p>
+<div style="margin-top:40pt">
+  <p style="text-align:right">${cidade}/${uf}, ${dataHoje}.</p>
   <br><br><br>
-  <p style="border-top:1px solid #000;display:inline-block;min-width:200pt;padding-top:4pt">${nomeIns}</p>
-  <br>
-  <p style="font-size:9pt">${xe(tituloIns)} — ${siglaIns} ${xe(numIns)}</p>
-  ${espIns?`<p style="font-size:8pt;color:#374151">Especialista ${espIns}</p>`:''}
+  <div style="text-align:center">
+    <p style="border-top:1px solid #000;display:inline-block;min-width:200pt;padding-top:4pt;font-weight:700">${nomeIns}</p>
+    <p style="font-size:9pt">${xe(tituloIns)} — ${siglaIns} ${xe(numIns)}</p>
+    ${espIns?`<p style="font-size:8pt;color:#374151">Especialista ${espIns}</p>`:''}
+  </div>
 </div>
 
 ${rodIns?`<div class="rod">${rodIns}</div>`:''}
