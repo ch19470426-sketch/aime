@@ -264,7 +264,7 @@ export default function PlanoManutencaoInner() {
               <div style={S.blockTitle}>Edificação/Estabelecimento</div>
               <div style={{ padding: '8px 10px', fontSize: '9pt', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
                 <span style={{ fontWeight: 600, flex: 1 }}>{estabNome}</span>
-                <span style={{ color: '#6B7280', fontSize: '8pt', flexShrink: 0 }}>
+                <span style={{ color: '#6B7280', fontSize: '8pt', flexShrink: 0, fontWeight: 700 }}>
                   {(()=>{ const n=cnpjoucpf.replace(/\D/g,''); return n.length===14?n.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/,'$1.$2.$3/$4-$5'):n.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/,'$1.$2.$3-$4') })()}
                 </span>
               </div>

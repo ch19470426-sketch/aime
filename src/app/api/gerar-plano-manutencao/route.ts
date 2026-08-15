@@ -325,6 +325,19 @@ tr:nth-child(even) td { background: #f7f9ff; }
     ).join('')
 
     // ── Anexo 1 (formato aba Excel) ────────────────────────────────────────
+    // Buscar soluções de dados_vistoria por foto_nr
+    const fotoNrs = (Array.isArray(ncs)?ncs:[]).map((nc:any)=>String(nc.fotoNr||nc.numero_foto||'').replace(/^0+/,'')||'0')
+    const { data: dvSol } = await supabase.from('dados_vistoria')
+      .select('numero_foto,descricao_solucao_nc')
+      .eq('cpf_inspetor', cpfInspetor).eq('cnpjoucpf', cnpjoucpf)
+    const solMap: Record<string,string> = {}
+    if (dvSol) dvSol.forEach((r:any) => {
+      const k = String(r.numero_foto||'').replace(/^0+/,'')||'0'
+      solMap[k] = r.descricao_solucao_nc||''
+      solMap[k.padStart(2,'0')] = r.descricao_solucao_nc||''
+      solMap[k.padStart(3,'0')] = r.descricao_solucao_nc||''
+    })
+
     // Classificar NCs por local_ocorrencia + complemento_local + grau_risco DESC
     const ncsArr: any[] = [...(Array.isArray(ncs) ? ncs : [])].sort((a:any,b:any) => {
       const la = String(a.local_ocorrencia||a.local||''), lb = String(b.local_ocorrencia||b.local||'')
@@ -349,8 +362,8 @@ tr:nth-child(even) td { background: #f7f9ff; }
 <td colspan="2" style="font-size:6.5pt;color:#1E3A8A;padding:1pt 5pt"><b>Complemento local:</b></td>
 <td style="font-size:6.5pt;color:#1E3A8A;padding:1pt 5pt"><b>Tag/Nº Série:</b></td>
 <td style="font-size:6.5pt;color:#1E3A8A;padding:1pt 5pt"><b>Ativo:</b></td>
-<td rowspan="2" style="font-size:8pt;font-weight:700;color:#1E3A8A;padding:3pt;text-align:center;vertical-align:middle;border:1px solid #1E3A8A">Foto Nº<br>na Vistoria</td>
-<td rowspan="2" style="font-size:8pt;font-weight:700;color:#1E3A8A;padding:3pt;text-align:center;vertical-align:middle;border:1px solid #1E3A8A">Aceite<br>na conclusão</td>
+<td rowspan="2" style="font-size:8pt;font-weight:700;color:#1E3A8A;padding:3pt;text-align:center;vertical-align:middle;border:1px solid #1E3A8A">Nº na Vistoria</td>
+<td rowspan="2" style="font-size:8pt;font-weight:700;color:#1E3A8A;padding:3pt;text-align:center;vertical-align:middle;border:1.5px solid #1E3A8A">Aceite<br>na conclusão</td>
 </tr>
 <tr style="background:#eff6ff">
 <td colspan="2" style="font-size:7.5pt;padding:2pt 5pt">${local}</td>
@@ -366,7 +379,7 @@ tr:nth-child(even) td { background: #f7f9ff; }
 <td>${xe(nc.descricao_nao_conformidade||nc.nc||'')}</td>
 <td style="text-align:center;font-weight:700;color:${cor}">${gr}</td>
 <td style="text-align:center;font-weight:700;color:${cor}">${pri}</td>
-<td style='vertical-align:top'>${xe(nc.solucaoNC||nc.descricao_solucao_nc||nc.solucao||nc.cp||'')}</td>
+<td style='vertical-align:top'>${xe(solMap[String(nc.fotoNr||nc.numero_foto||'').replace(/^0+/,'')||'0']||nc.solucaoNC||nc.descricao_solucao_nc||nc.solucao||'')}</td>
 <td>${xe(nc.procedimento_corretivo||'')}</td>
 
 <td></td>
@@ -411,7 +424,7 @@ tr:nth-child(even) td { background: #f7f9ff; }
 
 <!-- CORPO -->
 <div>
-${cabIns?`<div class="cab">${cabIns}</div>`:''}
+${cabIns?`<div style="text-align:center;font-weight:700;font-size:12pt;color:#1E3A8A;padding-bottom:4pt;border-bottom:2px solid #1E3A8A;margin-bottom:6pt">${cabIns}</div>`:''}
 <br><br><br><br><br>
 
 <div class="titulo">1.- Considerações Preliminares.</div>
@@ -509,7 +522,7 @@ ${rodIns?`<div class="rod">${rodIns}</div>`:''}
   .anx1-page { page: anx1page; }
 </style>
 <div class="anx1-page">
-${cabIns?`<div style="text-align:center;font-weight:700;font-size:10pt;padding-bottom:4pt;border-bottom:2px solid #1E3A8A;margin-bottom:6pt">${cabIns}</div>`:''}
+${cabIns?`<div style="text-align:center;font-weight:700;font-size:12pt;color:#1E3A8A;padding-bottom:4pt;border-bottom:2px solid #1E3A8A;margin-bottom:6pt">${cabIns}</div>`:''}
 <div style="text-align:center;font-size:11pt;font-weight:700;margin:4pt 0 6pt;color:#1E3A8A">Anexo 1 – Plano Executivo dos Serviços de Manutenção</div>
 <table style="font-size:7.5pt;width:100%;border-collapse:collapse;border:1.5px solid #1E3A8A">
 <tr>
