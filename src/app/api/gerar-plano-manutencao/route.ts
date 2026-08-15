@@ -112,6 +112,19 @@ export async function POST(request: NextRequest) {
         cabInspetor: i.cabecalho_documentos || i.nome_inspetor || ''
       })
     }
+    // Modo info — retorna dados sem gerar HTML
+    if (nomeArquivo === '_info_') {
+      const { data: eArr } = await supabase.from('estabelecimento')
+        .select('razao_social_nome,razao_social').eq('cnpjoucpf', cnpjoucpf).limit(1)
+      const { data: iArr } = await supabase.from('inspetor')
+        .select('cabecalho_documentos,nome_inspetor').eq('cpf_inspetor', cpfInspetor).limit(1)
+      const e = eArr && eArr.length > 0 ? eArr[0] : {}
+      const i = iArr && iArr.length > 0 ? iArr[0] : {}
+      return NextResponse.json({
+        estabNome: e.razao_social_nome || e.razao_social || '',
+        cabInspetor: i.cabecalho_documentos || i.nome_inspetor || ''
+      })
+    }
     const ts = String(tipoServico)
     const tsApoio = TIPO_APOIO[ts] ?? ''
     const titulo = TITULO_PLANO[ts] ?? 'Plano de Manutenção'
@@ -309,7 +322,14 @@ tr:nth-child(even) td { background: #f7f9ff; }
       {n:'Anexo 1', t:'Plano Executivo dos Serviços de Manutenção', n1:true},
 
     ]
-    const indiceHtml = indiceItens.map(it =>
+    const pags: Record<string,string> = {
+      '1.':      '2', '1.1.-': '2', '1.2.-': '2',
+      '2.':      '3', '3.':    '3', '4.':    '3',
+      '5.':      '4', '5.1.-': '4', '5.2.-': '4', '5.3.-': '4', '5.4.-': '4',
+      '6.':      '5', '7.':    '5', '8.':    '5', '9.':    '5', '10.':   '5',
+      'Anexo 1': '6',
+    }
+        const indiceHtml = indiceItens.map(it =>
       `<div class="indice-item" style="${it.n1?'font-weight:700;':''}">` +
       `<span class="indice-num" style="color:#1E3A8A;${it.n1?'':'font-weight:400'}">${it.n}</span>` +
       `<span style="flex:1">${xe(it.t)}</span>` +
