@@ -112,19 +112,7 @@ export async function POST(request: NextRequest) {
         cabInspetor: i.cabecalho_documentos || i.nome_inspetor || ''
       })
     }
-    // Modo info — retorna dados sem gerar HTML
-    if (nomeArquivo === '_info_') {
-      const { data: eArr } = await supabase.from('estabelecimento')
-        .select('razao_social_nome,razao_social').eq('cnpjoucpf', cnpjoucpf).limit(1)
-      const { data: iArr } = await supabase.from('inspetor')
-        .select('cabecalho_documentos,nome_inspetor').eq('cpf_inspetor', cpfInspetor).limit(1)
-      const e = eArr && eArr.length > 0 ? eArr[0] : {}
-      const i = iArr && iArr.length > 0 ? iArr[0] : {}
-      return NextResponse.json({
-        estabNome: e.razao_social_nome || e.razao_social || '',
-        cabInspetor: i.cabecalho_documentos || i.nome_inspetor || ''
-      })
-    }
+
     const ts = String(tipoServico)
     const tsApoio = TIPO_APOIO[ts] ?? ''
     const titulo = TITULO_PLANO[ts] ?? 'Plano de Manutenção'
@@ -351,8 +339,8 @@ tr:nth-child(even) td { background: #f7f9ff; }
     ncsArr.forEach((nc:any, idx:number) => {
       const local = xe(nc.local_ocorrencia||nc.local||'')
       const compl = xe(nc.complemento_local||nc.complemento||'')
-      const tag   = xe(nc.tag_ativo_nr_serie||nc.tagNrSerie||'')
-      const ativo = xe(nc.tipo_ativo||nc.tipoAtivo||'')
+      const tag   = xe(nc.tag_ativo_nr_serie||nc.tagNrSerie||nc.tag||'')
+      const ativo = xe(nc.tipo_ativo||nc.tipoAtivo||nc.tipoativo||'')
       const gr  = Number(nc.grau_risco||nc.grauRisco)||0
       const cor = gr>80?'#CC0000':gr>=50?'#E8A000':gr>=30?'#EAB308':'#16A34A'
       const pri = gr>80?'Muito Alta':gr>=50?'Alta':gr>=30?'Média':'Baixa'
@@ -362,14 +350,16 @@ tr:nth-child(even) td { background: #f7f9ff; }
 <td colspan="2" style="font-size:6.5pt;color:#1E3A8A;padding:1pt 5pt"><b>Complemento local:</b></td>
 <td style="font-size:6.5pt;color:#1E3A8A;padding:1pt 5pt"><b>Tag/Nº Série:</b></td>
 <td style="font-size:6.5pt;color:#1E3A8A;padding:1pt 5pt"><b>Ativo:</b></td>
-<td colspan="2" style="font-size:6.5pt;color:#1E3A8A;padding:1pt 5pt;text-align:center"><b>Conclusão / Rubrica</b></td>
+<td style="font-size:6.5pt;color:#1E3A8A;padding:1pt 5pt;text-align:center"><b>Foto Nº</b></td>
+<td style="font-size:6.5pt;color:#1E3A8A;padding:1pt 5pt;text-align:center"><b>Responsável</b></td>
 </tr>
 <tr style="background:#eff6ff">
 <td colspan="2" style="font-size:7.5pt;padding:2pt 5pt">${local}</td>
 <td colspan="2" style="font-size:7.5pt;padding:2pt 5pt">${compl}</td>
 <td style="font-size:7.5pt;padding:2pt 5pt">${tag}</td>
 <td style="font-size:7.5pt;padding:2pt 5pt">${ativo}</td>
-<td colspan="2" style="font-size:7.5pt;padding:2pt 5pt;text-align:center"></td>
+<td style="font-size:7.5pt;padding:2pt 5pt;text-align:center"></td>
+<td style="font-size:7.5pt;padding:2pt 5pt"></td>
 </tr>`
         curLocal = local; curCompl = compl
       }
@@ -378,7 +368,7 @@ tr:nth-child(even) td { background: #f7f9ff; }
 <td>${xe(nc.descricao_nao_conformidade||nc.nc||'')}</td>
 <td style="text-align:center;font-weight:700;color:${cor}">${gr}</td>
 <td style="text-align:center;font-weight:700;color:${cor}">${pri}</td>
-<td>${xe(nc.descricao_solucao_nc||nc.solucao||'')}</td>
+<td>${xe(nc.descricao_solucao_nc||nc.solucao||nc.cp||'')}</td>
 <td>${xe(nc.procedimento_corretivo||'')}</td>
 <td style="text-align:center">${xe(nc.numero_foto||nc.fotoNr||'')}</td>
 <td></td>
@@ -525,7 +515,7 @@ ${cabIns?`<div style="text-align:center;font-weight:700;font-size:10pt;padding-b
 <div style="text-align:center;font-size:11pt;font-weight:700;margin:4pt 0 6pt;color:#1E3A8A">Anexo 1 – Plano Executivo dos Serviços de Manutenção</div>
 <table style="font-size:7.5pt;width:100%;border-collapse:collapse;border:1.5px solid #1E3A8A">
 <tr>
-  <th colspan="8" style="text-align:center;font-size:10pt;font-weight:700;background:#1E3A8A;color:#fff;padding:6pt">Plano Executivo para os Serviços de Manutenção</th>
+  <th colspan="8" style="text-align:center;font-size:10pt;font-weight:700;background:#1E3A8A;color:#fff;padding:6pt;border-bottom:2px solid #fff">Plano Executivo para os Serviços de Manutenção</th>
 </tr>
 <tr>
   <th style="width:4%">ID</th>
