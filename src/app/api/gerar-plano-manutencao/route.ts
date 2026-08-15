@@ -101,6 +101,17 @@ export async function POST(request: NextRequest) {
     if (!cpfInspetor || !tipoServico || !nomeArquivo)
       return NextResponse.json({ erro: 'Parâmetros obrigatórios ausentes.' }, { status: 400 })
 
+    // Modo info — apenas retorna dados sem gerar HTML
+    if (nomeArquivo === '_info_') {
+      const { data: eArr } = await supabase.from('estabelecimento').select('razao_social_nome,razao_social').eq('cnpjoucpf', cnpjoucpf).limit(1)
+      const { data: iArr } = await supabase.from('inspetor').select('cabecalho_documentos,nome_inspetor').eq('cpf_inspetor', cpfInspetor).limit(1)
+      const e = eArr && eArr.length > 0 ? eArr[0] : {}
+      const i = iArr && iArr.length > 0 ? iArr[0] : {}
+      return NextResponse.json({
+        estabNome: e.razao_social_nome || e.razao_social || '',
+        cabInspetor: i.cabecalho_documentos || i.nome_inspetor || ''
+      })
+    }
     const ts = String(tipoServico)
     const tsApoio = TIPO_APOIO[ts] ?? ''
     const titulo = TITULO_PLANO[ts] ?? 'Plano de Manutenção'
@@ -301,8 +312,8 @@ tr:nth-child(even) td { background: #f7f9ff; }
     const indiceHtml = indiceItens.map(it =>
       `<div class="indice-item" style="${it.n1?'font-weight:700;':''}">` +
       `<span class="indice-num" style="color:#1E3A8A;${it.n1?'':'font-weight:400'}">${it.n}</span>` +
-      `<span>${xe(it.t)}</span><span class="indice-dots"></span>` +
-      `<span style="min-width:30pt;text-align:right;font-size:8pt;color:#374151"></span>` +
+      `<span style="flex:1">${xe(it.t)}</span>` +
+      `<span style="min-width:24pt;text-align:right;color:#1E3A8A;font-weight:700;font-size:9pt">${pags[it.n]||''}</span>` +
       `</div>`
     ).join('')
 
@@ -327,11 +338,18 @@ tr:nth-child(even) td { background: #f7f9ff; }
       const pri = gr>80?'Muito Alta':gr>=50?'Alta':gr>=30?'Média':'Baixa'
       if (local !== curLocal || compl !== curCompl) {
         anx1Rows += `<tr style="background:#dbeafe">
-<td colspan="2" style="font-size:7.5pt;color:#1E3A8A"><b>Local:</b> ${local}</td>
-<td colspan="2" style="font-size:7.5pt;color:#1E3A8A"><b>Complemento:</b> ${compl}</td>
-<td style="font-size:7.5pt;color:#1E3A8A"><b>Tag/Nº Série:</b> ${tag}</td>
-<td style="font-size:7.5pt;color:#1E3A8A"><b>Ativo:</b> ${ativo}</td>
-<td colspan="2" style="font-size:7.5pt;color:#1E3A8A;text-align:center"><b>Conclusão / Rubrica</b></td>
+<td colspan="2" style="font-size:6.5pt;color:#1E3A8A;padding:1pt 5pt"><b>Local ocorrência:</b></td>
+<td colspan="2" style="font-size:6.5pt;color:#1E3A8A;padding:1pt 5pt"><b>Complemento local:</b></td>
+<td style="font-size:6.5pt;color:#1E3A8A;padding:1pt 5pt"><b>Tag/Nº Série:</b></td>
+<td style="font-size:6.5pt;color:#1E3A8A;padding:1pt 5pt"><b>Ativo:</b></td>
+<td colspan="2" style="font-size:6.5pt;color:#1E3A8A;padding:1pt 5pt;text-align:center"><b>Conclusão / Rubrica</b></td>
+</tr>
+<tr style="background:#eff6ff">
+<td colspan="2" style="font-size:7.5pt;padding:2pt 5pt">${local}</td>
+<td colspan="2" style="font-size:7.5pt;padding:2pt 5pt">${compl}</td>
+<td style="font-size:7.5pt;padding:2pt 5pt">${tag}</td>
+<td style="font-size:7.5pt;padding:2pt 5pt">${ativo}</td>
+<td colspan="2" style="font-size:7.5pt;padding:2pt 5pt;text-align:center"></td>
 </tr>`
         curLocal = local; curCompl = compl
       }
@@ -485,16 +503,9 @@ ${rodIns?`<div class="rod">${rodIns}</div>`:''}
 <div class="anx1-page">
 ${cabIns?`<div style="text-align:center;font-weight:700;font-size:10pt;padding-bottom:4pt;border-bottom:2px solid #1E3A8A;margin-bottom:6pt">${cabIns}</div>`:''}
 <div style="text-align:center;font-size:11pt;font-weight:700;margin:4pt 0 6pt;color:#1E3A8A">Anexo 1 – Plano Executivo dos Serviços de Manutenção</div>
-<table style="font-size:7.5pt;width:100%;border-collapse:collapse;outline:1.5px solid #1E3A8A">
+<table style="font-size:7.5pt;width:100%;border-collapse:collapse;border:1.5px solid #1E3A8A">
 <tr>
   <th colspan="8" style="text-align:center;font-size:10pt;font-weight:700;background:#1E3A8A;color:#fff;padding:6pt">Plano Executivo para os Serviços de Manutenção</th>
-</tr>
-<tr style="background:#dbeafe">
-  <td colspan="2" style="font-weight:700;color:#1E3A8A;font-size:7.5pt;padding:3pt 5pt;border:1px solid #1E3A8A">Local ocorrência: <span id="loc-header" style="font-weight:400"></span></td>
-  <td colspan="2" style="font-weight:700;color:#1E3A8A;font-size:7.5pt;padding:3pt 5pt;border:1px solid #1E3A8A">Complemento local:</td>
-  <td style="font-weight:700;color:#1E3A8A;font-size:7.5pt;padding:3pt 5pt;border:1px solid #1E3A8A">Tag/Nº Série:</td>
-  <td style="font-weight:700;color:#1E3A8A;font-size:7.5pt;padding:3pt 5pt;border:1px solid #1E3A8A">Ativo:</td>
-  <td colspan="2" style="font-weight:700;color:#1E3A8A;font-size:7.5pt;padding:3pt 5pt;border:1px solid #1E3A8A;text-align:center">Conclusão / Rubrica</td>
 </tr>
 <tr>
   <th style="width:4%">ID</th>

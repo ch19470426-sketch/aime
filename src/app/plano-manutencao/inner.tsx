@@ -103,17 +103,17 @@ export default function PlanoManutencaoInner() {
 
   async function carregarInfo() {
     try {
-      const [eArr, insArr, ncRes] = await Promise.all([
-        q('estabelecimento', `cnpjoucpf=eq.${cnpjoucpf}&select=razao_social_nome,razao_social`),
-        q('inspetor', `cpf_inspetor=eq.${cpfInspetor}&select=cabecalho_documentos,nome_inspetor`),
+      const [infoRes, ncRes] = await Promise.all([
+        fetch(`/api/gerar-plano-manutencao`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ cpfInspetor, chaveInspetor: chaveInsp, cnpjoucpf, tipoServico, nomeArquivo: '_info_', ncs: [] })
+        }),
         fetch(`/api/listar-vistorias?chave_inspetor=${chaveInsp}&cnpjoucpf=${cnpjoucpf}&tipo_servico=${tsApoioNum}`)
       ])
-      const e   = Array.isArray(eArr)   && eArr.length   > 0 ? eArr[0]   : {}
-      const ins = Array.isArray(insArr) && insArr.length > 0 ? insArr[0] : {}
+      const info = await infoRes.json()
       const dadosNCs = await ncRes.json()
-      const nome = e.razao_social_nome || e.razao_social || ''
-      setEstabNome(nome || cnpjoucpf)
-      setCabInspetor(ins.cabecalho_documentos || ins.nome_inspetor || '')
+      setEstabNome(info.estabNome || cnpjoucpf)
+      setCabInspetor(info.cabInspetor || '')
       setNcs(dadosNCs.ncs ?? [])
       setEtapa('banner')
     } catch (err) { setErro(String(err)); setEtapa('erro') }
