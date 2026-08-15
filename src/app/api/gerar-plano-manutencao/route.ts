@@ -205,7 +205,7 @@ b, strong { font-weight: bold; }
 .no-break { page-break-inside: avoid; }
 .ass { margin-top: 40pt; text-align: center; }
 @media print { body { font-size: 9pt; } .section { page-break-before: always; counter-increment: page; } table { page-break-inside: auto; outline: 1.5px solid #1E3A8A; } p { page-break-inside: avoid; orphans: 4; widows: 4; } }
-.cab { text-align: center; font-weight: bold; padding-bottom: 4pt; border-bottom: 2px solid #1E3A8A; margin-bottom: 6pt; font-size: 8.5pt; }
+.cab { text-align: center; font-weight: 700; padding-bottom: 4pt; border-bottom: 2px solid #1E3A8A; margin-bottom: 6pt; font-size: 12pt; }
 .rod { margin-top: 10pt; padding-top: 4pt; border-top: 1px solid #ccc; font-size: 8pt; text-align: center; white-space: pre-line; color: #374151; }
 .pag-num { font-size: 7.5pt; color: #374151; text-align: right; margin-top: 4pt; }
 .titulo { font-size: 10pt; font-weight: 700; color: #000; margin: 12pt 0 4pt; padding: 0; }
@@ -381,8 +381,8 @@ tr:nth-child(even) td { background: #f7f9ff; }
 <td style="text-align:center;font-weight:700;color:${cor}">${pri}</td>
 <td style='vertical-align:top'>${xe(solMap[String(nc.fotoNr||nc.numero_foto||'').replace(/^0+/,'')||'0']||nc.solucaoNC||nc.descricao_solucao_nc||nc.solucao||'')}</td>
 <td>${xe(nc.procedimento_corretivo||'')}</td>
-
-<td></td>
+'<td style="text-align:center;border:1px solid #1E3A8A">${xe(nc.fotoNr||nc.numero_foto||\'\')}</td>'
+'<td style="border:1px solid #1E3A8A"></td>'
 </tr>`
     })
 
@@ -424,7 +424,7 @@ tr:nth-child(even) td { background: #f7f9ff; }
 
 <!-- CORPO -->
 <div>
-${cabIns?`<div style="text-align:center;font-weight:700;font-size:12pt;color:#1E3A8A;padding-bottom:4pt;border-bottom:2px solid #1E3A8A;margin-bottom:6pt">${cabIns}</div>`:''}
+${cabIns?`<div class="cab">${cabIns}</div>`:''}
 <br><br><br><br><br>
 
 <div class="titulo">1.- Considerações Preliminares.</div>
@@ -522,7 +522,7 @@ ${rodIns?`<div class="rod">${rodIns}</div>`:''}
   .anx1-page { page: anx1page; }
 </style>
 <div class="anx1-page">
-${cabIns?`<div style="text-align:center;font-weight:700;font-size:12pt;color:#1E3A8A;padding-bottom:4pt;border-bottom:2px solid #1E3A8A;margin-bottom:6pt">${cabIns}</div>`:''}
+${cabIns?`<div class="cab">${cabIns}</div>`:''}
 <div style="text-align:center;font-size:11pt;font-weight:700;margin:4pt 0 6pt;color:#1E3A8A">Anexo 1 – Plano Executivo dos Serviços de Manutenção</div>
 <table style="font-size:7.5pt;width:100%;border-collapse:collapse;border:1.5px solid #1E3A8A">
 <tr>
