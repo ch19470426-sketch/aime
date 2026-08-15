@@ -112,7 +112,6 @@ export default function PlanoManutencaoInner() {
       ])
       const info = await infoRes.json()
       const dadosNCs = await ncRes.json()
-      console.log('[PM] info retornado:', JSON.stringify(info))
       setEstabNome(info.estabNome || cnpjoucpf)
       setCabInspetor(info.cabInspetor || '')
       setNcs(dadosNCs.ncs ?? [])
