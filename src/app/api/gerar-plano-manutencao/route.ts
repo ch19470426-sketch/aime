@@ -381,7 +381,7 @@ tr:nth-child(even) td { background: #f7f9ff; }
 <td style="text-align:center;font-weight:700;color:${cor}">${pri}</td>
 <td style='vertical-align:top'>${xe(solMap[String(nc.fotoNr||nc.numero_foto||'').replace(/^0+/,'')||'0']||nc.solucaoNC||nc.descricao_solucao_nc||nc.solucao||'')}</td>
 <td>${xe(nc.procedimento_corretivo||'')}</td>
-'<td style="text-align:center;border:1px solid #1E3A8A">${xe(nc.fotoNr||nc.numero_foto||\'\')}</td>'
+'<td style="text-align:center;border:1px solid #1E3A8A">${xe(nc.fotoNr||nc.numero_foto||"")}</td>'
 '<td style="border:1px solid #1E3A8A"></td>'
 </tr>`
     })
