@@ -330,6 +330,7 @@ tr:nth-child(even) td { background: #f7f9ff; }
     const { data: dvSol } = await supabase.from('dados_vistoria')
       .select('numero_foto,descricao_solucao_nc')
       .eq('cpf_inspetor', cpfInspetor).eq('cnpjoucpf', cnpjoucpf)
+      .eq('tipo_servico', tipoApoio)
     const solMap: Record<string,string> = {}
     if (dvSol) dvSol.forEach((r:any) => {
       const k = String(r.numero_foto||'').replace(/^0+/,'')||'0'
@@ -356,7 +357,7 @@ tr:nth-child(even) td { background: #f7f9ff; }
       const gr  = Number(nc.grau_risco||nc.grauRisco)||0
       const cor = gr>80?'#CC0000':gr>=50?'#E8A000':gr>=30?'#EAB308':'#16A34A'
       const pri = gr>80?'Muito Alta':gr>=50?'Alta':gr>=30?'Média':'Baixa'
-      if (local !== curLocal || compl !== curCompl) {
+      if (local !== curLocal) {
         anx1Rows += `<tr style="background:#dbeafe">
 <td colspan="2" style="font-size:6.5pt;color:#1E3A8A;padding:1pt 5pt"><b>Local ocorrência:</b></td>
 <td colspan="2" style="font-size:6.5pt;color:#1E3A8A;padding:1pt 5pt"><b>Complemento local:</b></td>
@@ -372,7 +373,7 @@ tr:nth-child(even) td { background: #f7f9ff; }
 <td style="font-size:7.5pt;padding:2pt 5pt">${ativo}</td>
 
 </tr>`
-        curLocal = local; curCompl = compl
+        curLocal = local
       }
       anx1Rows += `<tr>
 <td style="text-align:center">${idx+1}</td>
