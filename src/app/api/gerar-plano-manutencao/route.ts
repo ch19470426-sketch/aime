@@ -107,10 +107,9 @@ export async function POST(request: NextRequest) {
       const { data: iArr } = await supabase.from('inspetor').select('cabecalho_documentos,nome_inspetor').eq('cpf_inspetor', cpfInspetor).limit(1)
       const e = eArr && eArr.length > 0 ? eArr[0] : {}
       const i = iArr && iArr.length > 0 ? iArr[0] : {}
-      return NextResponse.json({
-        estabNome: e.razao_social_nome || e.razao_social || '',
-        cabInspetor: i.cabecalho_documentos || i.nome_inspetor || ''
-      })
+      const estabNomeVal = (e as any).razao_social_nome || (e as any).razao_social || ''
+      const cabInsVal = (i as any).cabecalho_documentos || (i as any).nome_inspetor || ''
+      return NextResponse.json({ estabNome: estabNomeVal, cabInspetor: cabInsVal, _debug: { e, i } })
     }
 
     const ts = String(tipoServico)
@@ -318,9 +317,9 @@ tr:nth-child(even) td { background: #f7f9ff; }
       'Anexo 1': '6',
     }
         const indiceHtml = indiceItens.map(it =>
-      `<div class="indice-item" style="${it.n1?'font-weight:700;':''}">` +
-      `<span class="indice-num" style="color:#1E3A8A;${it.n1?'':'font-weight:400'}">${it.n}</span>` +
-      `<span style="flex:1">${xe(it.t)}</span>` +
+      `<div class="indice-item">` +
+      `<span class="indice-num" style="color:#1E3A8A;font-weight:${it.n1?'700':'400'}">${it.n}</span>` +
+      `<span style="flex:1;color:#1E3A8A;font-weight:${it.n1?'700':'400'}">${xe(it.t)}</span>` +
       `<span style="min-width:24pt;text-align:right;color:#1E3A8A;font-weight:700;font-size:9pt">${pags[it.n]||''}</span>` +
       `</div>`
     ).join('')
@@ -350,16 +349,15 @@ tr:nth-child(even) td { background: #f7f9ff; }
 <td colspan="2" style="font-size:6.5pt;color:#1E3A8A;padding:1pt 5pt"><b>Complemento local:</b></td>
 <td style="font-size:6.5pt;color:#1E3A8A;padding:1pt 5pt"><b>Tag/Nº Série:</b></td>
 <td style="font-size:6.5pt;color:#1E3A8A;padding:1pt 5pt"><b>Ativo:</b></td>
-<td style="font-size:6.5pt;color:#1E3A8A;padding:1pt 5pt;text-align:center"><b>Foto Nº</b></td>
-<td style="font-size:6.5pt;color:#1E3A8A;padding:1pt 5pt;text-align:center"><b>Responsável</b></td>
+<td rowspan="3" style="font-size:8pt;font-weight:700;color:#1E3A8A;padding:3pt;text-align:center;vertical-align:middle;border:1px solid #1E3A8A">Foto Nº<br>na Vistoria</td>
+<td rowspan="3" style="font-size:8pt;font-weight:700;color:#1E3A8A;padding:3pt;text-align:center;vertical-align:middle;border:1px solid #1E3A8A">Aceite do responsável<br>na conclusão</td>
 </tr>
 <tr style="background:#eff6ff">
 <td colspan="2" style="font-size:7.5pt;padding:2pt 5pt">${local}</td>
 <td colspan="2" style="font-size:7.5pt;padding:2pt 5pt">${compl}</td>
 <td style="font-size:7.5pt;padding:2pt 5pt">${tag}</td>
 <td style="font-size:7.5pt;padding:2pt 5pt">${ativo}</td>
-<td style="font-size:7.5pt;padding:2pt 5pt;text-align:center"></td>
-<td style="font-size:7.5pt;padding:2pt 5pt"></td>
+
 </tr>`
         curLocal = local; curCompl = compl
       }
@@ -368,9 +366,9 @@ tr:nth-child(even) td { background: #f7f9ff; }
 <td>${xe(nc.descricao_nao_conformidade||nc.nc||'')}</td>
 <td style="text-align:center;font-weight:700;color:${cor}">${gr}</td>
 <td style="text-align:center;font-weight:700;color:${cor}">${pri}</td>
-<td>${xe(nc.descricao_solucao_nc||nc.solucao||nc.cp||'')}</td>
+<td>${xe(nc.solucaoNC||nc.descricao_solucao_nc||nc.solucao||'')}</td>
 <td>${xe(nc.procedimento_corretivo||'')}</td>
-<td style="text-align:center">${xe(nc.numero_foto||nc.fotoNr||'')}</td>
+
 <td></td>
 </tr>`
     })
