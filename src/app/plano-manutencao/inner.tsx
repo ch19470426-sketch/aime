@@ -81,6 +81,7 @@ export default function PlanoManutencaoInner() {
   const [nomeArq,   setNomeArq]  = useState('')
   const [status,    setStatus]   = useState('')
   const [enviando,  setEnviando] = useState(false)
+  const [htmlGerado, setHtmlGerado] = useState('')
   const inputPdfRef = useRef<HTMLInputElement>(null)
 
   const titulo      = TITULO[tipoServico] ?? 'Plano de Manutenção'
@@ -143,7 +144,7 @@ export default function PlanoManutencaoInner() {
       const data = await res.json()
       if (!res.ok || data.erro) { setErro(data.erro ?? 'Erro ao gerar.'); setEtapa('erro'); return }
 
-      if (data.html) { try { sessionStorage.setItem('laudoHtml_' + nome, data.html) } catch {} }
+      if (data.html) { try { sessionStorage.setItem('laudoHtml_' + nome, data.html) } catch {}; setHtmlGerado(data.html) }
       setNomeArq(nome)
       setBlobUrl(URL.createObjectURL(new Blob([data.html], { type: 'text/html;charset=utf-8' })))
       setEtapa('gerado')
@@ -151,13 +152,55 @@ export default function PlanoManutencaoInner() {
   }
 
   function salvarPDF() {
+    if (!htmlGerado) return
+    // Extrair cab e rod do HTML
+    const mCab = htmlGerado.match(/<div class="cab">([\s\S]*?)<\/div>/)
+    const mRod = htmlGerado.match(/<div class="rod">([\s\S]*?)<\/div>/)
+    const cabTxt = mCab ? mCab[1].replace(/<[^>]+>/g,'').trim() : ''
+    const rodTxt = mRod ? mRod[1].replace(/<[^>]+>/g,'').trim() : ''
+
+    const printCss = `
+      @page {
+        size: A4;
+        margin: 20mm 20mm 15mm 25mm;
+        @top-center {
+          content: ${JSON.stringify(cabTxt || 'AIMÊ — Mapeamento Inteligente de Edificações e Equipamentos')};
+          font-family: Arial, sans-serif; font-size: 8pt; color: #374151;
+          border-bottom: 1.5px solid #1E3A8A; padding-bottom: 3pt; width: 100%; text-align: center;
+        }
+        @bottom-left {
+          content: ${JSON.stringify(rodTxt || '')};
+          font-family: Arial, sans-serif; font-size: 7.5pt; color: #374151;
+          border-top: 1px solid #ccc; padding-top: 3pt;
+        }
+        @bottom-right {
+          content: 'Pág. ' counter(page);
+          font-family: Arial, sans-serif; font-size: 7.5pt; color: #374151;
+          border-top: 1px solid #ccc; padding-top: 3pt;
+        }
+      }
+      body { -webkit-print-color-adjust: exact; print-color-adjust: exact; margin: 0 !important; }
+      .cab, .rod { display: none !important; }
+      .pg-capa { page-break-after: always; }
+    `
+    const nomeBase = nomeArq.replace('.html','') + '.pdf'
+    const htmlPrint = htmlGerado
+      .replace(/<title>[^<]*<\/title>/, `<title>${nomeBase}</title>`)
+      .replace('</head>', `<style>${printCss}</style></head>`)
+      .replace('</body>', `<script>
+        document.title = ${JSON.stringify(nomeBase)};
+        window.addEventListener('load', function() {
+          document.title = ${JSON.stringify(nomeBase)};
+          setTimeout(function() { window.print(); }, 600);
+        });
+      </script></body>`)
+
+    const blob = new Blob([htmlPrint], { type: 'text/html;charset=utf-8' })
+    const url  = URL.createObjectURL(blob)
     const a = document.createElement('a')
-    a.href = blobUrl
-    a.target = '_blank'
-    a.rel = 'noopener'
-    document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
+    a.href = url; a.target = '_blank'; a.rel = 'noopener'
+    document.body.appendChild(a); a.click(); document.body.removeChild(a)
+    setTimeout(() => URL.revokeObjectURL(url), 10000)
   }
 
   async function enviarPdfAssinado(e: React.ChangeEvent<HTMLInputElement>) {
@@ -218,12 +261,10 @@ export default function PlanoManutencaoInner() {
             {/* Bloco 1 */}
             <div style={S.block}>
               <div style={S.blockTitle}>Edificação/Estabelecimento</div>
-              <div style={{ padding: '8px 10px', fontSize: '9pt', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontWeight: 600 }}>{estabNome}</span>
-                <span style={{ color: '#6B7280', fontSize: '8pt' }}>
-                  {cnpjoucpf.replace(/\D/g,'').length===14
-                    ? cnpjoucpf.replace(/\D/g,'').replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/,'$1.$2.$3/$4-$5')
-                    : cnpjoucpf.replace(/\D/g,'').replace(/(\d{3})(\d{3})(\d{3})(\d{2})/,'$1.$2.$3-$4')}
+              <div style={{ padding: '8px 10px', fontSize: '9pt', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
+                <span style={{ fontWeight: 600, flex: 1 }}>{estabNome}</span>
+                <span style={{ color: '#6B7280', fontSize: '8pt', flexShrink: 0 }}>
+                  {(()=>{ const n=cnpjoucpf.replace(/\D/g,''); return n.length===14?n.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/,'$1.$2.$3/$4-$5'):n.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/,'$1.$2.$3-$4') })()}
                 </span>
               </div>
             </div>
@@ -238,10 +279,10 @@ export default function PlanoManutencaoInner() {
                   <p>▶ Revise o plano gerado antes de homologar e assinar.</p>
                   <p>▶ Após a geração, faça o upload do PDF assinado para finalizar.</p>
                 </div>
-                <div style={{ flexShrink: 0 }}>
-                  <Image src="/mie.orienta.png" alt="Miê" width={70} height={70}
+                <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center' }}>
+                  <img src="/mie.orienta.png" alt="Miê" width={70} height={70}
                     style={{ objectFit: 'contain' }}
-                    onError={(e:any) => e.target.style.display='none'} />
+                    onError={(e:any) => (e.target as HTMLImageElement).style.display='none'} />
                 </div>
               </div>
             </div>
