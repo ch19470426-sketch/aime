@@ -127,7 +127,6 @@ export async function POST(request: NextRequest) {
     const { data: ccDB } = await supabase
       .from('contato_cliente').select('*')
       .eq('cpf_inspetor', cpfInspetor).eq('cnpjoucpf', cnpjoucpf)
-      .eq('tipo_servico', tsApoio)
       .order('data_cadastro', { ascending: false }).limit(1)
     if (ccDB && ccDB.length > 0) estab = { ...estab, ...ccDB[0] }
 
@@ -135,7 +134,6 @@ export async function POST(request: NextRequest) {
     const { data: ativosDB } = await supabase
       .from('ativos_a_vistoriar').select('*')
       .eq('cpf_inspetor', cpfInspetor).eq('cnpjoucpf', cnpjoucpf)
-      .eq('tipo_servico', tsApoio)
     estab.ativos = ativosDB ?? []
 
     // CEP → endereço (igual aos laudos)
@@ -330,7 +328,6 @@ tr:nth-child(even) td { background: #f7f9ff; }
     const { data: dvSol } = await supabase.from('dados_vistoria')
       .select('numero_foto,descricao_solucao_nc')
       .eq('cpf_inspetor', cpfInspetor).eq('cnpjoucpf', cnpjoucpf)
-      .eq('tipo_servico', tsApoio)
     const solMap: Record<string,string> = {}
     if (dvSol) dvSol.forEach((r:any) => {
       const k = String(r.numero_foto||'').replace(/^0+/,'')||'0'
@@ -518,10 +515,10 @@ ${rodIns?`<div class="rod">${rodIns}</div>`:''}
 
 <!-- ANEXO 1 — paisagem -->
 <div class="section" style="page-break-before:always">
-<style>
-  @page anx1page { size: A4 landscape; margin: 15mm 15mm 15mm 20mm; }
-  .anx1-page { page: anx1page; }
-</style>
+''
+''
+''
+''
 <div class="anx1-page">
 ${cabIns?`<div class="cab">${cabIns}</div>`:''}
 <div style="text-align:center;font-size:11pt;font-weight:700;margin:4pt 0 6pt;color:#1E3A8A">Anexo 1 – Plano Executivo dos Serviços de Manutenção</div>
