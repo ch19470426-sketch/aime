@@ -330,7 +330,7 @@ tr:nth-child(even) td { background: #f7f9ff; }
     const { data: dvSol } = await supabase.from('dados_vistoria')
       .select('numero_foto,descricao_solucao_nc')
       .eq('cpf_inspetor', cpfInspetor).eq('cnpjoucpf', cnpjoucpf)
-      .eq('tipo_servico', tipoApoio)
+      .eq('tipo_servico', tsApoio)
     const solMap: Record<string,string> = {}
     if (dvSol) dvSol.forEach((r:any) => {
       const k = String(r.numero_foto||'').replace(/^0+/,'')||'0'
