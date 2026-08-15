@@ -175,17 +175,11 @@ export async function POST(request: NextRequest) {
 
     // ── CSS idêntico aos laudos 41-44 ─────────────────────────────────────
     const CSS = `
-@page { size: A4; margin: 25mm 20mm 20mm 25mm;
-  @top-left { content: none; }
-  @top-center { content: none; }
-  @top-right { content: none; }
-  @bottom-left { content: none; }
-  @bottom-center { content: none; }
-  @bottom-right { content: "Pág. " counter(page); font-family: Arial, sans-serif; font-size: 7.5pt; color: #374151; }
-}
+@page { size: A4; margin: 25mm 20mm 20mm 25mm; }
+@page :first { margin: 0 !important; }
 @media print {
-  @page { margin: 25mm 20mm 20mm 25mm; }
   head, title { display: none; }
+  body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 .rodape-fixo { position: running(rodapefixo); }
@@ -196,12 +190,13 @@ h1, h2, h3 { font-weight: bold; color: #000; margin: 10pt 0 4pt; }
 ul, ol { margin: 4pt 0 4pt 1cm; padding: 0; }
 li { margin-bottom: 2pt; text-align: justify; }
 b, strong { font-weight: bold; }
-.section { page-break-before: always; }
+.section { page-break-before: always; counter-increment: page; }
 .no-break { page-break-inside: avoid; }
 .ass { margin-top: 40pt; text-align: center; }
-@media print { body { font-size: 9pt; } .section { page-break-before: always; } table { page-break-inside: auto; outline: 1.5px solid #1E3A8A; } p { page-break-inside: avoid; orphans: 4; widows: 4; } }
+@media print { body { font-size: 9pt; } .section { page-break-before: always; counter-increment: page; } table { page-break-inside: auto; outline: 1.5px solid #1E3A8A; } p { page-break-inside: avoid; orphans: 4; widows: 4; } }
 .cab { text-align: center; font-weight: bold; padding-bottom: 4pt; border-bottom: 2px solid #1E3A8A; margin-bottom: 6pt; font-size: 8.5pt; }
 .rod { margin-top: 10pt; padding-top: 4pt; border-top: 1px solid #ccc; font-size: 8pt; text-align: center; white-space: pre-line; color: #374151; }
+.pag-num { font-size: 7.5pt; color: #374151; text-align: right; margin-top: 4pt; }
 .titulo { font-size: 10pt; font-weight: 700; color: #000; margin: 12pt 0 4pt; padding: 0; }
 .bloco { border: 1.5px solid #1E3A8A; overflow: hidden; margin-bottom: 14px; page-break-inside: avoid; }
 .bloco-header { background: #1E3A8A; color: #fff; font-size: 9pt; font-weight: 700; padding: 6px 10px; }
@@ -223,7 +218,7 @@ tr:nth-child(even) td { background: #f7f9ff; }
 .pg-capa { page-break-after:always; display:flex; flex-direction:column; height:297mm; min-height:297mm; box-sizing:border-box; overflow:hidden; }
 @page :first { margin:0 !important; }
 .pg-capa { counter-reset: page 0; }
-.pg-indice { page-break-after: always; padding-top: 10mm; }
+.pg-indice { page-break-after: always; padding-top: 10mm; counter-reset: page 1; }
 .indice-titulo { font-size: 14pt; font-weight: 900; color: #1E3A8A; text-align: center; margin-bottom: 16pt; border-bottom: 2px solid #1E3A8A; padding-bottom: 6pt; }
 .indice-item { display: flex; align-items: baseline; padding: 3pt 0; font-size: 9pt; }
 .indice-num { min-width: 40pt; font-weight: 700; color: #1E3A8A; flex-shrink: 0; }
@@ -301,7 +296,7 @@ tr:nth-child(even) td { background: #f7f9ff; }
       {n:'9.',      t:'Controle da Execução e Indicadores de Desempenho', n1:true},
       {n:'10.',     t:'Considerações Finais', n1:true},
       {n:'Anexo 1', t:'Plano Executivo dos Serviços de Manutenção', n1:true},
-      {n:'Anexo 2', t:'Modelo de Termo de Recebimento de Serviços', n1:true},
+
     ]
     const indiceHtml = indiceItens.map(it =>
       `<div class="indice-item" style="${it.n1?'font-weight:700;':''}">` +
@@ -312,7 +307,14 @@ tr:nth-child(even) td { background: #f7f9ff; }
     ).join('')
 
     // ── Anexo 1 (formato aba Excel) ────────────────────────────────────────
-    const ncsArr: any[] = Array.isArray(ncs) ? ncs : []
+    // Classificar NCs por local_ocorrencia + complemento_local + grau_risco DESC
+    const ncsArr: any[] = [...(Array.isArray(ncs) ? ncs : [])].sort((a:any,b:any) => {
+      const la = String(a.local_ocorrencia||a.local||''), lb = String(b.local_ocorrencia||b.local||'')
+      if (la !== lb) return la.localeCompare(lb)
+      const ca = String(a.complemento_local||a.complemento||''), cb = String(b.complemento_local||b.complemento||'')
+      if (ca !== cb) return ca.localeCompare(cb)
+      return (Number(b.grau_risco||b.grauRisco)||0) - (Number(a.grau_risco||a.grauRisco)||0)
+    })
     let anx1Rows = ''
     let curLocal = '', curCompl = ''
     ncsArr.forEach((nc:any, idx:number) => {
@@ -403,6 +405,7 @@ ${tabAtivos}
 ${paragrafoHtml(grupo5154?OBJETIVOS_51_54:OBJETIVOS_55_58)}
 
 <div class="titulo">3.- Base Normativa.</div>
+<p>A base normativa e legal aplicável ao presente Plano de Manutenção foi estabelecida em conformidade com as disposições da ABNT NBR 5674 — Manutenção de edificações — Requisitos para o sistema de gestão de manutenção, e demais normas técnicas, regulamentos e legislações vigentes pertinentes ao escopo dos serviços a executar.</p>
 <p>${xe(BASE_NORMATIVA[ts]||'')}</p>
 
 <div class="titulo">4.- Responsabilidade da Contratada.</div>
@@ -439,7 +442,7 @@ ${paragrafoHtml(grupo5154?OBJETIVOS_51_54:OBJETIVOS_55_58)}
 <p style="margin:2pt 0 2pt 10pt">&#8226;&nbsp;os testes e ensaios apresentaram resultados satisfatórios;</p>
 <p style="margin:2pt 0 2pt 10pt">&#8226;&nbsp;a documentação técnica foi atualizada;</p>
 <p style="margin:2pt 0 2pt 10pt">&#8226;&nbsp;os registros de manutenção foram emitidos;</p>
-<p style="margin:2pt 0 2pt 10pt">&#8226;&nbsp;foram entregues ART/TRT, quando exigidas pela legislação.</p>
+<p style="margin:2pt 0 2pt 10pt">&#8226;&nbsp;foram emitidos registros e documentação técnica dos serviços executados.</p>
 <p>O recebimento será formalizado pela assinatura do Termo de Recebimento constante no Anexo 2 deste Plano.</p>
 
 <div class="titulo">7.- Apresentação da Proposta.</div>
@@ -469,11 +472,11 @@ ${paragrafoHtml(grupo5154?OBJETIVOS_51_54:OBJETIVOS_55_58)}
 <p>Recomenda-se que este Plano seja periodicamente revisado e atualizado, assegurando a melhoria contínua dos processos de manutenção e da gestão dos ativos.</p>
 
 <div style="margin-top:40pt">
-  <p>${cidade}/${uf}, ${dataHoje}.</p>
+  <p style="text-align:right">${cidade}/${uf}, ${dataHoje}.</p>
   <br><br><br>
-  <p style="border-top:1px solid #000;min-width:200pt;max-width:280pt;padding-top:4pt;font-weight:700">${nomeIns}</p>
-  <p style="font-size:9pt">${xe(tituloIns)} — ${siglaIns} ${xe(numIns)}</p>
-  ${espIns?`<p style="font-size:8pt;color:#374151">Especialista ${espIns}</p>`:''}
+  <p style="border-top:1px solid #000;min-width:200pt;max-width:280pt;padding-top:4pt">${nomeIns}</p>
+  <p>${xe(tituloIns)} — ${siglaIns} ${xe(numIns)}</p>
+  ${espIns?`<p>${espIns}</p>`:''}
 </div>
 
 ${rodIns?`<div class="rod">${rodIns}</div>`:''}
@@ -500,24 +503,6 @@ ${anx1Rows||'<tr><td colspan="8" style="text-align:center;color:#9a3412;font-sty
 ${rodIns?`<div class="rod">${rodIns}</div>`:''}
 </div>
 
-<!-- ANEXO 2 -->
-<div class="section">
-${cabIns?`<div class="cab">${cabIns}</div>`:''}
-<div class="titulo">Anexo 2 – Modelo de Termo de Recebimento de Serviços</div>
-<p>Documento destinado ao aceite formal dos serviços executados, mediante confirmação da conformidade técnica, operacional e documental.</p>
-<div class="bloco" style="margin-top:8pt">
-  <div class="bloco-header">Termo de Recebimento dos Serviços</div>
-  <div style="padding:12pt">
-    <p>Declaro que os serviços previstos neste plano de manutenção foram executados em conformidade com as especificações técnicas estabelecidas, tendo sido verificadas as condições de segurança, funcionamento e desempenho dos equipamentos, bem como a eliminação das não conformidades constantes do laudo técnico de inspeção.</p>
-    <br>
-    <table style="outline:none">
-      <tr><td style="border:none;outline:none">Contratante: ________________________________</td><td style="border:none;outline:none">Data: _____ / _____ / _____</td></tr>
-      <tr><td style="border:none;outline:none">Responsável técnico: _________________________</td><td style="border:none;outline:none">CREA/CFT: _______________</td></tr>
-    </table>
-  </div>
-</div>
-${rodIns?`<div class="rod">${rodIns}</div>`:''}
-</div>
 
 </body></html>`
 

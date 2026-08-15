@@ -220,19 +220,29 @@ export default function PlanoManutencaoInner() {
               <div style={S.blockTitle}>Edificação/Estabelecimento</div>
               <div style={{ padding: '8px 10px', fontSize: '9pt', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <span style={{ fontWeight: 600 }}>{estabNome}</span>
-                <span style={{ color: '#6B7280', fontSize: '8pt' }}>{cnpjoucpf}</span>
+                <span style={{ color: '#6B7280', fontSize: '8pt' }}>
+                  {cnpjoucpf.replace(/\D/g,'').length===14
+                    ? cnpjoucpf.replace(/\D/g,'').replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/,'$1.$2.$3/$4-$5')
+                    : cnpjoucpf.replace(/\D/g,'').replace(/(\d{3})(\d{3})(\d{3})(\d{2})/,'$1.$2.$3-$4')}
+                </span>
               </div>
             </div>
 
             {/* Orientação */}
             <div style={S.block}>
               <div style={S.blockTitle}>Informações gerais para Geração do Plano</div>
-              <div style={{ padding: '8px 10px', fontSize: '8.5pt', color: '#374151', lineHeight: 1.7 }}>
-                <p>▶ Confirme que existe vistoria homologada para este estabelecimento.</p>
-                <p>▶ Foram encontradas <b style={{ color: '#1E3A8A' }}>{ncs.length}</b> não conformidade(s) na vistoria homologada.</p>
-                <p>▶ A IA irá gerar o procedimento corretivo para cada não conformidade.</p>
-                <p>▶ Revise o plano gerado antes de homologar e assinar.</p>
-                <p>▶ Após a geração, faça o upload do PDF assinado para finalizar.</p>
+              <div style={{ padding: '8px 10px', fontSize: '8.5pt', color: '#374151', lineHeight: 1.7, display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+                <div style={{ flex: 1 }}>
+                  <p>▶ Foram encontradas <b style={{ color: '#1E3A8A' }}>{ncs.length}</b> não conformidade(s) na vistoria homologada.</p>
+                  <p>▶ A IA irá gerar o procedimento corretivo para cada não conformidade.</p>
+                  <p>▶ Revise o plano gerado antes de homologar e assinar.</p>
+                  <p>▶ Após a geração, faça o upload do PDF assinado para finalizar.</p>
+                </div>
+                <div style={{ flexShrink: 0 }}>
+                  <Image src="/mie.orienta.png" alt="Miê" width={70} height={70}
+                    style={{ objectFit: 'contain' }}
+                    onError={(e:any) => e.target.style.display='none'} />
+                </div>
               </div>
             </div>
 
@@ -265,15 +275,10 @@ export default function PlanoManutencaoInner() {
         {etapa === 'gerado' && (
           <div style={S.formBody}>
             <div style={S.block}>
-              <div style={{ padding: '8px 10px', fontSize: '8.5pt', color: '#374151', lineHeight: 1.5 }}>
-                Plano gerado com sucesso. Baixe o documento, revise e assine digitalmente.
-                Após, faça o upload do PDF assinado para finalizar.<br />
-                <b>⚠️ Lembre-se de inserir a ART no Anexo 2 antes de assinar.</b>
+              <div style={{ padding: '8px 10px', fontSize: '8.5pt', color: '#374151', lineHeight: 1.5, textAlign: 'center' }}>
+                <b style={{ color: '#1E3A8A' }}>✅ Plano de Manutenção gerado com sucesso!</b><br />
+                Baixe o documento, revise e assine digitalmente. Após, faça o upload do PDF assinado.
               </div>
-            </div>
-
-            <div style={{ border: '1px solid #c3d4f0', borderRadius: 6, overflow: 'hidden', height: 500 }}>
-              <iframe src={blobUrl} style={{ width: '100%', height: '100%', border: 'none' }} />
             </div>
 
             <input ref={inputPdfRef} type="file" accept=".pdf" style={{ display: 'none' }}
@@ -290,6 +295,10 @@ export default function PlanoManutencaoInner() {
                 onClick={() => inputPdfRef.current?.click()} disabled={enviando}>
                 {enviando ? 'Enviando...' : '↑ PDF Assinado'}
               </button>
+            </div>
+
+            <div style={{ border: '1px solid #c3d4f0', borderRadius: 6, overflow: 'hidden', height: 500, marginTop: 8 }}>
+              <iframe src={blobUrl} style={{ width: '100%', height: '100%', border: 'none' }} />
             </div>
           </div>
         )}
