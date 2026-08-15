@@ -515,10 +515,6 @@ ${rodIns?`<div class="rod">${rodIns}</div>`:''}
 
 <!-- ANEXO 1 — paisagem -->
 <div class="section" style="page-break-before:always">
-''
-''
-''
-''
 <div class="anx1-page">
 ${cabIns?`<div class="cab">${cabIns}</div>`:''}
 <div style="text-align:center;font-size:11pt;font-weight:700;margin:4pt 0 6pt;color:#1E3A8A">Anexo 1 – Plano Executivo dos Serviços de Manutenção</div>
