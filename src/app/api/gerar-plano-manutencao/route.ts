@@ -238,7 +238,7 @@ tr:nth-child(even) td { background: #f7f9ff; }
 </tr>`).join('')
         : `<tr><td>${xe(estab?.tipo_imovel||'—')}</td><td style="text-align:center">${fmtData(estab?.data_habite_se)}</td><td style="text-align:center">${xe(estab?.numero_pavimentos||'')}</td><td style="text-align:center">${xe(estab?.numero_unidades_salas||'')}</td></tr>`
       tabAtivos = `<div class="titulo">1.2.- Ativos para Manutenção.</div>
-<div class="bloco"><div class="bloco-header">Ativos para Manutenção</div><table style="outline:none"><tr><th style="text-align:left;width:40%">Tipo de ativo</th><th style="width:20%">Data Habite-se</th><th style="width:20%">Nº pavtos</th><th style="width:20%">Aptos/Salas</th></tr>${rowsAtivos}</table></div>`
+<div class="bloco"><div class="bloco-header">Ativos para Manutenção</div><table><tr><th style="text-align:left;width:40%">Tipo de ativo</th><th style="width:20%">Data Habite-se</th><th style="width:20%">Nº pavtos</th><th style="width:20%">Aptos/Salas</th></tr>${rowsAtivos}</table></div>`
     } else {
       const rowsAtivos = ativos.length > 0
         ? ativos.map((a:any) => `<tr>
@@ -249,7 +249,7 @@ tr:nth-child(even) td { background: #f7f9ff; }
 </tr>`).join('')
         : '<tr><td colspan="4" style="color:#9a3412;font-style:italic">Nenhum ativo cadastrado.</td></tr>'
       tabAtivos = `<div class="titulo">1.2.- Ativos para Manutenção.</div>
-<div class="bloco"><div class="bloco-header">Ativos para Manutenção</div><table style="outline:none"><tr><th style="text-align:left;width:30%">Tipo de ativo</th><th style="width:25%">Tag/Nº Série</th><th style="width:25%">Início operação</th><th style="width:20%">Subtipo</th></tr>${rowsAtivos}</table></div>`
+<div class="bloco"><div class="bloco-header">Ativos para Manutenção</div><table><tr><th style="text-align:left;width:30%">Tipo de ativo</th><th style="width:25%">Tag/Nº Série</th><th style="width:25%">Início operação</th><th style="width:20%">Subtipo</th></tr>${rowsAtivos}</table></div>`
     }
 
     // ── Item 1.1 ──────────────────────────────────────────────────────────
@@ -443,7 +443,7 @@ ${paragrafoHtml(grupo5154?OBJETIVOS_51_54:OBJETIVOS_55_58)}
 <p style="margin:2pt 0 2pt 10pt">&#8226;&nbsp;a documentação técnica foi atualizada;</p>
 <p style="margin:2pt 0 2pt 10pt">&#8226;&nbsp;os registros de manutenção foram emitidos;</p>
 <p style="margin:2pt 0 2pt 10pt">&#8226;&nbsp;foram emitidos registros e documentação técnica dos serviços executados.</p>
-<p>O recebimento será formalizado pela assinatura do Termo de Recebimento constante no Anexo 2 deste Plano.</p>
+<p>O recebimento dos serviços será formalizado pela assinatura do documento Termo de Recebimento.</p>
 
 <div class="titulo">7.- Apresentação da Proposta.</div>
 <p>A proposta técnica deverá demonstrar a capacidade operacional da contratada para a execução dos serviços de manutenção e conter, no mínimo: identificação da empresa e responsável técnico; escopo detalhado dos serviços; metodologia de execução; cronograma; equipe técnica habilitada; materiais e equipamentos; prazo de execução e garantia; valor global e condições comerciais.</p>
@@ -469,35 +469,47 @@ ${paragrafoHtml(grupo5154?OBJETIVOS_51_54:OBJETIVOS_55_58)}
   <p style="text-align:right">${cidade}/${uf}, ${dataHoje}.</p>
   <br><br><br>
   <p>${nomeIns}</p>
-  <p>${xe(inspetor?.titulo_profissional||'')}${numIns?` — ${siglaIns} ${xe(numIns)}`:''}</p>
+  <p>${xe(inspetor?.titulo_profissional||tituloIns)} — ${siglaIns} ${xe(numIns)}</p>
   ${espIns?`<p>${espIns}</p>`:''}
 </div>
 
 ${rodIns?`<div class="rod">${rodIns}</div>`:''}
 </div>
 
-<!-- ANEXO 1 -->
-<div class="section">
-${cabIns?`<div class="cab">${cabIns}</div>`:''}
-<div style="text-align:center;font-size:11pt;font-weight:700;margin:8pt 0 4pt">Anexo 1 – Plano Executivo dos Serviços de Manutenção</div>
-<div style="page-break-before:always">
-<style>@page anx1 { size: A4 landscape; margin: 15mm 15mm 15mm 20mm; }</style>
-<table style="font-size:7.5pt;width:100%">
-<tr><th colspan="8" style="text-align:center;font-size:10pt;font-weight:700;background:#1E3A8A;color:#fff;padding:8pt">Plano Executivo para os Serviços de Manutenção</th></tr>
+<!-- ANEXO 1 — paisagem -->
+<div class="section" style="page-break-before:always">
+<style>
+  @page anx1page { size: A4 landscape; margin: 15mm 15mm 15mm 20mm; }
+  .anx1-page { page: anx1page; }
+</style>
+<div class="anx1-page">
+${cabIns?`<div style="text-align:center;font-weight:700;font-size:10pt;padding-bottom:4pt;border-bottom:2px solid #1E3A8A;margin-bottom:6pt">${cabIns}</div>`:''}
+<div style="text-align:center;font-size:11pt;font-weight:700;margin:4pt 0 6pt;color:#1E3A8A">Anexo 1 – Plano Executivo dos Serviços de Manutenção</div>
+<table style="font-size:7.5pt;width:100%;border-collapse:collapse;outline:1.5px solid #1E3A8A">
 <tr>
-<th style="width:4%;font-weight:700">ID</th>
-<th style="width:24%;text-align:left;font-weight:700">Não Conformidade</th>
-<th style="width:6%;font-weight:700">G Risco</th>
-<th style="width:8%;font-weight:700">Prioridade</th>
-<th style="width:18%;text-align:left;font-weight:700">Solução sugerida</th>
-<th style="width:20%;text-align:left;font-weight:700">Intervenção sugerida</th>
-<th style="width:6%;font-weight:700">Foto Nº</th>
-<th style="width:14%;font-weight:700">Responsável</th>
+  <th colspan="8" style="text-align:center;font-size:10pt;font-weight:700;background:#1E3A8A;color:#fff;padding:6pt">Plano Executivo para os Serviços de Manutenção</th>
 </tr>
-${anx1Rows||'<tr><td colspan="8" style="text-align:center;color:#9a3412;font-style:italic;padding:12pt">Nenhuma não conformidade registrada para este estabelecimento.</td></tr>'}
+<tr style="background:#dbeafe">
+  <td colspan="2" style="font-weight:700;color:#1E3A8A;font-size:7.5pt;padding:3pt 5pt;border:1px solid #1E3A8A">Local ocorrência: <span id="loc-header" style="font-weight:400"></span></td>
+  <td colspan="2" style="font-weight:700;color:#1E3A8A;font-size:7.5pt;padding:3pt 5pt;border:1px solid #1E3A8A">Complemento local:</td>
+  <td style="font-weight:700;color:#1E3A8A;font-size:7.5pt;padding:3pt 5pt;border:1px solid #1E3A8A">Tag/Nº Série:</td>
+  <td style="font-weight:700;color:#1E3A8A;font-size:7.5pt;padding:3pt 5pt;border:1px solid #1E3A8A">Ativo:</td>
+  <td colspan="2" style="font-weight:700;color:#1E3A8A;font-size:7.5pt;padding:3pt 5pt;border:1px solid #1E3A8A;text-align:center">Conclusão / Rubrica</td>
+</tr>
+<tr>
+  <th style="width:4%">ID</th>
+  <th style="width:24%;text-align:left">Não Conformidade</th>
+  <th style="width:6%">G Risco</th>
+  <th style="width:8%">Prioridade</th>
+  <th style="width:18%;text-align:left">Solução sugerida</th>
+  <th style="width:20%;text-align:left">Intervenção sugerida</th>
+  <th style="width:6%">Foto Nº</th>
+  <th style="width:14%">Responsável</th>
+</tr>
+${anx1Rows||'<tr><td colspan="8" style="text-align:center;color:#9a3412;font-style:italic;padding:12pt">Nenhuma não conformidade registrada.</td></tr>'}
 </table>
+${rodIns?`<div class="rod" style="margin-top:8pt">${rodIns}</div>`:''}
 </div>
-${rodIns?`<div class="rod">${rodIns}</div>`:''}
 </div>
 
 
