@@ -104,14 +104,14 @@ export default function PlanoManutencaoInner() {
   async function carregarInfo() {
     try {
       const [eArr, insArr, ncRes] = await Promise.all([
-        q('estabelecimento', `cnpjoucpf=eq.${cnpjoucpf}&select=razao_social_nome,razao_social`),
+        q('estabelecimento', `cnpjoucpf=eq.${cnpjoucpf}&select=razao_social_nome,razao_social,nome`),
         q('inspetor', `cpf_inspetor=eq.${cpfInspetor}&select=cabecalho_documentos,nome_inspetor`),
         fetch(`/api/listar-vistorias?chave_inspetor=${chaveInsp}&cnpjoucpf=${cnpjoucpf}&tipo_servico=${tsApoioNum}`)
       ])
       const e   = Array.isArray(eArr)   && eArr.length   > 0 ? eArr[0]   : {}
       const ins = Array.isArray(insArr) && insArr.length > 0 ? insArr[0] : {}
       const dadosNCs = await ncRes.json()
-      setEstabNome(e.razao_social_nome || e.razao_social || cnpjoucpf)
+      setEstabNome(e.razao_social_nome || e.razao_social || e.nome || cnpjoucpf)
       setCabInspetor(ins.cabecalho_documentos || ins.nome_inspetor || '')
       setNcs(dadosNCs.ncs ?? [])
       setEtapa('banner')
@@ -280,7 +280,7 @@ export default function PlanoManutencaoInner() {
                   <p>▶ Após a geração, faça o upload do PDF assinado para finalizar.</p>
                 </div>
                 <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center' }}>
-                  <img src="/mie.orienta.png" alt="Miê" width={70} height={70}
+                  <img src="/mie_orienta.png" alt="Miê" width={70} height={70}
                     style={{ objectFit: 'contain' }}
                     onError={(e:any) => (e.target as HTMLImageElement).style.display='none'} />
                 </div>

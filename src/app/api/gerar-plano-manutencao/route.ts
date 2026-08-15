@@ -302,7 +302,7 @@ tr:nth-child(even) td { background: #f7f9ff; }
       `<div class="indice-item" style="${it.n1?'font-weight:700;':''}">` +
       `<span class="indice-num" style="color:#1E3A8A;${it.n1?'':'font-weight:400'}">${it.n}</span>` +
       `<span>${xe(it.t)}</span><span class="indice-dots"></span>` +
-      `<span style="min-width:24pt;text-align:right;color:#1E3A8A;font-weight:700">—</span>` +
+      `<span style="min-width:30pt;text-align:right;font-size:8pt;color:#374151"></span>` +
       `</div>`
     ).join('')
 
@@ -376,7 +376,7 @@ tr:nth-child(even) td { background: #f7f9ff; }
 
 <!-- ÍNDICE -->
 <div class="section"><div class="pg-indice">
-  ${cabIns?`<div style="text-align:center;font-size:9pt;font-weight:700;color:#1E3A8A;padding-bottom:6pt;border-bottom:1px solid #1E3A8A;margin-bottom:10pt">${cabIns}</div>`:''}
+
   <div class="indice-titulo">ÍNDICE</div>
   ${indiceHtml}
   <br>
@@ -404,8 +404,8 @@ ${tabAtivos}
 <div class="titulo">2.- Objetivos.</div>
 ${paragrafoHtml(grupo5154?OBJETIVOS_51_54:OBJETIVOS_55_58)}
 
-<div class="titulo">3.- Base Normativa.</div>
-<p>A base normativa e legal aplicável ao presente Plano de Manutenção foi estabelecida em conformidade com as disposições da ABNT NBR 5674 — Manutenção de edificações — Requisitos para o sistema de gestão de manutenção, e demais normas técnicas, regulamentos e legislações vigentes pertinentes ao escopo dos serviços a executar.</p>
+<div class="titulo">3.- Base normativa.</div>
+<p>Os serviços previstos neste plano deverão ser executados em conformidade com a legislação vigente, observando as normas regulamentadoras, normas técnicas brasileiras, normas internacionais, manuais dos fabricantes e equipamentos, procedimentos internos do contratante e demais dispositivos legais aplicáveis à atividade.</p>
 <p>${xe(BASE_NORMATIVA[ts]||'')}</p>
 
 <div class="titulo">4.- Responsabilidade da Contratada.</div>
@@ -448,23 +448,17 @@ ${paragrafoHtml(grupo5154?OBJETIVOS_51_54:OBJETIVOS_55_58)}
 <div class="titulo">7.- Apresentação da Proposta.</div>
 <p>A proposta técnica deverá demonstrar a capacidade operacional da contratada para a execução dos serviços de manutenção e conter, no mínimo: identificação da empresa e responsável técnico; escopo detalhado dos serviços; metodologia de execução; cronograma; equipe técnica habilitada; materiais e equipamentos; prazo de execução e garantia; valor global e condições comerciais.</p>
 
-<div class="titulo">8.- Critérios para Priorização das Intervenções.</div>
-<p>As intervenções deverão ser priorizadas conforme o grau de criticidade das não conformidades identificadas no Laudo Técnico de Inspeção, considerando os riscos à segurança das pessoas, à integridade dos equipamentos, à continuidade operacional e ao atendimento da legislação vigente.</p>
-<p>Como diretriz geral, adota-se a seguinte ordem de prioridade:</p>
-<p style="margin:2pt 0 2pt 10pt">&#8226;&nbsp;grau de risco superior a 80 pontos — prioridade Muito Alta: intervenção imediata;</p>
-<p style="margin:2pt 0 2pt 10pt">&#8226;&nbsp;grau de risco de 50 a 80 pontos — prioridade Alta: atendimento prioritário;</p>
-<p style="margin:2pt 0 2pt 10pt">&#8226;&nbsp;grau de risco de 30 a 49 pontos — prioridade Média: execução programada em curto prazo;</p>
-<p style="margin:2pt 0 2pt 10pt">&#8226;&nbsp;grau de risco inferior a 30 pontos — prioridade Baixa: inserção no plano periódico de manutenção.</p>
+<div class="titulo">8.- Critérios para priorização das intervenções.</div>
+<p>As intervenções deverão ser priorizadas conforme o grau de criticidade das não conformidades identificadas no Laudo Técnico de Inspeção, considerando os riscos à segurança das pessoas, à integridade dos equipamentos, à continuidade operacional e ao atendimento da legislação.</p>
+<p>Como diretriz geral:</p>
+<p style="margin:2pt 0 2pt 10pt">&#8226;&nbsp;criticidade muito alta: intervenção imediata;</p>
+<p style="margin:2pt 0 2pt 10pt">&#8226;&nbsp;criticidade alta: atendimento prioritário;</p>
+<p style="margin:2pt 0 2pt 10pt">&#8226;&nbsp;criticidade média: execução programada em curto prazo;</p>
+<p style="margin:2pt 0 2pt 10pt">&#8226;&nbsp;criticidade baixa: inserção no plano periódico de manutenção.</p>
 
-<div class="titulo">9.- Controle da Execução e Indicadores de Desempenho.</div>
+<div class="titulo">9.- Controle da execução e indicadores de desempenho.</div>
 <p>O acompanhamento da execução será realizado durante toda a vigência deste Plano de Manutenção, permitindo verificar o cumprimento dos prazos, a qualidade das intervenções e a eficácia das ações implementadas.</p>
-<p>O monitoramento adotará os seguintes indicadores:</p>
-<p style="margin:2pt 0 2pt 10pt">&#8226;&nbsp;percentual de serviços concluídos no prazo;</p>
-<p style="margin:2pt 0 2pt 10pt">&#8226;&nbsp;percentual de pendências;</p>
-<p style="margin:2pt 0 2pt 10pt">&#8226;&nbsp;prazo médio de atendimento por prioridade;</p>
-<p style="margin:2pt 0 2pt 10pt">&#8226;&nbsp;índice de reincidência de falhas;</p>
-<p style="margin:2pt 0 2pt 10pt">&#8226;&nbsp;disponibilidade dos equipamentos;</p>
-<p style="margin:2pt 0 2pt 10pt">&#8226;&nbsp;percentual de conformidade alcançado após a execução das intervenções.</p>
+<p>O monitoramento poderá adotar os seguintes indicadores: percentual de serviços concluídos; percentual de pendências; prazo médio de atendimento; índice de reincidência de falhas; disponibilidade dos equipamentos; percentual de conformidade alcançado após a execução das intervenções.</p>
 
 <div class="titulo">10.- Considerações Finais.</div>
 <p>A execução das ações de manutenção previstas neste Plano contribui para a preservação das condições de segurança, confiabilidade e desempenho dos ativos, reduzindo a ocorrência de falhas e riscos operacionais.</p>
@@ -474,8 +468,8 @@ ${paragrafoHtml(grupo5154?OBJETIVOS_51_54:OBJETIVOS_55_58)}
 <div style="margin-top:40pt">
   <p style="text-align:right">${cidade}/${uf}, ${dataHoje}.</p>
   <br><br><br>
-  <p style="border-top:1px solid #000;min-width:200pt;max-width:280pt;padding-top:4pt">${nomeIns}</p>
-  <p>${xe(tituloIns)} — ${siglaIns} ${xe(numIns)}</p>
+  <p>${nomeIns}</p>
+  <p>${xe(inspetor?.titulo_profissional||'')}${numIns?` — ${siglaIns} ${xe(numIns)}`:''}</p>
   ${espIns?`<p>${espIns}</p>`:''}
 </div>
 
@@ -485,21 +479,24 @@ ${rodIns?`<div class="rod">${rodIns}</div>`:''}
 <!-- ANEXO 1 -->
 <div class="section">
 ${cabIns?`<div class="cab">${cabIns}</div>`:''}
-<div class="titulo">Anexo 1 – Plano Executivo dos Serviços de Manutenção</div>
-<table>
-<tr><th colspan="8" style="text-align:center;font-size:10pt;background:#1E3A8A;color:#fff;padding:8pt">Plano Executivo para os Serviços de Manutenção</th></tr>
-<tr style="border-bottom:2px solid #1E3A8A">
-<th style="width:4%">ID</th>
-<th style="width:25%;text-align:left">Não Conformidade</th>
-<th style="width:6%">G Risco</th>
-<th style="width:8%">Prioridade</th>
-<th style="width:18%;text-align:left">Solução sugerida</th>
-<th style="width:20%;text-align:left">Intervenção sugerida</th>
-<th style="width:6%">Foto Nº</th>
-<th style="width:13%">Responsável</th>
+<div style="text-align:center;font-size:11pt;font-weight:700;margin:8pt 0 4pt">Anexo 1 – Plano Executivo dos Serviços de Manutenção</div>
+<div style="page-break-before:always">
+<style>@page anx1 { size: A4 landscape; margin: 15mm 15mm 15mm 20mm; }</style>
+<table style="font-size:7.5pt;width:100%">
+<tr><th colspan="8" style="text-align:center;font-size:10pt;font-weight:700;background:#1E3A8A;color:#fff;padding:8pt">Plano Executivo para os Serviços de Manutenção</th></tr>
+<tr>
+<th style="width:4%;font-weight:700">ID</th>
+<th style="width:24%;text-align:left;font-weight:700">Não Conformidade</th>
+<th style="width:6%;font-weight:700">G Risco</th>
+<th style="width:8%;font-weight:700">Prioridade</th>
+<th style="width:18%;text-align:left;font-weight:700">Solução sugerida</th>
+<th style="width:20%;text-align:left;font-weight:700">Intervenção sugerida</th>
+<th style="width:6%;font-weight:700">Foto Nº</th>
+<th style="width:14%;font-weight:700">Responsável</th>
 </tr>
-${anx1Rows||'<tr><td colspan="8" style="text-align:center;color:#9a3412;font-style:italic;padding:12pt;font-size:9pt">Nenhuma não conformidade registrada para este estabelecimento.</td></tr>'}
+${anx1Rows||'<tr><td colspan="8" style="text-align:center;color:#9a3412;font-style:italic;padding:12pt">Nenhuma não conformidade registrada para este estabelecimento.</td></tr>'}
 </table>
+</div>
 ${rodIns?`<div class="rod">${rodIns}</div>`:''}
 </div>
 
