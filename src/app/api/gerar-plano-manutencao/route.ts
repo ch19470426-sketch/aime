@@ -191,8 +191,6 @@ export async function POST(request: NextRequest) {
   head, title { display: none; }
   body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 }
-'.anx1-page { page: anx1page; }'
-'@page anx1page { size: A4 landscape; margin: 15mm 15mm 15mm 20mm; }'
 * { box-sizing: border-box; margin: 0; padding: 0; }
 .rodape-fixo { position: running(rodapefixo); }
 @page { @bottom-center { content: element(rodapefixo); font-size: 8pt; color: #374151; } }
@@ -235,6 +233,8 @@ tr:nth-child(even) td { background: #f7f9ff; }
 .indice-item { display: flex; align-items: baseline; padding: 3pt 0; font-size: 9pt; }
 .indice-num { min-width: 40pt; font-weight: 700; color: #1E3A8A; flex-shrink: 0; }
 .indice-dots { flex: 1; border-bottom: 1px dotted #aaa; margin: 0 4pt 2pt; }
+.anx1-page { page: anx1page; }
+@page anx1page { size: A4 landscape; margin: 15mm 15mm 15mm 20mm; }
 `
 
     // ── Tabela 1.2 ────────────────────────────────────────────────────────
@@ -351,6 +351,8 @@ tr:nth-child(even) td { background: #f7f9ff; }
       ativoMap[k] = r.tipo_ativo||''
       tagMap[k.padStart(2,'0')] = r.tag_ativo_nr_serie||''
       ativoMap[k.padStart(2,'0')] = r.tipo_ativo||''
+      tagMap[k.padStart(3,'0')] = r.tag_ativo_nr_serie||''
+      ativoMap[k.padStart(3,'0')] = r.tipo_ativo||''
     })
 
     // Classificar NCs por local_ocorrencia + complemento_local + grau_risco DESC
@@ -366,7 +368,8 @@ tr:nth-child(even) td { background: #f7f9ff; }
     ncsArr.forEach((nc:any, idx:number) => {
       const local = xe(nc.local_ocorrencia||nc.local||'')
       const compl = xe(nc.complemento_local||nc.complemento||'')
-      const fk = String(nc.fotoNr||nc.numero_foto||'').replace(/^0+/,'')||'0'
+      const fkRaw = String(nc.fotoNr||nc.numero_foto||'')
+      const fk = fkRaw.replace(/^0+/,'')||'0'
       const tag   = xe(tagMap[fk]||nc.tag_ativo_nr_serie||nc.tagNrSerie||nc.tag||'')
       const ativo = xe(ativoMap[fk]||nc.tipo_ativo||nc.tipoAtivo||nc.tipoativo||'')
       const gr  = Number(nc.grau_risco||nc.grauRisco)||0
