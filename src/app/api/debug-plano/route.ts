@@ -8,31 +8,34 @@ const sb = createClient(
 )
 
 export async function GET() {
-  // Listar TUDO sem filtro
-  const { data: arqs } = await sb.storage.from('aime')
-    .list('vistorias_homologadas', { limit: 500 })
+  // Ler primeiro arquivo tipo 37
+  const arq = 'INS-003_12345678000190_37_001.html'
+  const { data: blob } = await sb.storage.from('aime')
+    .download(`vistorias_homologadas/${arq}`)
 
-  const nomes = (arqs??[]).map(a => a.name).slice(0, 30)
-
-  // Ler primeiro arquivo
+  let html = ''
   let campos: any = {}
-  if (nomes.length > 0) {
-    const { data: blob } = await sb.storage.from('aime')
-      .download(`vistorias_homologadas/${nomes[0]}`)
-    if (blob) {
-      const txt = await blob.text()
-      const m = txt.match(/<!--\s*AIME-NC-DATA:([\s\S]*?)\s*-->/)
-      if (m) {
-        try {
-          const d = JSON.parse(m[1])
-          const { fotoBase64: _, ...r } = d
-          campos = { fonte: 'AIME-NC-DATA', arquivo: nomes[0], ...r }
-        } catch { campos = { fonte: 'JSON_ERRO' } }
-      } else {
-        campos = { fonte: 'HTML_ANTIGO', arquivo: nomes[0] }
+  if (blob) {
+    html = await blob.text()
+    // Ver se tem AIME-NC-DATA
+    const m = html.match(/<!--\s*AIME-NC-DATA:([\s\S]*?)\s*-->/)
+    if (m) {
+      const d = JSON.parse(m[1])
+      const { fotoBase64: _, ...r } = d
+      campos = { fonte: 'AIME-NC-DATA', ...r }
+    } else {
+      // Extrair campos do HTML antigo
+      const campo = (label: string) => {
+        const rx = new RegExp(label + '[^:]*:[\\s\\S]{0,20}?<[^>]+>([^<]{1,80})', 'i')
+        return html.match(rx)?.[1]?.trim() || ''
+      }
+      // Ver primeiros 2000 chars do HTML para entender estrutura
+      campos = {
+        fonte: 'HTML_ANTIGO',
+        preview: html.substring(0, 500).replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').trim()
       }
     }
   }
 
-  return NextResponse.json({ total: arqs?.length ?? 0, nomes, campos })
+  return NextResponse.json({ arq, campos })
 }
