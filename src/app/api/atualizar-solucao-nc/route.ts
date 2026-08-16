@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
       .eq('cpf_inspetor', cpf_inspetor)
       .eq('cnpjoucpf', cnpjoucpf)
       .eq('tipo_servico', tipo_servico)
-      .eq('foto_nr', foto_nr)
+      .eq('numero_foto', foto_nr)
 
     if (error) {
       return NextResponse.json({ erro: error.message }, { status: 400 })

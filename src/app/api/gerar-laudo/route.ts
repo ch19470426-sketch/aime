@@ -907,7 +907,7 @@ export async function POST(request: NextRequest) {
           '<td style="' + TD_NC + '">' + xe(nc.local||'') + '</td>' +
           '<td style="' + TD_NC + ';text-align:center;font-weight:700;color:'+corP+'">' + grNnr + '</td>' +
           '<td style="' + TD_NC + ';text-align:center;font-weight:700;color:'+corP+'">' + priP + '</td>' +
-          '<td style="' + TD_NC + '">' + xe(nc.cp||nc.solucao||nc.sugestao||'') + '</td>' +
+          '<td style="' + TD_NC + '">' + xe(nc.solucaoNC||nc.descricao_solucao_nc||nc.solucao||nc.sugestao||'') + '</td>' +
           '</tr>'
       })
 
@@ -1649,7 +1649,7 @@ export async function POST(request: NextRequest) {
       <td>${xe(nc.local)}${nc.complemento?' — '+xe(nc.complemento):''}</td>
       <td style="text-align:center">${xe(nc.grauRisco)}</td>
       <td style="text-align:center">${badgeP(nc.prioridade)}</td>
-      <td>${xe(nc.solucaoNC||nc.cp||'—')}</td>
+      <td>${xe(nc.solucaoNC||nc.descricao_solucao_nc||'—')}</td>
     </tr>`).join('')}
   </table>
 </div>`
