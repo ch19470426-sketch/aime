@@ -125,12 +125,19 @@ export default function PlanoManutencaoInner() {
       setStatus('Gerando procedimentos corretivos via IA...')
       const ncsComPC = await Promise.all(ncs.map(async (nc: any) => {
         try {
-          const r = await fetch('/api/ia-laudo', {
-            method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ tipo: 'procedimento_corretivo', dados: { ...nc, tipo_servico: tipoServico } })
-          })
-          const d = await r.json()
-          return { ...nc, procedimento_corretivo: d.texto ?? '' }
+          const [rPC, rSol] = await Promise.all([
+            fetch('/api/ia-laudo', {
+              method: 'POST', headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ tipo: 'procedimento_corretivo', dados: { ...nc, tipo_servico: tipoServico } })
+            }),
+            fetch('/api/ia-laudo', {
+              method: 'POST', headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ tipo: 'solucao_nc', dados: { ...nc, tipo_servico: tipoServico } })
+            })
+          ])
+          const dPC  = await rPC.json()
+          const dSol = await rSol.json()
+          return { ...nc, procedimento_corretivo: dPC.texto ?? '', solucaoNC: dSol.texto ?? '' }
         } catch { return nc }
       }))
 
