@@ -348,13 +348,14 @@ tr:nth-child(even) td { background: #f7f9ff; }
     ncsArr.forEach((nc:any, idx:number) => {
       const local = xe(nc.local_ocorrencia||nc.local||'')
       const compl = xe(nc.complemento_local||nc.complemento||'')
-      // Cruzar NC com ativo por tagNrSerie ou tipo_ativo
+      // Cruzar NC com ativo: por tagNrSerie → tipo_ativo → sequência por fotoNr
       const ncTag   = String(nc.tagNrSerie||nc.tag_ativo_nr_serie||'').trim()
       const ncTipo  = String(nc.tipoAtivo||nc.tipo_ativo||'').toLowerCase().trim()
-      // Buscar ativo pelo tag exato primeiro, depois pelo tipo
-      const ativoByTag  = ncTag  ? (estab.ativos as any[]).find((a:any) => String(a.tag_ativo_nr_serie||'').trim()===ncTag) : null
+      const fotoSeq = (Number(nc.fotoNr||nc.numero_foto||idx+1)||idx+1) - 1
+      const ativoByTag  = ncTag ? (estab.ativos as any[]).find((a:any)=>String(a.tag_ativo_nr_serie||'').trim()===ncTag) : null
       const ativoByTipo = ncTipo ? ativosPorTipo[ncTipo] : null
-      const ativoRow    = ativoByTag || ativoByTipo || {}
+      const ativoBySeq  = (estab.ativos as any[])[fotoSeq % Math.max((estab.ativos as any[]).length,1)]
+      const ativoRow    = ativoByTag || ativoByTipo || ativoBySeq || {}
       const tag   = xe((ativoRow as any).tag_ativo_nr_serie||ncTag||'')
       const ativo = xe((ativoRow as any).tipo_ativo||ncTipo||'')
       const gr  = Number(nc.grau_risco||nc.grauRisco)||0
@@ -428,7 +429,7 @@ tr:nth-child(even) td { background: #f7f9ff; }
 
 
 <div>
-${cabIns?`<div class="cab">${cabIns}</div>`:''}
+${cabIns?`<div class="cab"><b>${cabIns}</b></div>`:''}
 <br><br><br><br><br>
 
 <div class="titulo">1.- Considerações Preliminares.</div>
@@ -520,7 +521,7 @@ ${rodIns?`<div class="rod">${rodIns}</div>`:''}
 </div>
 <div class="section" style="page-break-before:always">
 <div class="anx1-page">
-${cabIns?`<div class="cab">${cabIns}</div>`:''}
+${cabIns?`<div class="cab"><b>${cabIns}</b></div>`:''}
 <div style="text-align:center;font-size:11pt;font-weight:700;margin:4pt 0 6pt;color:#1E3A8A">Anexo 1 – Plano Executivo dos Serviços de Manutenção</div>
 <table style="font-size:7.5pt;width:100%;border-collapse:collapse;border:1.5px solid #1E3A8A">
 <tr>
