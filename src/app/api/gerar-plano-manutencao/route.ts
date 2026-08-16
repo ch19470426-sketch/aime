@@ -326,31 +326,9 @@ tr:nth-child(even) td { background: #f7f9ff; }
     ).join('')
 
     // ── Anexo 1 (formato aba Excel) ────────────────────────────────────────
-    // Buscar soluções de dados_vistoria por foto_nr
-    const fotoNrs = (Array.isArray(ncs)?ncs:[]).map((nc:any)=>String(nc.fotoNr||nc.numero_foto||'').replace(/^0+/,'')||'0')
-    const { data: dvSol } = await supabase.from('dados_vistoria')
-      .select('numero_foto,descricao_solucao_nc')
-      .eq('cpf_inspetor', cpfInspetor).eq('cnpjoucpf', cnpjoucpf)
-    const solMap: Record<string,string> = {}
-    if (dvSol) dvSol.forEach((r:any) => {
-      const k = String(r.numero_foto||'').replace(/^0+/,'')||'0'
-      solMap[k] = r.descricao_solucao_nc||''
-      solMap[k.padStart(2,'0')] = r.descricao_solucao_nc||''
-      solMap[k.padStart(3,'0')] = r.descricao_solucao_nc||''
-    })
+    // solução vem do nc.solucaoNC (AIME-NC-DATA)
 
-    // Buscar tag/série, tipo_ativo e solução de dados_vistoria
-    const { data: dvTag } = await supabase.from('dados_vistoria')
-      .select('numero_foto,tag_ativo_nr_serie,tipo_ativo,descricao_solucao_nc')
-      .eq('cpf_inspetor', cpfInspetor).eq('cnpjoucpf', cnpjoucpf)
-      .eq('tipo_servico', tsApoio)
-    const dvMap: Record<string,any> = {}
-    if (dvTag) dvTag.forEach((r:any) => {
-      // Indexar por todas as variantes do numero_foto
-      const n = Number(r.numero_foto)||0
-      const chaves = [String(n), String(n).padStart(2,'0'), String(n).padStart(3,'0')]
-      chaves.forEach(k => { dvMap[k] = r })
-    })
+    // tag, ativo e solução vêm direto das NCs (campos do AIME-NC-DATA)
 
     // Classificar NCs por local_ocorrencia + complemento_local + grau_risco DESC
     const ncsArr: any[] = [...(Array.isArray(ncs) ? ncs : [])].sort((a:any,b:any) => {
@@ -365,11 +343,8 @@ tr:nth-child(even) td { background: #f7f9ff; }
     ncsArr.forEach((nc:any, idx:number) => {
       const local = xe(nc.local_ocorrencia||nc.local||'')
       const compl = xe(nc.complemento_local||nc.complemento||'')
-      const fotoKey = String(Number(nc.fotoNr||nc.numero_foto||0)||0)
-      const dvRow = dvMap[fotoKey] || dvMap[fotoKey.padStart(2,'0')] || dvMap[fotoKey.padStart(3,'0')] || {}
-      const tag   = xe(dvRow.tag_ativo_nr_serie||nc.tagNrSerie||nc.tag_ativo_nr_serie||'')
-      const ativo = xe(dvRow.tipo_ativo||nc.tipoAtivo||nc.tipo_ativo||'')
-      const solDb = dvRow.descricao_solucao_nc||''
+      const tag   = xe(nc.tagNrSerie||nc.tag_ativo_nr_serie||'')
+      const ativo = xe(nc.tipoAtivo||nc.tipo_ativo||'')
       const gr  = Number(nc.grau_risco||nc.grauRisco)||0
       const cor = gr>80?'#CC0000':gr>=50?'#E8A000':gr>=30?'#EAB308':'#16A34A'
       const pri = gr>80?'Muito Alta':gr>=50?'Alta':gr>=30?'Média':'Baixa'
@@ -396,7 +371,7 @@ tr:nth-child(even) td { background: #f7f9ff; }
 <td>${xe(nc.descricao_nao_conformidade||nc.nc||'')}</td>
 <td style="text-align:center;font-weight:700;color:${cor}">${gr}</td>
 <td style="text-align:center;font-weight:700;color:${cor}">${pri}</td>
-<td style="vertical-align:top">${xe(solDb||nc.solucaoNC||nc.descricao_solucao_nc||nc.solucao||"")}</td>
+<td style="vertical-align:top">${xe(nc.solucaoNC||nc.descricao_solucao_nc||nc.solucao||"")}</td>
 <td>${xe(nc.procedimento_corretivo||'')}</td>
 <td style="text-align:center;border:1px solid #1E3A8A">${xe(String(nc.fotoNr||nc.numero_foto||""))}</td>
 <td style="border:1px solid #1E3A8A"></td>
