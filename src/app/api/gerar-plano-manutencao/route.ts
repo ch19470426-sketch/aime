@@ -167,7 +167,7 @@ export async function POST(request: NextRequest) {
     const numIns    = (inspetor?.inscricao_crea_cau||'').replace(/^(CREA|CAU|CRECI)[\s-]*/gi,'').trim()
     const nomeIns   = xe(inspetor?.nome_inspetor||'')
     const espIns    = inspetor?.especializacao ? xe(inspetor.especializacao) : ''
-    const cabIns    = xe(inspetor?.cabecalho_documentos||'')
+    const cabIns    = String(inspetor?.cabecalho_documentos||'')
     const rodIns    = xe(inspetor?.rodape_documentos||`${xe(inspetor?.nome_inspetor||'')} — ${tituloIns} — ${siglaIns} ${numIns}`)
     const logoB64   = inspetor?.logo_base64 || ''
     const logoTag   = logoB64
@@ -520,11 +520,10 @@ ${paragrafoHtml(grupo5154?OBJETIVOS_51_54:OBJETIVOS_55_58)}
 ${rodIns?`<div class="rod">${rodIns}</div>`:''}
 </div>
 <div class="section" style="page-break-before:always">
-<style>@media print { .anx1-page { page: anx1page; } }</style>
-<div class="anx1-page" style="width:100%">
+<div class="anx1-page" style="width:100%;overflow-x:auto">
 ${cabIns?`<div style="text-align:center;font-size:11pt;font-weight:bold;color:#1E3A8A;padding-bottom:4pt;border-bottom:2px solid #1E3A8A;margin-bottom:6pt">${cabIns}</div>`:''}
 <div style="text-align:center;font-size:11pt;font-weight:700;margin:4pt 0 6pt;color:#1E3A8A">Anexo 1 – Plano Executivo dos Serviços de Manutenção</div>
-<table style="font-size:7.5pt;width:100%;border-collapse:collapse;border:1.5px solid #1E3A8A">
+<table style="font-size:7.5pt;width:100%;min-width:250mm;border-collapse:collapse;border:1.5px solid #1E3A8A">
 <tr>
   <th colspan="8" style="text-align:center;font-size:10pt;font-weight:700;background:#1E3A8A;color:#fff;padding:6pt;border-bottom:2px solid #fff">Plano Executivo para os Serviços de Manutenção</th>
 </tr>
