@@ -318,10 +318,10 @@ tr:nth-child(even) td { background: #f7f9ff; }
       'Anexo 1': '6',
     }
         const indiceHtml = indiceItens.map(it =>
-      `<div style="display:flex;align-items:baseline;padding:3pt 0;font-family:Arial,sans-serif;font-size:9pt;font-weight:${it.n1?'700':'400'};color:#1E3A8A">` +
-      `<span style="min-width:40pt;flex-shrink:0;font-weight:${it.n1?'700':'400'};color:#1E3A8A">${it.n}</span>` +
-      `<span style="flex:1;font-weight:${it.n1?'700':'400'};color:#1E3A8A">${xe(it.t)}</span>` +
-      `<span style="min-width:24pt;text-align:right;font-weight:700;color:#1E3A8A">${pags[it.n]||''}</span>` +
+      `<div style="display:flex;align-items:baseline;padding:3pt 0;font-family:Arial,sans-serif;font-size:9pt;color:#000">` +
+      `<span style="min-width:40pt;flex-shrink:0;color:#000">${it.n}</span>` +
+      `<span style="flex:1;color:#000">${xe(it.t)}</span>` +
+      `<span style="min-width:24pt;text-align:right;color:#000">${pags[it.n]||''}</span>` +
       `</div>`
     ).join('')
 
@@ -370,8 +370,8 @@ tr:nth-child(even) td { background: #f7f9ff; }
       const compl = xe(nc.complemento_local||nc.complemento||'')
       const fkRaw = String(nc.fotoNr||nc.numero_foto||'')
       const fk = fkRaw.replace(/^0+/,'')||'0'
-      const tag   = xe(tagMap[fk]||nc.tag_ativo_nr_serie||nc.tagNrSerie||nc.tag||'')
-      const ativo = xe(ativoMap[fk]||nc.tipo_ativo||nc.tipoAtivo||nc.tipoativo||'')
+      const tag   = xe(tagMap[fk]||tagMap[fkRaw]||tagMap[fk.padStart(2,'0')]||tagMap[fk.padStart(3,'0')]||nc.tag_ativo_nr_serie||nc.tagNrSerie||'')
+      const ativo = xe(ativoMap[fk]||ativoMap[fkRaw]||ativoMap[fk.padStart(2,'0')]||ativoMap[fk.padStart(3,'0')]||nc.tipo_ativo||nc.tipoAtivo||'')
       const gr  = Number(nc.grau_risco||nc.grauRisco)||0
       const cor = gr>80?'#CC0000':gr>=50?'#E8A000':gr>=30?'#EAB308':'#16A34A'
       const pri = gr>80?'Muito Alta':gr>=50?'Alta':gr>=30?'Média':'Baixa'
@@ -533,8 +533,6 @@ ${paragrafoHtml(grupo5154?OBJETIVOS_51_54:OBJETIVOS_55_58)}
 
 ${rodIns?`<div class="rod">${rodIns}</div>`:''}
 </div>
-
-
 <div class="section" style="page-break-before:always">
 <div class="anx1-page">
 ${cabIns?`<div class="cab">${cabIns}</div>`:''}
