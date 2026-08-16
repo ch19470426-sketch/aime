@@ -173,8 +173,8 @@ export default function PlanoManutencaoInner() {
         size: A4;
         margin: 20mm 20mm 15mm 25mm;
         @top-center {
-          content: ${JSON.stringify(cabTxt || 'AIMÊ — Mapeamento Inteligente de Edificações e Equipamentos')};
-          font-family: Arial, sans-serif; font-size: 8pt; color: #374151;
+          content: ${JSON.stringify(cabTxt || '')};
+          font-family: Arial, sans-serif; font-size: 10pt; font-weight: bold; color: #1E3A8A;
           border-bottom: 1.5px solid #1E3A8A; padding-bottom: 3pt; width: 100%; text-align: center;
         }
         @bottom-left {
@@ -191,6 +191,17 @@ export default function PlanoManutencaoInner() {
       body { -webkit-print-color-adjust: exact; print-color-adjust: exact; margin: 0 !important; }
       .cab, .rod { display: none !important; }
       .pg-capa { page-break-after: always; }
+      /* Anexo 1 em paisagem: Chrome ignora named pages, entao rotaciona o bloco */
+      .anx1-page {
+        transform: rotate(-90deg) translateX(-100%);
+        transform-origin: top left;
+        width: 255mm;
+        height: 158mm;
+        overflow: visible !important;
+        page-break-before: always;
+        page-break-inside: avoid;
+      }
+      .anx1-page table { min-width: 0 !important; width: 100% !important; }
     `
     const nomeBase = nomeArq.replace('.html','') + '.pdf'
     const htmlPrint = htmlGerado
