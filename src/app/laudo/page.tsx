@@ -459,8 +459,8 @@ function LaudoComplemento() {
               body: JSON.stringify({
                 cpf_inspetor: cpfInspetor,
                 cnpjoucpf: cnpjoucpf,
-                tipo_servico: tipoServico,
-                foto_nr: nc.fotoNr,
+                tipo_servico: cfg.tipoVistoria ? (cfg.tipoVistoria === '31' ? '31 Autovistoria' : cfg.tipoVistoria === '32' ? '32 Vistoria inspeção' : cfg.tipoVistoria === '33' ? '33 Vistoria imóvel novo' : cfg.tipoVistoria === '34' ? '34 Vistoria fachada' : cfg.tipoVistoria === '35' ? '35 Vistoria elevador' : cfg.tipoVistoria === '36' ? '36 Vistoria nr-10' : cfg.tipoVistoria === '37' ? '37 Vistoria nr-12' : '38 Vistoria nr-13') : tipoServico,
+                foto_nr: Number(nc.fotoNr),
                 descricao_solucao_nc: solucao
               })
             }).catch(() => {})
