@@ -406,7 +406,7 @@ tr:nth-child(even) td { background: #f7f9ff; }
     // ── HTML completo ─────────────────────────────────────────────────────
     const html = `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>${xe(titulo)}</title><style>${CSS}</style></head><body>
 
-<!-- CAPA — idêntica laudos 41-44 -->
+
 <div class="pg-capa" style="counter-reset:page 0">
   <div style="height:1cm;background:#fff;flex-shrink:0"></div>
   <div style="background:#1E3A8A;height:8mm;flex-shrink:0"></div>
@@ -430,7 +430,7 @@ tr:nth-child(even) td { background: #f7f9ff; }
   </div>
 </div>
 
-<!-- ÍNDICE -->
+
 <div class="section"><div class="pg-indice">
 
   <div class="indice-titulo">ÍNDICE</div>
@@ -439,7 +439,7 @@ tr:nth-child(even) td { background: #f7f9ff; }
   <p style="text-align:center;font-size:8pt;color:#6B7280">${cidade}/${uf} — ${mesAno}</p>
 </div></div>
 
-<!-- CORPO -->
+
 <div>
 ${cabIns?`<div class="cab">${cabIns}</div>`:''}
 <br><br><br><br><br>
