@@ -9,14 +9,14 @@ const supabase = createClient(
 
 export async function GET(request: NextRequest) {
   const p = request.nextUrl.searchParams
-  const cpf = p.get('cpf') ?? '05491239704'
+  const cpf  = p.get('cpf')  ?? '05491239704'
   const cnpj = p.get('cnpj') ?? '12345678000190'
-  const ts = p.get('ts') ?? '37 Vistoria nr-12'
 
-  const { data: dv } = await supabase.from('dados_vistoria')
-    .select('numero_foto,tag_ativo_nr_serie,tipo_ativo,descricao_solucao_nc,tipo_servico')
-    .eq('cpf_inspetor', cpf).eq('cnpjoucpf', cnpj).eq('tipo_servico', ts)
-    .limit(5)
+  // Todos os tipos de serviço distintos para este inspetor/cnpj
+  const { data: tipos } = await supabase.from('dados_vistoria')
+    .select('tipo_servico, numero_foto, tag_ativo_nr_serie, tipo_ativo, descricao_solucao_nc')
+    .eq('cpf_inspetor', cpf).eq('cnpjoucpf', cnpj)
+    .limit(20)
 
-  return NextResponse.json({ dv, ts, total: dv?.length ?? 0 })
+  return NextResponse.json({ tipos, total: tipos?.length ?? 0 })
 }
