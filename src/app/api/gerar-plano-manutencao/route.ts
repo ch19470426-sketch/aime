@@ -348,10 +348,15 @@ tr:nth-child(even) td { background: #f7f9ff; }
     ncsArr.forEach((nc:any, idx:number) => {
       const local = xe(nc.local_ocorrencia||nc.local||'')
       const compl = xe(nc.complemento_local||nc.complemento||'')
-      const ncTipoAtivo = String(nc.tipoAtivo||nc.tipo_ativo||'').toLowerCase().trim()
-      const ativoRow = ativosPorTipo[ncTipoAtivo] || Object.values(ativosPorTipo)[0] || {}
-      const tag   = xe(nc.tagNrSerie||nc.tag_ativo_nr_serie||(ativoRow as any).tag_ativo_nr_serie||'')
-      const ativo = xe(nc.tipoAtivo||nc.tipo_ativo||(ativoRow as any).tipo_ativo||'')
+      // Cruzar NC com ativo por tagNrSerie ou tipo_ativo
+      const ncTag   = String(nc.tagNrSerie||nc.tag_ativo_nr_serie||'').trim()
+      const ncTipo  = String(nc.tipoAtivo||nc.tipo_ativo||'').toLowerCase().trim()
+      // Buscar ativo pelo tag exato primeiro, depois pelo tipo
+      const ativoByTag  = ncTag  ? (estab.ativos as any[]).find((a:any) => String(a.tag_ativo_nr_serie||'').trim()===ncTag) : null
+      const ativoByTipo = ncTipo ? ativosPorTipo[ncTipo] : null
+      const ativoRow    = ativoByTag || ativoByTipo || {}
+      const tag   = xe((ativoRow as any).tag_ativo_nr_serie||ncTag||'')
+      const ativo = xe((ativoRow as any).tipo_ativo||ncTipo||'')
       const gr  = Number(nc.grau_risco||nc.grauRisco)||0
       const cor = gr>80?'#CC0000':gr>=50?'#E8A000':gr>=30?'#EAB308':'#16A34A'
       const pri = gr>80?'Muito Alta':gr>=50?'Alta':gr>=30?'Média':'Baixa'
