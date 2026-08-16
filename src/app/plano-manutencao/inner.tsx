@@ -120,6 +120,7 @@ export default function PlanoManutencaoInner() {
   }
 
   async function gerarPlano() {
+    try { sessionStorage.clear() } catch {}
     setEtapa('gerando')
     try {
       setStatus('Gerando procedimentos corretivos via IA...')
