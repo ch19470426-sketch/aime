@@ -523,7 +523,7 @@ ${rodIns?`<div class="rod">${rodIns}</div>`:''}
 <div class="anx1-page" style="width:100%;overflow-x:auto">
 ${cabIns?`<div style="text-align:center;font-size:10pt;color:#1E3A8A;padding-bottom:4pt;border-bottom:2px solid #1E3A8A;margin-bottom:6pt"><strong>${cabIns}</strong></div>`:''}
 <div style="text-align:center;font-size:11pt;font-weight:700;margin:4pt 0 6pt;color:#1E3A8A">Anexo 1 – Plano Executivo dos Serviços de Manutenção</div>
-<table style="font-size:7.5pt;width:100%;border-collapse:collapse;border:1.5px solid #1E3A8A">
+<table style="font-size:7.5pt;width:100%;min-width:250mm;border-collapse:collapse;border:1.5px solid #1E3A8A">
 <tr>
   <th colspan="8" style="text-align:center;font-size:10pt;font-weight:700;background:#1E3A8A;color:#fff;padding:6pt;border-bottom:2px solid #fff">Plano Executivo para os Serviços de Manutenção</th>
 </tr>
