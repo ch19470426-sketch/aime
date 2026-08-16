@@ -163,7 +163,7 @@ export default function PlanoManutencaoInner() {
   function salvarPDF() {
     if (!htmlGerado) return
     // Extrair cab e rod do HTML
-    const mCab = htmlGerado.match(/<div class="cab">([\s\S]*?)<\/div>/)
+    const mCab = htmlGerado.match(/<div[^>]*(?:class="cab"|border-bottom:2px solid #1E3A8A)[^>]*>([\s\S]*?)<\/div>/)
     const mRod = htmlGerado.match(/<div class="rod">([\s\S]*?)<\/div>/)
     const cabTxt = mCab ? mCab[1].replace(/<[^>]+>/g,'').trim() : ''
     const rodTxt = mRod ? mRod[1].replace(/<[^>]+>/g,'').trim() : ''
