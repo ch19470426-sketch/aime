@@ -328,7 +328,12 @@ tr:nth-child(even) td { background: #f7f9ff; }
     // ── Anexo 1 (formato aba Excel) ────────────────────────────────────────
     // solução vem do nc.solucaoNC (AIME-NC-DATA)
 
-    // tag, ativo e solução vêm direto das NCs (campos do AIME-NC-DATA)
+    // Mapa de ativos por tipo_ativo (de ativos_a_vistoriar, que já tem dados)
+    const ativosPorTipo: Record<string,any> = {}
+    ;(estab.ativos as any[] ?? []).forEach((a:any) => {
+      const k = String(a.tipo_ativo||'').toLowerCase().trim()
+      if (k) ativosPorTipo[k] = a
+    })
 
     // Classificar NCs por local_ocorrencia + complemento_local + grau_risco DESC
     const ncsArr: any[] = [...(Array.isArray(ncs) ? ncs : [])].sort((a:any,b:any) => {
@@ -343,8 +348,10 @@ tr:nth-child(even) td { background: #f7f9ff; }
     ncsArr.forEach((nc:any, idx:number) => {
       const local = xe(nc.local_ocorrencia||nc.local||'')
       const compl = xe(nc.complemento_local||nc.complemento||'')
-      const tag   = xe(nc.tagNrSerie||nc.tag_ativo_nr_serie||'')
-      const ativo = xe(nc.tipoAtivo||nc.tipo_ativo||'')
+      const ncTipoAtivo = String(nc.tipoAtivo||nc.tipo_ativo||'').toLowerCase().trim()
+      const ativoRow = ativosPorTipo[ncTipoAtivo] || Object.values(ativosPorTipo)[0] || {}
+      const tag   = xe(nc.tagNrSerie||nc.tag_ativo_nr_serie||(ativoRow as any).tag_ativo_nr_serie||'')
+      const ativo = xe(nc.tipoAtivo||nc.tipo_ativo||(ativoRow as any).tipo_ativo||'')
       const gr  = Number(nc.grau_risco||nc.grauRisco)||0
       const cor = gr>80?'#CC0000':gr>=50?'#E8A000':gr>=30?'#EAB308':'#16A34A'
       const pri = gr>80?'Muito Alta':gr>=50?'Alta':gr>=30?'Média':'Baixa'
