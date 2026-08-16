@@ -534,7 +534,7 @@ ${paragrafoHtml(grupo5154?OBJETIVOS_51_54:OBJETIVOS_55_58)}
 ${rodIns?`<div class="rod">${rodIns}</div>`:''}
 </div>
 
-<!-- ANEXO 1 — paisagem -->
+
 <div class="section" style="page-break-before:always">
 <div class="anx1-page">
 ${cabIns?`<div class="cab">${cabIns}</div>`:''}
