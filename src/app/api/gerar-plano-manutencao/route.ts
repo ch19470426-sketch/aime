@@ -368,10 +368,8 @@ tr:nth-child(even) td { background: #f7f9ff; }
     ncsArr.forEach((nc:any, idx:number) => {
       const local = xe(nc.local_ocorrencia||nc.local||'')
       const compl = xe(nc.complemento_local||nc.complemento||'')
-      const fkRaw = String(nc.fotoNr||nc.numero_foto||'')
-      const fk = fkRaw.replace(/^0+/,'')||'0'
-      const tag   = xe(tagMap[fk]||tagMap[fkRaw]||tagMap[fk.padStart(2,'0')]||tagMap[fk.padStart(3,'0')]||nc.tag_ativo_nr_serie||nc.tagNrSerie||'')
-      const ativo = xe(ativoMap[fk]||ativoMap[fkRaw]||ativoMap[fk.padStart(2,'0')]||ativoMap[fk.padStart(3,'0')]||nc.tipo_ativo||nc.tipoAtivo||'')
+      const tag   = xe(nc.tagNrSerie||nc.tag_ativo_nr_serie||nc.tag||'')
+      const ativo = xe(nc.tipoAtivo||nc.tipo_ativo||nc.tipoativo||'')
       const gr  = Number(nc.grau_risco||nc.grauRisco)||0
       const cor = gr>80?'#CC0000':gr>=50?'#E8A000':gr>=30?'#EAB308':'#16A34A'
       const pri = gr>80?'Muito Alta':gr>=50?'Alta':gr>=30?'Média':'Baixa'
