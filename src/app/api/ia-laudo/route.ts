@@ -47,7 +47,7 @@ export async function POST(request: NextRequest) {
 
     const res = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'x-api-key': process.env.ANTHROPIC_API_KEY ?? '', 'anthropic-version': '2023-06-01' },
       body: JSON.stringify({
         model: 'claude-sonnet-4-6',
         max_tokens: 1000,
@@ -55,6 +55,7 @@ export async function POST(request: NextRequest) {
       })
     })
     const data = await res.json()
+    if (!res.ok) return NextResponse.json({ erro: data.error?.message || JSON.stringify(data) }, { status: 500 })
     const texto = data.content?.find((b: any) => b.type === 'text')?.text ?? ''
     return NextResponse.json({ texto })
   } catch (e) {
