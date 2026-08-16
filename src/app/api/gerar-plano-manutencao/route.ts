@@ -134,6 +134,7 @@ export async function POST(request: NextRequest) {
     const { data: ativosDB } = await supabase
       .from('ativos_a_vistoriar').select('*')
       .eq('cpf_inspetor', cpfInspetor).eq('cnpjoucpf', cnpjoucpf)
+      .eq('tipo_servico', tsApoio)
     estab.ativos = ativosDB ?? []
 
     // CEP → endereço (igual aos laudos)
@@ -190,6 +191,8 @@ export async function POST(request: NextRequest) {
   head, title { display: none; }
   body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 }
+'.anx1-page { page: anx1page; }'
+'@page anx1page { size: A4 landscape; margin: 15mm 15mm 15mm 20mm; }'
 * { box-sizing: border-box; margin: 0; padding: 0; }
 .rodape-fixo { position: running(rodapefixo); }
 @page { @bottom-center { content: element(rodapefixo); font-size: 8pt; color: #374151; } }
@@ -336,6 +339,20 @@ tr:nth-child(even) td { background: #f7f9ff; }
       solMap[k.padStart(3,'0')] = r.descricao_solucao_nc||''
     })
 
+    // Buscar tag/série e tipo_ativo de dados_vistoria
+    const { data: dvTag } = await supabase.from('dados_vistoria')
+      .select('numero_foto,tag_ativo_nr_serie,tipo_ativo')
+      .eq('cpf_inspetor', cpfInspetor).eq('cnpjoucpf', cnpjoucpf)
+    const tagMap: Record<string,string> = {}
+    const ativoMap: Record<string,string> = {}
+    if (dvTag) dvTag.forEach((r:any) => {
+      const k = String(r.numero_foto||'').replace(/^0+/,'')||'0'
+      tagMap[k] = r.tag_ativo_nr_serie||''
+      ativoMap[k] = r.tipo_ativo||''
+      tagMap[k.padStart(2,'0')] = r.tag_ativo_nr_serie||''
+      ativoMap[k.padStart(2,'0')] = r.tipo_ativo||''
+    })
+
     // Classificar NCs por local_ocorrencia + complemento_local + grau_risco DESC
     const ncsArr: any[] = [...(Array.isArray(ncs) ? ncs : [])].sort((a:any,b:any) => {
       const la = String(a.local_ocorrencia||a.local||''), lb = String(b.local_ocorrencia||b.local||'')
@@ -349,8 +366,9 @@ tr:nth-child(even) td { background: #f7f9ff; }
     ncsArr.forEach((nc:any, idx:number) => {
       const local = xe(nc.local_ocorrencia||nc.local||'')
       const compl = xe(nc.complemento_local||nc.complemento||'')
-      const tag   = xe(nc.tag_ativo_nr_serie||nc.tagNrSerie||nc.tag||'')
-      const ativo = xe(nc.tipo_ativo||nc.tipoAtivo||nc.tipoativo||'')
+      const fk = String(nc.fotoNr||nc.numero_foto||'').replace(/^0+/,'')||'0'
+      const tag   = xe(tagMap[fk]||nc.tag_ativo_nr_serie||nc.tagNrSerie||nc.tag||'')
+      const ativo = xe(ativoMap[fk]||nc.tipo_ativo||nc.tipoAtivo||nc.tipoativo||'')
       const gr  = Number(nc.grau_risco||nc.grauRisco)||0
       const cor = gr>80?'#CC0000':gr>=50?'#E8A000':gr>=30?'#EAB308':'#16A34A'
       const pri = gr>80?'Muito Alta':gr>=50?'Alta':gr>=30?'Média':'Baixa'
