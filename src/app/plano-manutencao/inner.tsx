@@ -191,6 +191,9 @@ export default function PlanoManutencaoInner() {
       body { -webkit-print-color-adjust: exact; print-color-adjust: exact; margin: 0 !important; }
       .cab, .rod { display: none !important; }
       .pg-capa { page-break-after: always; }
+      @page { size: A4 portrait; }
+      @page anx1page { size: A4 landscape; margin: 10mm 10mm 10mm 10mm; }
+      .anx1-page { page: anx1page; page-break-before: always; }
 
     `
     const nomeBase = nomeArq.replace('.html','') + '.pdf'

@@ -435,6 +435,7 @@ ${cabIns?`<div class="cab"><b>${cabIns}</b></div>`:''}
 <br><br><br><br><br>
 
 <div class="titulo">1.- Considerações Preliminares.</div>
+<p>&nbsp;</p>
 <p>A execução da manutenção representa uma das principais ações para garantir a continuidade operacional das edificações e dos processos, proteger pessoas e trabalhadores, preservar o patrimônio, e assegurar a conformidade com a legislação vigente.</p>
 <p>O presente Plano de Manutenção foi elaborado a partir das informações constantes no Laudo Técnico de Inspeção, constituindo o principal documento de planejamento das ações corretivas e preventivas destinadas à eliminação ou mitigação das não conformidades identificadas durante a inspeção.</p>
 <p>As intervenções previstas deverão ser executadas observando-se a criticidade atribuída às não conformidades, a probabilidade de ocorrência de falhas, os riscos à segurança das pessoas e trabalhadores, a conservação das edificações, os impactos sobre os equipamentos e as exigências legais e normativas aplicáveis.</p>
@@ -451,10 +452,12 @@ ${tabAtivos}
 ${paragrafoHtml(grupo5154?OBJETIVOS_51_54:OBJETIVOS_55_58)}
 
 <div class="titulo">3.- Base normativa.</div>
+<p>&nbsp;</p>
 <p>Os serviços previstos neste plano deverão ser executados em conformidade com a legislação vigente, observando as normas regulamentadoras, normas técnicas brasileiras, normas internacionais, manuais dos fabricantes e equipamentos, procedimentos internos do contratante e demais dispositivos legais aplicáveis à atividade.</p>
 <p>${xe(BASE_NORMATIVA[ts]||'')}</p>
 
 <div class="titulo">4.- Responsabilidade da Contratada.</div>
+<p>&nbsp;</p>
 <p>A responsabilidade pela execução dos serviços até a sua conclusão, formalizada pela assinatura do "Termo de Recebimento", é integralmente da contratada nos termos do Código Civil Brasileiro. Assim, quaisquer danos aos serviços já realizados, ou danos causados a terceiros, a reparação é de total responsabilidade da contratada.</p>
 <p>A guarda e vigilância das ferramentas, equipamentos e dos materiais necessários à execução dos serviços são de inteira responsabilidade da contratada.</p>
 <p>Compete-lhe:</p>
@@ -470,6 +473,7 @@ ${paragrafoHtml(grupo5154?OBJETIVOS_51_54:OBJETIVOS_55_58)}
 
 
 <div class="titulo">5.- Exigências Mínimas para Execução dos Serviços.</div>
+<p>&nbsp;</p>
 <p>Todas as intervenções deverão ser executadas mediante planejamento prévio, observando critérios técnicos, operacionais e de segurança.</p>
 <div class="titulo">5.1.- Planejamento.</div>
 <p>Antes do início dos serviços deverão ser realizados: análise do laudo técnico; cronograma executivo seguindo a definição das prioridades; programação de desligamentos; levantamento dos recursos necessários.</p>
@@ -481,6 +485,7 @@ ${paragrafoHtml(grupo5154?OBJETIVOS_51_54:OBJETIVOS_55_58)}
 <p>Os serviços poderão compreender: demolição e desmontagem controlada; limpeza técnica; lubrificação; reapertos; regulagens; calibrações; substituição de componentes; recuperação dos sistemas de proteção; ensaios e testes funcionais; remoção de entulho; atualização documental.</p>
 
 <div class="titulo">6.- Recebimento dos Serviços.</div>
+<p>&nbsp;</p>
 <p>Concluídas as intervenções, será realizada inspeção técnica de recebimento para verificar a conformidade dos serviços executados em relação às especificações técnicas, normativas e legais aplicáveis.</p>
 <p>O recebimento dependerá da comprovação de que:</p>
 <p style="margin:2pt 0 2pt 10pt">&#8226;&nbsp;todas as não conformidades foram devidamente tratadas;</p>
@@ -492,9 +497,11 @@ ${paragrafoHtml(grupo5154?OBJETIVOS_51_54:OBJETIVOS_55_58)}
 <p>O recebimento dos serviços será formalizado pela assinatura do documento Termo de Recebimento.</p>
 
 <div class="titulo">7.- Apresentação da Proposta.</div>
+<p>&nbsp;</p>
 <p>A proposta técnica deverá demonstrar a capacidade operacional da contratada para a execução dos serviços de manutenção e conter, no mínimo: identificação da empresa e responsável técnico; escopo detalhado dos serviços; metodologia de execução; cronograma; equipe técnica habilitada; materiais e equipamentos; prazo de execução e garantia; valor global e condições comerciais.</p>
 
 <div class="titulo">8.- Critérios para priorização das intervenções.</div>
+<p>&nbsp;</p>
 <p>As intervenções deverão ser priorizadas conforme o grau de criticidade das não conformidades identificadas no Laudo Técnico de Inspeção, considerando os riscos à segurança das pessoas, à integridade dos equipamentos, à continuidade operacional e ao atendimento da legislação.</p>
 <p>Como diretriz geral:</p>
 <p style="margin:2pt 0 2pt 10pt">&#8226;&nbsp;criticidade muito alta: intervenção imediata;</p>
@@ -503,10 +510,12 @@ ${paragrafoHtml(grupo5154?OBJETIVOS_51_54:OBJETIVOS_55_58)}
 <p style="margin:2pt 0 2pt 10pt">&#8226;&nbsp;criticidade baixa: inserção no plano periódico de manutenção.</p>
 
 <div class="titulo">9.- Controle da execução e indicadores de desempenho.</div>
+<p>&nbsp;</p>
 <p>O acompanhamento da execução será realizado durante toda a vigência deste Plano de Manutenção, permitindo verificar o cumprimento dos prazos, a qualidade das intervenções e a eficácia das ações implementadas.</p>
 <p>O monitoramento poderá adotar os seguintes indicadores: percentual de serviços concluídos; percentual de pendências; prazo médio de atendimento; índice de reincidência de falhas; disponibilidade dos equipamentos; percentual de conformidade alcançado após a execução das intervenções.</p>
 
 <div class="titulo">10.- Considerações Finais.</div>
+<p>&nbsp;</p>
 <p>A execução das ações de manutenção previstas neste Plano contribui para a preservação das condições de segurança, confiabilidade e desempenho dos ativos, reduzindo a ocorrência de falhas e riscos operacionais.</p>
 <p>Sua implementação contínua favorece a proteção da vida e da integridade das pessoas, a preservação do patrimônio, a continuidade das atividades e o aumento da vida útil dos sistemas e equipamentos.</p>
 <p>Recomenda-se que este Plano seja periodicamente revisado e atualizado, assegurando a melhoria contínua dos processos de manutenção e da gestão dos ativos.</p>
