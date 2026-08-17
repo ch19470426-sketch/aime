@@ -35,7 +35,11 @@ export async function POST(request: NextRequest) {
         `Sistema: ${nc.sistema} | Anomalia: ${nc.anomalia} | Local: ${nc.local} | GR: ${nc.grauRisco} | Prior: ${nc.prioridade}`
       ).join('\n')
       const ehNR_IA = ['45','46','47','48'].includes(d.tipo_servico ?? '')
-      prompt = `Você é um engenheiro especialista. Com base nas não conformidades listadas do ${nomeLaudo}, redija recomendações técnicas para: 5.1 Manutenção preventiva; 5.2 Uso e operação; 5.3 Sustentabilidade; 5.4 Outras recomendações. ${ehNR_IA ? 'Foco em segurança do trabalho e NRs.' : 'Foco em desempenho e durabilidade.'}\n\nNÃO CONFORMIDADES:\n${ncsTexto}\n\nResponda em 4 parágrafos objetivos (um por item), sem títulos, máximo 200 caracteres cada.`
+      const itensRec = ehNR_IA
+        ? '5.1 Segurança do trabalho e NRs; 5.2 Manutenção preventiva; 5.3 Uso e operação; 5.4 Sustentabilidade; 5.5 Outras recomendações'
+        : '5.1 Manutenção preventiva; 5.2 Uso e operação; 5.3 Sustentabilidade; 5.4 Outras recomendações'
+      const nParags = ehNR_IA ? 5 : 4
+      prompt = `Você é um engenheiro especialista. Com base nas não conformidades listadas do ${nomeLaudo}, redija recomendações técnicas para: ${itensRec}.\n\nNÃO CONFORMIDADES:\n${ncsTexto}\n\nResponda em ${nParags} parágrafos objetivos (um por item), separados por linha em branco, sem títulos, máximo 200 caracteres cada.`
 
     } else if (tipo === 'recomendacao_sistema') {
       const sistemaLimpo = (d.sistema || '').slice(3).replace(/_/g,' ')
@@ -62,12 +66,14 @@ export async function POST(request: NextRequest) {
     // Para recomendacoes: dividir em 4 partes e retornar rec51-54
     if (tipo === 'recomendacoes') {
       const partes = texto.split(/\n\n+/).map((p:string) => p.trim()).filter(Boolean)
+      const ehNR = ['45','46','47','48'].includes(d?.tipo_servico ?? '')
       return NextResponse.json({
         texto,
         rec51: partes[0] ?? '',
         rec52: partes[1] ?? '',
         rec53: partes[2] ?? '',
         rec54: partes[3] ?? '',
+        rec55: ehNR ? (partes[4] ?? '') : '',
       })
     }
     return NextResponse.json({ texto })
