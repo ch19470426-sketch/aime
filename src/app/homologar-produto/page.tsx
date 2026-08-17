@@ -56,8 +56,6 @@ function HomologarProdutoInner() {
   const [enviando,    setEnviando]    = useState(false)
   const inputPdfRef = useRef<HTMLInputElement>(null)
   const iframeRef    = useRef<HTMLIFrameElement>(null)
-  const editRef = useRef<HTMLDivElement>(null)
-  const htmlAplicado = useRef('')
 
   const numServico = Number(tipoServico)
   const grupo4x    = numServico >= 41 && numServico <= 49
@@ -220,7 +218,7 @@ function HomologarProdutoInner() {
       const ehLaudo = true  // sempre PDF
       if (ehLaudo) {
         if (!html) throw new Error('HTML do laudo não carregado.')
-        const inner = editRef.current?.innerHTML || ''
+        const inner = iframeRef.current?.contentDocument?.body?.innerHTML || ''
         const htmlBase = inner ? html.replace(/<body>([\s\S]*)<\/body>/, `<body>${inner}</body>`) : html
 
         // Extrair texto do cabeçalho e rodapé já presentes no HTML
@@ -447,23 +445,18 @@ function HomologarProdutoInner() {
             <div style={{ background: '#1E3A8A', color: '#fff', fontSize: '7.5pt', fontWeight: 700, padding: '4px 10px' }}>
               Preview do documento — clique para editar
             </div>
-            <div
-              ref={(el) => {
-                editRef.current = el
-                if (el && htmlAplicado.current !== html) {
-                  el.innerHTML = html
-                  htmlAplicado.current = html
+            <iframe
+              ref={iframeRef}
+              srcDoc={html}
+              onLoad={() => {
+                const d = iframeRef.current?.contentDocument
+                if (d?.body) {
+                  d.body.setAttribute('contenteditable', 'true')
+                  d.body.style.outline = 'none'
                 }
               }}
-              contentEditable
-              suppressContentEditableWarning
-
-              style={{
-                width: '100%', height: '800px', border: 'none',
-                display: 'block', overflowY: 'auto', padding: '12px 20px',
-                background: '#fff', fontSize: '9pt', lineHeight: 1.5,
-                fontFamily: 'Arial, sans-serif', outline: 'none', boxSizing: 'border-box'
-              }}
+              style={{ width: '100%', height: '800px', border: 'none', display: 'block', background: '#fff' }}
+              title="Preview editável do documento"
             />
           </div>
         )}
