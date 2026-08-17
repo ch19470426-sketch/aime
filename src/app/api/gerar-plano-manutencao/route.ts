@@ -167,7 +167,7 @@ export async function POST(request: NextRequest) {
     const numIns    = (inspetor?.inscricao_crea_cau||'').replace(/^(CREA|CAU|CRECI)[\s-]*/gi,'').trim()
     const nomeIns   = xe(inspetor?.nome_inspetor||'')
     const espIns    = inspetor?.especializacao ? xe(inspetor.especializacao) : ''
-    const cabIns    = String(inspetor?.cabecalho_documentos||'')
+    const cabIns    = xe(inspetor?.cabecalho_documentos||'')
     const rodIns    = xe(inspetor?.rodape_documentos||`${xe(inspetor?.nome_inspetor||'')} — ${tituloIns} — ${siglaIns} ${numIns}`)
     const logoB64   = inspetor?.logo_base64 || ''
     const logoTag   = logoB64
@@ -204,7 +204,7 @@ b, strong { font-weight: bold; }
 .no-break { page-break-inside: avoid; }
 .ass { margin-top: 40pt; text-align: center; }
 @media print { body { font-size: 9pt; } .section { page-break-before: always; counter-increment: page; } table { page-break-inside: auto; outline: 1.5px solid #1E3A8A; } p { page-break-inside: avoid; orphans: 4; widows: 4; } }
-.cab { text-align:center; font-size:10pt; font-weight:bold; color:#1E3A8A; padding-bottom:4pt; border-bottom:2px solid #1E3A8A; margin-bottom:6pt; }
+.cab { text-align: center; font-weight: bold; font-size: 10pt; color: #1E3A8A; padding-bottom: 4pt; border-bottom: 2px solid #1E3A8A; margin-bottom: 6pt; }
 .rod { margin-top: 10pt; padding-top: 4pt; border-top: 1px solid #ccc; font-size: 8pt; text-align: center; white-space: pre-line; color: #374151; }
 .pag-num { font-size: 7.5pt; color: #374151; text-align: right; margin-top: 4pt; }
 .titulo { font-size: 10pt; font-weight: 700; color: #000; margin: 12pt 0 4pt; padding: 0; }
@@ -392,7 +392,7 @@ tr:nth-child(even) td { background: #f7f9ff; }
     })
 
     // ── HTML completo ─────────────────────────────────────────────────────
-    const html = `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>${xe(titulo)} - ${new Date().toISOString()}</title><style>${CSS}</style></head><body>
+    const html = `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>${xe(titulo)}</title><style>${CSS}</style></head><body>
 
 
 <div class="pg-capa" style="counter-reset:page 0">
@@ -429,8 +429,8 @@ tr:nth-child(even) td { background: #f7f9ff; }
 
 
 <div>
-${cabIns?`<div style="text-align:center;font-size:10pt;color:#1E3A8A;padding-bottom:4pt;border-bottom:2px solid #1E3A8A;margin-bottom:6pt"><strong>${cabIns}</strong></div>`:''}
-
+${cabIns?`<div class="cab"><b>${cabIns}</b></div>`:''}
+<br><br><br><br><br>
 
 <div class="titulo">1.- Considerações Preliminares.</div>
 <p>A execução da manutenção representa uma das principais ações para garantir a continuidade operacional das edificações e dos processos, proteger pessoas e trabalhadores, preservar o patrimônio, e assegurar a conformidade com a legislação vigente.</p>
@@ -520,10 +520,10 @@ ${paragrafoHtml(grupo5154?OBJETIVOS_51_54:OBJETIVOS_55_58)}
 ${rodIns?`<div class="rod">${rodIns}</div>`:''}
 </div>
 <div class="section" style="page-break-before:always">
-<div class="anx1-page" style="width:100%;overflow-x:auto">
-${cabIns?`<div style="text-align:center;font-size:10pt;color:#1E3A8A;padding-bottom:4pt;border-bottom:2px solid #1E3A8A;margin-bottom:6pt"><strong>${cabIns}</strong></div>`:''}
+<div class="anx1-page">
+${cabIns?`<div class="cab"><b>${cabIns}</b></div>`:''}
 <div style="text-align:center;font-size:11pt;font-weight:700;margin:4pt 0 6pt;color:#1E3A8A">Anexo 1 – Plano Executivo dos Serviços de Manutenção</div>
-<table style="font-size:7.5pt;width:100%;min-width:250mm;border-collapse:collapse;border:1.5px solid #1E3A8A">
+<table style="font-size:7.5pt;width:100%;border-collapse:collapse;border:1.5px solid #1E3A8A">
 <tr>
   <th colspan="8" style="text-align:center;font-size:10pt;font-weight:700;background:#1E3A8A;color:#fff;padding:6pt;border-bottom:2px solid #fff">Plano Executivo para os Serviços de Manutenção</th>
 </tr>
