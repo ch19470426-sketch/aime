@@ -218,8 +218,20 @@ function HomologarProdutoInner() {
       const ehLaudo = true  // sempre PDF
       if (ehLaudo) {
         if (!html) throw new Error('HTML do laudo não carregado.')
-        const inner = iframeRef.current?.contentDocument?.body?.innerHTML || ''
-        const htmlBase = inner ? html.replace(/<body>([\s\S]*)<\/body>/, `<body>${inner}</body>`) : html
+        // Conteudo como esta na tela (iframe editavel)
+        let inner = ''
+        try { inner = iframeRef.current?.contentDocument?.body?.innerHTML ?? '' }
+        catch { inner = '' }
+        // Substituicao por funcao: evita interpretacao de $& / $1 no conteudo
+        let htmlBase = html
+        if (inner) {
+          const rx = /(<body[^>]*>)[\s\S]*(<\/body>)/i
+          if (rx.test(html)) {
+            htmlBase = html.replace(rx, (_m, ab, fb) => ab + inner + fb)
+          } else {
+            htmlBase = '<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>laudo</title></head><body>' + inner + '</body></html>'
+          }
+        }
 
         // Extrair texto do cabeçalho e rodapé já presentes no HTML
         const mCab = htmlBase.match(/<div class="cab">([\s\S]*?)<\/div>/)
@@ -268,30 +280,27 @@ function HomologarProdutoInner() {
         `
 
         const nomeBase = nomeAmigavel('pdf')
-        const htmlPrint = htmlBase
-          .replace(/<title>[^<]*<\/title>/, `<title>${nomeBase}</title>`)
-          .replace('</head>', `<style>${printCss}</style></head>`)
-          .replace('</body>',
-            `<script>
-              var _n = ` + JSON.stringify(nomeBase) + `;
-              document.title = _n;
-              window.addEventListener('load', function() {
-                document.title = _n;
-                setTimeout(function() { window.print(); }, 600);
-              });
-            </script></body>`
-          )
+        const tagStyle  = '<style>' + printCss + '</style>'
+        const tagScript = '<script>var _n=' + JSON.stringify(nomeBase) + ';document.title=_n;'
+          + 'window.addEventListener("load",function(){document.title=_n;setTimeout(function(){window.print()},600)});<\/script>'
+
+        let htmlPrint = htmlBase.replace(/<title>[^<]*<\/title>/i, () => '<title>' + nomeBase + '</title>')
+        htmlPrint = htmlPrint.includes('</head>')
+          ? htmlPrint.replace('</head>', () => tagStyle + '</head>')
+          : tagStyle + htmlPrint
+        htmlPrint = htmlPrint.includes('</body>')
+          ? htmlPrint.replace('</body>', () => tagScript + '</body>')
+          : htmlPrint + tagScript
 
         // Abrir em nova aba para impressão como PDF
         const blob = new Blob([htmlPrint], { type: 'text/html;charset=utf-8' })
         const url  = URL.createObjectURL(blob)
-        const a = document.createElement('a')
-        a.href = url
-        a.target = '_blank'
-        a.rel = 'noopener'
-        document.body.appendChild(a)
-        a.click()
-        document.body.removeChild(a)
+        const win = window.open(url, '_blank')
+        if (!win) {
+          const a = document.createElement('a')
+          a.href = url; a.target = '_blank'; a.rel = 'noopener'
+          document.body.appendChild(a); a.click(); document.body.removeChild(a)
+        }
         setTimeout(() => URL.revokeObjectURL(url), 60000)
         setGerandoDocx(false)
         return
