@@ -270,7 +270,7 @@ function HomologarProdutoInner() {
         `
 
         const nomeBase = nomeAmigavel('pdf')
-        const htmlPrint = html
+        const htmlPrint = htmlBase
           .replace(/<title>[^<]*<\/title>/, `<title>${nomeBase}</title>`)
           .replace('</head>', `<style>${printCss}</style></head>`)
           .replace('</body>',
