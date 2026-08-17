@@ -236,9 +236,9 @@ function HomologarProdutoInner() {
             margin: 20mm 20mm 15mm 25mm;
             @top-center {
               content: ${JSON.stringify(cabTxt || 'AIMÊ — Mapeamento Inteligente de Edificações e Equipamentos')};
-              font-family: Arial, sans-serif;
-              font-size: 8pt;
-              color: #374151;
+              font-weight: bold;
+              font-size: 9pt;
+              color: #1E3A8A;
               border-bottom: 1.5px solid #1E3A8A;
               padding-bottom: 3pt;
               width: 100%;
@@ -428,7 +428,7 @@ function HomologarProdutoInner() {
           style={{ position: 'absolute', width: 1, height: 1, opacity: 0, overflow: 'hidden', pointerEvents: 'none' }}
           onChange={onArquivoPdfEscolhido} />
 
-        {blobUrl && numServico < 41 && (
+        {html && numServico >= 41 && (
           <div style={{ border: '1px solid #c3d4f0', borderRadius: '6px', overflow: 'hidden', marginBottom: '8px' }}>
             <div style={{ background: '#1E3A8A', color: '#fff', fontSize: '7.5pt', fontWeight: 700, padding: '4px 10px' }}>
               Preview do documento — clique para editar

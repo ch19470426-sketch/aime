@@ -148,7 +148,7 @@ i, em { font-style: italic; }
 
 table.tbl-plano { border: 1.5px solid #1E3A8A !important; margin: 0 auto; width: 80%; }
 /* Cabeçalho/rodapé do inspetor */
-.cab { text-align: center; font-weight: bold; padding-bottom: 4pt; border-bottom: 2px solid #1E3A8A; margin-bottom: 10pt; font-size: 9pt; color: #374151; white-space: pre-line; }
+.cab { text-align: center; font-weight: bold; font-size: 9pt; color: #1E3A8A; padding-bottom: 4pt; border-bottom: 2px solid #1E3A8A; margin-bottom: 10pt; white-space: pre-line; }
 .rod { margin-top: 10pt; padding-top: 4pt; border-top: 1px solid #ccc; font-size: 8pt; text-align: center; white-space: pre-line; color: #374151; }
 
 /* §3.1 — Título de seção */
@@ -1367,9 +1367,11 @@ export async function POST(request: NextRequest) {
       partsNR.push('<div class="section"><div class="titulo" style="text-align:center">Anexo 4 – Anotação de Responsabilidade Técnica</div>' +
         (complemento?.artRrt
           ? '<div style="text-align:center;margin:8mm 0"><img src="' + complemento.artRrt + '" style="width:190mm;min-height:260mm;max-height:280mm;object-fit:contain"/></div>'
-          : '<div style="border:2px dashed #1E3A8A;min-height:180mm;margin:10mm 0;display:flex;align-items:center;justify-content:center"><p style="color:#6b7280;font-size:8.5pt;text-align:center">ART / RRT não anexada.<br>Inserir a ART ou RRT na tela de coleta de dados.</p></div>'
+          : '<div style="border:2px dashed #1E3A8A;min-height:260mm;margin:10mm 0;display:flex;align-items:center;justify-content:center"><p style="color:#6b7280;font-size:8.5pt;text-align:center">ART / RRT não anexada.<br>Inserir a ART ou RRT na tela de coleta de dados.</p></div>'
         ) +
         '</div>')
+      const rodNR = xe(inspetor?.rodape_documentos) || `${xe(inspetor?.nome_inspetor||'')} — ${xe(inspetor?.titulo_profissional||'')} — ${xe(inspetor?.sigla_conselho||'')} ${xe(inspetor?.numero_registro||'')}`
+      if (rodNR) partsNR.push('<div class="rod">' + rodNR + '</div>')
       partsNR.push('</body></html>')
 
       const htmlNR = partsNR.join('\n')
@@ -2163,7 +2165,7 @@ ${A2}
 
 ${srcArt
   ?`<div style="margin-top:8px;text-align:center"><img src="${srcArt}" style="max-width:100%;border:1.5px solid #1E3A8A"></div>`
-  :`<div class="foto-box" style="height:200px;margin-top:8px">[ ART / RRT — inserir pelo responsável técnico ]</div>`}
+  :`<div class="foto-box" style="height:560px;margin-top:8px">[ ART / RRT — inserir pelo responsável técnico ]</div>`}
 </div>
 
 ${rodInspetor?`<div class="rod">${rodInspetor}</div>`:''}

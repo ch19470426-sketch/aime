@@ -377,6 +377,7 @@ function LaudoComplemento() {
       if (data.rec52) setRec52(data.rec52)
       if (data.rec53) setRec53(data.rec53)
       if (data.rec54) setRec54(data.rec54)
+      if (data.rec55) setRec55(data.rec55)
     } catch { setErro('Erro ao gerar recomendações. Tente novamente.') }
     finally { setGerandoRec(false) }
   }
