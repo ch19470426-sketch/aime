@@ -205,7 +205,7 @@ tr:nth-child(even) td { background: #f7f9ff; }
 .indice-titulo { font-size: 14pt; font-weight: 900; color: #1E3A8A; text-align: center; margin-bottom: 12mm; letter-spacing: 2px; }
 
 .indice-item { display: flex; align-items: baseline; padding: 3pt 0; font-size: 9pt; }
-.indice-num  { min-width: 30pt; font-weight: 700; color: #1E3A8A; flex-shrink: 0; }
+'.indice-num  { min-width: 30pt; font-weight: 400; color: #000; flex-shrink: 0; }'
 .indice-dots { flex: 1; }
 
 /* §3.5 — Item classificado */
@@ -641,7 +641,7 @@ export async function POST(request: NextRequest) {
         '<div class="titulo">3.1.- Descrição da Vistoria Técnica.</div>' +
         '<div>' +
         '<table style="width:100%;border-collapse:collapse">' +
-        '<tr><td style="' + TD11 + ';min-height:0"><div style="min-height:35mm;text-align:justify;white-space:pre-wrap">' +
+        '<tr><td style="' + TD11 + ';min-height:0"><div style="text-align:justify;white-space:pre-wrap">' +
         (complemento?.descVistoria||complemento?.dadosVistoria||'').replace(/^[\d]+\.\d+[^\n]*\n/,'').replace(/^3\.1\.?-?\s*[^\n]*\n+/i,'').replace(/^Descrição da Vistoria Técnica\.?\s*\n+/i,'') + '</div></td></tr>' +
         '</table>' +
         '<p style="text-align:justify;margin:6pt 0">O resultado da vistoria é apresentado num conjunto de formulários, contendo o sistema e subsistema, requisitos normativos com suas classificações, priorizações, localizações, descrição das não conformidades, sugestões e a respectiva evidência fotográfica.</p>' +
@@ -1225,7 +1225,7 @@ export async function POST(request: NextRequest) {
         '<span class="indice-num">' + xe(it.n) + '</span>' +
         '<span>' + xe(it.t) + '</span>' +
         '<span class="indice-dots"></span>' +
-        '<span style="min-width:24pt;text-align:right;color:#1E3A8A;font-weight:700">' + it.pg + '</span>' +
+        '<span style="min-width:24pt;text-align:right;color:#000;font-weight:400">' + it.pg + '</span>' +
         '</div>'
       ).join('')
 
@@ -1288,7 +1288,7 @@ export async function POST(request: NextRequest) {
       // 1.3
       partsNR.push('<div class="titulo">1.3.- Plano de Trabalho.</div>')
       partsNR.push('<p style="text-align:justify">As etapas básicas desenvolvidas para a realização do presente trabalho de inspeção constam na tabela que segue:</p>')
-      partsNR.push(tabelaPlano)
+      partsNR.push('<div style="display:flex;justify-content:center;width:100%">' + tabelaPlano + '</div>')
 
       // 1.4
       partsNR.push('<div class="titulo">1.4.- Condições e Limitações.</div>')
@@ -1963,7 +1963,7 @@ export async function POST(request: NextRequest) {
         '<span class="indice-num">' + xe(it.n) + '</span>' +
         '<span>' + xe(it.t) + '</span>' +
         '<span class="indice-dots"></span>' +
-        '<span style="min-width:24pt;text-align:right;color:#1E3A8A;font-weight:700">' + (it.pg||'') + '</span>' +
+        '<span style="min-width:24pt;text-align:right;color:#000;font-weight:400">' + it.pg + '</span>' +
         '</div>'
       ).join('') +
       '</div>'
