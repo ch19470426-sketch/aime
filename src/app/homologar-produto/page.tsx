@@ -56,6 +56,7 @@ function HomologarProdutoInner() {
   const [enviando,    setEnviando]    = useState(false)
   const inputPdfRef = useRef<HTMLInputElement>(null)
   const iframeRef    = useRef<HTMLIFrameElement>(null)
+  const editRef = useRef<HTMLDivElement>(null)
 
   const numServico = Number(tipoServico)
   const grupo4x    = numServico >= 41 && numServico <= 49
@@ -218,10 +219,12 @@ function HomologarProdutoInner() {
       const ehLaudo = true  // sempre PDF
       if (ehLaudo) {
         if (!html) throw new Error('HTML do laudo não carregado.')
+        const innerEditado = editRef.current?.innerHTML
+        const htmlBase = innerEditado ? html.replace(/<body>([\s\S]*)<\/body>/, `<body>${innerEditado}</body>`) : html
 
         // Extrair texto do cabeçalho e rodapé já presentes no HTML
-        const mCab = html.match(/<div class="cab">([\s\S]*?)<\/div>/)
-        const mRod = html.match(/<div class="rod">([\s\S]*?)<\/div>/)
+        const mCab = htmlBase.match(/<div class="cab">([\s\S]*?)<\/div>/)
+        const mRod = htmlBase.match(/<div class="rod">([\s\S]*?)<\/div>/)
         // Limpar tags HTML — manter só o texto
         const cabTxt = mCab ? mCab[1].replace(/<[^>]+>/g, '').trim() : ''
         const rodTxt = mRod ? mRod[1].replace(/<[^>]+>/g, '').trim() : ''
@@ -427,18 +430,22 @@ function HomologarProdutoInner() {
 
         {blobUrl && numServico < 41 && (
           <div style={{ border: '1px solid #c3d4f0', borderRadius: '6px', overflow: 'hidden', marginBottom: '8px' }}>
-            <div style={{ background: '#1E3A8A', color: '#fff', fontSize: '7.5pt', fontWeight: 700, padding: '3px 10px' }}>
-              Preview do documento
+            <div style={{ background: '#1E3A8A', color: '#fff', fontSize: '7.5pt', fontWeight: 700, padding: '4px 10px' }}>
+              Preview do documento — clique para editar
             </div>
-            <iframe
-              ref={iframeRef}
-              src={blobUrl}
-              style={{ width: '100%', height: '800px', border: 'none', display: 'block' }}
-              title="Preview do laudo"
+            <div
+              ref={editRef}
+              contentEditable
+              suppressContentEditableWarning
+              dangerouslySetInnerHTML={{ __html: html }}
+              style={{
+                width: '100%', height: '800px', border: 'none',
+                display: 'block', overflowY: 'auto', padding: '12px 20px',
+                background: '#fff', fontSize: '9pt', lineHeight: 1.5,
+                fontFamily: 'Arial, sans-serif', outline: 'none', boxSizing: 'border-box'
+              }}
             />
           </div>
-        )}
-
         <div style={{ ...S.footer, gridTemplateColumns: '1fr 1fr 1fr' }}>
           <button style={{ ...S.btn, ...S.btnSec }} onClick={() => window.location.href = retorno}>
             Voltar
