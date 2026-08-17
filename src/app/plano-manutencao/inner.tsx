@@ -191,17 +191,7 @@ export default function PlanoManutencaoInner() {
       body { -webkit-print-color-adjust: exact; print-color-adjust: exact; margin: 0 !important; }
       .cab, .rod { display: none !important; }
       .pg-capa { page-break-after: always; }
-      /* Anexo 1 em paisagem: Chrome ignora named pages, entao rotaciona o bloco */
-      .anx1-page {
-        transform: rotate(-90deg) translateX(-100%);
-        transform-origin: top left;
-        width: 255mm;
-        height: 158mm;
-        overflow: visible !important;
-        page-break-before: always;
-        page-break-inside: avoid;
-      }
-      .anx1-page table { min-width: 0 !important; width: 100% !important; }
+
     `
     const nomeBase = nomeArq.replace('.html','') + '.pdf'
     const htmlPrint = htmlGerado
