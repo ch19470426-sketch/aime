@@ -83,6 +83,7 @@ export default function PlanoManutencaoInner() {
   const [enviando,  setEnviando] = useState(false)
   const [htmlGerado, setHtmlGerado] = useState('')
   const inputPdfRef = useRef<HTMLInputElement>(null)
+  const editRef = useRef<HTMLDivElement>(null)
 
   const titulo      = TITULO[tipoServico] ?? 'Plano de Manutenção'
   const tsApoioNum  = TIPO_APOIO_NUM[tipoServico] ?? ''
@@ -161,9 +162,10 @@ export default function PlanoManutencaoInner() {
   }
 
   function salvarPDF() {
-    if (!htmlGerado) return
+    const htmlAtual = editRef.current?.innerHTML || htmlGerado
+    if (!htmlAtual && !htmlGerado) return
     // Extrair cab e rod do HTML
-    const mCab = htmlGerado.match(/<div[^>]*(?:class="cab"|border-bottom:2px solid #1E3A8A)[^>]*>([\s\S]*?)<\/div>/)
+    const mCab = htmlAtual.match(/<div[^>]*(?:class="cab"|border-bottom:2px solid #1E3A8A)[^>]*>([\s\S]*?)<\/div>/)
     const mRod = htmlGerado.match(/<div class="rod">([\s\S]*?)<\/div>/)
     const cabTxt = mCab ? mCab[1].replace(/<[^>]+>/g,'').trim() : ''
     const rodTxt = mRod ? mRod[1].replace(/<[^>]+>/g,'').trim() : ''
@@ -197,7 +199,7 @@ export default function PlanoManutencaoInner() {
 
     `
     const nomeBase = nomeArq.replace('.html','') + '.pdf'
-    const htmlPrint = htmlGerado
+    const htmlPrint = htmlAtual
       .replace(/<title>[^<]*<\/title>/, `<title>${nomeBase}</title>`)
       .replace('</head>', `<style>${printCss}</style></head>`)
       .replace('</body>', `<script>
@@ -351,9 +353,19 @@ export default function PlanoManutencaoInner() {
               </button>
             </div>
 
-            <div style={{ border: '1px solid #c3d4f0', borderRadius: 6, overflow: 'hidden', height: 500, marginTop: 8 }}>
-              <iframe src={blobUrl} style={{ width: '100%', height: '100%', border: 'none' }} />
-            </div>
+            <div
+              ref={editRef}
+              contentEditable
+              suppressContentEditableWarning
+              dangerouslySetInnerHTML={{ __html: htmlGerado }}
+              style={{
+                border: '1px solid #c3d4f0', borderRadius: 6,
+                height: 520, overflowY: 'auto', padding: '12px 20px',
+                background: '#fff', fontSize: '9pt', lineHeight: 1.5,
+                fontFamily: 'Arial, sans-serif', marginTop: 8,
+                outline: 'none'
+              }}
+            />
           </div>
         )}
       </div>
