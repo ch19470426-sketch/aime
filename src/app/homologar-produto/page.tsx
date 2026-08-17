@@ -446,6 +446,7 @@ function HomologarProdutoInner() {
               }}
             />
           </div>
+        )}
         <div style={{ ...S.footer, gridTemplateColumns: '1fr 1fr 1fr' }}>
           <button style={{ ...S.btn, ...S.btnSec }} onClick={() => window.location.href = retorno}>
             Voltar
