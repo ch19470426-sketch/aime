@@ -57,6 +57,7 @@ function HomologarProdutoInner() {
   const inputPdfRef = useRef<HTMLInputElement>(null)
   const iframeRef    = useRef<HTMLIFrameElement>(null)
   const editRef = useRef<HTMLDivElement>(null)
+  const htmlAplicado = useRef('')
 
   const numServico = Number(tipoServico)
   const grupo4x    = numServico >= 41 && numServico <= 49
@@ -449,7 +450,10 @@ function HomologarProdutoInner() {
             <div
               ref={(el) => {
                 editRef.current = el
-                if (el && el.innerHTML !== html) el.innerHTML = html
+                if (el && htmlAplicado.current !== html) {
+                  el.innerHTML = html
+                  htmlAplicado.current = html
+                }
               }}
               contentEditable
               suppressContentEditableWarning

@@ -341,7 +341,14 @@ function LaudoComplemento() {
       const res = await fetch('/api/ia-laudo', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ tipo: 'descricao_vistoria', dados: { informacoes: dadosVistoria, tipo_servico: tipoServico, nivel_inspecao: nivelInspecao } })
+        body: JSON.stringify({ tipo: 'descricao_vistoria', dados: {
+          informacoes: dadosVistoria, tipo_servico: tipoServico, nivel_inspecao: nivelInspecao,
+          razao_social: estab.razao_social_nome || '',
+          data_vistoria: (ncs[0] as any)?.dataVistoria || (ncs[0] as any)?.data_vistoria || '',
+          nome_inspetor: inspetor.nome_inspetor || '',
+          sistemas: Array.from(new Set(ncs.map((n: any) => String(n.sistema || n.sistema_vistoria || '').replace(/^\s*\d+[-_.\s]+/,'').trim()).filter(Boolean))).join('; '),
+          qtd_ncs: ncs.length
+        } })
       })
       const data = await res.json()
       if (data.texto) { setDadosVistoria(data.texto); setDescVistoria(data.texto); setDescTemp('') }
@@ -354,7 +361,7 @@ function LaudoComplemento() {
   async function gerarRecomendacoes() {
     setGerandoRec(true)
     try {
-      const ncsAM = ncs.filter(nc => nc.prioridade === 'Alta' || nc.prioridade === 'Média')
+      const ncsAM = ncs.filter((nc: any) => ['Muito alta','Alta','Média','Media'].includes(String(nc.prioridade||'')))
       const ativo = await fetch(`${SUPA_URL}/rest/v1/ativos_a_vistoriar?cpf_inspetor=eq.${cpfInspetor}&cnpjoucpf=eq.${cnpjoucpf}&tipo_servico=ilike.%${cfg.tipoVistoria}%&select=data_inicio_operacao&limit=1`, {
         headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` }
       }).then(r => r.json())
@@ -479,7 +486,7 @@ function LaudoComplemento() {
             tipo: 'recomendacoes',
             dados: {
               tipo_servico: tipoServico,
-              ncs: ncsComSolucao.filter((nc: any) => nc.prioridade === 'Alta' || nc.prioridade === 'Média'),
+              ncs: ncsComSolucao.filter((nc: any) => ['Muito alta','Alta','Média','Media'].includes(String(nc.prioridade||''))),
               classificacao: { nivel: nivelInspecao, risco, desempenho, manut, uso, desempGeral, nrManut, nrOp, nrFisico, nrSeg, nrDoc },
             }
           })

@@ -1194,8 +1194,8 @@ export async function POST(request: NextRequest) {
       // ── Índice ─────────────────────────────────────────────────────────────
       const indiceNR = [
         {n:'1.',pg:'2',t:'Considerações Preliminares',nivel:1},
-        {n:'1.1.-',pg:'2',t:titulo11,nivel:2},
-        {n:'1.2.-',pg:'3',t:titulo12,nivel:2},
+        {n:'1.1.-',pg:'2',t:titulo11.replace(/^\s*\d+(\.\d+)*\s*\.?-?\s*/,''),nivel:2},
+        {n:'1.2.-',pg:'3',t:titulo12.replace(/^\s*\d+(\.\d+)*\s*\.?-?\s*/,''),nivel:2},
         {n:'1.3.-',pg:'3',t:'Plano de Trabalho — Agenda de Trabalho, ' + agendaLabel,nivel:2},
         {n:'1.4.-',pg:'4',t:'Condições e Limitações',nivel:2},
         {n:'2.',pg:'4',t:'Metodologia adotada para o desenvolvimento do Trabalho',nivel:1},
@@ -1223,9 +1223,9 @@ export async function POST(request: NextRequest) {
       const indiceHtmlNR = indiceNR.map(it =>
         '<div class="indice-item' + (it.nivel===2?' nivel2':'') + '">' +
         '<span class="indice-num">' + xe(it.n) + '</span>' +
-        '<span>' + xe(it.t) + '</span>' +
+        '<span style="flex:1;min-width:0">' + xe(it.t) + '</span>' +
         '<span class="indice-dots"></span>' +
-        '<span style="min-width:24pt;text-align:right;color:#000;font-weight:400">' + it.pg + '</span>' +
+        '<span style="min-width:24pt;flex-shrink:0;margin-left:auto;text-align:right;color:#000;font-weight:400">' + it.pg + '</span>' +
         '</div>'
       ).join('')
 
@@ -1366,7 +1366,7 @@ export async function POST(request: NextRequest) {
       partsNR.push('<div class="section a3-landscape"><style>.a3-landscape{} @media print{.a3-landscape{page:landscape-page}} @page landscape-page{size:A4 landscape;margin:10mm}</style><div class="titulo" style="text-align:center">Anexo 3 – Relação de Não Conformidades e Soluções</div>' + A3nr + '</div>')
       partsNR.push('<div class="section"><div class="titulo" style="text-align:center">Anexo 4 – Anotação de Responsabilidade Técnica</div>' +
         (complemento?.artRrt
-          ? '<div style="text-align:center"><img src="' + complemento.artRrt + '" style="width:190mm;height:257mm;object-fit:contain;display:block;margin:0 auto"></div>'
+          ? '<div style="page-break-inside:avoid;text-align:center"><img src="' + complemento.artRrt + '" style="width:190mm;height:auto;max-height:272mm;display:block;margin:0 auto"></div>'
           : '<div style="border:2px dashed #1E3A8A;min-height:260mm;margin:10mm 0;display:flex;align-items:center;justify-content:center"><p style="color:#6b7280;font-size:8.5pt;text-align:center">ART / RRT não anexada.<br>Inserir a ART ou RRT na tela de coleta de dados.</p></div>'
         ) +
         '</div>')
@@ -1961,9 +1961,9 @@ export async function POST(request: NextRequest) {
       INDICE_ITENS.map(it =>
         '<div class="indice-item' + (it.nivel===2?' nivel2':'') + '">' +
         '<span class="indice-num">' + xe(it.n) + '</span>' +
-        '<span>' + xe(it.t) + '</span>' +
+        '<span style="flex:1;min-width:0">' + xe(it.t) + '</span>' +
         '<span class="indice-dots"></span>' +
-        '<span style="min-width:24pt;text-align:right;color:#000;font-weight:400">' + it.pg + '</span>' +
+        '<span style="min-width:24pt;flex-shrink:0;margin-left:auto;text-align:right;color:#000;font-weight:400">' + it.pg + '</span>' +
         '</div>'
       ).join('') +
       '</div>'
@@ -2164,7 +2164,7 @@ ${A2}
 <br>
 
 ${srcArt
-  ?`<div style="text-align:center"><img src="${srcArt}" style="width:190mm;height:257mm;object-fit:contain;display:block;margin:0 auto"></div>`
+  ?`<div style="page-break-inside:avoid;text-align:center"><img src="${srcArt}" style="width:190mm;height:auto;max-height:272mm;display:block;margin:0 auto"></div>`
   :`<div class="foto-box" style="height:560px;margin-top:8px">[ ART / RRT — inserir pelo responsável técnico ]</div>`}
 </div>
 
