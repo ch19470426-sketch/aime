@@ -217,91 +217,55 @@ function HomologarProdutoInner() {
       // Todos os documentos: abrir HTML em nova aba para imprimir como PDF
       const ehLaudo = true  // sempre PDF
       if (ehLaudo) {
-        if (!html) throw new Error('HTML do laudo não carregado.')
-        // Conteudo como esta na tela (iframe editavel)
-        let inner = ''
-        try { inner = iframeRef.current?.contentDocument?.body?.innerHTML ?? '' }
-        catch { inner = '' }
-        // Substituicao por funcao: evita interpretacao de $& / $1 no conteudo
-        let htmlBase = html
-        if (inner) {
-          const rx = /(<body[^>]*>)[\s\S]*(<\/body>)/i
-          if (rx.test(html)) {
-            htmlBase = html.replace(rx, (_m, ab, fb) => ab + inner + fb)
-          } else {
-            htmlBase = '<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>laudo</title></head><body>' + inner + '</body></html>'
-          }
-        }
-
-        // Extrair texto do cabeçalho e rodapé já presentes no HTML
-        const mCab = htmlBase.match(/<div class="cab">([\s\S]*?)<\/div>/)
-        const mRod = htmlBase.match(/<div class="rod">([\s\S]*?)<\/div>/)
-        // Limpar tags HTML — manter só o texto
-        const cabTxt = mCab ? mCab[1].replace(/<[^>]+>/g, '').trim() : ''
-        const rodTxt = mRod ? mRod[1].replace(/<[^>]+>/g, '').trim() : ''
-
-        // CSS de impressão com cabeçalho e rodapé em todas as páginas
-        const printCss = `
-          @page {
-            size: A4;
-            margin: 20mm 20mm 15mm 25mm;
-            @top-center {
-              content: ${JSON.stringify(cabTxt || 'AIMÊ — Mapeamento Inteligente de Edificações e Equipamentos')};
-              font-weight: bold;
-              font-size: 9pt;
-              color: #1E3A8A;
-              border-bottom: 1.5px solid #1E3A8A;
-              padding-bottom: 3pt;
-              width: 100%;
-              text-align: center;
-            }
-            @bottom-left {
-              content: ${JSON.stringify(rodTxt || '')};
-              font-family: Arial, sans-serif;
-              font-size: 7.5pt;
-              color: #374151;
-              border-top: 1px solid #ccc;
-              padding-top: 3pt;
-            }
-            @bottom-right {
-              content: 'Pág. ' counter(page);
-              font-family: Arial, sans-serif;
-              font-size: 7.5pt;
-              color: #374151;
-              border-top: 1px solid #ccc;
-              padding-top: 3pt;
-            }
-          }
-          body { -webkit-print-color-adjust: exact; print-color-adjust: exact; margin: 0 !important; padding: 0 !important; }
-          /* Ocultar as divs cab/rod do body — estão no @page */
-          .cab, .rod { display: none !important; }
-          /* Garantir que o conteúdo use toda a largura disponível */
-          body > * { max-width: 100% !important; width: 100% !important; box-shadow: none !important; border-radius: 0 !important; }
-        `
+        const doc = iframeRef.current?.contentDocument
+        const win = iframeRef.current?.contentWindow
+        if (!doc || !win) throw new Error('Preview do documento nao esta pronto. Aguarde carregar e tente novamente.')
 
         const nomeBase = nomeAmigavel('pdf')
-        const tagStyle  = '<style>' + printCss + '</style>'
-        const tagScript = '<script>var _n=' + JSON.stringify(nomeBase) + ';document.title=_n;'
-          + 'window.addEventListener("load",function(){document.title=_n;setTimeout(function(){window.print()},600)});<\/script>'
 
-        let htmlPrint = htmlBase.replace(/<title>[^<]*<\/title>/i, () => '<title>' + nomeBase + '</title>')
-        htmlPrint = htmlPrint.includes('</head>')
-          ? htmlPrint.replace('</head>', () => tagStyle + '</head>')
-          : tagStyle + htmlPrint
-        htmlPrint = htmlPrint.includes('</body>')
-          ? htmlPrint.replace('</body>', () => tagScript + '</body>')
-          : htmlPrint + tagScript
+        // Cabecalho/rodape lidos do DOM que esta na tela
+        const cabTxt = (doc.querySelector('.cab') as HTMLElement | null)?.innerText?.trim() ?? ''
+        const rodTxt = (doc.querySelector('.rod') as HTMLElement | null)?.innerText?.trim() ?? ''
 
-        // Abrir em nova aba para impressão como PDF
-        const blob = new Blob([htmlPrint], { type: 'text/html;charset=utf-8' })
-        const url  = URL.createObjectURL(blob)
-        const win = window.open(url, '_blank')
-        if (!win) {
-          const a = document.createElement('a')
-          a.href = url; a.target = '_blank'; a.rel = 'noopener'
-          document.body.appendChild(a); a.click(); document.body.removeChild(a)
+        const printCss = [
+          '@page {',
+          '  size: A4;',
+          '  margin: 20mm 20mm 15mm 25mm;',
+          '  @top-center {',
+          '    content: ' + JSON.stringify(cabTxt) + ';',
+          '    font-family: Arial, sans-serif; font-size: 9pt; font-weight: bold; color: #1E3A8A;',
+          '    border-bottom: 1.5px solid #1E3A8A; padding-bottom: 3pt; width: 100%; text-align: center;',
+          '  }',
+          '  @bottom-left {',
+          '    content: ' + JSON.stringify(rodTxt) + ';',
+          '    font-family: Arial, sans-serif; font-size: 7.5pt; color: #374151;',
+          '    border-top: 1px solid #ccc; padding-top: 3pt;',
+          '  }',
+          '  @bottom-right {',
+          "    content: 'Pag. ' counter(page);",
+          '    font-family: Arial, sans-serif; font-size: 7.5pt; color: #374151;',
+          '    border-top: 1px solid #ccc; padding-top: 3pt;',
+          '  }',
+          '}',
+          '@media print {',
+          '  body { -webkit-print-color-adjust: exact; print-color-adjust: exact; margin: 0 !important; padding: 0 !important; }',
+          '  .cab, .rod { display: none !important; }',
+          '}',
+        ].join('\n')
+
+        // Injeta (ou atualiza) o CSS de impressao dentro do proprio iframe
+        let est = doc.getElementById('aime-print-css') as HTMLStyleElement | null
+        if (!est) {
+          est = doc.createElement('style')
+          est.id = 'aime-print-css'
+          doc.head.appendChild(est)
         }
-        setTimeout(() => URL.revokeObjectURL(url), 60000)
+        est.textContent = printCss
+        doc.title = nomeBase
+
+        // Imprime o que esta na tela, com as edicoes do usuario
+        win.focus()
+        win.print()
         setGerandoDocx(false)
         return
       }
