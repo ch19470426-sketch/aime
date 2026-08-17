@@ -1366,7 +1366,7 @@ export async function POST(request: NextRequest) {
       partsNR.push('<div class="section a3-landscape"><style>.a3-landscape{} @media print{.a3-landscape{page:landscape-page}} @page landscape-page{size:A4 landscape;margin:10mm}</style><div class="titulo" style="text-align:center">Anexo 3 – Relação de Não Conformidades e Soluções</div>' + A3nr + '</div>')
       partsNR.push('<div class="section"><div class="titulo" style="text-align:center">Anexo 4 – Anotação de Responsabilidade Técnica</div>' +
         (complemento?.artRrt
-          ? '<div style="text-align:center;margin:8mm 0"><img src="' + complemento.artRrt + '" style="width:190mm;min-height:260mm;max-height:280mm;object-fit:contain"/></div>'
+          ? '<div style="text-align:center;margin:0"><img src="' + complemento.artRrt + '" style="width:190mm;min-height:257mm;max-height:280mm;object-fit:contain;display:block;margin:0 auto;object-fit:contain"/></div>'
           : '<div style="border:2px dashed #1E3A8A;min-height:260mm;margin:10mm 0;display:flex;align-items:center;justify-content:center"><p style="color:#6b7280;font-size:8.5pt;text-align:center">ART / RRT não anexada.<br>Inserir a ART ou RRT na tela de coleta de dados.</p></div>'
         ) +
         '</div>')
@@ -2164,7 +2164,7 @@ ${A2}
 <br>
 
 ${srcArt
-  ?`<div style="margin-top:8px;text-align:center"><img src="${srcArt}" style="max-width:100%;border:1.5px solid #1E3A8A"></div>`
+  ?`<div style="margin-top:8px;text-align:center"><img src="${srcArt}" style="width:190mm;min-height:257mm;max-height:280mm;object-fit:contain;border:1.5px solid #1E3A8A;display:block;margin:0 auto"></div>`
   :`<div class="foto-box" style="height:560px;margin-top:8px">[ ART / RRT — inserir pelo responsável técnico ]</div>`}
 </div>
 

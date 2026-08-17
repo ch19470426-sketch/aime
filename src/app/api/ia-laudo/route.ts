@@ -30,16 +30,22 @@ export async function POST(request: NextRequest) {
       prompt = `Como engenheiro diagnóstico, especialista em patologia e atuando na área de edificações, utilizando apenas critérios previstos em normas técnicas e ao conteúdo das variáveis apresentadas a seguir, descreva com linguagem técnica o "Procedimento corretivo" correspondente à combinação das variáveis abaixo. O foco deve ser em ${foco}.\n\nSISTEMA: ${sistemaLimpo}\nSUBSISTEMA: ${d.subsistema_vistoria || d.subsistema || ''}\nLOCAL + COMPLEMENTO: ${d.local_ocorrencia || ''} ${d.complemento_local || ''}\nNÃO CONFORMIDADE: ${d.descricao_nao_conformidade || d.nc || ''}\nCAUSA PROVÁVEL: ${d.descricao_causa_provavel || d.cp || ''}\nSOLUÇÃO NÃO CONFORMIDADE: ${d.descricao_solucao_nc || d.solucao || ''}\n\nRESPOSTA: Descreva resumidamente os serviços técnicos necessários para correção da não conformidade. Máximo 3 frases, 320 caracteres, sem título ou prefixo, respeitando as regras sintáticas do português.`
 
     } else if (tipo === 'recomendacoes') {
-      const nomeLaudo = d.tipo_servico ? `Laudo tipo ${d.tipo_servico}` : 'Laudo Técnico'
-      const ncsTexto = (d.ncs as any[] ?? []).map((nc: any) =>
-        `Sistema: ${nc.sistema} | Anomalia: ${nc.anomalia} | Local: ${nc.local} | GR: ${nc.grauRisco} | Prior: ${nc.prioridade}`
-      ).join('\n')
-      const ehNR_IA = ['45','46','47','48'].includes(d.tipo_servico ?? '')
-      const itensRec = ehNR_IA
-        ? '5.1 Segurança do trabalho e NRs; 5.2 Manutenção preventiva; 5.3 Uso e operação; 5.4 Sustentabilidade; 5.5 Outras recomendações'
-        : '5.1 Manutenção preventiva; 5.2 Uso e operação; 5.3 Sustentabilidade; 5.4 Outras recomendações'
-      const nParags = ehNR_IA ? 5 : 4
-      prompt = `Você é um engenheiro especialista. Com base nas não conformidades listadas do ${nomeLaudo}, redija recomendações técnicas para: ${itensRec}.\n\nNÃO CONFORMIDADES:\n${ncsTexto}\n\nResponda em ${nParags} parágrafos objetivos (um por item), separados por linha em branco, sem títulos, máximo 200 caracteres cada.`
+      const ehNR = ['45','46','47','48'].includes(d?.tipo_servico ?? '')
+      // Preparar dados da tabela auxiliar
+      const ncsTexto = (d.ncs as any[] ?? []).map((nc: any) => {
+        const sistema = String(nc.sistema||nc.sistema_vistoria||'').replace(/^\d+[-_.\s]+/,'').trim()
+        const nc_desc = nc.descricao_nao_conformidade||nc.nc||nc.anomalia||nc.anomalia_requisito_vistoria||''
+        const gr = nc.grau_risco||nc.grauRisco||0
+        return `Sistema: ${sistema} | NC: ${nc_desc} | GR: ${gr}`
+      }).join('\n')
+
+      if (ehNR) {
+        // Laudos 45-48: foco em segurança do trabalho e conformidade regulatória
+        prompt = `Você é um engenheiro diagnóstico especialista em segurança do trabalho e conformidade regulatória (NR-10, NR-12, NR-13). Com base nas não conformidades abaixo, redija até 15 recomendações técnicas objetivas, organizadas nos seguintes subitens do item 5 do laudo: 5.1 Manutenção; 5.2 Operação; 5.3 Condições físicas; 5.4 Segurança; 5.5 Documentação. Cada subitem pode ter até 3 recomendações. Cada recomendação deve ter no máximo 400 caracteres, até 3 frases, sem justificativa, com linguagem técnica e pontuação correta em português.\n\nNÃO CONFORMIDADES:\n${ncsTexto}\n\nResponda APENAS com 5 parágrafos separados por linha em branco, um por subitem (5.1 a 5.5), sem títulos ou prefixos.`
+      } else {
+        // Laudos 41-44: foco em patologia construtiva
+        prompt = `Você é um engenheiro diagnóstico especialista em patologia construtiva e desempenho de edificações. Com base nas não conformidades abaixo, redija até 15 recomendações técnicas objetivas, organizadas nos seguintes subitens do item 5 do laudo: 5.1 Manutenção; 5.2 Uso; 5.3 Sustentabilidade; 5.4 Outras recomendações. Cada subitem pode ter até 3 recomendações. Cada recomendação deve ter no máximo 400 caracteres, até 3 frases, sem justificativa, com linguagem técnica e pontuação correta em português.\n\nNÃO CONFORMIDADES:\n${ncsTexto}\n\nResponda APENAS com 4 parágrafos separados por linha em branco, um por subitem (5.1 a 5.4), sem títulos ou prefixos.`
+      }
 
     } else if (tipo === 'recomendacao_sistema') {
       const sistemaLimpo = (d.sistema || '').slice(3).replace(/_/g,' ')

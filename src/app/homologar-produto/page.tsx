@@ -428,25 +428,6 @@ function HomologarProdutoInner() {
           style={{ position: 'absolute', width: 1, height: 1, opacity: 0, overflow: 'hidden', pointerEvents: 'none' }}
           onChange={onArquivoPdfEscolhido} />
 
-        {html && numServico >= 41 && (
-          <div style={{ border: '1px solid #c3d4f0', borderRadius: '6px', overflow: 'hidden', marginBottom: '8px' }}>
-            <div style={{ background: '#1E3A8A', color: '#fff', fontSize: '7.5pt', fontWeight: 700, padding: '4px 10px' }}>
-              Preview do documento — clique para editar
-            </div>
-            <div
-              ref={editRef}
-              contentEditable
-              suppressContentEditableWarning
-              dangerouslySetInnerHTML={{ __html: html }}
-              style={{
-                width: '100%', height: '800px', border: 'none',
-                display: 'block', overflowY: 'auto', padding: '12px 20px',
-                background: '#fff', fontSize: '9pt', lineHeight: 1.5,
-                fontFamily: 'Arial, sans-serif', outline: 'none', boxSizing: 'border-box'
-              }}
-            />
-          </div>
-        )}
         <div style={{ ...S.footer, gridTemplateColumns: '1fr 1fr 1fr' }}>
           <button style={{ ...S.btn, ...S.btnSec }} onClick={() => window.location.href = retorno}>
             Voltar
@@ -459,6 +440,28 @@ function HomologarProdutoInner() {
             {enviando ? 'Enviando...' : '↑ Salvar PDF no AIMÊ'}
           </button>
         </div>
+
+        {html && numServico >= 41 && (
+          <div style={{ border: '1px solid #c3d4f0', borderRadius: '6px', overflow: 'hidden', marginBottom: '8px' }}>
+            <div style={{ background: '#1E3A8A', color: '#fff', fontSize: '7.5pt', fontWeight: 700, padding: '4px 10px' }}>
+              Preview do documento — clique para editar
+            </div>
+            <div
+              ref={(el) => {
+                editRef.current = el
+                if (el && el.innerHTML !== html) el.innerHTML = html
+              }}
+              contentEditable
+              suppressContentEditableWarning
+              style={{
+                width: '100%', height: '800px', border: 'none',
+                display: 'block', overflowY: 'auto', padding: '12px 20px',
+                background: '#fff', fontSize: '9pt', lineHeight: 1.5,
+                fontFamily: 'Arial, sans-serif', outline: 'none', boxSizing: 'border-box'
+              }}
+            />
+          </div>
+        )}
 
       </div>
       <Banner {...bannerProps} />
