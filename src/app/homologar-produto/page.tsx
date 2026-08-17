@@ -53,6 +53,7 @@ function HomologarProdutoInner() {
   const [blobUrl,     setBlobUrl]     = useState('')
   const [erroCarregar, setErroCarregar] = useState(false)
   const [gerandoDocx, setGerandoDocx] = useState(false)
+  const [htmlEditado, setHtmlEditado] = useState('')
   const [enviando,    setEnviando]    = useState(false)
   const inputPdfRef = useRef<HTMLInputElement>(null)
   const iframeRef    = useRef<HTMLIFrameElement>(null)
@@ -219,8 +220,8 @@ function HomologarProdutoInner() {
       const ehLaudo = true  // sempre PDF
       if (ehLaudo) {
         if (!html) throw new Error('HTML do laudo não carregado.')
-        const innerEditado = editRef.current?.innerHTML
-        const htmlBase = innerEditado ? html.replace(/<body>([\s\S]*)<\/body>/, `<body>${innerEditado}</body>`) : html
+        const inner = htmlEditado || editRef.current?.innerHTML || ''
+        const htmlBase = inner ? html.replace(/<body>([\s\S]*)<\/body>/, `<body>${inner}</body>`) : html
 
         // Extrair texto do cabeçalho e rodapé já presentes no HTML
         const mCab = htmlBase.match(/<div class="cab">([\s\S]*?)<\/div>/)
@@ -453,6 +454,7 @@ function HomologarProdutoInner() {
               }}
               contentEditable
               suppressContentEditableWarning
+              onInput={() => { if (editRef.current) setHtmlEditado(editRef.current.innerHTML) }}
               style={{
                 width: '100%', height: '800px', border: 'none',
                 display: 'block', overflowY: 'auto', padding: '12px 20px',
