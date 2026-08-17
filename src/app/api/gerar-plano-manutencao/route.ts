@@ -364,7 +364,7 @@ tr:nth-child(even) td { background: #f7f9ff; }
       const pri = gr>80?'Muito Alta':gr>=50?'Alta':gr>=30?'Média':'Baixa'
       // Novo bloco quando muda local OU tag (2.9.2-n)
       if (local !== curLocal || tag !== curTag) {
-
+        anx1Rows += `<tr style="background:#dbeafe">
 <td colspan="2" style="font-size:6.5pt;color:#1E3A8A;padding:1pt 5pt"><b>Local ocorrência:</b></td>
 <td colspan="2" style="font-size:6.5pt;color:#1E3A8A;padding:1pt 5pt"><b>Complemento local:</b></td>
 <td style="font-size:6.5pt;color:#1E3A8A;padding:1pt 5pt"><b>Tag/Nº Série:</b></td>
