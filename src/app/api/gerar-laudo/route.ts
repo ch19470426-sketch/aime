@@ -335,6 +335,32 @@ export async function POST(request: NextRequest) {
     if (!cpfInspetor || !tipoServico || !nomeArquivo)
       return NextResponse.json({ erro: 'Parâmetros obrigatórios ausentes.' }, { status: 400 })
 
+    // Imagens/documentos do storage — usado por 41-44 e 45-48
+    async function imgSrc(path: string): Promise<string> {
+      if (!path) return ''
+      try {
+        const { data, error } = await supabase.storage.from('aime').download(path)
+        if (error || !data) return ''
+        const buf = Buffer.from(await data.arrayBuffer())
+        const ext = path.split('.').pop()?.toLowerCase() ?? 'jpg'
+        const mime = ext==='pdf' ? 'application/pdf' : ext==='png' ? 'image/png' : 'image/jpeg'
+        return `data:${mime};base64,${buf.toString('base64')}`
+      } catch { return '' }
+    }
+    const [srcCroqui, srcFachada, srcArt] = await Promise.all([
+      imgSrc(complemento?.pathCroqui ?? ''),
+      imgSrc(complemento?.pathFoto   ?? ''),
+      imgSrc(complemento?.pathArt    ?? ''),
+    ])
+    // ART/RRT em pagina A4 — aceita imagem ou PDF
+    function artTag(src: string): string {
+      if (!src) return ''
+      const st = 'width:190mm;height:auto;max-height:272mm;display:block;margin:0 auto;border:none'
+      return src.startsWith('data:application/pdf')
+        ? '<embed src="' + src + '" type="application/pdf" style="width:190mm;height:272mm;display:block;margin:0 auto;border:none">'
+        : '<img src="' + src + '" style="' + st + '">'
+    }
+
     // Rotear para gerador específico se for laudo NR (45-48)
     const ehNR = ['45','46','47','48'].includes(tipoServico)
 
@@ -592,13 +618,13 @@ export async function POST(request: NextRequest) {
         '<tr><td colspan="2" style="' + TH11 + '">Localização do Estabelecimento</td></tr>' +
         '<tr>' +
           '<td style="' + TD11 + ';width:50%;height:70mm;padding:4px">' +
-            (complemento?.croquiBase64?.startsWith('data:image')
-              ? '<img src="' + complemento.croquiBase64 + '" style="width:100%;height:70mm;max-height:70mm;object-fit:contain">'
+            (srcCroqui.startsWith('data:image')
+              ? '<img src="' + srcCroqui + '" style="width:100%;height:70mm;max-height:70mm;object-fit:contain">'
               : '<div style="height:70mm;display:flex;align-items:center;justify-content:center;color:#94a3b8;font-size:8pt;border:1px dashed #c3d4f0">[Croqui de localização Maps]</div>') +
           '</td>' +
           '<td style="' + TD11 + ';width:50%;height:70mm;padding:4px">' +
-            (complemento?.fotoCapa?.startsWith('data:image')
-              ? '<img src="' + complemento.fotoCapa + '" style="width:100%;height:70mm;max-height:70mm;object-fit:contain">'
+            (srcFachada.startsWith('data:image')
+              ? '<img src="' + srcFachada + '" style="width:100%;height:70mm;max-height:70mm;object-fit:contain">'
               : '<div style="height:70mm;display:flex;align-items:center;justify-content:center;color:#94a3b8;font-size:8pt;border:1px dashed #c3d4f0">[Foto da fachada principal]</div>') +
           '</td>' +
         '</tr>' +
@@ -1364,8 +1390,8 @@ export async function POST(request: NextRequest) {
       partsNR.push('<div class="section"><div class="titulo" style="text-align:center">Anexo 2 – Resultado da Vistoria</div><br>' + A2nr + '</div>')
       partsNR.push('<div class="section a3-landscape"><style>.a3-landscape{} @media print{.a3-landscape{page:landscape-page}} @page landscape-page{size:A4 landscape;margin:10mm}</style><div class="titulo" style="text-align:center">Anexo 3 – Relação de Não Conformidades e Soluções</div>' + A3nr + '</div>')
       partsNR.push('<div class="section"><div class="titulo" style="text-align:center">Anexo 4 – Anotação de Responsabilidade Técnica</div>' +
-        (complemento?.artRrt
-          ? '<div style="page-break-inside:avoid;text-align:center"><img src="' + complemento.artRrt + '" style="width:190mm;height:auto;max-height:272mm;display:block;margin:0 auto"></div>'
+        (srcArt
+          ? '<div style="page-break-inside:avoid;text-align:center">' + artTag(srcArt) + '</div>'
           : '<div style="border:2px dashed #1E3A8A;min-height:260mm;margin:10mm 0;display:flex;align-items:center;justify-content:center"><p style="color:#6b7280;font-size:8.5pt;text-align:center">ART / RRT não anexada.<br>Inserir a ART ou RRT na tela de coleta de dados.</p></div>'
         ) +
         '</div>')
@@ -1413,24 +1439,6 @@ export async function POST(request: NextRequest) {
     const totM = stat.reduce((t,s)=>t+s.m,0)
     const totB = stat.reduce((t,s)=>t+s.b,0)
     const totT = totA+totM+totB
-
-    // Imagens do storage
-    async function imgSrc(path: string): Promise<string> {
-      if (!path) return ''
-      try {
-        const { data, error } = await supabase.storage.from('aime').download(path)
-        if (error || !data) return ''
-        const buf = Buffer.from(await data.arrayBuffer())
-        const ext = path.split('.').pop()?.toLowerCase() ?? 'jpg'
-        const mime = ext==='png' ? 'image/png' : 'image/jpeg'
-        return `data:${mime};base64,${buf.toString('base64')}`
-      } catch { return '' }
-    }
-    const [srcCroqui, srcFachada, srcArt] = await Promise.all([
-      imgSrc(complemento?.pathCroqui ?? ''),
-      imgSrc(complemento?.pathFoto   ?? ''),
-      imgSrc(complemento?.pathArt    ?? ''),
-    ])
 
     const cabInspetor = xe(inspetor?.cabecalho_documentos) || titulo
     const rodInspetor = xe(inspetor?.rodape_documentos) || `${xe(inspetor?.nome_inspetor)} — ${xe(inspetor?.titulo_profissional)} — CREA/CAU ${xe(inspetor?.inscricao_crea_cau)}`
@@ -2163,7 +2171,7 @@ ${A2}
 <br>
 
 ${srcArt
-  ?`<div style="page-break-inside:avoid;text-align:center"><img src="${srcArt}" style="width:190mm;height:auto;max-height:272mm;display:block;margin:0 auto"></div>`
+  ?`<div style="page-break-inside:avoid;text-align:center">${artTag(srcArt)}</div>`
   :`<div class="foto-box" style="height:560px;margin-top:8px">[ ART / RRT — inserir pelo responsável técnico ]</div>`}
 </div>
 
