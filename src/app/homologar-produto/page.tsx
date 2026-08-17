@@ -212,6 +212,7 @@ function HomologarProdutoInner() {
   }
 
   async function baixarEditavel() {
+    console.log('[AIME] clique registrado no botao Salvar como PDF')
     setGerandoDocx(true)
     try {
       // Todos os documentos: abrir HTML em nova aba para imprimir como PDF
@@ -405,6 +406,9 @@ function HomologarProdutoInner() {
           style={{ position: 'absolute', width: 1, height: 1, opacity: 0, overflow: 'hidden', pointerEvents: 'none' }}
           onChange={onArquivoPdfEscolhido} />
 
+        <div style={{ fontSize: '7pt', color: '#94a3b8', textAlign: 'right', marginBottom: '2px' }}>
+          build v4 — print via iframe
+        </div>
         <div style={{ ...S.footer, gridTemplateColumns: '1fr 1fr 1fr' }}>
           <button style={{ ...S.btn, ...S.btnSec }} onClick={() => window.location.href = retorno}>
             Voltar
