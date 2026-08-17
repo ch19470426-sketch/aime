@@ -162,8 +162,12 @@ export default function PlanoManutencaoInner() {
   }
 
   function salvarPDF() {
-    const htmlAtual = editRef.current?.innerHTML || htmlGerado
-    if (!htmlAtual && !htmlGerado) return
+    if (!htmlGerado) return
+    // Se foi editado, substituir o body pelo conteúdo editado
+    const innerEditado = editRef.current?.innerHTML
+    const htmlAtual = innerEditado
+      ? htmlGerado.replace(/<body>([\s\S]*)<\/body>/, `<body>${innerEditado}</body>`)
+      : htmlGerado
     // Extrair cab e rod do HTML
     const mCab = htmlAtual.match(/<div[^>]*(?:class="cab"|border-bottom:2px solid #1E3A8A)[^>]*>([\s\S]*?)<\/div>/)
     const mRod = htmlGerado.match(/<div class="rod">([\s\S]*?)<\/div>/)
