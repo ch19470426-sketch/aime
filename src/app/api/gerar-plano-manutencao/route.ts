@@ -344,7 +344,7 @@ tr:nth-child(even) td { background: #f7f9ff; }
       if (ta !== tb) return ta.localeCompare(tb)
     })
     let anx1Rows = ''
-    let anx1Rows = ''
+
     let curLocal = '', curCompl = '', curTag = ''
     ncsArr.forEach((nc:any, idx:number) => {
       const local = xe(nc.local_ocorrencia||nc.local||'')
