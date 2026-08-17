@@ -59,6 +59,17 @@ export async function POST(request: NextRequest) {
     const data = await res.json()
     if (!res.ok) return NextResponse.json({ erro: data.error?.message || JSON.stringify(data) }, { status: 500 })
     const texto = data.content?.find((b: any) => b.type === 'text')?.text ?? ''
+    // Para recomendacoes: dividir em 4 partes e retornar rec51-54
+    if (tipo === 'recomendacoes') {
+      const partes = texto.split(/\n\n+/).map((p:string) => p.trim()).filter(Boolean)
+      return NextResponse.json({
+        texto,
+        rec51: partes[0] ?? '',
+        rec52: partes[1] ?? '',
+        rec53: partes[2] ?? '',
+        rec54: partes[3] ?? '',
+      })
+    }
     return NextResponse.json({ texto })
   } catch (e) {
     return NextResponse.json({ erro: String(e) }, { status: 500 })
