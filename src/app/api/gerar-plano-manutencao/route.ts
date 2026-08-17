@@ -335,16 +335,17 @@ tr:nth-child(even) td { background: #f7f9ff; }
       if (k) ativosPorTipo[k] = a
     })
 
-    // Classificar NCs por local_ocorrencia + complemento_local + grau_risco DESC
+    // Ordenar por: Local ocorrência + Tag/Série + Grau risco DESC (2.9.1-h)
     const ncsArr: any[] = [...(Array.isArray(ncs) ? ncs : [])].sort((a:any,b:any) => {
       const la = String(a.local_ocorrencia||a.local||''), lb = String(b.local_ocorrencia||b.local||'')
       if (la !== lb) return la.localeCompare(lb)
       const ca = String(a.complemento_local||a.complemento||''), cb = String(b.complemento_local||b.complemento||'')
-      if (ca !== cb) return ca.localeCompare(cb)
-      return (Number(b.grau_risco||b.grauRisco)||0) - (Number(a.grau_risco||a.grauRisco)||0)
+      const ta = String(a.tagNrSerie||a.tag_ativo_nr_serie||a.tag||""), tb = String(b.tagNrSerie||b.tag_ativo_nr_serie||b.tag||"")
+      if (ta !== tb) return ta.localeCompare(tb)
     })
     let anx1Rows = ''
-    let curLocal = '', curCompl = ''
+    let anx1Rows = ''
+    let curLocal = '', curCompl = '', curTag = ''
     ncsArr.forEach((nc:any, idx:number) => {
       const local = xe(nc.local_ocorrencia||nc.local||'')
       const compl = xe(nc.complemento_local||nc.complemento||'')
@@ -361,8 +362,9 @@ tr:nth-child(even) td { background: #f7f9ff; }
       const gr  = Number(nc.grau_risco||nc.grauRisco)||0
       const cor = gr>80?'#CC0000':gr>=50?'#E8A000':gr>=30?'#EAB308':'#16A34A'
       const pri = gr>80?'Muito Alta':gr>=50?'Alta':gr>=30?'Média':'Baixa'
-      if (local !== curLocal) {
-        anx1Rows += `<tr style="background:#dbeafe">
+      // Novo bloco quando muda local OU tag (2.9.2-n)
+      if (local !== curLocal || tag !== curTag) {
+
 <td colspan="2" style="font-size:6.5pt;color:#1E3A8A;padding:1pt 5pt"><b>Local ocorrência:</b></td>
 <td colspan="2" style="font-size:6.5pt;color:#1E3A8A;padding:1pt 5pt"><b>Complemento local:</b></td>
 <td style="font-size:6.5pt;color:#1E3A8A;padding:1pt 5pt"><b>Tag/Nº Série:</b></td>
@@ -377,7 +379,7 @@ tr:nth-child(even) td { background: #f7f9ff; }
 <td style="font-size:7.5pt;padding:2pt 5pt">${ativo}</td>
 
 </tr>`
-        curLocal = local
+        curLocal = local; curTag = tag
       }
       anx1Rows += `<tr>
 <td style="text-align:center">${idx+1}</td>
