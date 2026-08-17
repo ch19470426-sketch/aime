@@ -217,11 +217,14 @@ function HomologarProdutoInner() {
       // Todos os documentos: abrir HTML em nova aba para imprimir como PDF
       const ehLaudo = true  // sempre PDF
       if (ehLaudo) {
-        const doc = iframeRef.current?.contentDocument
-        const win = iframeRef.current?.contentWindow
-        if (!doc || !win) throw new Error('Preview do documento nao esta pronto. Aguarde carregar e tente novamente.')
+        console.log('[AIME] baixarEditavel: inicio', { temIframe: !!iframeRef.current, temHtml: !!html })
+        const doc = iframeRef.current?.contentDocument ?? null
+        const win = iframeRef.current?.contentWindow ?? null
+        console.log('[AIME] iframe doc/win:', !!doc, !!win)
 
         const nomeBase = nomeAmigavel('pdf')
+
+        if (!doc || !win) throw new Error('Preview nao carregado. Aguarde o documento aparecer na tela e tente de novo.')
 
         // Cabecalho/rodape lidos do DOM que esta na tela
         const cabTxt = (doc.querySelector('.cab') as HTMLElement | null)?.innerText?.trim() ?? ''
@@ -264,8 +267,10 @@ function HomologarProdutoInner() {
         doc.title = nomeBase
 
         // Imprime o que esta na tela, com as edicoes do usuario
+        console.log('[AIME] chamando print()')
         win.focus()
         win.print()
+        console.log('[AIME] print() retornou')
         setGerandoDocx(false)
         return
       }
@@ -291,7 +296,7 @@ function HomologarProdutoInner() {
       a.click()
       URL.revokeObjectURL(url)
     } catch (erro) {
-      console.error('Erro ao gerar documento Word:', erro)
+      console.error('[AIME] Erro ao gerar PDF/documento:', erro)
       informa('Erro', erro instanceof Error ? erro.message : 'Não foi possível gerar o PDF. Tente novamente.')
     } finally {
       setGerandoDocx(false)
