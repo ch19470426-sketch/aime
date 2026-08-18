@@ -441,10 +441,18 @@ export default function Dashboard() {
           {/* ── Área de conteúdo ── */}
           <div style={{ flex: 1, minWidth: 0, padding: "16px", backgroundColor: "#F8FAFC" }}>
 
-            {/* Nenhum serviço selecionado */}
+            {/* Nenhum serviço selecionado: Macro Fluxo + link manual */}
             {!tipoServico && (
-              <div style={{ color: "#94A3B8", fontSize: "13px", textAlign: "center", padding: "40px 16px" }}>
-                Selecione um serviço no menu ao lado para iniciar
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px', padding: '16px' }}>
+                <img src="/fluxo-aime.png" alt="Macro Fluxo do AIMÊ"
+                  style={{ width: '100%', maxWidth: '680px', height: 'auto', borderRadius: '8px', display: 'block' }} />
+                <a href="/manual-operacional-inspetor.pdf" target="_blank" rel="noopener"
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: '6px',
+                    backgroundColor: '#1E3A8A', color: 'white', fontWeight: 700,
+                    padding: '8px 20px', borderRadius: '9999px', fontSize: '12px',
+                    textDecoration: 'none', marginTop: '4px' }}>
+                  📄 Baixar Manual Operacional
+                </a>
               </div>
             )}
 
@@ -547,11 +555,27 @@ export default function Dashboard() {
                     </div>
                   </div>
 
-                  {/* ── Imagem Macro Fluxo do Processo ── */}
-                  <div style={{ marginTop: "16px" }}>
-                    <img src="/fluxo-aime.png" alt="Macro Fluxo no AIMÊ"
-                      style={{ width: "100%", height: "auto", display: "block", borderRadius: "8px" }} />
-                  </div>
+                  {/* ── Caixa de procedimento operacional ── */}
+                  {tipoServico && getProcedimento(tipoServico) && (
+                    <div style={{
+                      marginTop: '16px', display: 'flex',
+                      alignItems: 'center', justifyContent: 'center',
+                    }}>
+                      <div style={{
+                        background: '#F0F4FF', border: '1.5px solid #1E3A8A',
+                        borderRadius: '10px', padding: '14px 18px',
+                        maxWidth: '520px', width: '100%',
+                        fontFamily: 'Arial, sans-serif', fontSize: '11px',
+                        color: '#1E3A8A', lineHeight: 1.7, whiteSpace: 'pre-line',
+                      }}>
+                        <div style={{ fontWeight: 700, fontSize: '11px', marginBottom: '8px',
+                          borderBottom: '1px solid #1E3A8A', paddingBottom: '4px' }}>
+                          Procedimento para Execução do Serviço
+                        </div>
+                        {getProcedimento(tipoServico)}
+                      </div>
+                    </div>
+                  )}
 
                 </div>
               </div>
