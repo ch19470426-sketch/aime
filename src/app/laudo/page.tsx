@@ -116,6 +116,7 @@ function LaudoComplemento() {
   const [ncs, setNcs]           = useState<NC[]>([])
   const [carregando, setCarregando] = useState(true)
   const [contato, setContato]     = useState<Record<string,string>>({})
+  const [listaAtivos, setListaAtivos] = useState<any[]>([])
 
   // Complemento 1.1
   const [nomeConvencao, setNomeConvencao] = useState('')
@@ -224,18 +225,19 @@ function LaudoComplemento() {
         // Buscar dados de ativos_a_vistoriar (responsável, tipo, características)
         const cnpjLimpo = cnpjoucpf.replace(/\D/g, "")
         // Tentar com cnpj, fallback sem cnpj
-        let resA = await fetch(`${SUPA_URL}/rest/v1/ativos_a_vistoriar?cpf_inspetor=eq.${cpfInspetor}&cnpjoucpf=eq.${cnpjLimpo}&select=*&limit=1`, {
+        let resA = await fetch(`${SUPA_URL}/rest/v1/ativos_a_vistoriar?cpf_inspetor=eq.${cpfInspetor}&cnpjoucpf=eq.${cnpjLimpo}&select=*`, {
           headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` }
         })
         let dadosA = await resA.json()
         // Fallback: buscar qualquer ativo do inspetor se não encontrou pelo cnpj
         if (!Array.isArray(dadosA) || dadosA.length === 0) {
-          resA = await fetch(`${SUPA_URL}/rest/v1/ativos_a_vistoriar?cpf_inspetor=eq.${cpfInspetor}&select=*&limit=1`, {
+          resA = await fetch(`${SUPA_URL}/rest/v1/ativos_a_vistoriar?cpf_inspetor=eq.${cpfInspetor}&select=*`, {
             headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` }
           })
           dadosA = await resA.json()
         }
         if (Array.isArray(dadosA) && dadosA.length > 0) {
+          setListaAtivos(dadosA)
           const a = dadosA[0]
           setEstab(prev => ({
             ...prev,
@@ -324,6 +326,11 @@ function LaudoComplemento() {
             responsavel: estab.nome_responsavel, funcao: contato.funcao_responsavel,
             nome_convencao: nomeConvencao, nivel_inspecao: nivelInspecao,
             texto_inspetor: sinteseTemp || sinteseEdif || '',
+            ativos: listaAtivos.map((a:any) => ({
+              tipo_ativo: a.tipo_ativo, tag: a.tag_ativo_nr_serie,
+              fabricante: a.fabricante, subtipo: a.subtipo,
+              capacidade: a.capacidade, data_inicio_operacao: a.data_inicio_operacao,
+            })),
           }
         })
       })
@@ -508,6 +515,10 @@ function LaudoComplemento() {
           complemento: {
             nomeConvencao, sinteseEdif,
             pathCroqui,
+            // Reserva: so vai o base64 se o upload nao devolveu caminho (evita 413)
+            croquiB64: pathCroqui ? '' : croquiBase64,
+            fotoB64:   pathFoto   ? '' : fotoCapa,
+            artB64:    pathArt    ? '' : artRrt,
             // Classificação NR (45-48)
             nrManut, nrOp, nrFisico, nrSeg, nrDoc, pathFoto, pathArt, docsAnexo1,
             descVistoria: descVistoria || dadosVistoria,

@@ -9,7 +9,19 @@ export async function POST(request: NextRequest) {
 
     if (tipo === 'sintese_edificacao') {
       const textoBase = d.texto_inspetor ? `\n\nTEXTO DIGITADO PELO INSPETOR (use como base principal):\n${d.texto_inspetor}` : ''
-      prompt = `Você é um engenheiro civil experiente em inspeção predial. Redija uma síntese técnica da edificação/estabelecimento.${textoBase}\n\nDADOS DO ESTABELECIMENTO/EDIFICAÇÃO:\n- Razão social / Nome: ${d.razao_social || 'não informado'}\n- Denominação oficial: ${d.nome_convencao || 'não informado'}\n- Uso do imóvel/estabelecimento: ${d.uso_estabelecimento || d.uso || 'não informado'}\n- Tipo do imóvel: ${d.tipo_imovel || d.tipo || 'não informado'}\n- Número de pavimentos: ${d.pavimentos || 'não informado'}\n- Número de unidades/salas: ${d.unidades || 'não informado'}\n- Área construída: ${d.area_construida || 'não informada'} m²\n- Área do terreno: ${d.area_terreno || 'não informada'} m²\n- Fabricante/marca: ${d.fabricante || 'não informado'}\n- Subtipo: ${d.subtipo || 'não informado'}\n- Capacidade/potência: ${d.capacidade || 'não informado'}\n\nINSTRUÇÕES:\n- Se houver texto do inspetor, use-o como base principal e melhore a redação técnica mantendo o conteúdo original\n- Se não houver texto do inspetor, gere a síntese com base nos dados complementares\n- Linguagem técnica formal, terceira pessoa, texto corrido sem listas\n- NÃO mencione datas, vistoria ou como o trabalho foi realizado\n- NÃO inclua endereço\n- Máximo de 900 caracteres\n- NÃO inclua título, cabeçalho ou prefixo — apenas o texto da síntese diretamente
+      // Conjunto de ativos a vistoriar — relevante sobretudo nos laudos NR (45-48)
+      const listaAtivos = Array.isArray(d.ativos) ? d.ativos : []
+      const blocoAtivos = listaAtivos.length > 0
+        ? `\n\nATIVOS A VISTORIAR (${listaAtivos.length} no total — descreva o conjunto, nao apenas um):\n`
+          + listaAtivos.map((a: any, i: number) => `${i + 1}. Tipo: ${a.tipo_ativo || 'nao informado'}`
+              + (a.tag ? ` | Tag/Serie: ${a.tag}` : '')
+              + (a.fabricante ? ` | Fabricante: ${a.fabricante}` : '')
+              + (a.subtipo ? ` | Subtipo: ${a.subtipo}` : '')
+              + (a.capacidade ? ` | Capacidade: ${a.capacidade}` : '')
+              + (a.data_inicio_operacao ? ` | Inicio de operacao: ${a.data_inicio_operacao}` : '')
+            ).join('\n')
+        : ''
+      prompt = `Você é um engenheiro civil experiente em inspeção predial. Redija uma síntese técnica da edificação/estabelecimento.${textoBase}\n\nDADOS DO ESTABELECIMENTO/EDIFICAÇÃO:\n- Razão social / Nome: ${d.razao_social || 'não informado'}\n- Denominação oficial: ${d.nome_convencao || 'não informado'}\n- Uso do imóvel/estabelecimento: ${d.uso_estabelecimento || d.uso || 'não informado'}\n- Tipo do imóvel: ${d.tipo_imovel || d.tipo || 'não informado'}\n- Número de pavimentos: ${d.pavimentos || 'não informado'}\n- Número de unidades/salas: ${d.unidades || 'não informado'}\n- Área construída: ${d.area_construida || 'não informada'} m²\n- Área do terreno: ${d.area_terreno || 'não informada'} m²\n- Fabricante/marca: ${d.fabricante || 'não informado'}\n- Subtipo: ${d.subtipo || 'não informado'}\n- Capacidade/potência: ${d.capacidade || 'não informado'}${blocoAtivos}\n\nINSTRUÇÕES:\n- Se houver texto do inspetor, use-o como base principal e melhore a redação técnica mantendo o conteúdo original\n- Se não houver texto do inspetor, gere a síntese com base nos dados complementares\n- Havendo lista de ativos, caracterize o CONJUNTO de ativos a vistoriar (quantidade, tipos e faixa de capacidades), sem descrever apenas um deles\n- Linguagem técnica formal, terceira pessoa, texto corrido sem listas\n- NÃO mencione datas, vistoria ou como o trabalho foi realizado\n- NÃO inclua endereço\n- Máximo de 900 caracteres\n- NÃO inclua título, cabeçalho ou prefixo — apenas o texto da síntese diretamente
 - Sem markdown, sem asteriscos, sem listas, apenas texto corrido em parágrafo único`
 
     } else if (tipo === 'descricao_vistoria') {

@@ -350,11 +350,15 @@ export async function POST(request: NextRequest) {
     const pathArt   = String(complemento?.pathArt ?? '')
     const artEhPdf  = pathArt.toLowerCase().endsWith('.pdf')
 
-    const [srcCroqui, srcFachada, srcArt] = await Promise.all([
+    const [croquiSt, fachadaSt, artSt] = await Promise.all([
       imgSrc(complemento?.pathCroqui ?? ''),
       imgSrc(complemento?.pathFoto   ?? ''),
       artEhPdf ? Promise.resolve('') : imgSrc(pathArt),
     ])
+    // Storage primeiro; base64 de reserva se o upload tiver falhado
+    const srcCroqui  = croquiSt  || String(complemento?.croquiB64 ?? '')
+    const srcFachada = fachadaSt || String(complemento?.fotoB64   ?? '')
+    const srcArt     = artSt     || (artEhPdf ? '' : String(complemento?.artB64 ?? ''))
 
     // PDF nao pode ir em data: URL — o Chrome bloqueia plugin nesse esquema.
     // Usa URL assinada do Storage, que o navegador aceita.
@@ -367,20 +371,28 @@ export async function POST(request: NextRequest) {
       } catch { artUrlPdf = '' }
     }
 
-    // ART/RRT em pagina A4 — imagem (recomendado) ou PDF
+    // ART/RRT em pagina A4 — imagem imprime; PDF so exibe na tela
     function artTag(src: string): string {
       const st = 'width:190mm;height:auto;max-height:272mm;display:block;margin:0 auto;border:none'
       if (src) return '<img src="' + src + '" style="' + st + '">'
       if (artUrlPdf) {
-        return '<object data="' + artUrlPdf + '" type="application/pdf" '
-          + 'style="width:190mm;height:262mm;display:block;margin:0 auto;border:1px solid #1E3A8A">'
-          + '<div style="border:2px dashed #1E3A8A;padding:10mm;text-align:center;font-size:9pt;color:#1E3A8A">'
-          + 'ART/RRT anexada em PDF. '
-          + '<a href="' + artUrlPdf + '" target="_blank">Abrir documento</a>.<br>'
-          + 'Para que a ART seja impressa junto com o laudo, anexe-a como imagem (JPG ou PNG).'
-          + '</div></object>'
+        return '<div style="text-align:center">'
+          + '<iframe src="' + artUrlPdf + '#toolbar=0&navpanes=0" '
+          + 'style="width:190mm;height:255mm;display:block;margin:0 auto;border:1px solid #1E3A8A"></iframe>'
+          + '<p style="font-size:8pt;color:#9a3412;margin-top:3mm">'
+          + 'ART/RRT anexada em PDF: aparece nesta tela, mas o navegador nao inclui PDF incorporado ao imprimir. '
+          + 'Para que ela saia no laudo impresso, anexe a ART como imagem (JPG ou PNG).</p>'
+          + '</div>'
       }
-      return ''
+      if (artEhPdf) {
+        return '<div style="border:2px dashed #1E3A8A;min-height:120mm;margin:6mm 0;display:flex;'
+          + 'align-items:center;justify-content:center;text-align:center;padding:10mm;font-size:9pt;color:#9a3412">'
+          + 'Nao foi possivel carregar a ART/RRT anexada em PDF.<br>'
+          + 'Anexe novamente, preferencialmente como imagem (JPG ou PNG).</div>'
+      }
+      return '<div style="border:2px dashed #1E3A8A;min-height:120mm;margin:6mm 0;display:flex;'
+        + 'align-items:center;justify-content:center;color:#1E3A8A;font-size:9pt">'
+        + '[ ART / RRT — inserir pelo responsavel tecnico ]</div>'
     }
 
     // Rotear para gerador específico se for laudo NR (45-48)
@@ -1241,32 +1253,32 @@ export async function POST(request: NextRequest) {
 
       // ── Índice ─────────────────────────────────────────────────────────────
       const indiceNR = [
-        {n:'1.',pg:'2',t:'Considerações Preliminares',nivel:1},
-        {n:'1.1.-',pg:'2',t:titulo11.replace(/^\s*\d+(\.\d+)*\s*\.?-?\s*/,''),nivel:2},
-        {n:'1.2.-',pg:'3',t:titulo12.replace(/^\s*\d+(\.\d+)*\s*\.?-?\s*/,''),nivel:2},
-        {n:'1.3.-',pg:'3',t:'Plano de Trabalho — Agenda de Trabalho, ' + agendaLabel,nivel:2},
-        {n:'1.4.-',pg:'4',t:'Condições e Limitações',nivel:2},
-        {n:'2.',pg:'4',t:'Metodologia adotada para o desenvolvimento do Trabalho',nivel:1},
-        {n:'2.1.-',pg:'4',t:'Base normativa e legal aplicável',nivel:2},
-        {n:'2.2.-',pg:'4',t:'Metodologia',nivel:2},
-        {n:'2.3.-',pg:'5',t:'Critérios',nivel:2},
-        {n:'3.',pg:'6',t:'Resultado da Vistoria Técnica e Classificação',nivel:1},
-        {n:'3.1.-',pg:'6',t:'Descrição da Vistoria Técnica',nivel:2},
-        {n:'3.2.-',pg:'7',t:'Resultado da Vistoria',nivel:2},
-        {n:'3.3.-',pg:'7',t:'Resultado da Classificação da Instalação',nivel:2},
-        {n:'4.',pg:'8',t:'Relação de Não Conformidades e Análise das Não Conformidades',nivel:1},
-        {n:'4.1.-',pg:'8',t:'Relação de Não Conformidades e Soluções',nivel:2},
-        {n:'4.2.-',pg:'10',t:'Análise Estatística das Manifestações Patológicas',nivel:2},
-        {n:'5.',pg:'11',t:'Recomendações Gerais',nivel:1},
-        {n:'6.',pg:'12',t:'Conclusão',nivel:1},
-        {n:'7.',pg:'13',t:'Encerramento',nivel:1},
-        {n:'7.1.-',pg:'13',t:'Anexos',nivel:2},
-        {n:'7.2.-',pg:'13',t:'Declaração de Conformidade com o Código de Ética',nivel:2},
-        {n:'7.3.-',pg:'14',t:'Termo de Encerramento',nivel:2},
-        {n:'Anexo 1',pg:'15',t:A1_TITULO[tipoServico]??'Documentação Solicitada',nivel:1},
-        {n:'Anexo 2',pg:'16',t:'Resultado da Vistoria',nivel:1},
-        {n:'Anexo 3',pg:'18',t:'Relação de Não Conformidades e Soluções',nivel:1},
-        {n:'Anexo 4',pg:'19',t:'Anotação de Responsabilidade Técnica',nivel:1},
+        {n:'1.',pg:'3',t:'Considerações Preliminares',nivel:1},
+        {n:'1.1.-',pg:'3',t:titulo11.replace(/^\s*\d+(\.\d+)*\s*\.?-?\s*/,''),nivel:2},
+        {n:'1.2.-',pg:'4',t:titulo12.replace(/^\s*\d+(\.\d+)*\s*\.?-?\s*/,''),nivel:2},
+        {n:'1.3.-',pg:'4',t:'Plano de Trabalho — Agenda de Trabalho, ' + agendaLabel,nivel:2},
+        {n:'1.4.-',pg:'5',t:'Condições e Limitações',nivel:2},
+        {n:'2.',pg:'5',t:'Metodologia adotada para o desenvolvimento do Trabalho',nivel:1},
+        {n:'2.1.-',pg:'5',t:'Base normativa e legal aplicável',nivel:2},
+        {n:'2.2.-',pg:'5',t:'Metodologia',nivel:2},
+        {n:'2.3.-',pg:'6',t:'Critérios',nivel:2},
+        {n:'3.',pg:'7',t:'Resultado da Vistoria Técnica e Classificação',nivel:1},
+        {n:'3.1.-',pg:'7',t:'Descrição da Vistoria Técnica',nivel:2},
+        {n:'3.2.-',pg:'8',t:'Resultado da Vistoria',nivel:2},
+        {n:'3.3.-',pg:'8',t:'Resultado da Classificação da Instalação',nivel:2},
+        {n:'4.',pg:'9',t:'Relação de Não Conformidades e Análise das Não Conformidades',nivel:1},
+        {n:'4.1.-',pg:'9',t:'Relação de Não Conformidades e Soluções',nivel:2},
+        {n:'4.2.-',pg:'11',t:'Análise Estatística das Manifestações Patológicas',nivel:2},
+        {n:'5.',pg:'12',t:'Recomendações Gerais',nivel:1},
+        {n:'6.',pg:'13',t:'Conclusão',nivel:1},
+        {n:'7.',pg:'14',t:'Encerramento',nivel:1},
+        {n:'7.1.-',pg:'14',t:'Anexos',nivel:2},
+        {n:'7.2.-',pg:'14',t:'Declaração de Conformidade com o Código de Ética',nivel:2},
+        {n:'7.3.-',pg:'15',t:'Termo de Encerramento',nivel:2},
+        {n:'Anexo 1',pg:'16',t:A1_TITULO[tipoServico]??'Documentação Solicitada',nivel:1},
+        {n:'Anexo 2',pg:'17',t:'Resultado da Vistoria',nivel:1},
+        {n:'Anexo 3',pg:'19',t:'Relação de Não Conformidades e Soluções',nivel:1},
+        {n:'Anexo 4',pg:'20',t:'Anotação de Responsabilidade Técnica',nivel:1},
       ]
       const indiceHtmlNR = indiceNR.map(it =>
         '<div class="indice-item' + (it.nivel===2?' nivel2':'') + '">' +
