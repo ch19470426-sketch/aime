@@ -337,7 +337,7 @@ export default function PlanoManutencaoInner() {
             <div style={S.block}>
               <div style={{ padding: '8px 10px', fontSize: '8.5pt', color: '#374151', lineHeight: 1.5, textAlign: 'center' }}>
                 <b style={{ color: '#1E3A8A' }}>✅ Plano de Manutenção gerado com sucesso!</b><br />
-                Baixe o documento, revise e assine digitalmente. Após, faça o upload do PDF assinado.
+                Revise o documento apresentado abaixo e o ajuste de acordo com seu entendimento técnico; baixe o PDF e o assine digitalmente. Após faça upload para o AIMÊ para armazenamento, rastreabilidade e continuidade do processo.
               </div>
             </div>
 
