@@ -919,7 +919,7 @@ function LaudoComplemento() {
 
           {/* ── ART/RRT ── */}
           <div style={S.bloco}>
-            <div style={S.bHead}><span style={S.bTitle}>Anexo 3 — ART / RRT do Responsável Técnico</span></div>
+            <div style={S.bHead}><span style={S.bTitle}>{(['45','46','47','48'].includes(tipoServico) ? 'Anexo 4' : 'Anexo 3')} — ART / RRT do Responsável Técnico</span></div>
             <div style={S.bBody}>
               {artRrt
                 ? <div style={{ position:'relative' }}>
@@ -943,7 +943,7 @@ function LaudoComplemento() {
                   </label>
               }
               <p style={{ fontSize:'10px', color:'#9CA3AF', marginTop:'6px' }}>
-                A ART ou RRT será inserida no Anexo 3 do laudo. <b>Anexe somente em JPG ou PNG</b> — arquivos PDF
+                A ART ou RRT será inserida no {(['45','46','47','48'].includes(tipoServico) ? 'Anexo 4' : 'Anexo 3')} do laudo. <b>Anexe somente em JPG ou PNG</b> — arquivos PDF
                 aparecem na tela, mas o navegador não os inclui na impressão, e o anexo sairia em branco.
                 Se a sua ART estiver em PDF, salve ou fotografe a página como imagem antes de anexar.
               </p>
