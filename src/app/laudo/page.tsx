@@ -923,23 +923,29 @@ function LaudoComplemento() {
             <div style={S.bBody}>
               {artRrt
                 ? <div style={{ position:'relative' }}>
-                    {artRrt.startsWith('data:image')
-                      ? <img src={artRrt} style={{ width:'100%', maxHeight:'200px', objectFit:'contain', border:'1px solid #D1D5DB', borderRadius:'4px' }} alt="ART/RRT" />
-                      : <div style={{ padding:'12px', background:'#F0F4FF', borderRadius:'4px', fontSize:'11px', color:'#1E3A8A' }}>
-                          📄 Arquivo PDF carregado
-                        </div>
-                    }
+                    <img src={artRrt} style={{ width:'100%', maxHeight:'200px', objectFit:'contain', border:'1px solid #D1D5DB', borderRadius:'4px' }} alt="ART/RRT" />
                     <button onClick={() => setArtRrt('')}
                       style={{ position:'absolute', top:4, right:4, background:'#DC2626', color:'white', border:'none', borderRadius:'4px', padding:'2px 8px', fontSize:'10px', cursor:'pointer' }}>✕ Remover</button>
                   </div>
                 : <label style={{ border:'1px dashed #D1D5DB', borderRadius:'6px', padding:'16px', textAlign:'center' as const, display:'block', cursor:'pointer', fontSize:'11px', color:'#6B7280' }}>
-                    📋 Clique para inserir imagem ou PDF da ART/RRT
-                    <input type="file" accept="image/*,application/pdf" style={{ display:'none' }}
-                      onChange={async e => { const f = e.target.files?.[0]; if (f) setArtRrt(await lerArquivoBase64(f)) }} />
+                    📋 Clique para inserir a ART/RRT — somente JPG ou PNG
+                    <input type="file" accept="image/jpeg,image/png" style={{ display:'none' }}
+                      onChange={async e => {
+                        const f = e.target.files?.[0]
+                        if (!f) return
+                        if (!['image/jpeg','image/png'].includes(f.type)) {
+                          setErro('A ART/RRT deve ser anexada como imagem JPG ou PNG. Arquivos PDF nao sao impressos junto com o laudo.')
+                          e.target.value = ''
+                          return
+                        }
+                        setArtRrt(await lerArquivoBase64(f))
+                      }} />
                   </label>
               }
               <p style={{ fontSize:'10px', color:'#9CA3AF', marginTop:'6px' }}>
-                A ART ou RRT será inserida no Anexo 3 do laudo. Formatos aceitos: imagem (JPG/PNG) ou PDF.
+                A ART ou RRT será inserida no Anexo 3 do laudo. <b>Anexe somente em JPG ou PNG</b> — arquivos PDF
+                aparecem na tela, mas o navegador não os inclui na impressão, e o anexo sairia em branco.
+                Se a sua ART estiver em PDF, salve ou fotografe a página como imagem antes de anexar.
               </p>
             </div>
           </div>
