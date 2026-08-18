@@ -347,18 +347,40 @@ export async function POST(request: NextRequest) {
         return `data:${mime};base64,${buf.toString('base64')}`
       } catch { return '' }
     }
+    const pathArt   = String(complemento?.pathArt ?? '')
+    const artEhPdf  = pathArt.toLowerCase().endsWith('.pdf')
+
     const [srcCroqui, srcFachada, srcArt] = await Promise.all([
       imgSrc(complemento?.pathCroqui ?? ''),
       imgSrc(complemento?.pathFoto   ?? ''),
-      imgSrc(complemento?.pathArt    ?? ''),
+      artEhPdf ? Promise.resolve('') : imgSrc(pathArt),
     ])
-    // ART/RRT em pagina A4 — aceita imagem ou PDF
+
+    // PDF nao pode ir em data: URL — o Chrome bloqueia plugin nesse esquema.
+    // Usa URL assinada do Storage, que o navegador aceita.
+    let artUrlPdf = ''
+    if (artEhPdf) {
+      try {
+        const { data: sg } = await supabase.storage.from('aime')
+          .createSignedUrl(pathArt, 60 * 60 * 24 * 30)
+        artUrlPdf = sg?.signedUrl ?? ''
+      } catch { artUrlPdf = '' }
+    }
+
+    // ART/RRT em pagina A4 — imagem (recomendado) ou PDF
     function artTag(src: string): string {
-      if (!src) return ''
       const st = 'width:190mm;height:auto;max-height:272mm;display:block;margin:0 auto;border:none'
-      return src.startsWith('data:application/pdf')
-        ? '<embed src="' + src + '" type="application/pdf" style="width:190mm;height:272mm;display:block;margin:0 auto;border:none">'
-        : '<img src="' + src + '" style="' + st + '">'
+      if (src) return '<img src="' + src + '" style="' + st + '">'
+      if (artUrlPdf) {
+        return '<object data="' + artUrlPdf + '" type="application/pdf" '
+          + 'style="width:190mm;height:262mm;display:block;margin:0 auto;border:1px solid #1E3A8A">'
+          + '<div style="border:2px dashed #1E3A8A;padding:10mm;text-align:center;font-size:9pt;color:#1E3A8A">'
+          + 'ART/RRT anexada em PDF. '
+          + '<a href="' + artUrlPdf + '" target="_blank">Abrir documento</a>.<br>'
+          + 'Para que a ART seja impressa junto com o laudo, anexe-a como imagem (JPG ou PNG).'
+          + '</div></object>'
+      }
+      return ''
     }
 
     // Rotear para gerador específico se for laudo NR (45-48)

@@ -263,10 +263,22 @@ function HomologarProdutoInner() {
 
     const blob = new Blob([htmlPrint], { type: 'text/html;charset=utf-8' })
     const url  = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url; a.target = '_blank'; a.rel = 'noopener'
-    document.body.appendChild(a); a.click(); document.body.removeChild(a)
-    setTimeout(() => URL.revokeObjectURL(url), 10000)
+
+    // Abre a aba e comanda a impressao pela janela pai; o script embutido
+    // no documento continua como reserva caso o onload nao dispare.
+    const win = window.open(url, '_blank')
+    if (win) {
+      try {
+        win.addEventListener('load', () => {
+          try { win.focus(); win.print() } catch { /* reserva: script embutido */ }
+        })
+      } catch { /* navegador pode bloquear o acesso; script embutido assume */ }
+    } else {
+      const a = document.createElement('a')
+      a.href = url; a.target = '_blank'; a.rel = 'noopener'
+      document.body.appendChild(a); a.click(); document.body.removeChild(a)
+    }
+    setTimeout(() => URL.revokeObjectURL(url), 60000)
   }
 
   async function baixarEditavel() {
