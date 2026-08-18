@@ -355,10 +355,9 @@ export async function POST(request: NextRequest) {
       imgSrc(complemento?.pathFoto   ?? ''),
       artEhPdf ? Promise.resolve('') : imgSrc(pathArt),
     ])
-    // Storage primeiro; base64 de reserva se o upload tiver falhado
-    const srcCroqui  = croquiSt  || String(complemento?.croquiB64 ?? '')
-    const srcFachada = fachadaSt || String(complemento?.fotoB64   ?? '')
-    const srcArt     = artSt     || (artEhPdf ? '' : String(complemento?.artB64 ?? ''))
+    const srcCroqui  = croquiSt
+    const srcFachada = fachadaSt
+    const srcArt     = artSt
 
     // PDF nao pode ir em data: URL — o Chrome bloqueia plugin nesse esquema.
     // Usa URL assinada do Storage, que o navegador aceita.

@@ -420,18 +420,34 @@ function LaudoComplemento() {
       // ── Salvar imagens no storage antes de enviar payload ──
       async function salvarImagem(b64: string, sufixo: string): Promise<string> {
         if (!b64) return ''
-        const ext = b64.startsWith('data:image/png') ? 'png'
-          : b64.startsWith('data:application/pdf') ? 'pdf' : 'jpg'
-        const nomeImg = `${chaveInspetor}_${cnpjoucpf}_${sufixo}.${ext}`
+        const m = b64.match(/^data:([^;]+);base64,(.+)$/)
+        if (!m) return ''
+        const mime = m[1]
+        const ext  = mime === 'image/png' ? 'png' : mime === 'application/pdf' ? 'pdf' : 'jpg'
+        const path = `laudos_imagens/${chaveInspetor}_${cnpjoucpf}_${sufixo}.${ext}`
         try {
-          const res = await fetch('/api/upload-imagem-laudo', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ base64: b64, nomeArquivo: nomeImg }),
+          // 1) pede URL assinada (corpo minusculo)
+          const r = await fetch('/api/upload-url', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ path }),
           })
-          if (!res.ok) return ''
-          const data = await res.json()
-          return data.path ?? ''
+          if (!r.ok) return ''
+          const { signedUrl } = await r.json()
+          if (!signedUrl) return ''
+
+          // 2) envia o binario direto ao Storage, sem passar pelo servidor
+          const bin = atob(m[2])
+          const arr = new Uint8Array(bin.length)
+          for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i)
+          const blob = new Blob([arr], { type: mime })
+
+          const up = await fetch(signedUrl, {
+            method: 'PUT',
+            headers: { 'content-type': mime, 'x-upsert': 'true' },
+            body: blob,
+          })
+          if (!up.ok) return ''
+          return path
         } catch { return '' }
       }
 
@@ -515,10 +531,6 @@ function LaudoComplemento() {
           complemento: {
             nomeConvencao, sinteseEdif,
             pathCroqui,
-            // Reserva: so vai o base64 se o upload nao devolveu caminho (evita 413)
-            croquiB64: pathCroqui ? '' : croquiBase64,
-            fotoB64:   pathFoto   ? '' : fotoCapa,
-            artB64:    pathArt    ? '' : artRrt,
             // Classificação NR (45-48)
             nrManut, nrOp, nrFisico, nrSeg, nrDoc, pathFoto, pathArt, docsAnexo1,
             descVistoria: descVistoria || dadosVistoria,
