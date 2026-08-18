@@ -199,6 +199,65 @@ function ProcedimentoGrupo({ codigo, grupo }: { codigo: number; grupo: string })
   )
 }
 
+// ── Procedimentos operacionais por grupo ─────────────────────────────────────
+const PROC_MAP: Record<string, string> = {
+  '1x': `a) No menu: selecionar o tipo de proposta desejado
+b) CNPJ ou CPF: informar o da edificação ou estabelecimento
+c) "Iniciar": o sistema carrega os dados cadastrados
+d) "Gerar proposta": monta o documento com dados do inspetor e do cliente
+e) Revisar: o documento gerado na tela
+f) "Continuar": redireciona para o Módulo Homologar Documento
+g) Módulo Homologar Documento: baixa o PDF, assina e faz upload do assinado
+ℹ  A edificação/estabelecimento deve estar cadastrado antes de iniciar.`,
+  '2x': `a) No menu: selecionar o tipo de plano desejado
+b) CNPJ ou CPF: informar da edificação ou estabelecimento
+c) "Iniciar": carrega os dados do estabelecimento e ativos cadastrados
+d) Cadastrar: possibilita cadastrar os ativos a vistoriar
+e) "Gerar plano": o sistema monta o documento
+f) Revisar: preencher datas no bloco 1.2 e documentos no bloco 1.3
+g) "Salvar": redireciona para o Módulo Homologar Documento
+h) Módulo Homologar Documento: baixa o PDF, assina e faz upload do assinado
+ℹ  O plano de trabalho deve existir antes de iniciar as vistorias.`,
+  '31-34': `a) Abra o formulário digital no dispositivo
+b) Para cada não conformidade: selecione Sistema → Subsistema → NC; informe local e complemento; fotografe
+c) Salve cada registro antes de prosseguir
+d) Ao finalizar, todos os registros ficam disponíveis para homologação (tipo 40)
+⚠  Nunca feche o formulário sem salvar o registro atual.`,
+  '35-38': `a) Abra o formulário digital no dispositivo
+b) Para cada não conformidade de NR: selecione Sistema → Anomalia; informe local e complemento; fotografe
+c) Salve cada registro antes de prosseguir
+d) Ao finalizar, todos os registros ficam disponíveis para homologação (tipo 40)
+⚠  Nunca feche o formulário sem salvar o registro atual.`,
+  '40': `a) Selecione o tipo 40 e informe o CNPJ ou CPF
+b) Revise cada NC e Causa Provável — edite se necessário; a IA sugere textos
+c) Homologue cada registro: confirme os dados e clique em Homologar
+⚠  Após homologada, a vistoria não pode ser editada. Para correções, gere nova vistoria.`,
+  '4x': `a) Selecione o tipo de laudo e informe o CNPJ ou CPF
+b) Preencha os complementos: nível de inspeção, croqui, foto fachada e ART/RRT (JPG/PNG)
+c) Acione a IA: descreva sinteticamente o estabelecimento e como a vistoria foi realizada
+d) Gere o laudo: a IA elabora soluções e recomendações para cada NC
+e) Revise e ajuste o documento diretamente na tela
+f) Baixe o PDF, assine digitalmente e faça o upload do assinado
+ℹ  Os textos da IA são sugestões. O inspetor é o responsável técnico pelo conteúdo.`,
+  '5x': `a) Selecione o tipo de plano e informe o CNPJ ou CPF
+b) Confirme os dados e clique em Gerar Plano — a IA gera o Procedimento Corretivo para cada NC
+c) Aguarde a geração (pode levar alguns segundos)
+d) Revise o documento na tela: estabelecimento, ativos, NCs e procedimentos no Anexo 1
+e) Baixe o PDF, assine digitalmente e faça o upload do assinado
+ℹ  Pré-requisito: deve existir vistoria homologada do tipo correspondente (31–38) para o mesmo CNPJ.`,
+}
+function getProcedimento(codigo: string): string {
+  const n = parseInt(codigo, 10)
+  if (n >= 11 && n <= 19) return PROC_MAP['1x']
+  if (n >= 21 && n <= 29) return PROC_MAP['2x']
+  if (n >= 31 && n <= 34) return PROC_MAP['31-34']
+  if (n >= 35 && n <= 38) return PROC_MAP['35-38']
+  if (n === 40)            return PROC_MAP['40']
+  if (n >= 41 && n <= 48) return PROC_MAP['4x']
+  if (n >= 51 && n <= 58) return PROC_MAP['5x']
+  return ''
+}
+
 export default function Dashboard() {
   const router = useRouter()
 
