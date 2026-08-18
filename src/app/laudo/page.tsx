@@ -225,19 +225,33 @@ function LaudoComplemento() {
         // Buscar dados de ativos_a_vistoriar (responsável, tipo, características)
         const cnpjLimpo = cnpjoucpf.replace(/\D/g, "")
         // Tentar com cnpj, fallback sem cnpj
-        let resA = await fetch(`${SUPA_URL}/rest/v1/ativos_a_vistoriar?cpf_inspetor=eq.${cpfInspetor}&cnpjoucpf=eq.${cnpjLimpo}&select=*`, {
+        let resA = await fetch(`${SUPA_URL}/rest/v1/ativos_a_vistoriar?cpf_inspetor=eq.${cpfInspetor}&cnpjoucpf=eq.${cnpjLimpo}&select=*&limit=1`, {
           headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` }
         })
         let dadosA = await resA.json()
         // Fallback: buscar qualquer ativo do inspetor se não encontrou pelo cnpj
         if (!Array.isArray(dadosA) || dadosA.length === 0) {
-          resA = await fetch(`${SUPA_URL}/rest/v1/ativos_a_vistoriar?cpf_inspetor=eq.${cpfInspetor}&select=*`, {
+          resA = await fetch(`${SUPA_URL}/rest/v1/ativos_a_vistoriar?cpf_inspetor=eq.${cpfInspetor}&select=*&limit=1`, {
             headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` }
           })
           dadosA = await resA.json()
         }
+        // Lista de ativos do servico atual — mesmo filtro usado no item 1.1
+        const tsLongo: Record<string,string> = {
+          '31':'31 Autovistoria','32':'32 Vistoria inspeção','33':'33 Vistoria imóvel novo','34':'34 Vistoria fachada',
+          '35':'35 Vistoria elevador','36':'36 Vistoria nr-10','37':'37 Vistoria nr-12','38':'38 Vistoria nr-13',
+        }
+        const tsV = tsLongo[cfg.tipoVistoria] ?? ''
+        try {
+          const resL = await fetch(
+            `${SUPA_URL}/rest/v1/ativos_a_vistoriar?cpf_inspetor=eq.${cpfInspetor}&cnpjoucpf=eq.${cnpjLimpo}&tipo_servico=eq.${encodeURIComponent(tsV)}&select=*`,
+            { headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` } }
+          )
+          const lista = await resL.json()
+          if (Array.isArray(lista)) setListaAtivos(lista)
+        } catch { /* segue sem lista */ }
+
         if (Array.isArray(dadosA) && dadosA.length > 0) {
-          setListaAtivos(dadosA)
           const a = dadosA[0]
           setEstab(prev => ({
             ...prev,
@@ -418,24 +432,52 @@ function LaudoComplemento() {
       const nome = `${chaveInspetor}_${cnpjoucpf}_${slug}.html`
 
       // ── Salvar imagens no storage antes de enviar payload ──
+      // Reduz imagem grande antes do envio (ART em A4 costuma passar do limite do bucket)
+      async function reduzirImagem(b64: string, mime: string): Promise<string> {
+        if (mime === 'application/pdf') return b64
+        try {
+          const img = await new Promise<HTMLImageElement>((ok, falha) => {
+            const el = new Image()
+            el.onload = () => ok(el)
+            el.onerror = () => falha(new Error('imagem invalida'))
+            el.src = b64
+          })
+          const LADO_MAX = 2200
+          const escala = Math.min(1, LADO_MAX / Math.max(img.width, img.height))
+          if (escala >= 1 && b64.length < 3_000_000) return b64
+          const cv = document.createElement('canvas')
+          cv.width  = Math.round(img.width  * escala)
+          cv.height = Math.round(img.height * escala)
+          const ctx = cv.getContext('2d')
+          if (!ctx) return b64
+          ctx.fillStyle = '#fff'
+          ctx.fillRect(0, 0, cv.width, cv.height)
+          ctx.drawImage(img, 0, 0, cv.width, cv.height)
+          return cv.toDataURL('image/jpeg', 0.85)
+        } catch { return b64 }
+      }
+
       async function salvarImagem(b64: string, sufixo: string): Promise<string> {
         if (!b64) return ''
-        const m = b64.match(/^data:([^;]+);base64,(.+)$/)
+        let m = b64.match(/^data:([^;]+);base64,(.+)$/)
         if (!m) return ''
+
+        const reduzido = await reduzirImagem(b64, m[1])
+        m = reduzido.match(/^data:([^;]+);base64,(.+)$/)
+        if (!m) return ''
+
         const mime = m[1]
         const ext  = mime === 'image/png' ? 'png' : mime === 'application/pdf' ? 'pdf' : 'jpg'
         const path = `laudos_imagens/${chaveInspetor}_${cnpjoucpf}_${sufixo}.${ext}`
         try {
-          // 1) pede URL assinada (corpo minusculo)
           const r = await fetch('/api/upload-url', {
             method: 'POST', headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ path }),
           })
-          if (!r.ok) return ''
+          if (!r.ok) throw new Error('nao foi possivel obter autorizacao de upload')
           const { signedUrl } = await r.json()
-          if (!signedUrl) return ''
+          if (!signedUrl) throw new Error('autorizacao de upload vazia')
 
-          // 2) envia o binario direto ao Storage, sem passar pelo servidor
           const bin = atob(m[2])
           const arr = new Uint8Array(bin.length)
           for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i)
@@ -446,9 +488,17 @@ function LaudoComplemento() {
             headers: { 'content-type': mime, 'x-upsert': 'true' },
             body: blob,
           })
-          if (!up.ok) return ''
+          if (!up.ok) {
+            const txt = await up.text().catch(() => '')
+            const mb = (blob.size / 1048576).toFixed(1)
+            throw new Error(`falha ao enviar ${sufixo} (${mb} MB): ${txt.slice(0, 160)}`)
+          }
           return path
-        } catch { return '' }
+        } catch (e) {
+          console.error('[AIME] upload', sufixo, e)
+          setErro(`Nao foi possivel anexar ${sufixo}: ${String(e)}`)
+          return ''
+        }
       }
 
       const [pathCroqui, pathFoto, pathArt] = await Promise.all([
