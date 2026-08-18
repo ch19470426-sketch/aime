@@ -211,6 +211,64 @@ function HomologarProdutoInner() {
     }
   }
 
+  // PDF do laudo — padrao sincrono identico ao do plano de manutencao (aprovado)
+  function salvarPDFLaudo() {
+    if (!html) { informa('Aviso', 'Documento ainda nao carregado. Aguarde.'); return }
+
+    const doc = iframeRef.current?.contentDocument ?? null
+    const inner = doc?.body?.innerHTML ?? ''
+    const htmlAtual = inner
+      ? html.replace(/(<body[^>]*>)[\s\S]*(<\/body>)/i, (_m, ab, fb) => ab + inner + fb)
+      : html
+
+    const cabTxt = (doc?.querySelector('.cab') as HTMLElement | null)?.innerText?.trim() ?? ''
+    const rodTxt = (doc?.querySelector('.rod') as HTMLElement | null)?.innerText?.trim() ?? ''
+
+    const printCss = `
+      @page {
+        size: A4;
+        margin: 20mm 20mm 15mm 25mm;
+        @top-center {
+          content: ${JSON.stringify(cabTxt)};
+          font-family: Arial, sans-serif; font-size: 10pt; font-weight: bold; color: #1E3A8A;
+          border-bottom: 1.5px solid #1E3A8A; padding-bottom: 3pt; width: 100%; text-align: center;
+        }
+        @bottom-left {
+          content: ${JSON.stringify(rodTxt)};
+          font-family: Arial, sans-serif; font-size: 7.5pt; color: #374151;
+          border-top: 1px solid #ccc; padding-top: 3pt;
+        }
+        @bottom-right {
+          content: 'Pag. ' counter(page);
+          font-family: Arial, sans-serif; font-size: 7.5pt; color: #374151;
+          border-top: 1px solid #ccc; padding-top: 3pt;
+        }
+      }
+      body { -webkit-print-color-adjust: exact; print-color-adjust: exact; margin: 0 !important; }
+      .cab, .rod { display: none !important; }
+      .pg-capa { page-break-after: always; }
+    `
+    const nomeBase = nomeAmigavel('pdf')
+    const tagScript = '<scr' + 'ipt>document.title=' + JSON.stringify(nomeBase)
+      + ';window.addEventListener("load",function(){document.title=' + JSON.stringify(nomeBase)
+      + ';setTimeout(function(){window.print()},600)});</scr' + 'ipt>'
+
+    let htmlPrint = htmlAtual.replace(/<title>[^<]*<\/title>/i, () => '<title>' + nomeBase + '</title>')
+    htmlPrint = htmlPrint.includes('</head>')
+      ? htmlPrint.replace('</head>', () => '<style>' + printCss + '</style></head>')
+      : '<style>' + printCss + '</style>' + htmlPrint
+    htmlPrint = htmlPrint.includes('</body>')
+      ? htmlPrint.replace('</body>', () => tagScript + '</body>')
+      : htmlPrint + tagScript
+
+    const blob = new Blob([htmlPrint], { type: 'text/html;charset=utf-8' })
+    const url  = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url; a.target = '_blank'; a.rel = 'noopener'
+    document.body.appendChild(a); a.click(); document.body.removeChild(a)
+    setTimeout(() => URL.revokeObjectURL(url), 10000)
+  }
+
   async function baixarEditavel() {
     console.log('[AIME] clique registrado no botao Salvar como PDF')
     setGerandoDocx(true)
@@ -396,7 +454,7 @@ function HomologarProdutoInner() {
 
         <div style={S.block}>
           <div style={{ padding: '12px' }}>
-            <p style={{ fontSize: '8.5pt', color: '#374151', lineHeight: 1.5 }}>
+            <p style={{ fontSize: '8.5pt', color: '#374151', lineHeight: 1.5, textAlign: 'center' }}>
               Revise o documento apresentado abaixo e o ajuste de acordo com seu entendimento técnico; baixe o PDF e o assine digitalmente. Após faça upload para o AIMÊ para armazenamento, rastreabilidade e continuidade do processo.
             </p>
           </div>
@@ -413,8 +471,8 @@ function HomologarProdutoInner() {
           <button style={{ ...S.btn, ...S.btnSec }} onClick={() => window.location.href = retorno}>
             Voltar
           </button>
-          <button style={{ ...S.btn, ...S.btnSec, opacity: gerandoDocx ? 0.6 : 1 }} onClick={baixarEditavel} disabled={gerandoDocx}>
-            {gerandoDocx ? 'Aguarde...' : '↓ Salvar como PDF'}
+          <button style={{ ...S.btn, ...S.btnSec }} onClick={salvarPDFLaudo}>
+            ↓ Salvar como PDF
           </button>
           <button style={{ ...S.btn, ...S.btnPri, opacity: enviando ? 0.6 : 1 }}
             onClick={() => inputPdfRef.current?.click()} disabled={enviando}>
