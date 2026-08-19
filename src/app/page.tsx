@@ -117,12 +117,13 @@ export default function LoginPage() {
 
   return (
     <div style={{ backgroundColor: "#1E3A8A", minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "0" }}>
-      {/* Capa do app */}
-      <div style={{ width: "100%", maxWidth: "448px", overflow: "hidden", flexShrink: 0 }}>
+      {/* Capa do app — clicar em qualquer lugar rola para o formulário */}
+      <div style={{ width: "100%", maxWidth: "448px", overflow: "hidden", flexShrink: 0, cursor: "pointer" }}
+        onClick={() => document.getElementById('login-form')?.scrollIntoView({ behavior: 'smooth' })}>
         <img src="/capa_aime.png" alt="AIMÊ" style={{ width: "100%", display: "block" }} />
       </div>
       {/* Card de login */}
-      <div style={{ backgroundColor: "white", width: "100%", maxWidth: "448px", overflow: "hidden", borderRadius: "0 0 16px 16px", boxShadow: "0 25px 50px rgba(0,0,0,0.3)" }}>
+      <div id="login-form" style={{ backgroundColor: "white", width: "100%", maxWidth: "448px", overflow: "hidden", borderRadius: "0 0 16px 16px", boxShadow: "0 25px 50px rgba(0,0,0,0.3)" }}>
         <div style={{ backgroundColor: "#1E3A8A", padding: "8px 16px", display: "flex", alignItems: "center", gap: "12px" }}>
           <Image src="/logo.png" alt="AIME" width={80} height={32} priority style={{ filter: "brightness(0) invert(1)" }} />
           <span style={{ color: "white", fontWeight: "bold", fontSize: "12px", textAlign: "center", flex: 1, lineHeight: "1.3" }}>
