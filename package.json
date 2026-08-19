@@ -10,16 +10,19 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.106.0",
+    "@ducanh2912/next-pwa": "^10.2.9",
+    "@sparticuz/chromium": "131.0.1",
     "@supabase/ssr": "^0.12.0",
     "@supabase/supabase-js": "^2.108.2",
+    "docx": "^9.5.0",
     "html-to-docx": "^1.8.0",
     "jszip": "^3.10.1",
     "next": "16.2.9",
+    "puppeteer-core": "22.15.0",
     "react": "19.2.4",
     "react-dom": "19.2.4",
-    "docx": "^9.5.0",
-    "puppeteer-core": "22.15.0",
-    "@sparticuz/chromium": "131.0.1"
+    "resend": "^2.1.0",
+    "workbox-window": "^7.4.1"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
