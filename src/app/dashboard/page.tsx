@@ -24,7 +24,7 @@ if (typeof window !== 'undefined') {
 
 const permissoes: Record<string, number[]> = {
   "Arquiteto":          [11,12,13,19,21,22,23,29,31,32,33,40,41,42,43,51,52,53,54,55,61,62,99],
-  "Eng Civil":          [11,12,13,14,19,21,22,23,24,26,29,31,32,33,34,36,40,41,42,43,44,51,52,53,54,55,61,62,99],
+  "Eng Civil":          [11,12,13,14,21,22,23,24,31,32,33,34,40,41,42,43,44,51,52,53,54,61,62,99],
   "Eng Elétrico":       [16,26,36,40,46,56,61,62,99],
   "Eng Mecânico":       [15,17,18,25,27,28,35,37,38,40,45,47,48,55,57,58,61,62,99],
   "Técnico Edificação": [13,23,33,40,43,61,62,99],
@@ -458,10 +458,10 @@ export default function Dashboard() {
         </div>
         <div style={{ height: "2px", backgroundColor: "#1E3A8A" }} />
 
-        <div style={{ display: "flex", minHeight: "500px", overflow: "hidden" }}>
+        <div style={{ display: "flex", minHeight: "500px", overflow: "hidden", flexWrap: "wrap" }}>
 
           {/* ── Menu lateral ── */}
-          <div style={{ width: "220px", borderRight: "2px solid #1E3A8A", backgroundColor: "white", flexShrink: 0 }}>
+          <div style={{ width: "220px", minWidth: "180px", borderRight: "2px solid #1E3A8A", backgroundColor: "white", flexShrink: 0 }}>
             <div style={{ backgroundColor: "#1E3A8A", padding: "8px 16px" }}>
               <span style={{ color: "white", fontWeight: "bold", fontSize: "11px" }}>Selecionar Serviço</span>
             </div>
@@ -496,7 +496,7 @@ export default function Dashboard() {
           </div>
 
           {/* ── Área de conteúdo ── */}
-          <div style={{ flex: 1, minWidth: 0, padding: "16px", backgroundColor: "#F8FAFC" }}>
+          <div style={{ flex: 1, minWidth: "280px", padding: "16px", backgroundColor: "#F8FAFC" }}>
 
             {/* Nenhum serviço selecionado: Macro Fluxo + link manual */}
             {!tipoServico && (

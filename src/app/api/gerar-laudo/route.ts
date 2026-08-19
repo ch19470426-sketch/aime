@@ -1945,8 +1945,7 @@ export async function POST(request: NextRequest) {
     const logoB64 = inspetor?.logo_base64 || ''
     const logoTag = logoB64 ? `<img src="${logoB64}" style="max-height:28mm;max-width:80mm">` : `<div style="font-size:14pt;font-weight:900;color:#1E3A8A">${xe(inspetor?.cabecalho_documentos||'AIMÊ')}</div>`
     const CAPA_HTML = `
-<div class='pg-capa' style='counter-reset:page 0'>
-  <div style='height:1cm;background:#fff;flex-shrink:0'></div>
+<div class='pg-capa' style='counter-reset:page 0;display:flex;flex-direction:column;height:277mm'>
   <div style='background:#1E3A8A;height:8mm;flex-shrink:0'></div>
   <div style='text-align:center;padding:10mm 0 0;flex-shrink:0'>${logoTag}</div>
   <div style='flex:1 1 0'></div>
