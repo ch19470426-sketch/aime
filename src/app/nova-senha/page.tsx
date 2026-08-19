@@ -1,6 +1,6 @@
 'use client'
 import { useState, useEffect, Suspense } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import { createClient } from '@/utils/supabase/client'
 
 const S = {
@@ -19,19 +19,35 @@ function NovaSenhaForm() {
   const [loading, setLoading] = useState(false)
   const [erro, setErro] = useState('')
   const [ok, setOk] = useState(false)
+  const [pronto, setPronto] = useState(false)
   const router = useRouter()
-  const params = useSearchParams()
   const supabase = createClient()
 
   useEffect(() => {
-    // O Supabase redireciona com #access_token ou ?token_hash na URL
-    // O cliente Supabase detecta automaticamente o token no hash
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
-      if (event === 'PASSWORD_RECOVERY') {
-        // Sessão de recuperação ativa — pode redefinir
-      }
-    })
-    return () => subscription.unsubscribe()
+    // O Supabase envia o token no hash da URL: #access_token=xxx&type=recovery
+    // Precisamos extrair e estabelecer a sessão manualmente
+    const hash = window.location.hash
+    if (!hash) { setErro('Link inválido ou expirado. Solicite um novo link.'); return }
+
+    const params = new URLSearchParams(hash.replace('#', ''))
+    const accessToken = params.get('access_token')
+    const refreshToken = params.get('refresh_token')
+    const type = params.get('type')
+
+    if (type !== 'recovery' || !accessToken) {
+      setErro('Link inválido ou expirado. Solicite um novo link.')
+      return
+    }
+
+    // Estabelecer sessão com o token do link
+    supabase.auth.setSession({ access_token: accessToken, refresh_token: refreshToken || '' })
+      .then(({ error }) => {
+        if (error) {
+          setErro('Link expirado. Solicite um novo link de recuperação.')
+        } else {
+          setPronto(true)
+        }
+      })
   }, [])
 
   async function salvar() {
@@ -62,6 +78,19 @@ function NovaSenhaForm() {
               <div style={{fontWeight:700, color:'#1E3A8A', fontSize:'15px', marginBottom:'8px'}}>Senha alterada!</div>
               <p style={{fontSize:'13px', color:'#374151'}}>Redirecionando para o login...</p>
             </div>
+          ) : !pronto ? (
+            <div style={{textAlign:'center'}}>
+              {erro
+                ? <>
+                    <div style={{fontSize:'40px', marginBottom:'12px'}}>⚠️</div>
+                    <p style={{color:'#DC2626', fontSize:'13px'}}>{erro}</p>
+                    <button style={S.btn} onClick={() => router.push('/recuperar-senha')}>
+                      Solicitar novo link
+                    </button>
+                  </>
+                : <p style={{color:'#6b7280', fontSize:'13px'}}>Verificando link...</p>
+              }
+            </div>
           ) : (
             <>
               <p style={{fontSize:'13px', color:'#374151', marginBottom:'20px', lineHeight:1.6}}>
@@ -87,5 +116,5 @@ function NovaSenhaForm() {
 }
 
 export default function NovaSenhaPage() {
-  return <Suspense><NovaSenhaForm /></Suspense>
+  return <Suspense fallback={<div/>}><NovaSenhaForm /></Suspense>
 }
