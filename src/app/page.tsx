@@ -12,6 +12,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState("")
   const [erro, setErro] = useState("")
   const [loading, setLoading] = useState(false)
+  const [mostrarCapa, setMostrarCapa] = useState(true)
   const cpfRef = useRef<HTMLInputElement>(null)
 
   // O Edge preenche o campo CPF com o valor anterior mesmo com autoComplete="off".
@@ -115,15 +116,20 @@ export default function LoginPage() {
     }
   }
 
+  // Tela de capa — clicar em qualquer lugar vai para o login
+  if (mostrarCapa) return (
+    <div onClick={() => setMostrarCapa(false)}
+      style={{ backgroundColor: "#1E3A8A", minHeight: "100vh", width: "100%",
+        display: "flex", alignItems: "center", justifyContent: "center",
+        cursor: "pointer", overflow: "hidden" }}>
+      <img src="/capa_aime.png" alt="AIMÊ"
+        style={{ width: "100%", maxWidth: "480px", display: "block", touchAction: "manipulation" }} />
+    </div>
+  )
+
   return (
-    <div style={{ backgroundColor: "#1E3A8A", minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "0" }}>
-      {/* Capa do app — clicar em qualquer lugar rola para o formulário */}
-      <div style={{ width: "100%", maxWidth: "448px", overflow: "hidden", flexShrink: 0, cursor: "pointer" }}
-        onClick={() => document.getElementById('login-form')?.scrollIntoView({ behavior: 'smooth' })}>
-        <img src="/capa_aime.png" alt="AIMÊ" style={{ width: "100%", display: "block" }} />
-      </div>
-      {/* Card de login */}
-      <div id="login-form" style={{ backgroundColor: "white", width: "100%", maxWidth: "448px", overflow: "hidden", borderRadius: "0 0 16px 16px", boxShadow: "0 25px 50px rgba(0,0,0,0.3)" }}>
+    <div style={{ backgroundColor: "#E8EEF7", minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", padding: "16px" }}>
+      <div style={{ backgroundColor: "white", borderRadius: "16px", boxShadow: "0 25px 50px rgba(0,0,0,0.15)", width: "100%", maxWidth: "448px", overflow: "hidden" }}>
         <div style={{ backgroundColor: "#1E3A8A", padding: "8px 16px", display: "flex", alignItems: "center", gap: "12px" }}>
           <Image src="/logo.png" alt="AIME" width={80} height={32} priority style={{ filter: "brightness(0) invert(1)" }} />
           <span style={{ color: "white", fontWeight: "bold", fontSize: "12px", textAlign: "center", flex: 1, lineHeight: "1.3" }}>
