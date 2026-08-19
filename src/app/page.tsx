@@ -143,7 +143,6 @@ export default function LoginPage() {
               <label style={{ fontSize: "14px", fontWeight: "500", color: "#374151" }}>Senha</label>
               <input type="password" required value={password} onChange={(e) => setPassword(e.target.value)} placeholder="********"
                 style={{ border: "1px solid #D1D5DB", borderRadius: "8px", padding: "10px 12px", fontSize: "14px", outline: "none" }} />
-              <p style={{ fontSize: "11px", color: "#6B7280" }}>Primeiro acesso? Digite seu CPF e crie uma senha — sua conta será criada automaticamente.</p>
             </div>
             {erro && <p style={{ color: "#DC2626", fontSize: "13px", textAlign: "center" }}>{erro}</p>}
             <button type="submit" disabled={loading}
