@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/utils/supabase/client'
 
 const S = {
-  page: { backgroundColor:'#E8EEF7', minHeight:'100vh', display:'flex', alignItems:'center', justifyContent:'center', padding:'16px' } as React.CSSProperties,
+  page: { backgroundColor:'#E8EEF7', height:'100vh', display:'flex', alignItems:'center', justifyContent:'center', padding:'16px', overflow:'hidden' } as React.CSSProperties,
   card: { backgroundColor:'white', borderRadius:'16px', boxShadow:'0 25px 50px rgba(0,0,0,0.15)', width:'100%', maxWidth:'420px', overflow:'hidden' } as React.CSSProperties,
   header: { backgroundColor:'#1E3A8A', padding:'20px 24px', textAlign:'center' as const },
   body: { padding:'28px 24px' },
@@ -57,7 +57,14 @@ function NovaSenhaForm() {
     setLoading(true)
     try {
       const { error } = await supabase.auth.updateUser({ password: senha })
-      if (error) { setErro(error.message); return }
+      if (error) {
+        const msg = error.message
+        if (msg.includes('different from the old password')) setErro('A nova senha deve ser diferente da senha atual.')
+        else if (msg.includes('Password should be')) setErro('A senha deve ter pelo menos 6 caracteres.')
+        else if (msg.includes('Auth session missing')) setErro('Sessão expirada. Solicite um novo link de recuperação.')
+        else setErro('Erro ao salvar a senha. Tente novamente.')
+        return
+      }
       setOk(true)
       setTimeout(() => router.push('/'), 2500)
     } catch { setErro('Erro ao salvar. Tente novamente.') }
