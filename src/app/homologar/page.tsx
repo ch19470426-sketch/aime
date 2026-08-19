@@ -366,7 +366,7 @@ function Tela40Inner() {
     setEtapa('gate')
     setCarregando(false)
     orienta('Homologação de Documentos e Vistoria',
-      'Neste processo de homologação vamos efetuar o registro da situação e do resultado dos documentos recebidos para a inspeção e a seguir a homologação da vistoria efetuada.'
+      'Neste processo os dados coletados em campo podem ser revisados e ajustados e, caso necessário, a IA pode ser acionada para reescrever a NC ou CP com os dados atualizados.'
     )
   }
 

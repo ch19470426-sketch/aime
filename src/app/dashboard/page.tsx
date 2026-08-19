@@ -41,7 +41,6 @@ const menuGrupos = [
     { codigo: 16, label: "Proposta NR-10" },
     { codigo: 17, label: "Proposta NR-12" },
     { codigo: 18, label: "Proposta NR-13" },
-    { codigo: 19, label: "Proposta Plano Manutenção" },
   ]},
   { grupo: "Planos de Trabalho", itens: [
     { codigo: 21, label: "Plano Trabalho Autovistoria" },
@@ -52,7 +51,6 @@ const menuGrupos = [
     { codigo: 26, label: "Plano Trabalho NR-10" },
     { codigo: 27, label: "Plano Trabalho NR-12" },
     { codigo: 28, label: "Plano Trabalho NR-13" },
-    { codigo: 29, label: "Plano Trabalho Manutenção" },
   ]},
   { grupo: "Vistorias", itens: [
     { codigo: 31, label: "Autovistoria" },
