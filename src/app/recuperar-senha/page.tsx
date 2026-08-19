@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 const S = {
   page: { backgroundColor:'#E8EEF7', height:'100vh', display:'flex', alignItems:'center', justifyContent:'center', padding:'16px', overflow:'hidden' } as React.CSSProperties,
   card: { backgroundColor:'white', borderRadius:'16px', boxShadow:'0 25px 50px rgba(0,0,0,0.15)', width:'100%', maxWidth:'420px', overflow:'hidden' } as React.CSSProperties,
-  header: { backgroundColor:'#1E3A8A', padding:'20px 24px', textAlign:'center' as const },
+  header: { backgroundColor:'#1E3A8A', padding:'8px 16px', textAlign:'center' as const },
   body: { padding:'28px 24px' },
   label: { display:'block', fontSize:'12px', fontWeight:700, color:'#374151', marginBottom:'6px' },
   input: { width:'100%', padding:'10px 14px', border:'1.5px solid #D1D5DB', borderRadius:'8px', fontSize:'13px', boxSizing:'border-box' as const },
