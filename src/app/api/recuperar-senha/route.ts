@@ -37,9 +37,8 @@ export async function POST(request: NextRequest) {
     if (!usuario) return NextResponse.json({ ok: true })
 
     // 3. Atualizar email Auth para o real, enviar o link, restaurar o email técnico
-    const origem = request.headers.get('origin')
-      || process.env.NEXT_PUBLIC_SITE_URL
-      || 'https://aime-7h4a.vercel.app'
+    // Sempre usar a URL de produção para evitar localhost no link do e-mail
+    const origem = 'https://aime-7h4a.vercel.app'
 
     await supabase.auth.admin.updateUserById(usuario.id, { email: emailReal })
 

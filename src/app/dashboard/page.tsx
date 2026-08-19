@@ -516,7 +516,7 @@ export default function Dashboard() {
                         {/* Serviço selecionado não-vistoria: procedimento por grupo ou específico */}
             {tipoServico && !ehVistoria && (
               <div style={{ backgroundColor: "white", borderRadius: "10px", overflow: "hidden", border: "1px solid #E2E8F0" }}>
-                <div style={{ backgroundColor: "#1E3A8A", padding: "10px 20px" }}>
+                <div style={{ backgroundColor: "#1E3A8A", padding: "8px 16px" }}>
                   <span style={{ color: "white", fontWeight: "bold", fontSize: "13px" }}>{itemSelecionado?.codigo} - {itemSelecionado?.label}</span>
                 </div>
                 <div style={{ height: "2px", backgroundColor: "#1E3A8A" }} />
