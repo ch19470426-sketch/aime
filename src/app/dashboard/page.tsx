@@ -543,7 +543,7 @@ export default function Dashboard() {
               <div>
 
                 {/* Título do serviço */}
-                <div style={{ backgroundColor: "#1E3A8A", padding: "8px 16px", borderRadius: "8px 8px 0 0" }}>
+                <div style={{ backgroundColor: "#1E3A8A", padding: "6px 16px", borderRadius: "8px 8px 0 0" }}>
                   <span style={{ color: "white", fontWeight: "bold", fontSize: "12px" }}>
                     {itemSelecionado?.codigo} - {itemSelecionado?.label}
                   </span>
