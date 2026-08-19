@@ -2213,13 +2213,13 @@ ${rodInspetor?`<div class="rod">${rodInspetor}</div>`:''}
 </body>
 </html>`
 
-    // ── Salvar — deletar antes para forçar bypass CDN cache ─────────────────
-    await supabase.storage.from('aime').remove([`documentos_inspetor/${nomeArquivo}`])
-    const { error } = await supabase.storage.from('aime')
-      .upload(`documentos_inspetor/${nomeArquivo}`, Buffer.from(html,'utf-8'), {
-        contentType:'text/html', upsert:true,
-      })
-    if (error) return NextResponse.json({ erro: error.message }, { status: 500 })
+    // Laudo gerado — salvo em documentos_inspetor somente via upload-pdf-assinado
+
+
+
+
+
+
 
     const nomeJson = nomeArquivo.replace(/\.html$/i,'_dados.json')
     await supabase.storage.from('aime')

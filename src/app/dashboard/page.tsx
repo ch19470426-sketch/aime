@@ -484,7 +484,7 @@ export default function Dashboard() {
                         width: "100%", textAlign: "left", padding: "6px 12px 6px 20px",
                         backgroundColor: selecionado ? "#EBF1FF" : "white",
                         color: !habilitado ? "#C4C4C4" : selecionado ? "#1E3A8A" : "#374151",
-                        fontWeight: selecionado ? "bold" : "normal",
+                        fontWeight: (selecionado && item.codigo !== 99) ? "bold" : "normal",
                         fontSize: "11px", border: "none", borderBottom: "1px solid #F1F5F9",
                         cursor: habilitado ? "pointer" : "not-allowed",
                         opacity: habilitado ? 1 : 0.45,
