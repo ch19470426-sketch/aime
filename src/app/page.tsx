@@ -156,6 +156,11 @@ export default function LoginPage() {
               style={{ backgroundColor: "#1E3A8A", color: "white", fontWeight: "600", padding: "12px", borderRadius: "50px", border: "none", cursor: "pointer", fontSize: "14px", opacity: loading ? 0.7 : 1 }}>
               {loading ? "Aguarde..." : "Entrar"}
             </button>
+            <div style={{ textAlign: 'center', marginTop: '12px' }}>
+              <a href="/recuperar-senha" style={{ fontSize: '11px', color: '#1E3A8A', textDecoration: 'underline' }}>
+                Esqueci minha senha
+              </a>
+            </div>
           </form>
         </div>
       </div>
