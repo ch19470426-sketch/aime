@@ -159,11 +159,14 @@ export default function GestorPage() {
 
   async function carregarEstabelecimentos() {
     const { data: { session } } = await supabase.auth.getSession()
-    const res = await fetch(
-      `${SUPA_URL}/rest/v1/estabelecimento?select=cnpjoucpf,razao_social_nome,logradouro,numero_imovel,bairro,cidade,uf,uso_estabelecimento&order=razao_social_nome`,
-      { headers: { apikey: SUPA_KEY, Authorization: `Bearer ${session?.access_token}` } }
-    )
-    setEstabelecimentos(await res.json())
+    try {
+      const res = await fetch(
+        `${SUPA_URL}/rest/v1/estabelecimento?select=cnpjoucpf,razao_social_nome,logradouro,numero_imovel,bairro,cidade,uf,uso_estabelecimento&order=razao_social_nome`,
+        { headers: { apikey: SUPA_KEY, Authorization: `Bearer ${session?.access_token}` } }
+      )
+      const data = await res.json()
+      setEstabelecimentos(Array.isArray(data) ? data : [])
+    } catch { setEstabelecimentos([]) }
   }
 
   async function salvarEstab() {
@@ -499,7 +502,7 @@ export default function GestorPage() {
                   <button onClick={salvarEstab} disabled={salvandoEstab} style={S.btnPri}>
                     {salvandoEstab ? 'Salvando...' : '💾 Salvar Alterações'}
                   </button>
-                  <button onClick={() => setEditEstab({...estabSel})} style={S.btnSec}>
+                  <button onClick={() => estabSel && setEditEstab({...estabSel})} style={S.btnSec}>
                     ↩ Restaurar
                   </button>
                 </div>
