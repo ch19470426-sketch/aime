@@ -29,6 +29,17 @@ const S = {
   planoCard: (ativo: boolean) => ({ border: `2px solid ${ativo ? '#1E3A8A' : '#E2E8F0'}`, borderRadius: '8px', padding: '10px 12px', backgroundColor: ativo ? '#EBF1FF' : 'white' }) as React.CSSProperties,
 }
 
+type Estabelecimento = {
+  cnpjoucpf: string
+  razao_social_nome: string
+  logradouro: string
+  numero_imovel: string
+  bairro: string
+  cidade: string
+  uf: string
+  uso_estabelecimento: string
+}
+
 type Inspetor = {
   cpf_inspetor: string
   nome_inspetor: string
@@ -66,6 +77,13 @@ export default function GestorPage() {
   const [salvando, setSalvando] = useState(false)
   const [msg, setMsg] = useState('')
   const [aba, setAba] = useState<'dados'|'plano'|'avulso'>('dados')
+  const [abaGestor, setAbaGestor] = useState<'inspetores'|'estabelecimentos'>('inspetores')
+  const [estabelecimentos, setEstabelecimentos] = useState<Estabelecimento[]>([])
+  const [estabSel, setEstabSel] = useState<Estabelecimento | null>(null)
+  const [buscaEstab, setBuscaEstab] = useState('')
+  const [editEstab, setEditEstab] = useState<Estabelecimento | null>(null)
+  const [salvandoEstab, setSalvandoEstab] = useState(false)
+  const [msgEstab, setMsgEstab] = useState('')
   // Novo plano
   const [novoPlano, setNovoPlano] = useState('PLANO MENSAL')
   const [novoAvulso, setNovoAvulso] = useState(600)
@@ -139,6 +157,33 @@ export default function GestorPage() {
     finally { setSalvando(false) }
   }
 
+  async function carregarEstabelecimentos() {
+    const { data: { session } } = await supabase.auth.getSession()
+    const res = await fetch(
+      `${SUPA_URL}/rest/v1/estabelecimento?select=cnpjoucpf,razao_social_nome,logradouro,numero_imovel,bairro,cidade,uf,uso_estabelecimento&order=razao_social_nome`,
+      { headers: { apikey: SUPA_KEY, Authorization: `Bearer ${session?.access_token}` } }
+    )
+    setEstabelecimentos(await res.json())
+  }
+
+  async function salvarEstab() {
+    if (!editEstab) return
+    setSalvandoEstab(true); setMsgEstab('')
+    try {
+      const res = await fetch('/api/salvar-estabelecimento', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(editEstab)
+      })
+      const d = await res.json()
+      if (!res.ok) { setMsgEstab(`Erro: ${d.erro ?? 'Falha ao salvar.'}`); return }
+      setMsgEstab('Estabelecimento atualizado com sucesso!')
+      setEstabSel(editEstab)
+      await carregarEstabelecimentos()
+    } catch { setMsgEstab('Erro ao salvar.') }
+    finally { setSalvandoEstab(false) }
+  }
+
   async function novoInspetor() {
     const { data: { session } } = await supabase.auth.getSession()
     window.location.href = `/inspetor?gestor=1`
@@ -174,7 +219,20 @@ export default function GestorPage() {
         </div>
         <div style={{ height:'2px', backgroundColor:'#1E3A8A' }} />
 
+        {/* Navegação principal */}
+        <div style={{ display:'flex', gap:'0', borderBottom:'2px solid #1E3A8A' }}>
+          {(['inspetores','estabelecimentos'] as const).map(ab => (
+            <button key={ab} onClick={() => { setAbaGestor(ab); if(ab==='estabelecimentos') carregarEstabelecimentos() }}
+              style={{ padding:'8px 20px', border:'none', cursor:'pointer', fontSize:'12px', fontWeight:700,
+                borderBottom: abaGestor===ab ? '3px solid #1E3A8A' : '3px solid transparent',
+                color: abaGestor===ab ? '#1E3A8A' : '#6B7280', backgroundColor:'white' }}>
+              {ab === 'inspetores' ? '👤 Inspetores' : '🏢 Estabelecimentos'}
+            </button>
+          ))}
+        </div>
+
         <div style={S.body}>
+          {abaGestor === 'inspetores' ? (<>
           {/* ── Lista de Inspetores ── */}
           <div style={S.lista}>
             <div style={S.listaHeader}>Inspetores ({inspetores.length})</div>
@@ -373,6 +431,82 @@ export default function GestorPage() {
               </>
             )}
           </div>
+          </>) : (<>
+          {/* ── Lista de Estabelecimentos ── */}
+          <div style={S.lista}>
+            <div style={S.listaHeader}>Estabelecimentos ({estabelecimentos.length})</div>
+            <div style={{ padding:'8px' }}>
+              <input placeholder="Buscar por nome ou CNPJ/CPF..."
+                value={buscaEstab} onChange={e => setBuscaEstab(e.target.value)}
+                style={{ ...S.input, marginBottom:'4px' }} />
+            </div>
+            <div style={{ overflowY:'auto', maxHeight:'560px' }}>
+              {estabelecimentos
+                .filter(e => e.razao_social_nome?.toLowerCase().includes(buscaEstab.toLowerCase()) ||
+                  e.cnpjoucpf?.includes(buscaEstab.replace(/\D/g,'')))
+                .map(est => (
+                  <div key={est.cnpjoucpf}
+                    onClick={() => { setEstabSel(est); setEditEstab({...est}); setMsgEstab('') }}
+                    style={S.listaItem(estabSel?.cnpjoucpf === est.cnpjoucpf)}>
+                    <div>
+                      <div style={{ fontWeight:700, fontSize:'11px', color:'#1E3A8A' }}>{est.razao_social_nome}</div>
+                      <div style={{ fontSize:'10px', color:'#6B7280' }}>{est.cnpjoucpf} · {est.cidade}/{est.uf}</div>
+                    </div>
+                  </div>
+                ))}
+            </div>
+          </div>
+
+          {/* ── Painel Estabelecimento ── */}
+          <div style={S.painel}>
+            {!estabSel ? (
+              <div style={{ display:'flex', alignItems:'center', justifyContent:'center', height:'400px', flexDirection:'column', gap:'12px' }}>
+                <div style={{ fontSize:'40px' }}>🏢</div>
+                <p style={{ color:'#9CA3AF', fontSize:'13px' }}>Selecione um estabelecimento na lista</p>
+              </div>
+            ) : (
+              <>
+                <h2 style={{ margin:'0 0 4px', fontSize:'16px', color:'#1E3A8A', fontWeight:900 }}>{estabSel.razao_social_nome}</h2>
+                <p style={{ margin:'0 0 16px', fontSize:'11px', color:'#6B7280' }}>{estabSel.cnpjoucpf}</p>
+
+                {msgEstab && (
+                  <div style={{ padding:'8px 12px', borderRadius:'8px', marginBottom:'12px', fontSize:'12px',
+                    backgroundColor: msgEstab.startsWith('Erro') ? '#FEE2E2' : '#D1FAE5',
+                    color: msgEstab.startsWith('Erro') ? '#DC2626' : '#059669' }}>
+                    {msgEstab}
+                  </div>
+                )}
+
+                <div style={S.secaoTitulo}>Dados do Estabelecimento</div>
+                <div style={S.grid2}>
+                  {[
+                    { label:'Razão Social / Nome', field:'razao_social_nome' },
+                    { label:'Uso / Atividade',     field:'uso_estabelecimento' },
+                    { label:'Logradouro',           field:'logradouro' },
+                    { label:'Número',               field:'numero_imovel' },
+                    { label:'Bairro',               field:'bairro' },
+                    { label:'Cidade',               field:'cidade' },
+                    { label:'UF',                   field:'uf' },
+                  ].map(({ label, field }) => (
+                    <div key={field}>
+                      <label style={S.label}>{label}</label>
+                      <input style={S.input} value={(editEstab as any)?.[field] ?? ''}
+                        onChange={e => setEditEstab((prev: any) => ({ ...prev, [field]: e.target.value }))} />
+                    </div>
+                  ))}
+                </div>
+                <div style={{ marginTop:'16px', display:'flex', gap:'8px' }}>
+                  <button onClick={salvarEstab} disabled={salvandoEstab} style={S.btnPri}>
+                    {salvandoEstab ? 'Salvando...' : '💾 Salvar Alterações'}
+                  </button>
+                  <button onClick={() => setEditEstab({...estabSel})} style={S.btnSec}>
+                    ↩ Restaurar
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+          </>)}
         </div>
       </div>
     </div>
