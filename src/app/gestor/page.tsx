@@ -84,6 +84,7 @@ export default function GestorPage() {
   const [editEstab, setEditEstab] = useState<Estabelecimento | null>(null)
   const [salvandoEstab, setSalvandoEstab] = useState(false)
   const [msgEstab, setMsgEstab] = useState('')
+  const [carregandoEstab, setCarregandoEstab] = useState(false)
   // Novo plano
   const [novoPlano, setNovoPlano] = useState('PLANO MENSAL')
   const [novoAvulso, setNovoAvulso] = useState(600)
@@ -158,11 +159,24 @@ export default function GestorPage() {
   }
 
   async function carregarEstabelecimentos() {
+    setCarregandoEstab(true)
     try {
       const res = await fetch('/api/gestor/listar-estabelecimentos')
       const data = await res.json()
-      setEstabelecimentos(Array.isArray(data) ? data : [])
-    } catch { setEstabelecimentos([]) }
+      if (Array.isArray(data)) {
+        setEstabelecimentos(data)
+      } else {
+        console.error('[AIMÊ] listar-estabelecimentos retornou:', data)
+        setEstabelecimentos([])
+        setMsgEstab(`Erro ao carregar: ${data?.erro ?? JSON.stringify(data)}`)
+      }
+    } catch (e) {
+      console.error('[AIMÊ] erro carregarEstabelecimentos:', e)
+      setEstabelecimentos([])
+      setMsgEstab('Erro de conexão ao carregar estabelecimentos.')
+    } finally {
+      setCarregandoEstab(false)
+    }
   }
 
   async function salvarEstab() {
@@ -442,12 +456,17 @@ export default function GestorPage() {
               <input placeholder="Buscar por nome ou CNPJ/CPF..."
                 value={buscaEstab} onChange={e => setBuscaEstab(e.target.value)}
                 style={{ ...S.input, marginBottom:'4px' }} />
-              <button onClick={carregarEstabelecimentos}
-                style={{ ...S.btnPri, width:'100%', borderRadius:'6px', marginBottom:'4px' }}>
-                🔍 Listar Estabelecimentos
+              <button onClick={carregarEstabelecimentos} disabled={carregandoEstab}
+                style={{ ...S.btnPri, width:'100%', borderRadius:'6px', marginBottom:'4px',
+                  opacity: carregandoEstab ? 0.7 : 1 }}>
+                {carregandoEstab ? 'Carregando...' : '🔍 Listar Estabelecimentos'}
               </button>
             </div>
-            <div style={{ overflowY:'auto', maxHeight:'560px' }}>
+            {msgEstab && !msgEstab.startsWith('Estabelecimento atualizado') && (
+              <div style={{ margin:'4px 8px', padding:'6px 8px', borderRadius:'4px', fontSize:'10px',
+                backgroundColor:'#FEE2E2', color:'#DC2626' }}>{msgEstab}</div>
+            )}
+            <div style={{ overflowY:'auto', maxHeight:'520px' }}>
               {estabelecimentos
                 .filter(e => e.razao_social_nome?.toLowerCase().includes(buscaEstab.toLowerCase()) ||
                   e.cnpjoucpf?.includes(buscaEstab.replace(/\D/g,'')))
