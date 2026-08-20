@@ -19,6 +19,8 @@ function CadastroInspetor() {
   const params = useSearchParams()
   const cpfUrl = params.get('cpf') ?? ''
   const ehNovo = params.get('novo') === '1'
+  const ehGestor = params.get('gestor') === '1'
+  const ehConsulta = !!cpfUrl && !ehGestor  // item 62: inspetor vendo próprio cadastro
 
   const [form, setForm] = useState({
     cpf: "",
@@ -255,12 +257,12 @@ function CadastroInspetor() {
         <div style={{backgroundColor:"#1E3A8A",padding:"8px 16px",display:"flex",alignItems:"center",gap:"12px"}}>
           <Image src="/logo.png" alt="AIME" width={80} height={32} priority style={{filter:"brightness(0) invert(1)"}} />
           <span style={{color:"white",fontWeight:"bold",fontSize:"16px",flex:1,textAlign:"center"}}>
-            {params.get('gestor') === '1' ? 'Cadastro do Gestor' : 'Cadastro do Inspetor'}
+            {ehGestor ? 'Cadastro do Gestor' : ehConsulta ? 'Meu Cadastro' : 'Cadastro do Inspetor'}
           </span>
         </div>
         <div style={{height:"2px",backgroundColor:"#1E3A8A"}} />
 
-        {params.get('gestor') !== '1' && (
+        {ehConsulta && (
           <div style={{ display:'flex', borderBottom:'2px solid #1E3A8A', backgroundColor:'white' }}>
             {(['dados','plano'] as const).map(ab => (
               <button key={ab}
@@ -281,7 +283,7 @@ function CadastroInspetor() {
             </div>
           ) : (
             <>
-            {(abaInspetor === 'dados' || params.get('gestor') === '1') && <form onSubmit={handleSubmit}>
+            {(abaInspetor === 'dados' || ehGestor) && <form onSubmit={ehConsulta ? (e => e.preventDefault()) : handleSubmit}>
 
               <div style={blocoStyle}>
                 <div style={blocoHeaderStyle}>
@@ -403,14 +405,14 @@ function CadastroInspetor() {
                   style={{padding:"10px 24px",borderRadius:"50px",border:"1px solid #1E3A8A",backgroundColor:"white",color:"#1E3A8A",fontWeight:"600",fontSize:"13px",cursor:"pointer"}}>
                   Cancelar
                 </button>
-                <button type="submit" disabled={salvando}
+                {!ehConsulta && <button type="submit" disabled={salvando}
                   style={{padding:"10px 24px",borderRadius:"50px",border:"none",backgroundColor:"#1E3A8A",color:"white",fontWeight:"600",fontSize:"13px",cursor:"pointer",opacity:salvando?0.7:1}}>
                   {salvando ? "Salvando..." : "Salvar Cadastro"}
-                </button>
+                </button>}
               </div>
 
             </form>}
-            {abaInspetor === 'plano' && params.get('gestor') !== '1' && (
+            {abaInspetor === 'plano' && ehConsulta && (
               <div style={{paddingTop:'8px'}}>
                 {carregandoPlano ? (
                   <div style={{textAlign:'center',padding:'32px',color:'#6B7280',fontSize:'13px'}}>Carregando...</div>
