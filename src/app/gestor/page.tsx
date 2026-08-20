@@ -163,7 +163,7 @@ export default function GestorPage() {
       <div style={S.card}>
         {/* Header */}
         <div style={S.header}>
-          <img src="/logo.png" alt="AIMÊ" height={32} style={{ filter:'brightness(0) invert(1)' }} />
+          <img src="/logo.png" alt="AIMÊ" width={80} height={32} style={{ filter:'brightness(0) invert(1)', objectFit:'contain' }} />
           <span style={{ color:'white', fontWeight:700, fontSize:'13px', flex:1, textAlign:'center' }}>
             Painel do Gestor
           </span>
