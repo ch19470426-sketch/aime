@@ -332,12 +332,12 @@ export default function GestorPage() {
 
                 {/* Abas */}
                 <div style={{ display:'flex', gap:'4px', marginBottom:'16px', borderBottom:'2px solid #E2E8F0' }}>
-                  {(['dados','plano','avulso'] as const).map(a => (
+                  {(['dados','plano'] as const).map(a => (
                     <button key={a} onClick={() => setAba(a)}
                       style={{ padding:'6px 16px', border:'none', cursor:'pointer', fontSize:'11px', fontWeight:700,
                         borderBottom: aba===a ? '2px solid #1E3A8A' : '2px solid transparent',
                         color: aba===a ? '#1E3A8A' : '#6B7280', backgroundColor:'transparent' }}>
-                      {a === 'dados' ? '📋 Dados' : a === 'plano' ? '📊 Plano' : '➕ Avulso'}
+                      {a === 'dados' ? '📋 Dados' : '📊 Plano'}
                     </button>
                   ))}
                 </div>
@@ -373,7 +373,7 @@ export default function GestorPage() {
                       </div>
                     </div>
                     <div style={{ marginTop:'12px', display:'flex', gap:'8px' }}>
-                      <button onClick={() => window.location.href=`/inspetor?cpf=${selecionado.cpf_inspetor}`}
+                      <button onClick={() => window.location.href=`/inspetor?cpf=${selecionado.cpf_inspetor}&visualizar=1`}
                         style={S.btnPri}>
                         🔍 Visualizar Cadastro
                       </button>
@@ -401,21 +401,33 @@ export default function GestorPage() {
                                   {vencido ? '⚠ Vencido' : `✓ Válido até ${new Date(ct.data_fim_contrato).toLocaleDateString('pt-BR')}`}
                                 </span>
                               </div>
-                              <div style={S.grid3}>
+                              <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:'8px', marginTop:'8px' }}>
                                 <div style={{ fontSize:'11px' }}>
-                                  <div style={{ color:'#6B7280' }}>CR Plano</div>
-                                  <div style={{ fontWeight:700, color:'#1E3A8A' }}>{ct.saldo_quantidade_plano} / {ct.qde_contratada_plano}</div>
+                                  <div style={{ color:'#6B7280' }}>Início</div>
+                                  <div style={{ fontWeight:700 }}>{new Date(ct.data_inicio_contrato).toLocaleDateString('pt-BR')}</div>
+                                </div>
+                                <div style={{ fontSize:'11px' }}>
+                                  <div style={{ color:'#6B7280' }}>Vencimento</div>
+                                  <div style={{ fontWeight:700, color:vencido?'#DC2626':'#059669' }}>{new Date(ct.data_fim_contrato).toLocaleDateString('pt-BR')}</div>
+                                </div>
+                                <div style={{ fontSize:'11px' }}>
+                                  <div style={{ color:'#6B7280' }}>CR Contratado</div>
+                                  <div style={{ fontWeight:700, color:'#1E3A8A' }}>{ct.qde_contratada_plano}</div>
+                                </div>
+                                <div style={{ fontSize:'11px' }}>
+                                  <div style={{ color:'#6B7280' }}>CR Saldo Plano</div>
+                                  <div style={{ fontWeight:700, color:'#1E3A8A' }}>{ct.saldo_quantidade_plano}</div>
                                   <div style={{ height:'4px', backgroundColor:'#E5E7EB', borderRadius:'2px', marginTop:'4px' }}>
                                     <div style={{ height:'4px', backgroundColor:'#1E3A8A', borderRadius:'2px', width:`${pct}%` }} />
                                   </div>
                                 </div>
                                 <div style={{ fontSize:'11px' }}>
-                                  <div style={{ color:'#6B7280' }}>CR Avulso</div>
-                                  <div style={{ fontWeight:700, color:'#7C3AED' }}>{ct.saldo_quantidade_avulso} / {ct.qde_contratada_avulso}</div>
+                                  <div style={{ color:'#6B7280' }}>CR Avulso Contratado</div>
+                                  <div style={{ fontWeight:700, color:'#7C3AED' }}>{ct.qde_contratada_avulso}</div>
                                 </div>
                                 <div style={{ fontSize:'11px' }}>
-                                  <div style={{ color:'#6B7280' }}>Início</div>
-                                  <div style={{ fontWeight:700 }}>{new Date(ct.data_inicio_contrato).toLocaleDateString('pt-BR')}</div>
+                                  <div style={{ color:'#6B7280' }}>CR Saldo Avulso</div>
+                                  <div style={{ fontWeight:700, color:'#7C3AED' }}>{ct.saldo_quantidade_avulso}</div>
                                 </div>
                               </div>
                             </div>
@@ -425,20 +437,7 @@ export default function GestorPage() {
                     )}
 
                     {/* Novo plano */}
-                    <div style={{ ...S.secaoTitulo, marginTop:'16px' }}>Atribuir Novo Plano</div>
-                    <div style={S.grid2}>
-                      <div>
-                        <label style={S.label}>Tipo de Plano</label>
-                        <select style={S.select} value={novoPlano} onChange={e => setNovoPlano(e.target.value)}>
-                          {PLANOS.map(p => <option key={p} value={p}>{p} — {PLANO_CR[p]} CR</option>)}
-                        </select>
-                      </div>
-                      <div style={{ display:'flex', alignItems:'flex-end' }}>
-                        <button onClick={atribuirPlano} disabled={salvando} style={S.btnPri}>
-                          {salvando ? 'Aguarde...' : 'Atribuir Plano'}
-                        </button>
-                      </div>
-                    </div>
+
                   </div>
                 )}
 

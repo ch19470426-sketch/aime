@@ -20,7 +20,8 @@ function CadastroInspetor() {
   const cpfUrl = params.get('cpf') ?? ''
   const ehNovo = params.get('novo') === '1'
   const ehGestor = params.get('gestor') === '1'
-  const ehConsulta = !!cpfUrl && !ehGestor  // item 62: inspetor vendo próprio cadastro
+  const ehVisualizar = params.get('visualizar') === '1'  // MG: gestor visualizando inspetor
+  const ehConsulta = !!cpfUrl && !ehGestor && !ehVisualizar  // item 62: inspetor vendo próprio cadastro
 
   const [form, setForm] = useState({
     cpf: "",
@@ -263,7 +264,7 @@ function CadastroInspetor() {
         <div style={{backgroundColor:"#1E3A8A",padding:"8px 16px",display:"flex",alignItems:"center",gap:"12px"}}>
           <Image src="/logo.png" alt="AIME" width={80} height={32} priority style={{filter:"brightness(0) invert(1)"}} />
           <span style={{color:"white",fontWeight:"bold",fontSize:"16px",flex:1,textAlign:"center"}}>
-            {ehGestor ? 'Cadastro do Gestor' : ehConsulta ? 'Meu Cadastro' : 'Cadastro do Inspetor'}
+            {ehGestor ? 'Cadastro do Gestor' : params.get('visualizar') === '1' ? 'Cadastro Inspetor' : ehConsulta ? 'Meu Cadastro' : 'Cadastro do Inspetor'}
           </span>
         </div>
         <div style={{height:"2px",backgroundColor:"#1E3A8A"}} />
@@ -305,13 +306,13 @@ function CadastroInspetor() {
                     </div>
                     <div style={{gridColumn:"span 2"}}>
                       <label style={labelStyle}>Nome Completo *</label>
-                      <input name="nome" value={form.nome} onChange={handleChange} placeholder="Nome completo" required style={inputStyle} />
+                      <input name="nome" value={form.nome} onChange={ehConsulta ? undefined : handleChange} placeholder="Nome completo" required readOnly={ehConsulta} style={{...inputStyle, ...(ehConsulta ? {backgroundColor:"#F3F4F6",color:"#6B7280"} : {})}} />
                     </div>
                   </div>
                   <div style={{...grid3, marginTop:"6px"}}>
                     <div>
                       <label style={labelStyle}>Titulo Profissional *</label>
-                      <select name="titulo" value={form.titulo} onChange={handleChange} required style={inputStyle}>
+                      <select name="titulo" value={form.titulo} onChange={ehConsulta ? undefined : handleChange} required disabled={ehConsulta} style={{...inputStyle, ...(ehConsulta ? {backgroundColor:"#F3F4F6",color:"#6B7280"} : {})}}>
                         <option value="">Selecione...</option>
                         <option value="Arquiteto">Arquiteto</option>
                         <option value="Eng Civil">Eng Civil</option>
@@ -323,7 +324,7 @@ function CadastroInspetor() {
                     </div>
                     <div>
                       <label style={labelStyle}>Inscricao CREA/CAU *</label>
-                      <input name="inscricao_crea_cau" value={form.inscricao_crea_cau} onChange={handleChange} placeholder="RS00000/D" required style={inputStyle} />
+                      <input name="inscricao_crea_cau" value={form.inscricao_crea_cau} onChange={ehConsulta ? undefined : handleChange} placeholder="RS00000/D" required readOnly={ehConsulta} style={{...inputStyle, ...(ehConsulta ? {backgroundColor:"#F3F4F6",color:"#6B7280"} : {})}} />
                     </div>
                     <div>
                       <label style={labelStyle}>Especializacao</label>
