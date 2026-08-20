@@ -523,13 +523,16 @@ export default function GestorPage() {
                   </div>
                 )}
 
-                <div style={S.secaoTitulo}>Dados do Estabelecimento</div>
+                <div style={{ ...S.secaoTitulo, display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+                  <span>Dados do Estabelecimento</span>
+                  <span style={{ fontSize:'10px', color:'#6B7280', fontWeight:400 }}>somente consulta</span>
+                </div>
                 <div style={S.grid2}>
                   {/* Linha 1: Razão Social + CNPJ/CPF */}
                 <div style={S.grid2}>
                   <div>
                     <label style={S.label}>Razão Social / Nome</label>
-                    <input style={S.input} value={editEstab?.razao_social_nome ?? ''}
+                    <input style={{ ...S.input, backgroundColor:'#F9FAFB' }} readOnly value={editEstab?.razao_social_nome ?? ''}
                       onChange={e => setEditEstab((prev: any) => ({ ...prev, razao_social_nome: e.target.value }))} />
                   </div>
                   <div>
@@ -548,34 +551,30 @@ export default function GestorPage() {
                 {/* Linha 2: Uso */}
                 <div style={{ marginTop:'8px' }}>
                   <label style={S.label}>Uso / Atividade</label>
-                  <input style={S.input} value={editEstab?.uso_estabelecimento ?? ''}
+                  <input style={{ ...S.input, backgroundColor:'#F9FAFB' }} readOnly value={editEstab?.uso_estabelecimento ?? ''}
                     onChange={e => setEditEstab((prev: any) => ({ ...prev, uso_estabelecimento: e.target.value }))} />
                 </div>
                 {/* Linha 3: CEP */}
                 <div style={{ marginTop:'8px' }}>
                   <label style={S.label}>CEP</label>
-                  <input style={S.input} value={editEstab?.cep_estabelecimento ?? ''}
+                  <input style={{ ...S.input, backgroundColor:'#F9FAFB' }} readOnly value={editEstab?.cep_estabelecimento ?? ''}
                     onChange={e => setEditEstab((prev: any) => ({ ...prev, cep_estabelecimento: e.target.value }))} />
                 </div>
                 {/* Linha 4: Número + Complemento */}
                 <div style={{ ...S.grid2, marginTop:'8px' }}>
                   <div>
                     <label style={S.label}>Número</label>
-                    <input style={S.input} value={editEstab?.numero_imovel ?? ''}
+                    <input style={{ ...S.input, backgroundColor:'#F9FAFB' }} readOnly value={editEstab?.numero_imovel ?? ''}
                       onChange={e => setEditEstab((prev: any) => ({ ...prev, numero_imovel: e.target.value }))} />
                   </div>
                   <div>
                     <label style={S.label}>Complemento</label>
-                    <input style={S.input} value={editEstab?.complemento ?? ''}
+                    <input style={{ ...S.input, backgroundColor:'#F9FAFB' }} readOnly value={editEstab?.complemento ?? ''}
                       onChange={e => setEditEstab((prev: any) => ({ ...prev, complemento: e.target.value }))} />
                   </div>
                 </div>
                 </div>
-                <div style={{ marginTop:'16px' }}>
-                  <button onClick={salvarEstab} disabled={salvandoEstab} style={S.btnPri}>
-                    {salvandoEstab ? 'Salvando...' : '💾 Salvar Alterações'}
-                  </button>
-                </div>
+
               </>
             )}
           </div>

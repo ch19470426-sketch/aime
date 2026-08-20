@@ -23,12 +23,12 @@ if (typeof window !== 'undefined') {
 }
 
 const permissoes: Record<string, number[]> = {
-  "Arquiteto":          [11,12,13,19,21,22,23,29,31,32,33,40,41,42,43,51,52,53,54,55,61,62,99],
-  "Eng Civil":          [11,12,13,14,21,22,23,24,31,32,33,34,40,41,42,43,44,51,52,53,54,61,62,99],
-  "Eng Elétrico":       [16,26,36,40,46,56,61,62,99],
-  "Eng Mecânico":       [15,17,18,25,27,28,35,37,38,40,45,47,48,55,57,58,61,62,99],
-  "Técnico Edificação": [13,23,33,40,43,61,62,99],
-  "Corretor Imóvel":    [13,23,33,40,43,61,62,99],
+  "Arquiteto":          [11,12,13,19,21,22,23,29,31,32,33,40,41,42,43,51,52,53,54,55,61,62,63,99],
+  "Eng Civil":          [11,12,13,14,21,22,23,24,31,32,33,34,40,41,42,43,44,51,52,53,54,61,62,63,99],
+  "Eng Elétrico":       [16,26,36,40,46,56,61,62,63,99],
+  "Eng Mecânico":       [15,17,18,25,27,28,35,37,38,40,45,47,48,55,57,58,61,62,63,99],
+  "Técnico Edificação": [13,23,33,40,43,61,62,63,99],
+  "Corretor Imóvel":    [13,23,33,40,43,61,62,63,99],
 }
 
 const menuGrupos = [
@@ -87,7 +87,8 @@ const menuGrupos = [
   ]},
   { grupo: "Consultas e Relatórios", itens: [
     { codigo: 61, label: "Baixar Documentos" },
-    { codigo: 62, label: "Situação do Contrato" },
+    { codigo: 62, label: "Meu Cadastro" },
+    { codigo: 63, label: "Meus Estabelecimentos" },
     { codigo: 99, label: "Sair do Aplicativo" },
   ]},
 ]
@@ -379,6 +380,16 @@ export default function Dashboard() {
     if (!permitidos.includes(codigo)) return
     if (codigo === 99) {
       createClient().auth.signOut().then(() => { window.location.href = "/" })
+      return
+    }
+    // 62: Meu Cadastro — vai direto para a tela de edição do inspetor
+    if (codigo === 62) {
+      window.location.href = `/inspetor?cpf=${cpfInspetor}`
+      return
+    }
+    // 63: Meus Estabelecimentos — lista estabelecimentos do inspetor
+    if (codigo === 63) {
+      window.location.href = `/estabelecimento?cpf_inspetor=${cpfInspetor}`
       return
     }
     setTipoServico(codigo)
