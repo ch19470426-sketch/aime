@@ -85,7 +85,7 @@ export default function GestorPage() {
   const [busca, setBusca] = useState('')
   const [salvando, setSalvando] = useState(false)
   const [msg, setMsg] = useState('')
-  const [aba, setAba] = useState<'dados'|'plano'>('dados')
+  const [aba, setAba] = useState<'dados'|'plano'|'info'>('dados')
   const [abaGestor, setAbaGestor] = useState<'inspetores'|'estabelecimentos'|'visao-geral'>('inspetores')
   const [estabelecimentos, setEstabelecimentos] = useState<Estabelecimento[]>([])
   const [estabSel, setEstabSel] = useState<Estabelecimento | null>(null)
@@ -333,12 +333,12 @@ export default function GestorPage() {
 
                 {/* Abas */}
                 <div style={{ display:'flex', gap:'4px', marginBottom:'16px', borderBottom:'2px solid #E2E8F0' }}>
-                  {(['dados','plano'] as const).map(a => (
+                  {(['dados','plano','info'] as const).map(a => (
                     <button key={a} onClick={() => setAba(a)}
                       style={{ padding:'6px 16px', border:'none', cursor:'pointer', fontSize:'11px', fontWeight:700,
                         borderBottom: aba===a ? '2px solid #1E3A8A' : '2px solid transparent',
                         color: aba===a ? '#1E3A8A' : '#6B7280', backgroundColor:'transparent' }}>
-                      {a === 'dados' ? '📋 Dados' : '📊 Plano'}
+                      {a === 'dados' ? '📋 Dados' : a === 'plano' ? '📊 Plano' : 'ℹ️ Informações'}
                     </button>
                   ))}
                 </div>
@@ -468,6 +468,46 @@ export default function GestorPage() {
                 )}
               </>
             )}
+
+                {/* Aba Informações */}
+                {aba === 'info' && (
+                  <div style={S.secao}>
+                    <div style={S.secaoTitulo}>Dados do Contrato Vigente</div>
+                    {contratos.length === 0 ? (
+                      <p style={{ fontSize:'12px', color:'#9CA3AF' }}>Nenhum contrato encontrado.</p>
+                    ) : contratos.map((ct, i) => {
+                      const vencido = new Date(ct.data_fim_contrato) < new Date()
+                      return (
+                        <div key={i} style={{ border:`1.5px solid ${vencido?'#E5E7EB':'#1E3A8A'}`, borderRadius:'8px', padding:'14px', marginBottom:'10px', opacity:vencido?0.6:1 }}>
+                          <div style={{ display:'flex', justifyContent:'space-between', marginBottom:'10px' }}>
+                            <span style={{ padding:'2px 10px', borderRadius:'9999px', fontSize:'10px', fontWeight:700,
+                              backgroundColor: vencido?'#6B7280':'#1E3A8A', color:'white' }}>
+                              {ct.tipo_assinatura}
+                            </span>
+                            <span style={{ fontSize:'10px', fontWeight:700, color:vencido?'#DC2626':'#059669' }}>
+                              {vencido?'⚠ Vencido':`✓ Vigente até ${new Date(ct.data_fim_contrato).toLocaleDateString('pt-BR')}`}
+                            </span>
+                          </div>
+                          <table style={{ width:'100%', fontSize:'11px', borderCollapse:'collapse' as const }}>
+                            {[
+                              ['Data Início Contrato', new Date(ct.data_inicio_contrato).toLocaleDateString('pt-BR')],
+                              ['Qtde Contratada Plano (CR)', ct.qde_contratada_plano],
+                              ['Saldo Plano (CR)', ct.saldo_quantidade_plano],
+                              ['Qtde Contratada Avulso (CR)', ct.qde_contratada_avulso],
+                              ['Saldo Avulso (CR)', ct.saldo_quantidade_avulso],
+                              ['Saldo Total (CR)', ct.saldo_quantidade_plano + ct.saldo_quantidade_avulso],
+                            ].map(([label, valor]) => (
+                              <tr key={label as string} style={{ borderBottom:'1px solid #F1F5F9' }}>
+                                <td style={{ padding:'5px 4px', color:'#6B7280', fontWeight:600 }}>{label}</td>
+                                <td style={{ padding:'5px 4px', fontWeight:700, color:'#1E3A8A', textAlign:'right' as const }}>{valor}</td>
+                              </tr>
+                            ))}
+                          </table>
+                        </div>
+                      )
+                    })}
+                  </div>
+                )}
           </div>
           </>) : abaGestor === 'estabelecimentos' ? (<>
           {/* ── Lista de Estabelecimentos ── */}

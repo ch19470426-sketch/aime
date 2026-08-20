@@ -290,7 +290,7 @@ function CadastroInspetor() {
             </div>
           ) : (
             <>
-            {(abaInspetor === 'dados' || ehGestor) && <form onSubmit={handleSubmit}>
+            {(abaInspetor === 'dados' || ehGestor) && <form onSubmit={ehVisualizar ? (e=>e.preventDefault()) : handleSubmit}>
 
               <div style={blocoStyle}>
                 <div style={blocoHeaderStyle}>
@@ -306,13 +306,13 @@ function CadastroInspetor() {
                     </div>
                     <div style={{gridColumn:"span 2"}}>
                       <label style={labelStyle}>Nome Completo *</label>
-                      <input name="nome" value={form.nome} onChange={ehConsulta ? undefined : handleChange} placeholder="Nome completo" required readOnly={ehConsulta} style={{...inputStyle, ...(ehConsulta ? {backgroundColor:"#F3F4F6",color:"#6B7280"} : {})}} />
+                      <input name="nome" value={form.nome} onChange={ehConsulta ? undefined : handleChange} placeholder="Nome completo" required readOnly={ehConsulta||ehVisualizar} style={{...inputStyle, ...((ehConsulta||ehVisualizar) ? {backgroundColor:"#F3F4F6",color:"#6B7280"} : {})}} />
                     </div>
                   </div>
                   <div style={{...grid3, marginTop:"6px"}}>
                     <div>
                       <label style={labelStyle}>Titulo Profissional *</label>
-                      <select name="titulo" value={form.titulo} onChange={ehConsulta ? undefined : handleChange} required disabled={ehConsulta} style={{...inputStyle, ...(ehConsulta ? {backgroundColor:"#F3F4F6",color:"#6B7280"} : {})}}>
+                      <select name="titulo" value={form.titulo} onChange={ehConsulta ? undefined : handleChange} required disabled={ehConsulta||ehVisualizar} style={{...inputStyle, ...((ehConsulta||ehVisualizar) ? {backgroundColor:"#F3F4F6",color:"#6B7280"} : {})}}>
                         <option value="">Selecione...</option>
                         <option value="Arquiteto">Arquiteto</option>
                         <option value="Eng Civil">Eng Civil</option>
@@ -324,7 +324,7 @@ function CadastroInspetor() {
                     </div>
                     <div>
                       <label style={labelStyle}>Inscricao CREA/CAU *</label>
-                      <input name="inscricao_crea_cau" value={form.inscricao_crea_cau} onChange={ehConsulta ? undefined : handleChange} placeholder="RS00000/D" required readOnly={ehConsulta} style={{...inputStyle, ...(ehConsulta ? {backgroundColor:"#F3F4F6",color:"#6B7280"} : {})}} />
+                      <input name="inscricao_crea_cau" value={form.inscricao_crea_cau} onChange={ehConsulta ? undefined : handleChange} placeholder="RS00000/D" required readOnly={ehConsulta||ehVisualizar} style={{...inputStyle, ...((ehConsulta||ehVisualizar) ? {backgroundColor:"#F3F4F6",color:"#6B7280"} : {})}} />
                     </div>
                     <div>
                       <label style={labelStyle}>Especializacao</label>
@@ -343,7 +343,7 @@ function CadastroInspetor() {
                   <div style={grid3}>
                     <div>
                       <label style={labelStyle}>CEP *</label>
-                      <input name="cep" value={form.cep} onChange={handleChange} placeholder="00000-000" required style={inputStyle} />
+                      <input name="cep" value={form.cep} onChange={ehVisualizar ? undefined : handleChange} placeholder="00000-000" readOnly={ehVisualizar} style={{...inputStyle,...(ehVisualizar?{backgroundColor:"#F3F4F6",color:"#6B7280"}:{})}} />
                       {buscandoCep && <span style={{fontSize:"11px",color:"#6B7280"}}>Buscando...</span>}
                     </div>
                     <div style={{gridColumn:"span 2"}}>
@@ -354,7 +354,7 @@ function CadastroInspetor() {
                   <div style={{...grid3, marginTop:"6px"}}>
                     <div>
                       <label style={labelStyle}>Numero *</label>
-                      <input name="nr_imovel" value={form.nr_imovel} onChange={handleChange} placeholder="123" required style={inputStyle} />
+                      <input name="nr_imovel" value={form.nr_imovel} onChange={ehVisualizar ? undefined : handleChange} placeholder="123" readOnly={ehVisualizar} style={{...inputStyle,...(ehVisualizar?{backgroundColor:"#F3F4F6",color:"#6B7280"}:{})}} />
                     </div>
                     <div>
                       <label style={labelStyle}>Complemento</label>
@@ -362,13 +362,13 @@ function CadastroInspetor() {
                     </div>
                     <div>
                       <label style={labelStyle}>Bairro *</label>
-                      <input name="bairro" value={form.bairro} onChange={handleChange} placeholder="Bairro" required style={inputStyle} />
+                      <input name="bairro" value={form.bairro} onChange={ehVisualizar ? undefined : handleChange} placeholder="Bairro" readOnly={ehVisualizar} style={{...inputStyle,...(ehVisualizar?{backgroundColor:"#F3F4F6",color:"#6B7280"}:{})}} />
                     </div>
                   </div>
                   <div style={{...grid3, marginTop:"6px"}}>
                     <div style={{gridColumn:"span 2"}}>
                       <label style={labelStyle}>Cidade *</label>
-                      <input name="cidade" value={form.cidade} onChange={handleChange} placeholder="Cidade" required style={inputStyle} />
+                      <input name="cidade" value={form.cidade} onChange={ehVisualizar ? undefined : handleChange} placeholder="Cidade" readOnly={ehVisualizar} style={{...inputStyle,...(ehVisualizar?{backgroundColor:"#F3F4F6",color:"#6B7280"}:{})}} />
                     </div>
                     <div>
                       <label style={labelStyle}>UF *</label>
@@ -382,7 +382,7 @@ function CadastroInspetor() {
                     </div>
                     <div>
                       <label style={labelStyle}>E-mail *</label>
-                      <input name="email" type="email" value={form.email} onChange={handleChange} placeholder="seu@email.com" required style={inputStyle} />
+                      <input name="email" type="email" value={form.email} onChange={ehVisualizar ? undefined : handleChange} placeholder="seu@email.com" readOnly={ehVisualizar} style={{...inputStyle,...(ehVisualizar?{backgroundColor:"#F3F4F6",color:"#6B7280"}:{})}} />
                     </div>
                   </div>
                 </div>
@@ -413,7 +413,7 @@ function CadastroInspetor() {
                   style={{padding:"10px 24px",borderRadius:"50px",border:"1px solid #1E3A8A",backgroundColor:"white",color:"#1E3A8A",fontWeight:"600",fontSize:"13px",cursor:"pointer"}}>
                   Cancelar
                 </button>
-                {!ehConsulta && <button type="submit" disabled={salvando}
+                {!ehConsulta && !ehVisualizar && <button type="submit" disabled={salvando}
                   style={{padding:"10px 24px",borderRadius:"50px",border:"none",backgroundColor:"#1E3A8A",color:"white",fontWeight:"600",fontSize:"13px",cursor:"pointer",opacity:salvando?0.7:1}}>
                   {salvando ? "Salvando..." : "Salvar Cadastro"}
                 </button>}
