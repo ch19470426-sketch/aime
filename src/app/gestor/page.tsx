@@ -373,9 +373,9 @@ export default function GestorPage() {
                       </div>
                     </div>
                     <div style={{ marginTop:'12px', display:'flex', gap:'8px' }}>
-                      <button onClick={() => window.location.href=`/inspetor?cpf=${selecionado.cpf_inspetor}&gestor=1`}
+                      <button onClick={() => window.location.href=`/inspetor?cpf=${selecionado.cpf_inspetor}`}
                         style={S.btnPri}>
-                        ✏️ Editar Cadastro
+                        🔍 Visualizar Cadastro
                       </button>
                     </div>
                   </div>
