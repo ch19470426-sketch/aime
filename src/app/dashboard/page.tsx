@@ -389,7 +389,7 @@ export default function Dashboard() {
     }
     // 63: Meus Estabelecimentos — lista estabelecimentos do inspetor
     if (codigo === 63) {
-      window.location.href = `/estabelecimento?cpf_inspetor=${cpfInspetor}`
+      window.location.href = `/meus-estabelecimentos?cpf_inspetor=${cpfInspetor}`
       return
     }
     setTipoServico(codigo)
