@@ -291,6 +291,7 @@ function CadastroInspetor() {
           ) : (
             <>
             {(abaInspetor === 'dados' || ehGestor) && <form onSubmit={ehVisualizar ? (e=>e.preventDefault()) : handleSubmit}>
+              
 
               <div style={blocoStyle}>
                 <div style={blocoHeaderStyle}>
@@ -328,7 +329,7 @@ function CadastroInspetor() {
                     </div>
                     <div>
                       <label style={labelStyle}>Especializacao</label>
-                      <input name="especializacao" value={form.especializacao} onChange={handleChange} placeholder="Ex: Eng. Diagnostica" style={inputStyle} />
+                      <input name="especializacao" value={form.especializacao} onChange={ehVisualizar ? undefined : handleChange} readOnly={ehVisualizar} style={{...inputStyle,...(ehVisualizar?{backgroundColor:"#F3F4F6",color:"#6B7280"}:{})}} />
                     </div>
                   </div>
                 </div>
@@ -348,7 +349,7 @@ function CadastroInspetor() {
                     </div>
                     <div style={{gridColumn:"span 2"}}>
                       <label style={labelStyle}>Logradouro *</label>
-                      <input name="logradouro" value={form.logradouro} onChange={handleChange} placeholder="Rua, Avenida..." required style={inputStyle} />
+                      <input name="logradouro" value={form.logradouro} onChange={ehVisualizar ? undefined : handleChange} readOnly={ehVisualizar} style={{...inputStyle,...(ehVisualizar?{backgroundColor:"#F3F4F6",color:"#6B7280"}:{})}} required />
                     </div>
                   </div>
                   <div style={{...grid3, marginTop:"6px"}}>
@@ -358,7 +359,7 @@ function CadastroInspetor() {
                     </div>
                     <div>
                       <label style={labelStyle}>Complemento</label>
-                      <input name="complemento" value={form.complemento} onChange={handleChange} placeholder="Ap, Sala..." style={inputStyle} />
+                      <input name="complemento" value={form.complemento} onChange={ehVisualizar ? undefined : handleChange} readOnly={ehVisualizar} style={{...inputStyle,...(ehVisualizar?{backgroundColor:"#F3F4F6",color:"#6B7280"}:{})}} />
                     </div>
                     <div>
                       <label style={labelStyle}>Bairro *</label>
@@ -372,13 +373,13 @@ function CadastroInspetor() {
                     </div>
                     <div>
                       <label style={labelStyle}>UF *</label>
-                      <input name="uf" value={form.uf} onChange={handleChange} placeholder="ES" maxLength={2} required style={inputStyle} />
+                      <input name="uf" value={form.uf} onChange={ehVisualizar ? undefined : handleChange} readOnly={ehVisualizar} maxLength={2} style={{...inputStyle,...(ehVisualizar?{backgroundColor:"#F3F4F6",color:"#6B7280"}:{})}} required />
                     </div>
                   </div>
                   <div style={{...grid2, marginTop:"6px"}}>
                     <div>
                       <label style={labelStyle}>WhatsApp *</label>
-                      <input name="whatsapp" value={form.whatsapp} onChange={handleChange} placeholder="(00) 00000-0000" required style={inputStyle} />
+                      <input name="whatsapp" value={form.whatsapp} onChange={ehVisualizar ? undefined : handleChange} readOnly={ehVisualizar} style={{...inputStyle,...(ehVisualizar?{backgroundColor:"#F3F4F6",color:"#6B7280"}:{})}} required />
                     </div>
                     <div>
                       <label style={labelStyle}>E-mail *</label>
@@ -396,11 +397,11 @@ function CadastroInspetor() {
                 <div style={blocoBodyStyle}>
                   <div style={{marginBottom:"12px"}}>
                     <label style={labelStyle}>Cabecalho dos Documentos</label>
-                    <input name="cabecalho" value={form.cabecalho} onChange={handleChange} placeholder="Ex: Eng. Civil Joao Silva - CREA RS00000/D" style={inputStyle} />
+                    <input name="cabecalho" value={form.cabecalho} onChange={ehVisualizar ? undefined : handleChange} readOnly={ehVisualizar} placeholder="Ex: Eng. Civil Joao Silva - CREA RS00000/D" style={inputStyle} />
                   </div>
                   <div>
                     <label style={labelStyle}>Rodape dos Documentos</label>
-                    <input name="rodape" value={form.rodape} onChange={handleChange} placeholder="Ex: Rua das Flores, 123 - Porto Alegre/RS - (51) 99999-9999" style={inputStyle} />
+                    <input name="rodape" value={form.rodape} onChange={ehVisualizar ? undefined : handleChange} readOnly={ehVisualizar} placeholder="Ex: Rua das Flores, 123 - Porto Alegre/RS - (51) 99999-9999" style={inputStyle} />
                   </div>
                 </div>
               </div>

@@ -112,15 +112,16 @@ export default function GestorPage() {
       const d = await res.json()
       if (!d[0]?.is_gestor) { window.location.href = '/dashboard'; return }
       setAutorizado(true)
-      carregarInspetores(session.access_token)
+      carregarInspetores()
     })
   }, [])
 
-  async function carregarInspetores(token: string) {
-    const res = await fetch(`${SUPA_URL}/rest/v1/inspetor?select=cpf_inspetor,nome_inspetor,titulo_profissional,inspetor_email,inspetor_whatsapp,is_gestor&order=nome_inspetor`, {
-      headers: { apikey: SUPA_KEY, Authorization: `Bearer ${token}` }
-    })
-    setInspetores(await res.json())
+  async function carregarInspetores(_token?: string) {
+    try {
+      const res = await fetch('/api/gestor/listar-inspetores')
+      const d = await res.json()
+      setInspetores(Array.isArray(d) ? d : [])
+    } catch { setInspetores([]) }
   }
 
   async function selecionarInspetor(insp: Inspetor) {
@@ -261,7 +262,7 @@ export default function GestorPage() {
               style={{ padding:'8px 20px', border:'none', cursor:'pointer', fontSize:'12px', fontWeight:700,
                 borderBottom: abaGestor===ab ? '3px solid #1E3A8A' : '3px solid transparent',
                 color: abaGestor===ab ? '#1E3A8A' : '#6B7280', backgroundColor:'white' }}>
-              {ab === 'inspetores' ? '👤 Inspetores' : ab === 'estabelecimentos' ? '🏢 Estabelecimentos' : '📊 Visão Geral'}
+              {ab === 'inspetores' ? '👤 Inspetores' : ab === 'estabelecimentos' ? '🏢 Estabelecimentos' : '📊 Painel Geral'}
             </button>
           ))}
         </div>
