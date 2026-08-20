@@ -158,7 +158,6 @@ export default function GestorPage() {
   }
 
   async function carregarEstabelecimentos() {
-    const { data: { session } } = await supabase.auth.getSession()
     try {
       const res = await fetch('/api/gestor/listar-estabelecimentos')
       const data = await res.json()
@@ -445,7 +444,7 @@ export default function GestorPage() {
                 style={{ ...S.input, marginBottom:'4px' }} />
               <button onClick={carregarEstabelecimentos}
                 style={{ ...S.btnPri, width:'100%', borderRadius:'6px', marginBottom:'4px' }}>
-                🔄 Atualizar lista
+                🔍 Listar Estabelecimentos
               </button>
             </div>
             <div style={{ overflowY:'auto', maxHeight:'560px' }}>
