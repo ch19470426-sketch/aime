@@ -504,26 +504,48 @@ export default function GestorPage() {
 
                 <div style={S.secaoTitulo}>Dados do Estabelecimento</div>
                 <div style={S.grid2}>
-                  {[
-                    { label:'Razão Social / Nome', field:'razao_social_nome' },
-                    { label:'Uso / Atividade',     field:'uso_estabelecimento' },
-                    { label:'CEP',                 field:'cep_estabelecimento' },
-                    { label:'Número',              field:'numero_imovel' },
-                    { label:'Complemento',         field:'complemento' },
-                  ].map(({ label, field }) => (
-                    <div key={field}>
-                      <label style={S.label}>{label}</label>
-                      <input style={S.input} value={(editEstab as any)?.[field] ?? ''}
-                        onChange={e => setEditEstab((prev: any) => ({ ...prev, [field]: e.target.value }))} />
-                    </div>
-                  ))}
+                  {/* Linha 1: Razão Social + CNPJ/CPF */}
+                <div style={S.grid2}>
+                  <div>
+                    <label style={S.label}>Razão Social / Nome</label>
+                    <input style={S.input} value={editEstab?.razao_social_nome ?? ''}
+                      onChange={e => setEditEstab((prev: any) => ({ ...prev, razao_social_nome: e.target.value }))} />
+                  </div>
+                  <div>
+                    <label style={S.label}>CNPJ / CPF</label>
+                    <input style={S.input} value={editEstab?.cnpjoucpf ?? ''} readOnly
+                      style={{ ...S.input, backgroundColor: '#F9FAFB', color: '#6B7280' }} />
+                  </div>
                 </div>
-                <div style={{ marginTop:'16px', display:'flex', gap:'8px' }}>
+                {/* Linha 2: Uso */}
+                <div style={{ marginTop:'8px' }}>
+                  <label style={S.label}>Uso / Atividade</label>
+                  <input style={S.input} value={editEstab?.uso_estabelecimento ?? ''}
+                    onChange={e => setEditEstab((prev: any) => ({ ...prev, uso_estabelecimento: e.target.value }))} />
+                </div>
+                {/* Linha 3: CEP */}
+                <div style={{ marginTop:'8px' }}>
+                  <label style={S.label}>CEP</label>
+                  <input style={S.input} value={editEstab?.cep_estabelecimento ?? ''}
+                    onChange={e => setEditEstab((prev: any) => ({ ...prev, cep_estabelecimento: e.target.value }))} />
+                </div>
+                {/* Linha 4: Número + Complemento */}
+                <div style={{ ...S.grid2, marginTop:'8px' }}>
+                  <div>
+                    <label style={S.label}>Número</label>
+                    <input style={S.input} value={editEstab?.numero_imovel ?? ''}
+                      onChange={e => setEditEstab((prev: any) => ({ ...prev, numero_imovel: e.target.value }))} />
+                  </div>
+                  <div>
+                    <label style={S.label}>Complemento</label>
+                    <input style={S.input} value={editEstab?.complemento ?? ''}
+                      onChange={e => setEditEstab((prev: any) => ({ ...prev, complemento: e.target.value }))} />
+                  </div>
+                </div>
+                </div>
+                <div style={{ marginTop:'16px' }}>
                   <button onClick={salvarEstab} disabled={salvandoEstab} style={S.btnPri}>
                     {salvandoEstab ? 'Salvando...' : '💾 Salvar Alterações'}
-                  </button>
-                  <button onClick={() => estabSel && setEditEstab({...estabSel})} style={S.btnSec}>
-                    ↩ Restaurar
                   </button>
                 </div>
               </>
