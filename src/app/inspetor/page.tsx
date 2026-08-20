@@ -221,14 +221,20 @@ function CadastroInspetor() {
     finally { setCarregandoPlano(false) }
   }
 
-  async function solicitarTroca() {
+  async function trocarPlano() {
     setSolicitandoTroca(true); setMsgPlano('')
     try {
-      const res = await fetch('/api/solicitar-troca-plano', {
+      const res = await fetch('/api/trocar-plano', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ cpf: form.cpf, nome: form.nome, planoDesejado })
+        body: JSON.stringify({ cpf: form.cpf, planoDesejado })
       })
-      setMsgPlano(res.ok ? 'Solicitação enviada ao gestor com sucesso!' : 'Erro ao enviar. Tente novamente.')
+      const d = await res.json()
+      if (res.ok) {
+        setMsgPlano(`Plano alterado para ${planoDesejado} com sucesso!`)
+        await carregarContratos()
+      } else {
+        setMsgPlano(`Erro: ${d.erro ?? 'Não foi possível trocar o plano.'}`)
+      }
     } catch { setMsgPlano('Erro de conexão.') }
     finally { setSolicitandoTroca(false) }
   }
@@ -450,9 +456,9 @@ function CadastroInspetor() {
                       </div>
                     </div>
                     <div>
-                      <div style={{...blocoHeaderStyle,borderRadius:'6px 6px 0 0'}}><span style={blocoTituloStyle}>Solicitar Troca de Plano</span></div>
+                      <div style={{...blocoHeaderStyle,borderRadius:'6px 6px 0 0'}}><span style={blocoTituloStyle}>Trocar Plano</span></div>
                       <div style={{border:'1px solid #E2E8F0',borderTop:'none',borderRadius:'0 0 6px 6px',padding:'12px'}}>
-                        <p style={{fontSize:'11px',color:'#6B7280',marginBottom:'12px',lineHeight:1.5}}>A troca é realizada pelo gestor. Selecione o plano e envie a solicitação por e-mail.</p>
+                        <p style={{fontSize:'11px',color:'#6B7280',marginBottom:'12px',lineHeight:1.5}}>Selecione o novo plano e confirme a troca. O novo contrato inicia hoje.</p>
                         <div style={{display:'flex',gap:'8px',alignItems:'flex-end'}}>
                           <div style={{flex:1}}>
                             <label style={labelStyle}>Plano desejado</label>
@@ -460,9 +466,9 @@ function CadastroInspetor() {
                               {['PLANO CORTESIA','PLANO SERVIÇO','PLANO MENSAL','PLANO ESCRITÓRIO'].map(pl=>(<option key={pl} value={pl}>{pl}</option>))}
                             </select>
                           </div>
-                          <button onClick={solicitarTroca} disabled={solicitandoTroca}
+                          <button onClick={trocarPlano} disabled={solicitandoTroca}
                             style={{backgroundColor:'#1E3A8A',color:'white',border:'none',borderRadius:'9999px',padding:'8px 20px',fontSize:'12px',fontWeight:700,cursor:'pointer',opacity:solicitandoTroca?0.7:1,whiteSpace:'nowrap' as const}}>
-                            {solicitandoTroca?'Enviando...':'Solicitar Troca'}
+                            {solicitandoTroca?'Aguarde...':'Trocar Plano'}
                           </button>
                         </div>
                         {msgPlano&&(<div style={{marginTop:'10px',padding:'8px 12px',borderRadius:'6px',fontSize:'12px',backgroundColor:msgPlano.startsWith('Erro')?'#FEE2E2':'#D1FAE5',color:msgPlano.startsWith('Erro')?'#DC2626':'#059669'}}>{msgPlano}</div>)}
