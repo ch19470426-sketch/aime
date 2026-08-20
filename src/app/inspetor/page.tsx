@@ -310,13 +310,13 @@ function CadastroInspetor() {
                     </div>
                     <div style={{gridColumn:"span 2"}}>
                       <label style={labelStyle}>Nome Completo *</label>
-                      <input name="nome" value={form.nome} onChange={ehConsulta ? undefined : handleChange} placeholder="Nome completo" required readOnly={ehConsulta||ehVisualizar} style={{...inputStyle, ...((ehConsulta||ehVisualizar) ? {backgroundColor:"#F3F4F6",color:"#6B7280"} : {})}} />
+                      <input name="nome" value={form.nome} onChange={ehVisualizar ? undefined : handleChange} placeholder="Nome completo" required readOnly={ehVisualizar} style={{...inputStyle,...(ehVisualizar?{backgroundColor:"#F3F4F6",color:"#6B7280"}:{})}} />
                     </div>
                   </div>
                   <div style={{...grid3, marginTop:"6px"}}>
                     <div>
                       <label style={labelStyle}>Titulo Profissional *</label>
-                      <select name="titulo" value={form.titulo} onChange={ehConsulta ? undefined : handleChange} required disabled={ehConsulta||ehVisualizar} style={{...inputStyle, ...((ehConsulta||ehVisualizar) ? {backgroundColor:"#F3F4F6",color:"#6B7280"} : {})}}>
+                      <select name="titulo" value={form.titulo} onChange={ehVisualizar ? undefined : handleChange} required disabled={ehVisualizar} style={{...inputStyle,...(ehVisualizar?{backgroundColor:"#F3F4F6",color:"#6B7280"}:{})}}>
                         <option value="">Selecione...</option>
                         <option value="Arquiteto">Arquiteto</option>
                         <option value="Eng Civil">Eng Civil</option>
@@ -328,7 +328,7 @@ function CadastroInspetor() {
                     </div>
                     <div>
                       <label style={labelStyle}>Inscricao CREA/CAU *</label>
-                      <input name="inscricao_crea_cau" value={form.inscricao_crea_cau} onChange={ehConsulta ? undefined : handleChange} placeholder="RS00000/D" required readOnly={ehConsulta||ehVisualizar} style={{...inputStyle, ...((ehConsulta||ehVisualizar) ? {backgroundColor:"#F3F4F6",color:"#6B7280"} : {})}} />
+                      <input name="inscricao_crea_cau" value={form.inscricao_crea_cau} onChange={ehVisualizar ? undefined : handleChange} placeholder="RS00000/D" required readOnly={ehVisualizar} style={{...inputStyle,...(ehVisualizar?{backgroundColor:"#F3F4F6",color:"#6B7280"}:{})}} />
                     </div>
                     <div>
                       <label style={labelStyle}>Especializacao</label>
@@ -417,7 +417,7 @@ function CadastroInspetor() {
                   style={{padding:"10px 24px",borderRadius:"50px",border:"1px solid #1E3A8A",backgroundColor:"white",color:"#1E3A8A",fontWeight:"600",fontSize:"13px",cursor:"pointer"}}>
                   Voltar
                 </button>
-                {!ehConsulta && !ehVisualizar && <button type="submit" disabled={salvando}
+                {!ehVisualizar && <button type="submit" disabled={salvando}
                   style={{padding:"10px 24px",borderRadius:"50px",border:"none",backgroundColor:"#1E3A8A",color:"white",fontWeight:"600",fontSize:"13px",cursor:"pointer",opacity:salvando?0.7:1}}>
                   {salvando ? "Salvando..." : "Salvar Cadastro"}
                 </button>}
