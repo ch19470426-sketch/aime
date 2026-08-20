@@ -491,8 +491,7 @@ export default function GestorPage() {
               </div>
             ) : (
               <>
-                <h2 style={{ margin:'0 0 4px', fontSize:'16px', color:'#1E3A8A', fontWeight:900 }}>{estabSel.razao_social_nome}</h2>
-                <p style={{ margin:'0 0 16px', fontSize:'11px', color:'#6B7280' }}>{estabSel.cnpjoucpf}</p>
+                <h2 style={{ margin:'0 0 16px', fontSize:'16px', color:'#1E3A8A', fontWeight:900 }}>{estabSel.razao_social_nome}</h2>
 
                 {msgEstab && (
                   <div style={{ padding:'8px 12px', borderRadius:'8px', marginBottom:'12px', fontSize:'12px',
@@ -513,8 +512,15 @@ export default function GestorPage() {
                   </div>
                   <div>
                     <label style={S.label}>CNPJ / CPF</label>
-                    <input style={S.input} value={editEstab?.cnpjoucpf ?? ''} readOnly
-                      style={{ ...S.input, backgroundColor: '#F9FAFB', color: '#6B7280' }} />
+                    <input
+                      style={{ ...S.input, backgroundColor: '#F9FAFB', color: '#6B7280' }}
+                      value={(() => {
+                        const v = editEstab?.cnpjoucpf?.replace(/\D/g,'') ?? ''
+                        if (v.length === 11) return v.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/,'$1.$2.$3-$4')
+                        if (v.length === 14) return v.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/,'$1.$2.$3/$4-$5')
+                        return v
+                      })()}
+                      readOnly />
                   </div>
                 </div>
                 {/* Linha 2: Uso */}
