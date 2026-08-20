@@ -85,7 +85,7 @@ export default function GestorPage() {
   const [busca, setBusca] = useState('')
   const [salvando, setSalvando] = useState(false)
   const [msg, setMsg] = useState('')
-  const [aba, setAba] = useState<'dados'|'plano'|'avulso'>('dados')
+  const [aba, setAba] = useState<'dados'|'plano'>('dados')
   const [abaGestor, setAbaGestor] = useState<'inspetores'|'estabelecimentos'|'visao-geral'>('inspetores')
   const [estabelecimentos, setEstabelecimentos] = useState<Estabelecimento[]>([])
   const [estabSel, setEstabSel] = useState<Estabelecimento | null>(null)
@@ -127,10 +127,11 @@ export default function GestorPage() {
     setSelecionado(insp)
     setAba('dados')
     setMsg('')
-    const res = await fetch(`${SUPA_URL}/rest/v1/contratos_inspetor?cpf_inspetor=eq.${insp.cpf_inspetor}&order=data_inicio_contrato.desc`, {
-      headers: { apikey: SUPA_KEY, Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}` }
-    })
-    setContratos(await res.json())
+    try {
+      const r = await fetch(`/api/gestor/contratos?cpf=${insp.cpf_inspetor}`)
+      const d = await r.json()
+      setContratos(Array.isArray(d) ? d : [])
+    } catch { setContratos([]) }
   }
 
   async function atribuirPlano() {
