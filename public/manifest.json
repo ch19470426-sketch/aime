@@ -2,7 +2,7 @@
   "name": "AIMÊ — Mapeamento Inteligente",
   "short_name": "AIMÊ",
   "description": "Mapeamento Inteligente de Edificações e Equipamentos",
-  "start_url": "/dashboard",
+  "start_url": "/",
   "display": "standalone",
   "background_color": "#E8EEF7",
   "theme_color": "#1E3A8A",

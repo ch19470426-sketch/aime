@@ -13,15 +13,21 @@ export default function LoginPage() {
   const [erro, setErro] = useState("")
   const [loading, setLoading] = useState(false)
   const [mostrarCapa, setMostrarCapa] = useState(true)
+  const supabase = createClient()
   const cpfRef = useRef<HTMLInputElement>(null)
 
   // O Edge preenche o campo CPF com o valor anterior mesmo com autoComplete="off".
   // Limpamos programaticamente após a montagem do componente.
   useEffect(() => {
+    // Limpar campos
     const t = setTimeout(() => {
       if (cpfRef.current) cpfRef.current.value = ""
       setCpf("")
     }, 100)
+    // Se já tem sessão ativa, ir direto para o dashboard
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) router.replace('/dashboard')
+    })
     return () => clearTimeout(t)
   }, [])
   const router = useRouter()
