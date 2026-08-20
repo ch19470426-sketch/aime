@@ -43,6 +43,12 @@ function CadastroInspetor() {
   const [salvando, setSalvando] = useState(false)
   const [carregando, setCarregando] = useState(true)
   const [buscandoCep, setBuscandoCep] = useState(false)
+  const [abaInspetor, setAbaInspetor] = useState<'dados'|'plano'>('dados')
+  const [contratos, setContratos] = useState<any[]>([])
+  const [carregandoPlano, setCarregandoPlano] = useState(false)
+  const [msgPlano, setMsgPlano] = useState('')
+  const [solicitandoTroca, setSolicitandoTroca] = useState(false)
+  const [planoDesejado, setPlanoDesejado] = useState('PLANO MENSAL')
 
   const formatarCPF = (valor: string) => {
     return valor
@@ -197,7 +203,35 @@ function CadastroInspetor() {
     }
   }
 
-  const labelStyle = { fontSize: "12px", fontWeight: "500", color: "#374151", marginBottom: "3px", display: "block" }
+  async function carregarContratos() {
+    setCarregandoPlano(true)
+    try {
+      const cli = createClient()
+      const { data: { session } } = await cli.auth.getSession()
+      const cpf = session?.user?.email?.split('@')[0] ?? ''
+      const res = await fetch(
+        `${SUPA_URL}/rest/v1/contratos_inspetor?cpf_inspetor=eq.${cpf}&order=data_inicio_contrato.desc`,
+        { headers: { apikey: SUPA_KEY, Authorization: `Bearer ${session?.access_token}` } }
+      )
+      const data = await res.json()
+      setContratos(Array.isArray(data) ? data : [])
+    } catch { setContratos([]) }
+    finally { setCarregandoPlano(false) }
+  }
+
+  async function solicitarTroca() {
+    setSolicitandoTroca(true); setMsgPlano('')
+    try {
+      const res = await fetch('/api/solicitar-troca-plano', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ cpf: form.cpf, nome: form.nome, planoDesejado })
+      })
+      setMsgPlano(res.ok ? 'Solicitação enviada ao gestor com sucesso!' : 'Erro ao enviar. Tente novamente.')
+    } catch { setMsgPlano('Erro de conexão.') }
+    finally { setSolicitandoTroca(false) }
+  }
+
+    const labelStyle = { fontSize: "12px", fontWeight: "500", color: "#374151", marginBottom: "3px", display: "block" }
   const inputStyle = { border: "1px solid #D1D5DB", borderRadius: "6px", padding: "5px 10px", fontSize: "12px", width: "100%", outline: "none", boxSizing: "border-box" as const }
   const blocoStyle = { backgroundColor: "white", borderRadius: "8px", overflow: "hidden", border: "1px solid #E2E8F0", marginBottom: "8px" }
   const blocoHeaderStyle = { backgroundColor: "#1E3A8A", padding: "4px 12px" }
@@ -226,13 +260,28 @@ function CadastroInspetor() {
         </div>
         <div style={{height:"2px",backgroundColor:"#1E3A8A"}} />
 
+        {params.get('gestor') !== '1' && (
+          <div style={{ display:'flex', borderBottom:'2px solid #1E3A8A', backgroundColor:'white' }}>
+            {(['dados','plano'] as const).map(ab => (
+              <button key={ab}
+                onClick={() => { setAbaInspetor(ab); if(ab==='plano') carregarContratos() }}
+                style={{ padding:'8px 20px', border:'none', cursor:'pointer', fontSize:'12px', fontWeight:700,
+                  borderBottom: abaInspetor===ab ? '3px solid #1E3A8A' : '3px solid transparent',
+                  color: abaInspetor===ab ? '#1E3A8A' : '#6B7280', backgroundColor:'transparent' }}>
+                {ab === 'dados' ? '📋 Meus Dados' : '💳 Meu Plano'}
+              </button>
+            ))}
+          </div>
+        )}
+
         <div style={{padding:"10px"}}>
           {sucesso ? (
             <div style={{textAlign:"center",padding:"32px",color:"#1E3A8A",fontSize:"16px",fontWeight:"bold"}}>
               Cadastro realizado com sucesso!
             </div>
           ) : (
-            <form onSubmit={handleSubmit}>
+            <>
+            {(abaInspetor === 'dados' || params.get('gestor') === '1') && <form onSubmit={handleSubmit}>
 
               <div style={blocoStyle}>
                 <div style={blocoHeaderStyle}>
@@ -360,7 +409,62 @@ function CadastroInspetor() {
                 </button>
               </div>
 
-            </form>
+            </form>}
+            {abaInspetor === 'plano' && params.get('gestor') !== '1' && (
+              <div style={{paddingTop:'8px'}}>
+                {carregandoPlano ? (
+                  <div style={{textAlign:'center',padding:'32px',color:'#6B7280',fontSize:'13px'}}>Carregando...</div>
+                ) : (
+                  <>
+                    <div style={{marginBottom:'12px'}}>
+                      <div style={{...blocoHeaderStyle,borderRadius:'6px 6px 0 0'}}><span style={blocoTituloStyle}>Contratos e Saldo de Créditos</span></div>
+                      <div style={{border:'1px solid #E2E8F0',borderTop:'none',borderRadius:'0 0 6px 6px',padding:'12px'}}>
+                        {contratos.length === 0 ? (
+                          <p style={{fontSize:'12px',color:'#9CA3AF'}}>Nenhum contrato encontrado.</p>
+                        ) : contratos.map((ct, i) => {
+                          const vencido = new Date(ct.data_fim_contrato) < new Date()
+                          const pct = ct.qde_contratada_plano > 0 ? Math.round((ct.saldo_quantidade_plano/ct.qde_contratada_plano)*100) : 0
+                          const COR: Record<string,string> = {'PLANO CORTESIA':'#6B7280','PLANO SERVIÇO':'#0284C7','PLANO MENSAL':'#059669','PLANO ESCRITÓRIO':'#7C3AED'}
+                          return (
+                            <div key={i} style={{border:`1.5px solid ${vencido?'#E5E7EB':'#1E3A8A'}`,borderRadius:'8px',padding:'12px',marginBottom:'8px',opacity:vencido?0.6:1}}>
+                              <div style={{display:'flex',justifyContent:'space-between',marginBottom:'8px'}}>
+                                <span style={{padding:'2px 10px',borderRadius:'9999px',fontSize:'10px',fontWeight:700,backgroundColor:COR[ct.tipo_assinatura]??'#6B7280',color:'white'}}>{ct.tipo_assinatura}</span>
+                                <span style={{fontSize:'10px',fontWeight:700,color:vencido?'#DC2626':'#059669'}}>{vencido?'⚠ Vencido':`✓ Válido até ${new Date(ct.data_fim_contrato).toLocaleDateString('pt-BR')}`}</span>
+                              </div>
+                              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:'12px'}}>
+                                <div><div style={{fontSize:'10px',color:'#6B7280'}}>CR Plano</div><div style={{fontWeight:700,color:'#1E3A8A',fontSize:'16px'}}>{ct.saldo_quantidade_plano}<span style={{fontSize:'10px',color:'#6B7280'}}>/{ct.qde_contratada_plano}</span></div><div style={{height:'4px',backgroundColor:'#E5E7EB',borderRadius:'2px',marginTop:'4px'}}><div style={{height:'4px',backgroundColor:'#1E3A8A',borderRadius:'2px',width:`${pct}%`}} /></div></div>
+                                <div><div style={{fontSize:'10px',color:'#6B7280'}}>CR Avulso</div><div style={{fontWeight:700,color:'#7C3AED',fontSize:'16px'}}>{ct.saldo_quantidade_avulso}<span style={{fontSize:'10px',color:'#6B7280'}}>/{ct.qde_contratada_avulso}</span></div></div>
+                                <div><div style={{fontSize:'10px',color:'#6B7280'}}>Início</div><div style={{fontWeight:700,fontSize:'12px'}}>{new Date(ct.data_inicio_contrato).toLocaleDateString('pt-BR')}</div></div>
+                              </div>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    </div>
+                    <div>
+                      <div style={{...blocoHeaderStyle,borderRadius:'6px 6px 0 0'}}><span style={blocoTituloStyle}>Solicitar Troca de Plano</span></div>
+                      <div style={{border:'1px solid #E2E8F0',borderTop:'none',borderRadius:'0 0 6px 6px',padding:'12px'}}>
+                        <p style={{fontSize:'11px',color:'#6B7280',marginBottom:'12px',lineHeight:1.5}}>A troca é realizada pelo gestor. Selecione o plano e envie a solicitação por e-mail.</p>
+                        <div style={{display:'flex',gap:'8px',alignItems:'flex-end'}}>
+                          <div style={{flex:1}}>
+                            <label style={labelStyle}>Plano desejado</label>
+                            <select value={planoDesejado} onChange={e=>setPlanoDesejado(e.target.value)} style={inputStyle}>
+                              {['PLANO CORTESIA','PLANO SERVIÇO','PLANO MENSAL','PLANO ESCRITÓRIO'].map(pl=>(<option key={pl} value={pl}>{pl}</option>))}
+                            </select>
+                          </div>
+                          <button onClick={solicitarTroca} disabled={solicitandoTroca}
+                            style={{backgroundColor:'#1E3A8A',color:'white',border:'none',borderRadius:'9999px',padding:'8px 20px',fontSize:'12px',fontWeight:700,cursor:'pointer',opacity:solicitandoTroca?0.7:1,whiteSpace:'nowrap' as const}}>
+                            {solicitandoTroca?'Enviando...':'Solicitar Troca'}
+                          </button>
+                        </div>
+                        {msgPlano&&(<div style={{marginTop:'10px',padding:'8px 12px',borderRadius:'6px',fontSize:'12px',backgroundColor:msgPlano.startsWith('Erro')?'#FEE2E2':'#D1FAE5',color:msgPlano.startsWith('Erro')?'#DC2626':'#059669'}}>{msgPlano}</div>)}
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
+            </>
           )}
         </div>
       </div>
