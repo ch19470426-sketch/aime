@@ -221,7 +221,7 @@ function CadastroInspetor() {
         <div style={{backgroundColor:"#1E3A8A",padding:"8px 16px",display:"flex",alignItems:"center",gap:"12px"}}>
           <Image src="/logo.png" alt="AIME" width={80} height={32} priority style={{filter:"brightness(0) invert(1)"}} />
           <span style={{color:"white",fontWeight:"bold",fontSize:"16px",flex:1,textAlign:"center"}}>
-            Cadastro do Inspetor
+            {params.get('gestor') === '1' ? 'Cadastro do Gestor' : 'Cadastro do Inspetor'}
           </span>
         </div>
         <div style={{height:"2px",backgroundColor:"#1E3A8A"}} />

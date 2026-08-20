@@ -29,6 +29,16 @@ const S = {
   planoCard: (ativo: boolean) => ({ border: `2px solid ${ativo ? '#1E3A8A' : '#E2E8F0'}`, borderRadius: '8px', padding: '10px 12px', backgroundColor: ativo ? '#EBF1FF' : 'white' }) as React.CSSProperties,
 }
 
+type ResumoGestor = {
+  totalInspetores: number
+  inspetoresAtivos: number
+  contratosVigentes: number
+  totalCrPlano: number
+  totalCrAvulso: number
+  totalCrConsumo: number
+  inspetoresSemContrato: string[]
+}
+
 type Estabelecimento = {
   cnpjoucpf: string
   razao_social_nome: string
@@ -76,7 +86,7 @@ export default function GestorPage() {
   const [salvando, setSalvando] = useState(false)
   const [msg, setMsg] = useState('')
   const [aba, setAba] = useState<'dados'|'plano'|'avulso'>('dados')
-  const [abaGestor, setAbaGestor] = useState<'inspetores'|'estabelecimentos'>('inspetores')
+  const [abaGestor, setAbaGestor] = useState<'inspetores'|'estabelecimentos'|'visao-geral'>('inspetores')
   const [estabelecimentos, setEstabelecimentos] = useState<Estabelecimento[]>([])
   const [estabSel, setEstabSel] = useState<Estabelecimento | null>(null)
   const [buscaEstab, setBuscaEstab] = useState('')
@@ -84,6 +94,8 @@ export default function GestorPage() {
   const [salvandoEstab, setSalvandoEstab] = useState(false)
   const [msgEstab, setMsgEstab] = useState('')
   const [carregandoEstab, setCarregandoEstab] = useState(false)
+  const [resumo, setResumo] = useState<ResumoGestor | null>(null)
+  const [carregandoResumo, setCarregandoResumo] = useState(false)
   // Novo plano
   const [novoPlano, setNovoPlano] = useState('PLANO MENSAL')
   const [novoAvulso, setNovoAvulso] = useState(600)
@@ -155,6 +167,16 @@ export default function GestorPage() {
       setAba('plano')
     } catch (e) { setMsg('Erro ao adicionar créditos.') }
     finally { setSalvando(false) }
+  }
+
+  async function carregarResumo() {
+    setCarregandoResumo(true)
+    try {
+      const res = await fetch('/api/gestor/resumo')
+      const data = await res.json()
+      setResumo(data)
+    } catch { setResumo(null) }
+    finally { setCarregandoResumo(false) }
   }
 
   async function carregarEstabelecimentos() {
@@ -233,12 +255,12 @@ export default function GestorPage() {
 
         {/* Navegação principal */}
         <div style={{ display:'flex', gap:'0', borderBottom:'2px solid #1E3A8A' }}>
-          {(['inspetores','estabelecimentos'] as const).map(ab => (
-            <button key={ab} onClick={() => { setAbaGestor(ab); if(ab==='estabelecimentos') carregarEstabelecimentos() }}
+          {(['inspetores','estabelecimentos','visao-geral'] as const).map(ab => (
+            <button key={ab} onClick={() => { setAbaGestor(ab); if(ab==='estabelecimentos') carregarEstabelecimentos(); if(ab==='visao-geral') carregarResumo() }}
               style={{ padding:'8px 20px', border:'none', cursor:'pointer', fontSize:'12px', fontWeight:700,
                 borderBottom: abaGestor===ab ? '3px solid #1E3A8A' : '3px solid transparent',
                 color: abaGestor===ab ? '#1E3A8A' : '#6B7280', backgroundColor:'white' }}>
-              {ab === 'inspetores' ? '👤 Inspetores' : '🏢 Estabelecimentos'}
+              {ab === 'inspetores' ? '👤 Inspetores' : ab === 'estabelecimentos' ? '🏢 Estabelecimentos' : '📊 Visão Geral'}
             </button>
           ))}
         </div>
@@ -447,7 +469,7 @@ export default function GestorPage() {
               </>
             )}
           </div>
-          </>) : (<>
+          </>) : abaGestor === 'estabelecimentos' ? (<>
           {/* ── Lista de Estabelecimentos ── */}
           <div style={S.lista}>
             <div style={S.listaHeader}>Estabelecimentos ({estabelecimentos.length})</div>
@@ -555,6 +577,57 @@ export default function GestorPage() {
                   </button>
                 </div>
               </>
+            )}
+          </div>
+          </>) : (<>
+          {/* ── Visão Geral ── */}
+          <div style={{ flex:1, padding:'20px', backgroundColor:'#F8FAFC' }}>
+            {carregandoResumo ? (
+              <div style={{ textAlign:'center', padding:'40px', color:'#6B7280', fontSize:'13px' }}>Carregando...</div>
+            ) : !resumo ? (
+              <div style={{ textAlign:'center', padding:'40px', flexDirection:'column', display:'flex', alignItems:'center', gap:'12px' }}>
+                <div style={{ fontSize:'40px' }}>📊</div>
+                <p style={{ color:'#9CA3AF', fontSize:'13px' }}>Clique para carregar o resumo</p>
+                <button onClick={carregarResumo} style={S.btnPri}>Carregar Visão Geral</button>
+              </div>
+            ) : (
+              <div>
+                <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:'12px', marginBottom:'24px' }}>
+                  {[
+                    { label:'Total de Inspetores', valor: resumo.totalInspetores, cor:'#1E3A8A', icon:'👤' },
+                    { label:'Com Contrato Vigente', valor: resumo.contratosVigentes, cor:'#059669', icon:'✅' },
+                    { label:'Sem Contrato', valor: resumo.totalInspetores - resumo.contratosVigentes, cor:'#DC2626', icon:'⚠️' },
+                    { label:'CR Plano Disponível', valor: resumo.totalCrPlano, cor:'#0284C7', icon:'📦' },
+                    { label:'CR Avulso Disponível', valor: resumo.totalCrAvulso, cor:'#7C3AED', icon:'➕' },
+                    { label:'Total CR Disponível', valor: resumo.totalCrPlano + resumo.totalCrAvulso, cor:'#065F46', icon:'💎' },
+                  ].map(({ label, valor, cor, icon }) => (
+                    <div key={label} style={{ backgroundColor:'white', borderRadius:'10px', padding:'16px',
+                      border:`2px solid ${cor}20`, boxShadow:'0 1px 4px rgba(0,0,0,0.06)' }}>
+                      <div style={{ fontSize:'20px', marginBottom:'6px' }}>{icon}</div>
+                      <div style={{ fontSize:'22px', fontWeight:900, color: cor }}>{valor.toLocaleString('pt-BR')}</div>
+                      <div style={{ fontSize:'10px', color:'#6B7280', marginTop:'4px' }}>{label}</div>
+                    </div>
+                  ))}
+                </div>
+                {resumo.inspetoresSemContrato.length > 0 && (
+                  <div>
+                    <div style={S.secaoTitulo}>Inspetores sem contrato vigente</div>
+                    <div style={{ display:'flex', flexWrap:'wrap', gap:'6px' }}>
+                      {resumo.inspetoresSemContrato.map(nome => (
+                        <span key={nome} style={{ backgroundColor:'#FEE2E2', color:'#DC2626',
+                          padding:'3px 10px', borderRadius:'9999px', fontSize:'11px', fontWeight:600 }}>
+                          {nome}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                <div style={{ marginTop:'20px', textAlign:'right' }}>
+                  <button onClick={carregarResumo} style={{ ...S.btnSec, fontSize:'11px', padding:'6px 14px' }}>
+                    🔄 Atualizar
+                  </button>
+                </div>
+              </div>
             )}
           </div>
           </>)}
