@@ -493,6 +493,19 @@ export default function Dashboard() {
                 })}
               </div>
             ))}
+            {/* Botão Painel Gestor */}
+            {isGestor && (
+              <div style={{ padding: '8px', borderTop: '2px solid #1E3A8A', marginTop: '4px' }}>
+                <button
+                  onClick={() => window.location.href = '/gestor'}
+                  style={{ width: '100%', backgroundColor: '#1E3A8A', color: 'white',
+                    border: 'none', borderRadius: '6px', padding: '8px 12px',
+                    fontSize: '11px', fontWeight: 700, cursor: 'pointer',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+                  ⚙️ Painel Gestor
+                </button>
+              </div>
+            )}
           </div>
 
           {/* ── Área de conteúdo ── */}
