@@ -12,25 +12,34 @@ export default function LoginPage() {
   const [password, setPassword] = useState("")
   const [erro, setErro] = useState("")
   const [loading, setLoading] = useState(false)
-  const [mostrarCapa, setMostrarCapa] = useState(true)
+  const [mostrarCapa, setMostrarCapa] = useState(false)
+  const [verificandoSessao, setVerificandoSessao] = useState(true)
   const supabase = createClient()
   const cpfRef = useRef<HTMLInputElement>(null)
+  const router = useRouter()
 
-  // O Edge preenche o campo CPF com o valor anterior mesmo com autoComplete="off".
-  // Limpamos programaticamente após a montagem do componente.
   useEffect(() => {
+    // Verificar sessão primeiro
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        // Sessão ativa — ir direto para dashboard sem mostrar capa
+        router.replace('/dashboard')
+      } else {
+        // Sem sessão — mostrar capa
+        setVerificandoSessao(false)
+        setMostrarCapa(true)
+      }
+    }).catch(() => {
+      setVerificandoSessao(false)
+      setMostrarCapa(true)
+    })
     // Limpar campos
     const t = setTimeout(() => {
       if (cpfRef.current) cpfRef.current.value = ""
       setCpf("")
     }, 100)
-    // Se já tem sessão ativa, ir direto para o dashboard
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session?.user) router.replace('/dashboard')
-    })
     return () => clearTimeout(t)
   }, [])
-  const router = useRouter()
 
   const formatarCPF = (valor: string) => {
     return valor
@@ -123,6 +132,11 @@ export default function LoginPage() {
   }
 
   // Tela de capa — clicar em qualquer lugar vai para o login
+  // Verificando sessão — tela em branco (evita flash)
+  if (verificandoSessao) return (
+    <div style={{ backgroundColor:'#1E3A8A', minHeight:'100vh' }} />
+  )
+
   if (mostrarCapa) return (
     <div onClick={() => setMostrarCapa(false)}
       style={{ backgroundColor: "#1E3A8A", minHeight: "100vh", width: "100%",
