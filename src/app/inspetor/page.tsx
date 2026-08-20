@@ -90,6 +90,9 @@ function CadastroInspetor() {
                 cabecalho: d.cabecalho_documentos ?? "",
                 rodape: d.rodape_documentos ?? "",
               }))
+              // Buscar endereço pelo CEP após carregar dados
+              const cepLimpo = (d.cep_inspetor ?? '').replace(/\D/g, '')
+              if (cepLimpo.length === 8) buscarCep(cepLimpo)
             }
           } catch { /* segue com o formulário vazio se não conseguir carregar */ }
         }
@@ -412,7 +415,7 @@ function CadastroInspetor() {
               <div style={{display:"flex",gap:"12px",justifyContent:"flex-end"}}>
                 <button type="button" onClick={() => window.location.href="/dashboard"}
                   style={{padding:"10px 24px",borderRadius:"50px",border:"1px solid #1E3A8A",backgroundColor:"white",color:"#1E3A8A",fontWeight:"600",fontSize:"13px",cursor:"pointer"}}>
-                  Cancelar
+                  Voltar
                 </button>
                 {!ehConsulta && !ehVisualizar && <button type="submit" disabled={salvando}
                   style={{padding:"10px 24px",borderRadius:"50px",border:"none",backgroundColor:"#1E3A8A",color:"white",fontWeight:"600",fontSize:"13px",cursor:"pointer",opacity:salvando?0.7:1}}>
