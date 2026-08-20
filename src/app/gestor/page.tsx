@@ -32,12 +32,11 @@ const S = {
 type Estabelecimento = {
   cnpjoucpf: string
   razao_social_nome: string
-  logradouro: string
+  cep_estabelecimento: string
   numero_imovel: string
-  bairro: string
-  cidade: string
-  uf: string
+  complemento: string
   uso_estabelecimento: string
+  tipo_id: number
 }
 
 type Inspetor = {
@@ -476,7 +475,7 @@ export default function GestorPage() {
                     style={S.listaItem(estabSel?.cnpjoucpf === est.cnpjoucpf)}>
                     <div>
                       <div style={{ fontWeight:700, fontSize:'11px', color:'#1E3A8A' }}>{est.razao_social_nome}</div>
-                      <div style={{ fontSize:'10px', color:'#6B7280' }}>{est.cnpjoucpf} · {est.cidade}/{est.uf}</div>
+                      <div style={{ fontSize:'10px', color:'#6B7280' }}>{est.cnpjoucpf} · CEP {est.cep_estabelecimento}</div>
                     </div>
                   </div>
                 ))}
@@ -508,11 +507,9 @@ export default function GestorPage() {
                   {[
                     { label:'Razão Social / Nome', field:'razao_social_nome' },
                     { label:'Uso / Atividade',     field:'uso_estabelecimento' },
-                    { label:'Logradouro',           field:'logradouro' },
-                    { label:'Número',               field:'numero_imovel' },
-                    { label:'Bairro',               field:'bairro' },
-                    { label:'Cidade',               field:'cidade' },
-                    { label:'UF',                   field:'uf' },
+                    { label:'CEP',                 field:'cep_estabelecimento' },
+                    { label:'Número',              field:'numero_imovel' },
+                    { label:'Complemento',         field:'complemento' },
                   ].map(({ label, field }) => (
                     <div key={field}>
                       <label style={S.label}>{label}</label>
