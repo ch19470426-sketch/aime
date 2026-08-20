@@ -400,6 +400,12 @@ function CadastroInspetor() {
 
               {erro && <p style={{color:"#DC2626",fontSize:"13px",textAlign:"center",marginBottom:"12px"}}>{erro}</p>}
 
+              {ehConsulta && (
+                <div style={{padding:'6px 10px',backgroundColor:'#F0F4FF',borderRadius:'6px',
+                  fontSize:'11px',color:'#1E3A8A',marginBottom:'8px'}}>
+                  ℹ️ Dados em modo consulta. Para alterações, contate o gestor.
+                </div>
+              )}
               <div style={{display:"flex",gap:"12px",justifyContent:"flex-end"}}>
                 <button type="button" onClick={() => window.location.href="/dashboard"}
                   style={{padding:"10px 24px",borderRadius:"50px",border:"1px solid #1E3A8A",backgroundColor:"white",color:"#1E3A8A",fontWeight:"600",fontSize:"13px",cursor:"pointer"}}>
