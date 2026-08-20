@@ -261,6 +261,7 @@ export default function Dashboard() {
 
   const { bannerProps, orienta } = useBanner()
   const [tipoServico, setTipoServico] = useState<number | null>(null)
+  const [isGestor, setIsGestor] = useState(false)
   const [grupoAberto, setGrupoAberto] = useState<string | null>(null)
   const [documento, setDocumento] = useState("")
   const [estadoDoc, setEstadoDoc] = useState<"aguardando" | "verificando" | "nao_cadastrado" | "erro">("aguardando")
@@ -286,7 +287,7 @@ export default function Dashboard() {
         const cpf = session.user.email.split("@")[0]
         const accessToken = session.access_token
         try {
-          const res = await fetch(`${SUPA_URL}/rest/v1/inspetor?cpf_inspetor=eq.${cpf}&select=cpf_inspetor,chave_inspetor,titulo_profissional`, {
+          const res = await fetch(`${SUPA_URL}/rest/v1/inspetor?cpf_inspetor=eq.${cpf}&select=cpf_inspetor,chave_inspetor,titulo_profissional,is_gestor`, {
             headers: { apikey: SUPA_KEY, Authorization: `Bearer ${accessToken}` }
           })
           const dados = await res.json()
@@ -313,6 +314,7 @@ export default function Dashboard() {
           setCpfInspetor(dados[0].cpf_inspetor)
           setChaveInspetor(chave)
           setTitulo(dados[0].titulo_profissional ?? "")
+          setIsGestor(dados[0].is_gestor === true)
 
           if (chave) {
             // Verifica o termo no novo padrão (sem CPF) e no antigo (com CPF) para
