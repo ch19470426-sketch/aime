@@ -160,10 +160,7 @@ export default function GestorPage() {
   async function carregarEstabelecimentos() {
     const { data: { session } } = await supabase.auth.getSession()
     try {
-      const res = await fetch(
-        `${SUPA_URL}/rest/v1/estabelecimento?select=cnpjoucpf,razao_social_nome,logradouro,numero_imovel,bairro,cidade,uf,uso_estabelecimento&order=razao_social_nome`,
-        { headers: { apikey: SUPA_KEY, Authorization: `Bearer ${session?.access_token}` } }
-      )
+      const res = await fetch('/api/gestor/listar-estabelecimentos')
       const data = await res.json()
       setEstabelecimentos(Array.isArray(data) ? data : [])
     } catch { setEstabelecimentos([]) }
@@ -238,15 +235,19 @@ export default function GestorPage() {
           {abaGestor === 'inspetores' ? (<>
           {/* ── Lista de Inspetores ── */}
           <div style={S.lista}>
-            <div style={S.listaHeader}>Inspetores ({inspetores.length})</div>
+            <div style={{ ...S.listaHeader, display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+              <span>Inspetores ({inspetores.length})</span>
+              <button onClick={() => window.location.href='/inspetor?gestor=1'}
+                style={{ backgroundColor:'white', color:'#1E3A8A', border:'none',
+                  borderRadius:'4px', padding:'2px 8px', fontSize:'10px', fontWeight:700, cursor:'pointer' }}>
+                + Novo Gestor
+              </button>
+            </div>
             <div style={{ padding:'8px' }}>
               <input
                 placeholder="Buscar por nome ou CPF..."
                 value={busca} onChange={e => setBusca(e.target.value)}
                 style={{ ...S.input, marginBottom:'4px' }} />
-              <button onClick={novoInspetor} style={{ ...S.btnPri, width:'100%', borderRadius:'6px', marginBottom:'4px' }}>
-                + Novo Inspetor
-              </button>
             </div>
             <div style={{ overflowY:'auto', maxHeight:'500px' }}>
               {inspFiltrados.map(insp => (
@@ -442,6 +443,10 @@ export default function GestorPage() {
               <input placeholder="Buscar por nome ou CNPJ/CPF..."
                 value={buscaEstab} onChange={e => setBuscaEstab(e.target.value)}
                 style={{ ...S.input, marginBottom:'4px' }} />
+              <button onClick={carregarEstabelecimentos}
+                style={{ ...S.btnPri, width:'100%', borderRadius:'6px', marginBottom:'4px' }}>
+                🔄 Atualizar lista
+              </button>
             </div>
             <div style={{ overflowY:'auto', maxHeight:'560px' }}>
               {estabelecimentos
