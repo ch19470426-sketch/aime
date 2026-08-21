@@ -188,9 +188,9 @@ export default function SistemasConstrutivos() {
                   style={{padding:"10px 24px",borderRadius:"50px",border:"none",backgroundColor:"#1E3A8A",color:"white",fontWeight:"600",fontSize:"13px",cursor:"pointer"}}>
                   Novo Registro
                 </button>
-                <button onClick={() => window.location.href="/dashboard"}
+                <button onClick={() => window.location.href="/gestor?aba=configuracoes"}
                   style={{padding:"10px 24px",borderRadius:"50px",border:"1px solid #1E3A8A",backgroundColor:"white",color:"#1E3A8A",fontWeight:"600",fontSize:"13px",cursor:"pointer"}}>
-                  Voltar ao Menu
+                  Retornar
                 </button>
               </div>
             </div>
@@ -292,7 +292,7 @@ export default function SistemasConstrutivos() {
               {erro && <p style={{color:"#DC2626",fontSize:"13px",textAlign:"center",marginBottom:"12px"}}>{erro}</p>}
 
               <div style={{display:"flex",gap:"12px",justifyContent:"flex-end"}}>
-                <button type="button" onClick={() => window.location.href="/dashboard"}
+                <button type="button" onClick={() => window.location.href="/gestor?aba=configuracoes"}
                   style={{padding:"10px 24px",borderRadius:"50px",border:"1px solid #1E3A8A",backgroundColor:"white",color:"#1E3A8A",fontWeight:"600",fontSize:"13px",cursor:"pointer"}}>
                   Cancelar
                 </button>

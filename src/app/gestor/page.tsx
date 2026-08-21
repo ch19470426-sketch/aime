@@ -1,5 +1,6 @@
 'use client'
 import { useEffect, useState } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { createClient } from '@/utils/supabase/client'
 
 const SUPA_URL = 'https://asgorarunzhiojqioxzq.supabase.co'
@@ -86,7 +87,9 @@ export default function GestorPage() {
   const [salvando, setSalvando] = useState(false)
   const [msg, setMsg] = useState('')
   const [aba, setAba] = useState<'dados'|'plano'|'info'>('dados')
-  const [abaGestor, setAbaGestor] = useState<'inspetores'|'estabelecimentos'|'visao-geral'|'configuracoes'>('inspetores')
+  const searchParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null
+  const abaInicial = (searchParams?.get('aba') as any) || 'inspetores'
+  const [abaGestor, setAbaGestor] = useState<'inspetores'|'estabelecimentos'|'visao-geral'|'configuracoes'>(abaInicial)
   const [estabelecimentos, setEstabelecimentos] = useState<Estabelecimento[]>([])
   const [estabSel, setEstabSel] = useState<Estabelecimento | null>(null)
   const [buscaEstab, setBuscaEstab] = useState('')

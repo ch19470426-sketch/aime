@@ -42,7 +42,7 @@ export default function PlanosAssinaturaPage() {
     const { data } = await supabase
       .from('planos_assinatura')
       .select('*')
-      .order('tipo_assinatura')
+      .order('id')
     if (data) setPlanos(data)
   }
 
@@ -182,13 +182,7 @@ export default function PlanosAssinaturaPage() {
                         padding:'8px 24px', fontSize:'12px', fontWeight:700, cursor:'pointer', opacity:salvando?0.7:1 }}>
                       {salvando ? 'Salvando...' : modoEdicao ? 'Salvar Alterações' : 'Incluir Plano'}
                     </button>
-                    {modoEdicao && (
-                      <button type="button" onClick={novo}
-                        style={{ backgroundColor:'white', color:'#1E3A8A', border:'2px solid #1E3A8A',
-                          borderRadius:'9999px', padding:'8px 20px', fontSize:'12px', fontWeight:700, cursor:'pointer' }}>
-                        + Novo
-                      </button>
-                    )}
+
                   </div>
                 </div>
               </div>
