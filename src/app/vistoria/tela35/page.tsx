@@ -17,7 +17,7 @@ const GUT_FALLBACK: Record<string, number> = {
   'probabilidade:Improvável': 1, 'probabilidade:Possível': 3, 'probabilidade:Provável/eminente': 5,
   'exposicaorisco:Eventual': 1, 'exposicaorisco:Frequente': 3, 'exposicaorisco:Muitas pessoas': 5,
 }
-const PCT_FALLBACK = { Gravidade: 40, Abrangência: 30, Urgência: 20, Exposição: 10 }
+const PCT_FALLBACK = { Gravidade: 40, Urgência: 30, Abrangência: 20, Exposição: 10 }
 
 function calcularGR(gra: number, urg: number, abr: number, exp: number): number {
   return Math.round((0.4 * gra + 0.3 * urg + 0.2 * abr + 0.1 * exp) * 20)

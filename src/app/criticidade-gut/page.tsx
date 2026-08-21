@@ -205,7 +205,7 @@ export default function CriticidadeGutPage() {
               <strong>Como funciona o Grau de Risco (GR):</strong><br/>
               GR = (G × %G + U × %U + A × %A + E × %E) × 20<br/>
               Os percentuais são definidos no primeiro registro de cada tipo (campo "% no Cálculo GR").<br/>
-              Padrão atual: Gravidade 40% · Abrangência 30% · Urgência 20% · Exposição 10%
+              Padrão atual: Gravidade 40% · Urgência 30% · Abrangência 20% · Exposição 10%
             </div>
           </div>
         </div>
