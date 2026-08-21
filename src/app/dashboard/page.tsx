@@ -445,6 +445,29 @@ export default function Dashboard() {
       window.location.href = `/homologar?cpf_inspetor=${cpfInspetor}&chave_inspetor=${chaveInspetor}&cnpjoucpf=${docLimpo}`
       return
     }
+    // Verificar se existe Plano de Trabalho para o CNPJ+tipo antes de iniciar vistoria
+    const tipoServicoBancoVistoria = TIPO_SERVICO_BANCO[Number(tipoServico)]
+    if (tipoServicoBancoVistoria) {
+      setEstadoDoc('verificando')
+      setMsgErro('')
+      try {
+        const { data: { session: sessaoAtual } } = await createClient().auth.getSession()
+        const tokenAtual = sessaoAtual?.access_token ?? ''
+        const resAtivos = await fetch(
+          `${SUPA_URL}/rest/v1/ativos_a_vistoriar?cpf_inspetor=eq.${cpfInspetor}&cnpjoucpf=eq.${docLimpo}&tipo_servico=eq.${encodeURIComponent(tipoServicoBancoVistoria)}&select=tipo_ativo&limit=1`,
+          { headers: { apikey: SUPA_KEY, Authorization: `Bearer ${tokenAtual}` } }
+        )
+        const ativos = await resAtivos.json()
+        if (!Array.isArray(ativos) || ativos.length === 0) {
+          setEstadoDoc('erro')
+          setMsgErro('Não foi encontrado Plano de Trabalho para este estabelecimento. Execute o Plano de Trabalho antes de iniciar a vistoria.')
+          return
+        }
+      } catch {
+        // Se falhar a verificação, permite continuar (não bloqueia por erro de rede)
+      }
+      setEstadoDoc('aguardando')
+    }
     const url = `/vistoria/tela${tipoServico}?cpf_inspetor=${cpfInspetor}&chave_inspetor=${chaveInspetor}&cnpjoucpf=${docLimpo}&tipo_servico=${tipoServico}`
     window.location.href = url
   }
