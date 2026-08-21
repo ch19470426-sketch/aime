@@ -249,8 +249,8 @@ function CadastroInspetor() {
   const blocoHeaderStyle = { backgroundColor: "#1E3A8A", padding: "4px 12px" }
   const blocoTituloStyle = { color: "white", fontWeight: "bold", fontSize: "12px" }
   const blocoBodyStyle = { padding: "8px 12px" }
-  const grid2 = { display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" }
-  const grid3 = { display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "8px" }
+  const grid2 = { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "8px" }
+  const grid3 = { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: "8px" }
 
   if (carregando) {
     return (
@@ -445,7 +445,7 @@ function CadastroInspetor() {
                                 <span style={{padding:'2px 10px',borderRadius:'9999px',fontSize:'10px',fontWeight:700,backgroundColor:COR[ct.tipo_assinatura]??'#6B7280',color:'white'}}>{ct.tipo_assinatura}</span>
                                 <span style={{fontSize:'10px',fontWeight:700,color:vencido?'#DC2626':'#059669'}}>{vencido?'⚠ Vencido':`✓ Válido até ${new Date(ct.data_fim_contrato).toLocaleDateString('pt-BR')}`}</span>
                               </div>
-                              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:'12px'}}>
+                              <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit, minmax(120px, 1fr))',gap:'12px'}}>
                                 <div><div style={{fontSize:'10px',color:'#6B7280'}}>CR Plano</div><div style={{fontWeight:700,color:'#1E3A8A',fontSize:'16px'}}>{ct.saldo_quantidade_plano}<span style={{fontSize:'10px',color:'#6B7280'}}>/{ct.qde_contratada_plano}</span></div><div style={{height:'4px',backgroundColor:'#E5E7EB',borderRadius:'2px',marginTop:'4px'}}><div style={{height:'4px',backgroundColor:'#1E3A8A',borderRadius:'2px',width:`${pct}%`}} /></div></div>
                                 <div><div style={{fontSize:'10px',color:'#6B7280'}}>CR Avulso</div><div style={{fontWeight:700,color:'#7C3AED',fontSize:'16px'}}>{ct.saldo_quantidade_avulso}<span style={{fontSize:'10px',color:'#6B7280'}}>/{ct.qde_contratada_avulso}</span></div></div>
                                 <div><div style={{fontSize:'10px',color:'#6B7280'}}>Início</div><div style={{fontWeight:700,fontSize:'12px'}}>{new Date(ct.data_inicio_contrato).toLocaleDateString('pt-BR')}</div></div>
