@@ -48,6 +48,10 @@ type Estabelecimento = {
   complemento: string
   uso_estabelecimento: string
   tipo_id: number
+  logradouro?: string
+  bairro?: string
+  cidade?: string
+  uf?: string
 }
 
 type Inspetor = {
@@ -538,7 +542,19 @@ export default function GestorPage() {
                   e.cnpjoucpf?.includes(buscaEstab.replace(/\D/g,'')))
                 .map(est => (
                   <div key={est.cnpjoucpf}
-                    onClick={() => { setEstabSel(est); setEditEstab({...est}); setMsgEstab('') }}
+                    onClick={async () => {
+                      setEstabSel(est); setEditEstab({...est}); setMsgEstab('')
+                      const cep = (est.cep_estabelecimento ?? '').replace(/\D/g,'')
+                      if (cep.length === 8) {
+                        try {
+                          const r = await fetch(`https://viacep.com.br/ws/${cep}/json/`)
+                          const d = await r.json()
+                          if (!d.erro) {
+                            setEstabSel(prev => prev ? {...prev, logradouro:d.logradouro||'', bairro:d.bairro||'', cidade:d.localidade||'', uf:d.uf||''} : prev)
+                          }
+                        } catch {}
+                      }
+                    }}
                     style={S.listaItem(estabSel?.cnpjoucpf === est.cnpjoucpf)}>
                     <div>
                       <div style={{ fontWeight:700, fontSize:'11px', color:'#1E3A8A' }}>{est.razao_social_nome}</div>
@@ -617,6 +633,26 @@ export default function GestorPage() {
                       onChange={e => setEditEstab((prev: any) => ({ ...prev, complemento: e.target.value }))} />
                   </div>
                 </div>
+                </div>
+                {/* Linha 5: Logradouro */}
+                <div style={{ marginTop:'8px' }}>
+                  <label style={S.label}>Logradouro</label>
+                  <input style={{...S.input, backgroundColor:'#F9FAFB'}} readOnly value={estabSel?.logradouro ?? ''} />
+                </div>
+                {/* Linha 6: Bairro + Cidade + UF */}
+                <div style={{ ...S.grid3, marginTop:'8px' }}>
+                  <div>
+                    <label style={S.label}>Bairro</label>
+                    <input style={{...S.input, backgroundColor:'#F9FAFB'}} readOnly value={estabSel?.bairro ?? ''} />
+                  </div>
+                  <div>
+                    <label style={S.label}>Cidade</label>
+                    <input style={{...S.input, backgroundColor:'#F9FAFB'}} readOnly value={estabSel?.cidade ?? ''} />
+                  </div>
+                  <div>
+                    <label style={S.label}>UF</label>
+                    <input style={{...S.input, backgroundColor:'#F9FAFB'}} readOnly value={estabSel?.uf ?? ''} />
+                  </div>
                 </div>
 
               </>
