@@ -103,7 +103,7 @@ export default function PlanosAssinaturaPage() {
         </div>
         <div style={{ height:'2px', backgroundColor:'#1E3A8A' }} />
 
-        <div style={{ display:'flex', minHeight:'500px' }}>
+        <div style={{ display:'flex', minHeight:'500px', flexWrap:'wrap' as const }}>
           {/* Lista */}
           <div style={{ width:'260px', borderRight:'2px solid #1E3A8A', flexShrink:0 }}>
             <div style={{ backgroundColor:'#1E3A8A', padding:'8px 12px', color:'white', fontWeight:700, fontSize:'11px', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
@@ -129,7 +129,7 @@ export default function PlanosAssinaturaPage() {
           </div>
 
           {/* Formulário */}
-          <div style={{ flex:1, padding:'20px', backgroundColor:'#F8FAFC' }}>
+          <div style={{ flex:1, minWidth:'280px', padding:'20px', backgroundColor:'#F8FAFC' }}>
             <form onSubmit={salvar}>
               <div style={blocoStyle}>
                 <div style={blocoHeaderStyle}>
@@ -138,7 +138,7 @@ export default function PlanosAssinaturaPage() {
                   </span>
                 </div>
                 <div style={blocoBodyStyle}>
-                  <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'12px' }}>
+                  <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(180px, 1fr))', gap:'12px' }}>
                     <div style={{ gridColumn:'span 2' }}>
                       <label style={labelStyle}>Tipo / Nome do Plano *</label>
                       <input name="tipo_assinatura" value={form.tipo_assinatura}

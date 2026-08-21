@@ -97,9 +97,9 @@ export default function CriticidadeGutPage() {
         </div>
         <div style={{ height:'2px', backgroundColor:'#1E3A8A' }} />
 
-        <div style={{ display:'flex', minHeight:'500px' }}>
+        <div style={{ display:'flex', minHeight:'500px', flexWrap:'wrap' as const }}>
           {/* Lista por tipo */}
-          <div style={{ width:'280px', borderRight:'2px solid #1E3A8A', flexShrink:0 }}>
+          <div style={{ width:'280px', minWidth:'180px', maxWidth:'100%', borderRight:'2px solid #1E3A8A', flexShrink:0 }}>
             {/* Abas de tipo */}
             <div style={{ display:'flex', flexWrap:'wrap', gap:'0', borderBottom:'2px solid #1E3A8A' }}>
               {TIPOS.map(t => (
@@ -142,7 +142,7 @@ export default function CriticidadeGutPage() {
           </div>
 
           {/* Formulário */}
-          <div style={{ flex:1, padding:'20px', backgroundColor:'#F8FAFC' }}>
+          <div style={{ flex:1, minWidth:'280px', padding:'20px', backgroundColor:'#F8FAFC' }}>
             <form onSubmit={salvar}>
               <div style={blocoStyle}>
                 <div style={blocoHeaderStyle}>
@@ -151,7 +151,7 @@ export default function CriticidadeGutPage() {
                   </span>
                 </div>
                 <div style={blocoBodyStyle}>
-                  <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'12px' }}>
+                  <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(180px, 1fr))', gap:'12px' }}>
                     <div>
                       <label style={labelStyle}>Tipo de Parâmetro *</label>
                       <select value={form.tipo_parametro}

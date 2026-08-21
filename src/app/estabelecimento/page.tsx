@@ -81,7 +81,7 @@ export default function CadastroEstabelecimento() {
   const blocoHeaderStyle = { backgroundColor: "#1E3A8A", padding: "8px 16px" }
   const blocoTituloStyle = { color: "white", fontWeight: "bold", fontSize: "12px" }
   const blocoBodyStyle = { padding: "16px" }
-  const grid3 = { display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "12px" }
+  const grid3 = { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: "12px" }
 
   return (
     <div style={{backgroundColor:"#E8EEF7",minHeight:"100vh",display:"flex",alignItems:"flex-start",justifyContent:"center",padding:"16px"}}>
@@ -109,7 +109,7 @@ export default function CadastroEstabelecimento() {
                 </div>
                 <div style={{height:"2px",backgroundColor:"#1E3A8A"}} />
                 <div style={blocoBodyStyle}>
-                  <div style={{display:"grid", gridTemplateColumns:"160px 200px 1fr", gap:"12px"}}>
+                  <div style={{display:"grid", gridTemplateColumns:"repeat(auto-fit, minmax(140px, 1fr))", gap:"12px"}}>
                     <div>
                       <label style={labelStyle}>Tipo de Documento *</label>
                       <select name="tipo_id" value={form.tipo_id} onChange={handleChange} required style={inputStyle}>
@@ -144,7 +144,7 @@ export default function CadastroEstabelecimento() {
                 </div>
                 <div style={{height:"2px",backgroundColor:"#1E3A8A"}} />
                 <div style={blocoBodyStyle}>
-                  <div style={{display:"grid", gridTemplateColumns:"150px 1fr", gap:"12px"}}>
+                  <div style={{display:"grid", gridTemplateColumns:"repeat(auto-fit, minmax(140px, 1fr))", gap:"12px"}}>
                     <div>
                       <label style={labelStyle}>CEP *</label>
                       <input name="cep" value={form.cep} onChange={handleChange} placeholder="00000-000" required style={inputStyle} />
