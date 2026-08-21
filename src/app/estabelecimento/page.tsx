@@ -104,14 +104,12 @@ export default function CadastroEstabelecimento() {
             <form onSubmit={handleSubmit}>
 
               <div style={blocoStyle}>
-                <div style={blocoHeaderStyle}>
-                  <span style={blocoTituloStyle}>Identificacao</span>
-                </div>
+                <div style={blocoHeaderStyle}><span style={blocoTituloStyle}>Identificação</span></div>
                 <div style={{height:"2px",backgroundColor:"#1E3A8A"}} />
                 <div style={blocoBodyStyle}>
-                  <div style={{display:"grid", gridTemplateColumns:"repeat(auto-fit, minmax(140px, 1fr))", gap:"12px"}}>
+                  <div style={{display:"grid",gridTemplateColumns:"160px 1fr",gap:"12px",marginBottom:"10px"}}>
                     <div>
-                      <label style={labelStyle}>Tipo de Documento *</label>
+                      <label style={labelStyle}>Tipo *</label>
                       <select name="tipo_id" value={form.tipo_id} onChange={handleChange} required style={inputStyle}>
                         <option value="">Selecione...</option>
                         <option value="1">CNPJ</option>
@@ -120,56 +118,55 @@ export default function CadastroEstabelecimento() {
                     </div>
                     <div>
                       <label style={labelStyle}>{form.tipo_id === "2" ? "CPF *" : "CNPJ *"}</label>
-                      <input
-                        name="cnpjoucpf"
-                        value={form.cnpjoucpf}
-                        onChange={handleChange}
+                      <input name="cnpjoucpf" value={form.cnpjoucpf} onChange={handleChange}
                         placeholder={form.tipo_id === "2" ? "000.000.000-00" : "00.000.000/0000-00"}
-                        required
-                        disabled={!form.tipo_id}
-                        style={{...inputStyle, backgroundColor: !form.tipo_id ? "#F9FAFB" : "white"}}
-                      />
+                        required disabled={!form.tipo_id}
+                        style={{...inputStyle,backgroundColor:!form.tipo_id?"#F9FAFB":"white"}} />
+                    </div>
+                  </div>
+                  <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"12px"}}>
+                    <div>
+                      <label style={labelStyle}>Razão Social / Nome *</label>
+                      <input name="razao_social_nome" value={form.razao_social_nome} onChange={handleChange} placeholder="Nome ou Razão Social completo" required style={inputStyle} />
                     </div>
                     <div>
-                      <label style={labelStyle}>Razao Social / Nome *</label>
-                      <input name="razao_social_nome" value={form.razao_social_nome} onChange={handleChange} placeholder="Nome ou Razao Social completo" required style={inputStyle} />
+                      <label style={labelStyle}>Uso / Atividade</label>
+                      <input name="uso_estabelecimento" value={(form as any).uso_estabelecimento ?? ""} onChange={handleChange} placeholder="Ex: Residencial, Comercial..." style={inputStyle} />
                     </div>
                   </div>
                 </div>
               </div>
 
               <div style={blocoStyle}>
-                <div style={blocoHeaderStyle}>
-                  <span style={blocoTituloStyle}>Endereco</span>
-                </div>
+                <div style={blocoHeaderStyle}><span style={blocoTituloStyle}>Endereço</span></div>
                 <div style={{height:"2px",backgroundColor:"#1E3A8A"}} />
                 <div style={blocoBodyStyle}>
-                  <div style={{display:"grid", gridTemplateColumns:"repeat(auto-fit, minmax(140px, 1fr))", gap:"12px"}}>
+                  <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(120px,1fr))",gap:"12px",marginBottom:"10px"}}>
                     <div>
                       <label style={labelStyle}>CEP *</label>
                       <input name="cep" value={form.cep} onChange={handleChange} placeholder="00000-000" required style={inputStyle} />
-                      {buscandoCep && <span style={{fontSize:"11px",color:"#6B7280"}}>Buscando...</span>}
+                      {buscandoCep && <span style={{fontSize:"10px",color:"#6B7280"}}>Buscando...</span>}
                     </div>
                     <div>
-                      <label style={labelStyle}>Logradouro *</label>
-                      <input name="logradouro" value={form.logradouro} onChange={handleChange} placeholder="Rua, Avenida..." required style={inputStyle} />
-                    </div>
-                  </div>
-                  <div style={{...grid3, marginTop:"12px"}}>
-                    <div>
-                      <label style={labelStyle}>Numero *</label>
+                      <label style={labelStyle}>Número *</label>
                       <input name="numero_imovel" value={form.numero_imovel} onChange={handleChange} placeholder="123" required style={inputStyle} />
                     </div>
                     <div>
                       <label style={labelStyle}>Complemento</label>
                       <input name="complemento" value={form.complemento} onChange={handleChange} placeholder="Sala, Andar..." style={inputStyle} />
                     </div>
+                  </div>
+                  <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"12px",marginBottom:"10px"}}>
+                    <div>
+                      <label style={labelStyle}>Logradouro *</label>
+                      <input name="logradouro" value={form.logradouro} onChange={handleChange} placeholder="Rua, Avenida..." required style={inputStyle} />
+                    </div>
                     <div>
                       <label style={labelStyle}>Bairro *</label>
                       <input name="bairro" value={form.bairro} onChange={handleChange} placeholder="Bairro" required style={inputStyle} />
                     </div>
                   </div>
-                  <div style={{display:"grid", gridTemplateColumns:"1fr 80px", gap:"12px", marginTop:"12px"}}>
+                  <div style={{display:"grid",gridTemplateColumns:"1fr 80px",gap:"12px"}}>
                     <div>
                       <label style={labelStyle}>Cidade *</label>
                       <input name="cidade" value={form.cidade} onChange={handleChange} placeholder="Cidade" required style={inputStyle} />
@@ -187,7 +184,7 @@ export default function CadastroEstabelecimento() {
               <div style={{display:"flex",gap:"12px",justifyContent:"flex-end"}}>
                 <button type="button" onClick={() => window.location.href="/dashboard"}
                   style={{padding:"10px 24px",borderRadius:"50px",border:"1px solid #1E3A8A",backgroundColor:"white",color:"#1E3A8A",fontWeight:"600",fontSize:"13px",cursor:"pointer"}}>
-                  Cancelar
+                  Voltar
                 </button>
                 <button type="submit"
                   style={{padding:"10px 24px",borderRadius:"50px",border:"none",backgroundColor:"#1E3A8A",color:"white",fontWeight:"600",fontSize:"13px",cursor:"pointer"}}>
