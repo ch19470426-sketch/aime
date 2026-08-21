@@ -10,13 +10,13 @@ const S = {
   page: { backgroundColor: '#E8EEF7', minHeight: '100vh', padding: '16px' } as React.CSSProperties,
   card: { backgroundColor: 'white', borderRadius: '16px', boxShadow: '0 4px 24px rgba(0,0,0,0.12)', overflow: 'hidden', maxWidth: '1200px', margin: '0 auto' } as React.CSSProperties,
   header: { backgroundColor: '#1E3A8A', padding: '8px 16px', display: 'flex', alignItems: 'center', gap: '12px' } as React.CSSProperties,
-  body: { display: 'flex', minHeight: '600px' } as React.CSSProperties,
+  body: { display: 'flex', minHeight: '600px', flexWrap: 'wrap' as const } as React.CSSProperties,
   // Lista lateral
-  lista: { width: '280px', minWidth: '220px', borderRight: '2px solid #1E3A8A', flexShrink: 0 } as React.CSSProperties,
+  lista: { width: '280px', minWidth: '180px', maxWidth: '100%', borderRight: '2px solid #1E3A8A', flexShrink: 0 } as React.CSSProperties,
   listaHeader: { backgroundColor: '#1E3A8A', padding: '8px 12px', color: 'white', fontWeight: 700, fontSize: '11px' } as React.CSSProperties,
   listaItem: (sel: boolean) => ({ padding: '10px 12px', borderBottom: '1px solid #F1F5F9', cursor: 'pointer', backgroundColor: sel ? '#EBF1FF' : 'white', fontSize: '11px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }) as React.CSSProperties,
   // Painel direito
-  painel: { flex: 1, padding: '20px', backgroundColor: '#F8FAFC', overflowY: 'auto' as const },
+  painel: { flex: 1, minWidth: '280px', padding: '20px', backgroundColor: '#F8FAFC', overflowY: 'auto' as const },
   secao: { marginBottom: '20px' } as React.CSSProperties,
   secaoTitulo: { fontSize: '12px', fontWeight: 700, color: '#1E3A8A', borderBottom: '2px solid #1E3A8A', paddingBottom: '4px', marginBottom: '12px' } as React.CSSProperties,
   label: { display: 'block', fontSize: '11px', fontWeight: 700, color: '#374151', marginBottom: '4px' } as React.CSSProperties,
@@ -24,8 +24,8 @@ const S = {
   select: { width: '100%', padding: '8px 10px', border: '1.5px solid #D1D5DB', borderRadius: '6px', fontSize: '12px', boxSizing: 'border-box' as const, backgroundColor: 'white' },
   btnPri: { backgroundColor: '#1E3A8A', color: 'white', border: 'none', borderRadius: '9999px', padding: '8px 20px', fontSize: '12px', fontWeight: 700, cursor: 'pointer' } as React.CSSProperties,
   btnSec: { backgroundColor: 'white', color: '#1E3A8A', border: '2px solid #1E3A8A', borderRadius: '9999px', padding: '8px 20px', fontSize: '12px', fontWeight: 700, cursor: 'pointer' } as React.CSSProperties,
-  grid2: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' } as React.CSSProperties,
-  grid3: { display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px' } as React.CSSProperties,
+  grid2: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px' } as React.CSSProperties,
+  grid3: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '12px' } as React.CSSProperties,
   badge: (cor: string) => ({ display: 'inline-block', padding: '2px 8px', borderRadius: '9999px', fontSize: '10px', fontWeight: 700, backgroundColor: cor, color: 'white' }) as React.CSSProperties,
   planoCard: (ativo: boolean) => ({ border: `2px solid ${ativo ? '#1E3A8A' : '#E2E8F0'}`, borderRadius: '8px', padding: '10px 12px', backgroundColor: ativo ? '#EBF1FF' : 'white' }) as React.CSSProperties,
 }
