@@ -226,7 +226,7 @@ export default function SistemasConstrutivos() {
                             placeholder="Nome do novo sistema" required maxLength={64} style={inputStyle} />
                           <button type="button" onClick={() => { setNovoSistema(false); setForm(f => ({...f, sistema:""})) }}
                             style={{padding:"8px 12px",borderRadius:"8px",border:"1px solid #D1D5DB",backgroundColor:"white",fontSize:"12px",cursor:"pointer",whiteSpace:"nowrap"}}>
-                            Cancelar
+                            Retornar
                           </button>
                         </div>
                       )}
@@ -275,7 +275,7 @@ export default function SistemasConstrutivos() {
                           placeholder="Nome do novo subsistema" required maxLength={64} style={inputStyle} />
                         <button type="button" onClick={() => { setNovoSubsistema(false); setForm(f => ({...f, subsistema:""})) }}
                           style={{padding:"8px 12px",borderRadius:"8px",border:"1px solid #D1D5DB",backgroundColor:"white",fontSize:"12px",cursor:"pointer",whiteSpace:"nowrap"}}>
-                          Cancelar
+                          Retornar
                         </button>
                       </div>
                     )}
@@ -294,7 +294,7 @@ export default function SistemasConstrutivos() {
               <div style={{display:"flex",gap:"12px",justifyContent:"flex-end"}}>
                 <button type="button" onClick={() => window.location.href="/gestor?aba=configuracoes"}
                   style={{padding:"10px 24px",borderRadius:"50px",border:"1px solid #1E3A8A",backgroundColor:"white",color:"#1E3A8A",fontWeight:"600",fontSize:"13px",cursor:"pointer"}}>
-                  Cancelar
+                  Retornar
                 </button>
                 <button type="submit"
                   style={{padding:"10px 24px",borderRadius:"50px",border:"none",backgroundColor:"#1E3A8A",color:"white",fontWeight:"600",fontSize:"13px",cursor:"pointer"}}>

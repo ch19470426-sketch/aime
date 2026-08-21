@@ -180,7 +180,7 @@ export default function PlanosAssinaturaPage() {
                     <button type="submit" disabled={salvando}
                       style={{ backgroundColor:'#1E3A8A', color:'white', border:'none', borderRadius:'9999px',
                         padding:'8px 24px', fontSize:'12px', fontWeight:700, cursor:'pointer', opacity:salvando?0.7:1 }}>
-                      {salvando ? 'Salvando...' : modoEdicao ? 'Salvar Alterações' : 'Incluir Plano'}
+                      {salvando ? 'Salvando...' : 'Salvar Alterações'}
                     </button>
 
                   </div>
