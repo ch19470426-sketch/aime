@@ -46,6 +46,7 @@ function formatDoc(v: string) {
 function MeusEstabelecimentosInner() {
   const params = useSearchParams()
   const cpfInspetor = params.get('cpf_inspetor') ?? ''
+  const origem = params.get('origem') ?? 'dashboard'
 
   const [estabs, setEstabs] = useState<Estab[]>([])
   const [selecionado, setSelecionado] = useState<Estab | null>(null)
@@ -134,7 +135,7 @@ function MeusEstabelecimentosInner() {
           <span style={{ color:'white', fontWeight:700, fontSize:'13px', flex:1, textAlign:'center' }}>
             Meus Estabelecimentos
           </span>
-          <button onClick={() => window.location.href='/dashboard'}
+          <button onClick={() => window.location.href = origem === 'gestor' ? '/gestor' : '/dashboard'}
             style={{ ...S.btnSec, padding:'4px 12px', fontSize:'11px',
               backgroundColor:'transparent', color:'white', borderColor:'white' }}>
             ← Voltar

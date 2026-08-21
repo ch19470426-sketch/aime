@@ -413,7 +413,7 @@ function CadastroInspetor() {
 
 
               <div style={{display:"flex",gap:"12px",justifyContent:"flex-end"}}>
-                <button type="button" onClick={() => window.location.href="/dashboard"}
+                <button type="button" onClick={() => window.location.href = ehVisualizar ? "/gestor" : "/dashboard"}
                   style={{padding:"10px 24px",borderRadius:"50px",border:"1px solid #1E3A8A",backgroundColor:"white",color:"#1E3A8A",fontWeight:"600",fontSize:"13px",cursor:"pointer"}}>
                   Voltar
                 </button>
