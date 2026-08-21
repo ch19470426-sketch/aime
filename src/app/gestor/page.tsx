@@ -8,8 +8,8 @@ const SUPA_KEY = 'sb_publishable_dH85HYKGxv3X0te627VfOw_OGaPoNMF'
 
 const S = {
   page: { backgroundColor: '#E8EEF7', minHeight: '100vh', padding: '16px' } as React.CSSProperties,
-  card: { backgroundColor: 'white', borderRadius: '16px', boxShadow: '0 4px 24px rgba(0,0,0,0.12)', overflow: 'hidden', maxWidth: '1200px', margin: '0 auto' } as React.CSSProperties,
-  header: { backgroundColor: '#1E3A8A', padding: '8px 16px', display: 'flex', alignItems: 'center', gap: '12px' } as React.CSSProperties,
+  card: { backgroundColor: 'white', borderRadius: '16px', boxShadow: '0 4px 24px rgba(0,0,0,0.12)', overflow: 'hidden', maxWidth: '1200px', margin: '0 auto', width: '100%' } as React.CSSProperties,
+  header: { backgroundColor: '#1E3A8A', padding: '8px 16px', display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' as const } as React.CSSProperties,
   body: { display: 'flex', minHeight: '600px', flexWrap: 'wrap' as const } as React.CSSProperties,
   // Lista lateral
   lista: { width: '280px', minWidth: '180px', maxWidth: '100%', borderRight: '2px solid #1E3A8A', flexShrink: 0 } as React.CSSProperties,
@@ -259,7 +259,7 @@ export default function GestorPage() {
         <div style={{ height:'2px', backgroundColor:'#1E3A8A' }} />
 
         {/* Navegação principal */}
-        <div style={{ display:'flex', gap:'0', borderBottom:'2px solid #1E3A8A' }}>
+        <div style={{ display:'flex', gap:'0', borderBottom:'2px solid #1E3A8A', flexWrap:'wrap' as const }}>
           {(['inspetores','estabelecimentos','visao-geral','configuracoes'] as const).map(ab => (
             <button key={ab} onClick={() => { setAbaGestor(ab); if(ab==='estabelecimentos') carregarEstabelecimentos(); if(ab==='visao-geral') carregarResumo() }}
               style={{ padding:'8px 20px', border:'none', cursor:'pointer', fontSize:'12px', fontWeight:700,
@@ -336,7 +336,7 @@ export default function GestorPage() {
                 </div>
 
                 {/* Abas */}
-                <div style={{ display:'flex', gap:'4px', marginBottom:'16px', borderBottom:'2px solid #E2E8F0' }}>
+                <div style={{ display:'flex', gap:'4px', marginBottom:'16px', borderBottom:'2px solid #E2E8F0', flexWrap:'wrap' as const }}>
                   {(['dados','plano','info'] as const).map(a => (
                     <button key={a} onClick={() => setAba(a)}
                       style={{ padding:'6px 16px', border:'none', cursor:'pointer', fontSize:'11px', fontWeight:700,
@@ -636,7 +636,7 @@ export default function GestorPage() {
               </div>
             ) : (
               <div>
-                <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:'12px', marginBottom:'24px' }}>
+                <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(150px, 1fr))', gap:'12px', marginBottom:'24px' }}>
                   {[
                     { label:'Total de Inspetores', valor: resumo.totalInspetores, cor:'#1E3A8A', icon:'👤' },
                     { label:'Com Contrato Vigente', valor: resumo.contratosVigentes, cor:'#059669', icon:'✅' },
