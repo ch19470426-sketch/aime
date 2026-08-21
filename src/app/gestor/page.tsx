@@ -588,63 +588,56 @@ export default function GestorPage() {
                   <span>Dados do Estabelecimento</span>
                   <span style={{ fontSize:'10px', color:'#6B7280', fontWeight:400 }}>somente consulta</span>
                 </div>
-                <div style={S.grid2}>
-                  {/* Linha 1: Razão Social + CNPJ/CPF */}
+                {/* L1: Razão Social + CNPJ/CPF */}
                 <div style={S.grid2}>
                   <div>
                     <label style={S.label}>Razão Social / Nome</label>
-                    <input style={{ ...S.input, backgroundColor:'#F9FAFB' }} readOnly value={editEstab?.razao_social_nome ?? ''}
-                      onChange={e => setEditEstab((prev: any) => ({ ...prev, razao_social_nome: e.target.value }))} />
+                    <input style={{ ...S.input, backgroundColor:'#F9FAFB' }} readOnly value={editEstab?.razao_social_nome ?? ''} />
                   </div>
                   <div>
                     <label style={S.label}>CNPJ / CPF</label>
-                    <input
+                    <input style={{ ...S.input, backgroundColor:'#F9FAFB' }} readOnly
                       value={(() => {
                         const v = editEstab?.cnpjoucpf?.replace(/\D/g,'') ?? ''
                         if (v.length === 11) return v.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/,'$1.$2.$3-$4')
                         if (v.length === 14) return v.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/,'$1.$2.$3/$4-$5')
                         return v
-                      })()}
-                      readOnly />
+                      })()} />
                   </div>
                 </div>
-                {/* Linha 2: Uso */}
+                {/* L2: Uso */}
                 <div style={{ marginTop:'8px' }}>
                   <label style={S.label}>Uso / Atividade</label>
-                  <input style={{ ...S.input, backgroundColor:'#F9FAFB' }} readOnly value={editEstab?.uso_estabelecimento ?? ''}
-                    onChange={e => setEditEstab((prev: any) => ({ ...prev, uso_estabelecimento: e.target.value }))} />
+                  <input style={{ ...S.input, backgroundColor:'#F9FAFB' }} readOnly value={editEstab?.uso_estabelecimento ?? ''} />
                 </div>
-                {/* Linha 3: CEP */}
-                <div style={{ marginTop:'8px' }}>
-                  <label style={S.label}>CEP</label>
-                  <input style={{ ...S.input, backgroundColor:'#F9FAFB' }} readOnly value={editEstab?.cep_estabelecimento ?? ''}
-                    onChange={e => setEditEstab((prev: any) => ({ ...prev, cep_estabelecimento: e.target.value }))} />
-                </div>
-                {/* Linha 4: Número + Complemento */}
-                <div style={{ ...S.grid2, marginTop:'8px' }}>
+                {/* L3: CEP + Número + Complemento */}
+                <div style={{ ...S.grid3, marginTop:'8px' }}>
+                  <div>
+                    <label style={S.label}>CEP</label>
+                    <input style={{ ...S.input, backgroundColor:'#F9FAFB' }} readOnly value={editEstab?.cep_estabelecimento ?? ''} />
+                  </div>
                   <div>
                     <label style={S.label}>Número</label>
-                    <input style={{ ...S.input, backgroundColor:'#F9FAFB' }} readOnly value={editEstab?.numero_imovel ?? ''}
-                      onChange={e => setEditEstab((prev: any) => ({ ...prev, numero_imovel: e.target.value }))} />
+                    <input style={{ ...S.input, backgroundColor:'#F9FAFB' }} readOnly value={editEstab?.numero_imovel ?? ''} />
                   </div>
                   <div>
                     <label style={S.label}>Complemento</label>
-                    <input style={{ ...S.input, backgroundColor:'#F9FAFB' }} readOnly value={editEstab?.complemento ?? ''}
-                      onChange={e => setEditEstab((prev: any) => ({ ...prev, complemento: e.target.value }))} />
+                    <input style={{ ...S.input, backgroundColor:'#F9FAFB' }} readOnly value={editEstab?.complemento ?? ''} />
                   </div>
                 </div>
-                </div>
-                {/* Linha 5: Logradouro */}
-                <div style={{ marginTop:'8px' }}>
-                  <label style={S.label}>Logradouro</label>
-                  <input style={{...S.input, backgroundColor:'#F9FAFB'}} readOnly value={estabSel?.logradouro ?? ''} />
-                </div>
-                {/* Linha 6: Bairro + Cidade + UF */}
-                <div style={{ ...S.grid3, marginTop:'8px' }}>
+                {/* L4: Logradouro + Bairro */}
+                <div style={{ ...S.grid2, marginTop:'8px' }}>
+                  <div>
+                    <label style={S.label}>Logradouro</label>
+                    <input style={{...S.input, backgroundColor:'#F9FAFB'}} readOnly value={estabSel?.logradouro ?? ''} />
+                  </div>
                   <div>
                     <label style={S.label}>Bairro</label>
                     <input style={{...S.input, backgroundColor:'#F9FAFB'}} readOnly value={estabSel?.bairro ?? ''} />
                   </div>
+                </div>
+                {/* L5: Cidade + UF */}
+                <div style={{ display:'grid', gridTemplateColumns:'1fr 80px', gap:'12px', marginTop:'8px' }}>
                   <div>
                     <label style={S.label}>Cidade</label>
                     <input style={{...S.input, backgroundColor:'#F9FAFB'}} readOnly value={estabSel?.cidade ?? ''} />
