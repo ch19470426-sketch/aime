@@ -10,12 +10,14 @@ interface ItemSubsistema { sistema: string; subsistema: string }
 interface ItemAnomalia   { sistema: string; subsistema: string; anomalias: string }
 interface ItemAtivo      { tipo_ativo: string; tag_ativo_nr_serie: string; finalidade_vistoria: string | null }
 
-const VALOR_GUT: Record<string, number> = {
+// ── Fallback GUT NR (usado se banco indisponível) ────────────────────────────
+const GUT_FALLBACK: Record<string, number> = {
   'gravidade:Sem risco': 1, 'gravidade:Lesão/dano baixo': 2, 'gravidade:Lesão/dano moderado': 3, 'gravidade:Lesão/dano grave': 4, 'gravidade:Lesão/dano fatal': 5,
   'urgencia:Pode aguardar': 1, 'urgencia:Planejar': 3, 'urgencia:Imediata': 5,
   'probabilidade:Improvável': 1, 'probabilidade:Possível': 3, 'probabilidade:Provável/eminente': 5,
   'exposicaorisco:Eventual': 1, 'exposicaorisco:Frequente': 3, 'exposicaorisco:Muitas pessoas': 5,
 }
+const PCT_FALLBACK = { Gravidade: 40, Urgência: 20, Abrangência: 30, Exposição: 10 }
 
 function calcularGR(gra: number, urg: number, abr: number, exp: number): number {
   return Math.round((0.4 * gra + 0.3 * urg + 0.2 * abr + 0.1 * exp) * 20)
@@ -78,6 +80,8 @@ function Tela31Inner() {
   const [anomalias,    setAnomalias]    = useState<ItemAnomalia[]>([])
   const [origens,      setOrigens]      = useState<string[]>([])
   const [locais,       setLocais]       = useState<string[]>([])
+  const [valorGut, setValorGut] = useState<Record<string,number>>(GUT_FALLBACK)
+  const [pctGut, setPctGut]   = useState(PCT_FALLBACK)
   const [gravidades,   setGravidades]   = useState<string[]>([])
   const [urgencias,    setUrgencias]    = useState<string[]>([])
   const [abrangencias, setAbrangencias] = useState<string[]>([])
@@ -117,10 +121,10 @@ function Tela31Inner() {
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   // GR calculado
-  const gravNum = VALOR_GUT[`gravidade:${descGravidade}`]           ?? 0
-  const urgNum  = VALOR_GUT[`urgencia:${descUrgencia}`]             ?? 0
-  const abrNum  = VALOR_GUT[`probabilidade:${descProbabilidade}`]   ?? 0
-  const expNum  = VALOR_GUT[`exposicaorisco:${descExposicaoRisco}`] ?? 0
+  const gravNum = valorGut[`gravidade:${descGravidade}`]           ?? 0
+  const urgNum  = valorGut[`urgencia:${descUrgencia}`]             ?? 0
+  const abrNum  = valorGut[`probabilidade:${descProbabilidade}`]   ?? 0
+  const expNum  = valorGut[`exposicaorisco:${descExposicaoRisco}`] ?? 0
   const grauRisco = (gravNum && urgNum && abrNum && expNum) ? calcularGR(gravNum, urgNum, abrNum, expNum) : 0
   const prioridade = grauRisco > 80 ? 'Muito Alta' : grauRisco >= 50 ? 'Alta' : grauRisco >= 30 ? 'Média' : 'Baixa'
   const corGR = grauRisco >= 64 ? '#E24B4A' : grauRisco >= 35 ? '#E8A000' : '#1A7A3C'

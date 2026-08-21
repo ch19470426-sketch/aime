@@ -683,6 +683,7 @@ export default function GestorPage() {
                 { icon:'🏗️', titulo:'Sistemas Construtivos', desc:'Gerenciar sistemas, subsistemas e anomalias por tipo de vistoria', href:'/sistemas' },
                 { icon:'⚙️', titulo:'Parâmetros', desc:'Gerenciar parâmetros de local de ocorrência por tipo de vistoria', href:'/parametros' },
                 { icon:'💳', titulo:'Planos de Assinatura', desc:'Gerenciar tipos de plano, créditos e validade', href:'/planos-assinatura' },
+                { icon:'⚖️', titulo:'Criticidade GUT', desc:'Gerenciar pesos e percentuais de Gravidade, Urgência, Abrangência e Exposição', href:'/criticidade-gut' },
               ].map(item => (
                 <div key={item.titulo}
                   onClick={() => window.location.href = item.href}
