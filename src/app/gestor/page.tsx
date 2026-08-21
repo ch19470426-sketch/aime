@@ -678,7 +678,7 @@ export default function GestorPage() {
           {abaGestor === 'configuracoes' && (<>
           {/* ── Configurações ── */}
           <div style={{ flex:1, padding:'20px', backgroundColor:'#F8FAFC' }}>
-            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:'16px' }}>
+            <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(200px, 1fr))', gap:'16px' }}>
               {[
                 { icon:'🏗️', titulo:'Sistemas Construtivos', desc:'Gerenciar sistemas, subsistemas e anomalias por tipo de vistoria', href:'/sistemas' },
                 { icon:'⚙️', titulo:'Parâmetros', desc:'Gerenciar parâmetros de local de ocorrência por tipo de vistoria', href:'/parametros' },
