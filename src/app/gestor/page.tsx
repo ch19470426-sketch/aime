@@ -86,7 +86,7 @@ export default function GestorPage() {
   const [salvando, setSalvando] = useState(false)
   const [msg, setMsg] = useState('')
   const [aba, setAba] = useState<'dados'|'plano'|'info'>('dados')
-  const [abaGestor, setAbaGestor] = useState<'inspetores'|'estabelecimentos'|'visao-geral'>('inspetores')
+  const [abaGestor, setAbaGestor] = useState<'inspetores'|'estabelecimentos'|'visao-geral'|'configuracoes'>('inspetores')
   const [estabelecimentos, setEstabelecimentos] = useState<Estabelecimento[]>([])
   const [estabSel, setEstabSel] = useState<Estabelecimento | null>(null)
   const [buscaEstab, setBuscaEstab] = useState('')
@@ -257,18 +257,18 @@ export default function GestorPage() {
 
         {/* Navegação principal */}
         <div style={{ display:'flex', gap:'0', borderBottom:'2px solid #1E3A8A' }}>
-          {(['inspetores','estabelecimentos','visao-geral'] as const).map(ab => (
+          {(['inspetores','estabelecimentos','visao-geral','configuracoes'] as const).map(ab => (
             <button key={ab} onClick={() => { setAbaGestor(ab); if(ab==='estabelecimentos') carregarEstabelecimentos(); if(ab==='visao-geral') carregarResumo() }}
               style={{ padding:'8px 20px', border:'none', cursor:'pointer', fontSize:'12px', fontWeight:700,
                 borderBottom: abaGestor===ab ? '3px solid #1E3A8A' : '3px solid transparent',
                 color: abaGestor===ab ? '#1E3A8A' : '#6B7280', backgroundColor:'white' }}>
-              {ab === 'inspetores' ? '👤 Inspetores' : ab === 'estabelecimentos' ? '🏢 Estabelecimentos' : '📊 Painel Geral'}
+              {ab === 'inspetores' ? '👤 Inspetores' : ab === 'estabelecimentos' ? '🏢 Estabelecimentos' : ab === 'visao-geral' ? '📊 Painel Geral' : '⚙️ Configurações'}
             </button>
           ))}
         </div>
 
         <div style={S.body}>
-          {abaGestor === 'inspetores' ? (<>
+          {abaGestor === 'inspetores' && (<>
           {/* ── Lista de Inspetores ── */}
           <div style={S.lista}>
             <div style={{ ...S.listaHeader, display:'flex', justifyContent:'space-between', alignItems:'center' }}>
@@ -510,7 +510,8 @@ export default function GestorPage() {
                   </div>
                 )}
           </div>
-          </>) : abaGestor === 'estabelecimentos' ? (<>
+          </>)}
+          {abaGestor === 'estabelecimentos' && (<>
           {/* ── Lista de Estabelecimentos ── */}
           <div style={S.lista}>
             <div style={S.listaHeader}>Estabelecimentos ({estabelecimentos.length})</div>
@@ -579,7 +580,6 @@ export default function GestorPage() {
                   <div>
                     <label style={S.label}>CNPJ / CPF</label>
                     <input
-                      style={{ ...S.input, backgroundColor: '#F9FAFB', color: '#6B7280' }}
                       value={(() => {
                         const v = editEstab?.cnpjoucpf?.replace(/\D/g,'') ?? ''
                         if (v.length === 11) return v.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/,'$1.$2.$3-$4')
@@ -619,7 +619,8 @@ export default function GestorPage() {
               </>
             )}
           </div>
-          </>) : (<>
+          </>)}
+          {abaGestor === 'visao-geral' && (<>
           {/* ── Visão Geral ── */}
           <div style={{ flex:1, padding:'20px', backgroundColor:'#F8FAFC' }}>
             {carregandoResumo ? (
@@ -669,6 +670,28 @@ export default function GestorPage() {
                 </div>
               </div>
             )}
+          </div>
+          </>)}
+          {abaGestor === 'configuracoes' && (<>
+          {/* ── Configurações ── */}
+          <div style={{ flex:1, padding:'20px', backgroundColor:'#F8FAFC' }}>
+            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:'16px' }}>
+              {[
+                { icon:'🏗️', titulo:'Sistemas Construtivos', desc:'Gerenciar sistemas, subsistemas e anomalias por tipo de vistoria', href:'/sistemas' },
+                { icon:'⚙️', titulo:'Parâmetros', desc:'Gerenciar parâmetros de local de ocorrência por tipo de vistoria', href:'/parametros' },
+                { icon:'💳', titulo:'Planos de Assinatura', desc:'Gerenciar tipos de plano, créditos e validade', href:'/planos-assinatura' },
+              ].map(item => (
+                <div key={item.titulo}
+                  onClick={() => window.location.href = item.href}
+                  style={{ backgroundColor:'white', border:'2px solid #1E3A8A', borderRadius:'12px',
+                    padding:'20px', cursor:'pointer', transition:'box-shadow 0.2s',
+                    boxShadow:'0 2px 8px rgba(0,0,0,0.06)' }}>
+                  <div style={{ fontSize:'32px', marginBottom:'10px' }}>{item.icon}</div>
+                  <div style={{ fontWeight:700, color:'#1E3A8A', fontSize:'13px', marginBottom:'6px' }}>{item.titulo}</div>
+                  <div style={{ fontSize:'11px', color:'#6B7280', lineHeight:1.5 }}>{item.desc}</div>
+                </div>
+              ))}
+            </div>
           </div>
           </>)}
         </div>
