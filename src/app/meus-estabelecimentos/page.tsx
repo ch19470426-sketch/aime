@@ -52,6 +52,9 @@ function MeusEstabelecimentosInner() {
   const [busca, setBusca] = useState('')
   const [carregando, setCarregando] = useState(true)
   const [erro, setErro] = useState('')
+  const [editando, setEditando] = useState<Estab | null>(null)
+  const [salvando, setSalvando] = useState(false)
+  const [msgSalvar, setMsgSalvar] = useState('')
 
   useEffect(() => {
     if (!cpfInspetor) { setCarregando(false); return }
@@ -67,6 +70,8 @@ function MeusEstabelecimentosInner() {
 
   async function selecionar(est: Estab) {
     setSelecionado(est)
+    setEditando({...est})
+    setMsgSalvar('')
     // Buscar endereço via ViaCEP
     const cep = (est.cep_estabelecimento ?? '').replace(/\D/g,'')
     if (cep.length === 8) {
@@ -81,9 +86,37 @@ function MeusEstabelecimentosInner() {
             cidade: d.localidade || '',
             uf: d.uf || '',
           } : prev)
+          setEditando(prev => prev ? {
+            ...prev,
+            logradouro: d.logradouro || '',
+            bairro: d.bairro || '',
+            cidade: d.localidade || '',
+            uf: d.uf || '',
+          } : prev)
         }
       } catch {}
     }
+  }
+
+  async function salvar() {
+    if (!editando) return
+    setSalvando(true); setMsgSalvar('')
+    try {
+      const res = await fetch('/api/salvar-estabelecimento', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(editando)
+      })
+      const d = await res.json()
+      if (res.ok) {
+        setMsgSalvar('Dados salvos com sucesso!')
+        setSelecionado({...editando})
+        setEstabs(prev => prev.map(e => e.cnpjoucpf === editando.cnpjoucpf ? {...editando} : e))
+      } else {
+        setMsgSalvar(`Erro: ${d.erro ?? 'Falha ao salvar.'}`)
+      }
+    } catch { setMsgSalvar('Erro de conexão.') }
+    finally { setSalvando(false) }
   }
 
   const filtrados = estabs.filter(e =>
@@ -156,9 +189,12 @@ function MeusEstabelecimentosInner() {
               </div>
             ) : (
               <>
-                <h2 style={{ margin:'0 0 16px', fontSize:'16px', color:'#1E3A8A', fontWeight:900 }}>
-                  {selecionado.razao_social_nome}
-                </h2>
+                <div style={{marginBottom:'12px'}}>
+                  <label style={{...S.label, fontSize:'12px'}}>Razão Social / Nome</label>
+                  <input style={{...S.input, backgroundColor:'white', fontSize:'14px', fontWeight:700}}
+                    value={editando?.razao_social_nome ?? ''}
+                    onChange={e => setEditando(prev => prev ? {...prev, razao_social_nome: e.target.value} : prev)} />
+                </div>
 
                 {/* Identificação */}
                 <div style={{ marginBottom:'16px' }}>
@@ -170,7 +206,7 @@ function MeusEstabelecimentosInner() {
                     </div>
                     <div>
                       <label style={S.label}>Uso / Atividade</label>
-                      <input style={S.input} readOnly value={selecionado.uso_estabelecimento ?? ''} />
+                      <input style={{...S.input, backgroundColor:'white'}} value={editando?.uso_estabelecimento ?? ''} onChange={e => setEditando(prev => prev ? {...prev, uso_estabelecimento: e.target.value} : prev)} />
                     </div>
                   </div>
                 </div>
@@ -181,11 +217,18 @@ function MeusEstabelecimentosInner() {
                   <div style={S.grid2}>
                     <div>
                       <label style={S.label}>CEP</label>
-                      <input style={S.input} readOnly value={selecionado.cep_estabelecimento ?? ''} />
+                      <input style={{...S.input, backgroundColor:'white'}}
+                      value={editando?.cep_estabelecimento ?? ''}
+                      onChange={e => {
+                        const v = e.target.value.replace(/\D/g,'').slice(0,8)
+                        const fmt = v.length > 5 ? v.replace(/(\d{5})(\d)/,'$1-$2') : v
+                        setEditando(prev => prev ? {...prev, cep_estabelecimento: fmt} : prev)
+                        if (v.length === 8 && editando) selecionar({...editando, cep_estabelecimento: fmt})
+                      }} />
                     </div>
                     <div>
                       <label style={S.label}>Número</label>
-                      <input style={S.input} readOnly value={selecionado.numero_imovel ?? ''} />
+                      <input style={{...S.input, backgroundColor:'white'}} value={editando?.numero_imovel ?? ''} onChange={e => setEditando(prev => prev ? {...prev, numero_imovel: e.target.value} : prev)} />
                     </div>
                     <div style={{ gridColumn:'span 2' }}>
                       <label style={S.label}>Logradouro</label>
@@ -197,7 +240,7 @@ function MeusEstabelecimentosInner() {
                     </div>
                     <div>
                       <label style={S.label}>Complemento</label>
-                      <input style={S.input} readOnly value={selecionado.complemento ?? ''} />
+                      <input style={{...S.input, backgroundColor:'white'}} value={editando?.complemento ?? ''} onChange={e => setEditando(prev => prev ? {...prev, complemento: e.target.value} : prev)} />
                     </div>
                     <div>
                       <label style={S.label}>Cidade</label>
@@ -208,6 +251,21 @@ function MeusEstabelecimentosInner() {
                       <input style={S.input} readOnly value={selecionado.uf ?? ''} />
                     </div>
                   </div>
+                </div>
+                {/* Botões */}
+                <div style={{marginTop:'16px', display:'flex', gap:'8px', alignItems:'center'}}>
+                  <button onClick={salvar} disabled={salvando}
+                    style={{backgroundColor:'#1E3A8A', color:'white', border:'none',
+                      borderRadius:'9999px', padding:'8px 24px', fontSize:'12px',
+                      fontWeight:700, cursor:'pointer', opacity:salvando?0.7:1}}>
+                    {salvando ? 'Salvando...' : '💾 Salvar Dados'}
+                  </button>
+                  {msgSalvar && (
+                    <span style={{fontSize:'12px', fontWeight:600,
+                      color: msgSalvar.startsWith('Erro') ? '#DC2626' : '#059669'}}>
+                      {msgSalvar}
+                    </span>
+                  )}
                 </div>
               </>
             )}
