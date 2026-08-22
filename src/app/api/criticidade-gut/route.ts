@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 
 export const dynamic = 'force-dynamic'
@@ -9,29 +9,28 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+  const tipoServico = new URL(request.url).searchParams.get('tipo_servico')
+
   try {
-    const { data, error } = await supabase
+    let query = supabase
       .from('criticidade_gut')
-      .select('tipo_parametro, descricao, peso, percentual_calculo')
+      .select('tipo_servico,tipo_parametro,descricao,peso,percentual_calculo')
       .eq('ativo', true)
       .order('tipo_parametro').order('peso')
 
+    if (tipoServico) query = query.eq('tipo_servico', tipoServico)
+
+    const { data, error } = await query
     if (error || !data?.length) return NextResponse.json({ erro: error?.message ?? 'vazio' }, { status: 500 })
 
-    // Montar o mapa VALOR_GUT e os percentuais
     const valorGut: Record<string, number> = {}
     const percentuais: Record<string, number> = {}
 
     for (const row of data) {
-      const chave = `${row.tipo_parametro.toLowerCase().replace('â', 'a').replace('ê', 'e').replace('ô', 'o')}:${row.descricao}`
-      // Normalizar chave (remover acentos para compatibilidade)
-      const chaveNorm = chave
-        .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-        .replace('abrangencia', 'abrangencia')
-        .replace('urgencia', 'urgencia')
-        .replace('exposicao', 'exposicao')
-      valorGut[chaveNorm] = Number(row.peso)
+      const tipo = row.tipo_parametro.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase()
+        .replace('abrangencia','abrangencia').replace('urgencia','urgencia').replace('exposicao','exposicao')
+      valorGut[`${tipo}:${row.descricao}`] = Number(row.peso)
       if (row.percentual_calculo != null) {
         percentuais[row.tipo_parametro] = Number(row.percentual_calculo)
       }

@@ -95,7 +95,7 @@ export default function PlanosAssinaturaPage() {
           <span style={{ color:'white', fontWeight:700, fontSize:'13px', flex:1, textAlign:'center' }}>
             Planos de Assinatura
           </span>
-          <button onClick={() => window.location.href='/gestor'}
+          <button onClick={() => window.location.href='/gestor?aba=configuracoes'}
             style={{ backgroundColor:'transparent', color:'white', border:'2px solid white',
               borderRadius:'9999px', padding:'4px 14px', fontSize:'11px', fontWeight:700, cursor:'pointer' }}>
             ← Voltar
