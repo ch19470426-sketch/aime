@@ -186,7 +186,7 @@ tr:nth-child(even) td { background: #f7f9ff; }
 
 .s41-bloco { page-break-before: avoid !important; }
 /* Capa */
-.pg-capa { page-break-after:always; display:flex; flex-direction:column; height:297mm; box-sizing:border-box; }
+.pg-capa { page-break-after:always; box-sizing:border-box; }
 @page :first { margin:0 !important; }
 .pg-capa { counter-reset: page 0; }
 .capa-barra { background: #1E3A8A; height: 8mm; width: 100%; margin-bottom: 0; }
@@ -1293,7 +1293,7 @@ export async function POST(request: NextRequest) {
       partsNR.push('<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>' + titulo + '</title><style>' + CSS + '</style></head><body>')
 
       // CAPA
-      partsNR.push('<div class="pg-capa" style="counter-reset:page 0">')
+      partsNR.push('<div class="pg-capa" style="counter-reset:page 0;display:flex;flex-direction:column;height:297mm">')
       partsNR.push('<div style="height:1cm;background:#fff;flex-shrink:0"></div>')
       partsNR.push('<div style="background:#1E3A8A;height:8mm;flex-shrink:0"></div>')
       partsNR.push('<div style="text-align:center;padding:6mm 0 0;flex-shrink:0;margin-bottom:0">' + logoTagNR + '</div>')
@@ -1945,7 +1945,7 @@ export async function POST(request: NextRequest) {
     const logoB64 = inspetor?.logo_base64 || ''
     const logoTag = logoB64 ? `<img src="${logoB64}" style="max-height:28mm;max-width:80mm">` : `<div style="font-size:14pt;font-weight:900;color:#1E3A8A">${xe(inspetor?.cabecalho_documentos||'AIMÊ')}</div>`
     const CAPA_HTML = `
-<div class='pg-capa' style='counter-reset:page 0;position:relative;height:297mm;width:210mm;box-sizing:border-box;overflow:hidden'>
+<div class='pg-capa' style='counter-reset:page 0;position:relative;display:block;height:297mm;width:210mm;box-sizing:border-box;overflow:hidden'>
   <div style='position:absolute;top:0;left:0;right:0;background:#1E3A8A;height:8mm'></div>
   <div style='position:absolute;bottom:0;left:0;right:0;background:#1E3A8A;height:8mm'></div>
   <div style='position:absolute;top:8mm;left:0;right:0;bottom:8mm;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 20mm'>
