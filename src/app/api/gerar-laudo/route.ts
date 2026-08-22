@@ -1945,17 +1945,17 @@ export async function POST(request: NextRequest) {
     const logoB64 = inspetor?.logo_base64 || ''
     const logoTag = logoB64 ? `<img src="${logoB64}" style="max-height:28mm;max-width:80mm">` : `<div style="font-size:14pt;font-weight:900;color:#1E3A8A">${xe(inspetor?.cabecalho_documentos||'AIMÊ')}</div>`
     const CAPA_HTML = `
-<div class='pg-capa' style='counter-reset:page 0;display:flex;flex-direction:column;height:277mm'>
-  <div style='background:#1E3A8A;height:8mm;flex-shrink:0'></div>
+<div class='pg-capa' style='counter-reset:page 0;display:flex;flex-direction:column;min-height:277mm;height:277mm;box-sizing:border-box'>
+  <div style='background:#1E3A8A;height:8mm;width:100%;flex-shrink:0'></div>
   <div style='text-align:center;padding:10mm 0 0;flex-shrink:0'>${logoTag}</div>
-  <div style='flex:1 1 0'></div>
+  <div style='flex:1'></div>
   <div style='text-align:center;padding:0 20mm;flex-shrink:0'>
     <div style='font-size:8pt;color:#6B7280;letter-spacing:3px;text-transform:uppercase;margin-bottom:6pt'>LAUDO T&Eacute;CNICO</div>
     <div style='font-size:18pt;font-weight:900;color:#1E3A8A;line-height:1.2;margin-bottom:2pt'>${titulo}</div>
     <div style='font-size:13pt;font-weight:700;color:#374151;margin-bottom:4pt'>${xe(estab?.razao_social_nome||estab?.razao_social||'')}</div>
     <div style='font-size:9pt;color:#374151;text-align:center'>${xe(estab?.logradouro||'')}${estab?.numero_imovel?', '+xe(estab.numero_imovel):''} &mdash; ${xe(estab?.cidade||'')}/${xe(estab?.uf||'')}</div>
   </div>
-  <div style='flex:1 1 0'></div>
+  <div style='flex:1'></div>
   <div style='border-top:2px solid #1E3A8A;margin:0 20mm;flex-shrink:0'></div>
   <div style='padding:8mm 20mm;font-size:9.5pt;color:#222;line-height:1.9;flex-shrink:0'>
     <b style='color:#1E3A8A'>Inspetor Respons&aacute;vel:</b> ${xe(inspetor?.nome_inspetor)}<br>
@@ -1963,7 +1963,7 @@ export async function POST(request: NextRequest) {
     ${inspetor?.especializacao ? '<b style="color:#1E3A8A">Especialidade:</b> Especialista ' + xe(inspetor.especializacao) + '<br>' : ''}
     <b style='color:#1E3A8A'>Data:</b> ${dataHoje}
   </div>
-  <div style='background:#1E3A8A;height:8mm;flex-shrink:0'></div>
+  <div style='background:#1E3A8A;height:8mm;width:100%;flex-shrink:0;margin-top:auto'></div>
 </div>`
 
     // ── ÍNDICE ───────────────────────────────────────────────────────────────
