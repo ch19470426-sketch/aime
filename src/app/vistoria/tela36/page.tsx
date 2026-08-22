@@ -193,6 +193,15 @@ function Tela31Inner() {
         if (Array.isArray(ano)) setAnomalias(ano)
 
         // Parâmetros
+        // Buscar pesos GUT do banco com fallback
+        fetch('/api/criticidade-gut?tipo_servico=36%20Vistoria%20nr-10')
+          .then(r => r.json())
+          .then(d => {
+            if (d.valorGut) setValorGut(d.valorGut)
+            if (d.percentuais) setPctGut(d.percentuais)
+          })
+          .catch(() => {})
+
         const par = await query('tabela_parametros', `tipo_servico=eq.${encodeURIComponent(tipoServicoBanco)}&select=tipo_parametro,descricao_parametros&order=tipo_parametro,descricao_parametros`)
         if (Array.isArray(par)) {
           const f = (tipo: string) => par.filter((p: {tipo_parametro: string, descricao_parametros: string}) => p.tipo_parametro === tipo).map((p: {descricao_parametros: string}) => p.descricao_parametros)
