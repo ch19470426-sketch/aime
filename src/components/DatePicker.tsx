@@ -19,12 +19,15 @@ function primeiroDia(a: number, m: number) { return new Date(a, m, 1).getDay() }
 
 export default function DatePicker({ value, onChange, style, min, max }: DatePickerProps) {
   const hoje = new Date().toISOString().slice(0,10)
-  const [aberto, setAberto] = useState(false)
-  const [pos, setPos] = useState({ top:0, left:0, width:0 })
+  const [aberto, setAberto]   = useState(false)
+  const [mounted, setMounted] = useState(false)  // ← evita SSR
+  const [pos, setPos]         = useState({ top:0, left:0, width:220 })
   const [viewAno, setViewAno] = useState(() => value ? +value.slice(0,4) : new Date().getFullYear())
   const [viewMes, setViewMes] = useState(() => value ? +value.slice(5,7)-1 : new Date().getMonth())
   const inputRef = useRef<HTMLDivElement>(null)
   const calRef   = useRef<HTMLDivElement>(null)
+
+  useEffect(() => { setMounted(true) }, [])
 
   useEffect(() => {
     if (value) { setViewAno(+value.slice(0,4)); setViewMes(+value.slice(5,7)-1) }
@@ -40,15 +43,15 @@ export default function DatePicker({ value, onChange, style, min, max }: DatePic
     return () => document.removeEventListener('mousedown', fn)
   }, [aberto])
 
-  const abrirCalendario = useCallback(() => {
+  const abrir = useCallback(() => {
     if (!inputRef.current) return
     const r = inputRef.current.getBoundingClientRect()
     setPos({ top: r.bottom + window.scrollY + 4, left: r.left + window.scrollX, width: Math.max(r.width, 220) })
     setAberto(a => !a)
   }, [])
 
-  function navMes(delta: number) {
-    let m = viewMes + delta, a = viewAno
+  function navMes(d: number) {
+    let m = viewMes + d, a = viewAno
     if (m < 0)  { m = 11; a-- }
     if (m > 11) { m = 0;  a++ }
     setViewMes(m); setViewAno(a)
@@ -68,20 +71,18 @@ export default function DatePicker({ value, onChange, style, min, max }: DatePic
   const prim   = primeiroDia(viewAno, viewMes)
   const cells  = Array.from({ length: Math.ceil((prim+total)/7)*7 })
 
-  const cal = aberto && typeof document !== 'undefined' ? createPortal(
+  const Calendario = (
     <div ref={calRef} onMouseDown={e => e.stopPropagation()}
-      style={{ position:'absolute', top: pos.top, left: pos.left, minWidth: pos.width,
+      style={{ position:'absolute', top:pos.top, left:pos.left, minWidth:pos.width,
         zIndex:99999, backgroundColor:'white', border:'2px solid #1E3A8A',
         borderRadius:'8px', boxShadow:'0 6px 24px rgba(0,0,0,0.22)', padding:'10px' }}>
-      {/* Navegação */}
       <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'8px' }}>
-        <button onMouseDown={e=>{e.preventDefault();navMes(-1)}}
+        <button onMouseDown={e=>{e.preventDefault(); navMes(-1)}}
           style={{ background:'none',border:'none',cursor:'pointer',fontSize:'16px',color:'#1E3A8A',fontWeight:700,padding:'0 6px' }}>‹</button>
         <span style={{ fontSize:'12px', fontWeight:700, color:'#1E3A8A' }}>{MESES[viewMes]} {viewAno}</span>
-        <button onMouseDown={e=>{e.preventDefault();navMes(1)}}
+        <button onMouseDown={e=>{e.preventDefault(); navMes(1)}}
           style={{ background:'none',border:'none',cursor:'pointer',fontSize:'16px',color:'#1E3A8A',fontWeight:700,padding:'0 6px' }}>›</button>
       </div>
-      {/* Grade */}
       <div style={{ display:'grid', gridTemplateColumns:'repeat(7,1fr)', gap:'2px' }}>
         {DS.map((d,i) => (
           <div key={i} style={{ textAlign:'center', fontSize:'9px', fontWeight:700, color:'#6B7280', paddingBottom:'4px' }}>{d}</div>
@@ -92,11 +93,11 @@ export default function DatePicker({ value, onChange, style, min, max }: DatePic
           const mm = String(viewMes+1).padStart(2,'0')
           const dd = String(dia).padStart(2,'0')
           const ds = `${viewAno}-${mm}-${dd}`
-          const sel  = ds === value
-          const isHj = ds === hoje
+          const sel   = ds === value
+          const isHj  = ds === hoje
           const desab = (!!min && ds < min) || (!!max && ds > max)
           return (
-            <div key={idx} onMouseDown={e=>{e.preventDefault(); if(!desab) selecionar(dia)}}
+            <div key={idx} onMouseDown={e => { e.preventDefault(); if (!desab) selecionar(dia) }}
               style={{ textAlign:'center', fontSize:'11px', padding:'5px 2px', borderRadius:'4px',
                 cursor: desab ? 'default' : 'pointer',
                 backgroundColor: sel ? '#1E3A8A' : isHj ? '#EBF1FF' : 'transparent',
@@ -107,13 +108,12 @@ export default function DatePicker({ value, onChange, style, min, max }: DatePic
           )
         })}
       </div>
-    </div>,
-    document.body
-  ) : null
+    </div>
+  )
 
   return (
     <>
-      <div ref={inputRef} onClick={abrirCalendario}
+      <div ref={inputRef} onClick={abrir}
         style={{ ...style, cursor:'pointer', display:'flex', alignItems:'center',
           justifyContent:'space-between', userSelect:'none' as const }}>
         <span style={{ flex:1, fontSize: style?.fontSize ?? '8pt',
@@ -122,7 +122,7 @@ export default function DatePicker({ value, onChange, style, min, max }: DatePic
         </span>
         <span style={{ fontSize:'11px', color:'#1E3A8A', marginLeft:'4px' }}>📅</span>
       </div>
-      {cal}
+      {mounted && aberto && createPortal(Calendario, document.body)}
     </>
   )
 }
