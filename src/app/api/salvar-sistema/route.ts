@@ -11,20 +11,18 @@ const supabase = createClient(
 
 export async function POST(request: NextRequest) {
   try {
-    const { id, tipo_servico, sistema, descricao_sistema, subsistema, anomalias } = await request.json()
+    const { id, tipo_servico, sistema, descricao_sistema, subsistema, anomalias, ativo } = await request.json()
 
     if (id) {
-      // UPDATE
       const { error } = await supabase
         .from('sistemas_construtivos')
-        .update({ anomalias, descricao_sistema })
+        .update({ anomalias, descricao_sistema, ativo: ativo !== false })
         .eq('id', id)
       if (error) return NextResponse.json({ erro: error.message }, { status: 500 })
     } else {
-      // INSERT
       const { error } = await supabase
         .from('sistemas_construtivos')
-        .insert({ tipo_servico, sistema, descricao_sistema, subsistema, anomalias })
+        .insert({ tipo_servico, sistema, descricao_sistema, subsistema, anomalias, ativo: true })
       if (error) return NextResponse.json({ erro: error.message }, { status: 500 })
     }
     return NextResponse.json({ ok: true })

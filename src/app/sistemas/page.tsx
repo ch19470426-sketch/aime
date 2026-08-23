@@ -21,6 +21,7 @@ const formInicial = {
   descricao_sistema: "",
   subsistema: "",
   anomalias: "",
+  ativo: true,
 }
 
 export default function SistemasConstrutivos() {
@@ -43,11 +44,11 @@ export default function SistemasConstrutivos() {
       setCarregando(true)
       const { data, error } = await supabase
         .from("sistemas_construtivos")
-        .select("sistema")
+        .select("sistema, ativo")
         .eq("tipo_servico", form.tipo_servico)
         .order("sistema")
       console.log("sistemas:", data, error)
-      if (data) setSistemas([...new Set(data.map((r: any) => r.sistema))])
+      if (data) setSistemas([...new Set(data.filter((r: any) => r.ativo !== false).map((r: any) => r.sistema))])
       setCarregando(false)
     }
     buscar()
@@ -59,12 +60,12 @@ export default function SistemasConstrutivos() {
       setCarregando(true)
       const { data } = await supabase
         .from("sistemas_construtivos")
-        .select("subsistema, descricao_sistema")
+        .select("subsistema, descricao_sistema, ativo")
         .eq("tipo_servico", form.tipo_servico)
         .eq("sistema", form.sistema)
         .order("subsistema")
       if (data && data.length > 0) {
-        setSubsistemas(data.map((r: any) => r.subsistema))
+        setSubsistemas(data.filter((r: any) => r.ativo !== false).map((r: any) => r.subsistema))
         setForm(f => ({ ...f, descricao_sistema: data[0].descricao_sistema || "" }))
       }
       setCarregando(false)
@@ -80,13 +81,13 @@ export default function SistemasConstrutivos() {
     const buscar = async () => {
       const { data } = await supabase
         .from("sistemas_construtivos")
-        .select("id, anomalias, descricao_sistema")
+        .select("id, anomalias, descricao_sistema, ativo")
         .eq("tipo_servico", form.tipo_servico)
         .eq("sistema", form.sistema)
         .eq("subsistema", form.subsistema)
         .single()
       if (data && !cancelado) {
-        setForm(f => ({ ...f, anomalias: data.anomalias || "", descricao_sistema: data.descricao_sistema || "" }))
+        setForm(f => ({ ...f, anomalias: data.anomalias || "", descricao_sistema: data.descricao_sistema || "", ativo: data.ativo !== false }))
         setRegistroId(data.id)
         setModoEdicao(true)
       }
@@ -138,7 +139,7 @@ export default function SistemasConstrutivos() {
     const res = await fetch('/api/salvar-sistema', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body)
+      body: JSON.stringify({ ...body, ativo: form.ativo })
     })
     const d = await res.json()
     if (!res.ok) { setErro('Erro ao salvar: ' + (d.erro ?? res.statusText)); return }
@@ -285,6 +286,17 @@ export default function SistemasConstrutivos() {
               </div>
 
               {erro && <p style={{color:"#DC2626",fontSize:"13px",textAlign:"center",marginBottom:"12px"}}>{erro}</p>}
+
+              {modoEdicao && (
+                <div style={{display:"flex",alignItems:"center",gap:"8px",marginBottom:"12px",padding:"8px 12px",backgroundColor:"#F8FAFC",borderRadius:"6px"}}>
+                  <input type="checkbox" id="ativo" checked={form.ativo !== false}
+                    onChange={e => setForm(f => ({...f, ativo: e.target.checked}))}
+                    style={{width:"16px",height:"16px",cursor:"pointer"}} />
+                  <label htmlFor="ativo" style={{fontSize:"12px",fontWeight:700,color:"#374151",cursor:"pointer"}}>
+                    Ativo — desmarque para suprimir este registro (não aparece nas vistorias, mas fica no histórico)
+                  </label>
+                </div>
+              )}
 
               <div style={{display:"flex",gap:"12px",justifyContent:"flex-end"}}>
                 <button type="button" onClick={() => window.location.href="/gestor?aba=configuracoes"}
