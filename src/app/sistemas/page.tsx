@@ -125,31 +125,23 @@ export default function SistemasConstrutivos() {
     }
   }
 
-  const handleSubmit = async (e) => { const supabase = createClient()
+  const handleSubmit = async (e) => {
     e.preventDefault()
     setErro("")
     if (form.descricao_sistema.length > 300) {
       setErro("Descricao do sistema nao pode ultrapassar 300 caracteres."); return
     }
-    if (modoEdicao && registroId) {
-      console.log('[AIMÊ] Salvando anomalias:', form.anomalias, 'id:', registroId)
-      const { error } = await supabase
-        .from("sistemas_construtivos")
-        .update({ anomalias: form.anomalias, descricao_sistema: form.descricao_sistema })
-        .eq("id", registroId)
-      if (error) { setErro("Erro ao atualizar: " + error.message); return }
-    } else {
-      const { error } = await supabase
-        .from("sistemas_construtivos")
-        .insert({
-          tipo_servico: form.tipo_servico,
-          sistema: form.sistema,
-          descricao_sistema: form.descricao_sistema,
-          subsistema: form.subsistema,
-          anomalias: form.anomalias,
-        })
-      if (error) { setErro("Erro ao salvar: " + error.message); return }
-    }
+    const body = modoEdicao && registroId
+      ? { id: registroId, anomalias: form.anomalias, descricao_sistema: form.descricao_sistema }
+      : { tipo_servico: form.tipo_servico, sistema: form.sistema, descricao_sistema: form.descricao_sistema, subsistema: form.subsistema, anomalias: form.anomalias }
+
+    const res = await fetch('/api/salvar-sistema', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    })
+    const d = await res.json()
+    if (!res.ok) { setErro('Erro ao salvar: ' + (d.erro ?? res.statusText)); return }
     setSucesso(true)
   }
 
