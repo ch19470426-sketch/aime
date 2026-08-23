@@ -487,11 +487,11 @@ function PlanoInner() {
                         </Field>
                       )}
                       <Field label="Data de início de operação *">
-                        <input style={S.inputDate} type="date" value={ativoAtual.data_inicio_operacao}
+                        <DatePicker
+                          style={S.inputDate}
+                          value={ativoAtual.data_inicio_operacao}
                           min="2000-01-01" max="2099-12-31"
-                          onChange={e => atualizarAtivo('data_inicio_operacao', e.target.value)}
-                          onClick={e => { try { (e.target as any).showPicker?.() } catch {} }}
-                          onFocus={e => { try { (e.target as any).showPicker?.() } catch {} }} />
+                          onChange={v => atualizarAtivo('data_inicio_operacao', v)} />
                       </Field>
                     </div>
                     {/* Linha 2+: Características específicas por tipo */}
@@ -768,13 +768,11 @@ function PlanoInner() {
                         <tr key={i} style={{ background: i%2===0?'#f8fafc':'#fff', borderBottom: '1px solid #e2e8f0' }}>
                           <td style={{ padding: '3px 6px', textAlign: 'justify' }}>{a.descricao}</td>
                           <td style={{ padding: '2px 4px' }}>
-                            <input type="date" style={{ ...S.inputDate, fontSize: '7.5pt', padding: '2px 4px' }}
+                            <DatePicker
+                              style={{ ...S.inputDate, fontSize: '7.5pt', padding: '2px 4px' }}
                               value={datas[i]?.ini ?? ''}
                               min="2000-01-01" max="2099-12-31"
-                              onClick={e => { try { (e.target as any).showPicker?.() } catch {} }}
-                              onFocus={e => { try { (e.target as any).showPicker?.() } catch {} }}
-                              onChange={e => {
-                                const v = e.target.value
+                              onChange={v => {
                                 if (i > 0 && datas[i-1]?.ini && v < datas[i-1].ini) {
                                   informa('Data inválida', 'A data início não pode ser anterior à data início da atividade anterior.')
                                   return
@@ -783,13 +781,11 @@ function PlanoInner() {
                               }} />
                           </td>
                           <td style={{ padding: '2px 4px' }}>
-                            <input type="date" style={{ ...S.inputDate, fontSize: '7.5pt', padding: '2px 4px' }}
+                            <DatePicker
+                              style={{ ...S.inputDate, fontSize: '7.5pt', padding: '2px 4px' }}
                               value={datas[i]?.fim ?? ''}
-                              min="2000-01-01" max="2099-12-31"
-                              onClick={e => { try { (e.target as any).showPicker?.() } catch {} }}
-                              onFocus={e => { try { (e.target as any).showPicker?.() } catch {} }}
-                              onChange={e => {
-                                const v = e.target.value
+                              min={datas[i]?.ini || "2000-01-01"} max="2099-12-31"
+                              onChange={v => {
                                 if (datas[i]?.ini && v < datas[i].ini) {
                                   informa('Data inválida', 'A data fim não pode ser anterior à data início.')
                                   return
