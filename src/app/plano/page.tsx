@@ -767,11 +767,12 @@ function PlanoInner() {
                         <tr key={i} style={{ background: i%2===0?'#f8fafc':'#fff', borderBottom: '1px solid #e2e8f0' }}>
                           <td style={{ padding: '3px 6px', textAlign: 'justify' }}>{a.descricao}</td>
                           <td style={{ padding: '2px 4px' }}>
-                            <DatePicker
-                              style={{ ...S.inputDate, fontSize: '7.5pt', padding: '2px 4px' }}
+                            <input type="date" style={{ ...S.inputDate, fontSize: '7.5pt', padding: '2px 4px' }}
                               value={datas[i]?.ini ?? ''}
                               min="2000-01-01" max="2099-12-31"
-                              onChange={v => {
+                              onFocus={e => { try { (e.target as any).showPicker?.() } catch {} }}
+                              onChange={e => {
+                                const v = e.target.value
                                 if (i > 0 && datas[i-1]?.ini && v < datas[i-1].ini) {
                                   informa('Data inválida', 'A data início não pode ser anterior à data início da atividade anterior.')
                                   return
