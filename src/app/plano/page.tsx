@@ -487,11 +487,10 @@ function PlanoInner() {
                         </Field>
                       )}
                       <Field label="Data de início de operação *">
-                        <DatePicker
-                          style={S.inputDate}
-                          value={ativoAtual.data_inicio_operacao}
+                        <input style={S.inputDate} type="date" value={ativoAtual.data_inicio_operacao}
                           min="2000-01-01" max="2099-12-31"
-                          onChange={v => atualizarAtivo('data_inicio_operacao', v)} />
+                          onChange={e => atualizarAtivo('data_inicio_operacao', e.target.value)}
+                          onFocus={e => { try { (e.target as any).showPicker?.() } catch {} }} />
                       </Field>
                     </div>
                     {/* Linha 2+: Características específicas por tipo */}
@@ -781,16 +780,18 @@ function PlanoInner() {
                               }} />
                           </td>
                           <td style={{ padding: '2px 4px' }}>
-                            <DatePicker
-                              style={{ ...S.inputDate, fontSize: '7.5pt', padding: '2px 4px' }}
+                            <input type="date" style={{ ...S.inputDate, fontSize: '7.5pt', padding: '2px 4px' }}
                               value={datas[i]?.fim ?? ''}
-                              min={datas[i]?.ini || "2000-01-01"} max="2099-12-31"
-                              onChange={v => {
+                              min="2000-01-01" max="2099-12-31"
+                              onFocus={e => { try { (e.target as any).showPicker?.() } catch {} }}
+                              onChange={e => {
+                                const v = e.target.value
                                 if (datas[i]?.ini && v < datas[i].ini) {
                                   informa('Data inválida', 'A data fim não pode ser anterior à data início.')
                                   return
                                 }
                                 setDatas(prev => prev.map((d,j) => j===i ? {...d, fim:v} : d))
+                              
                               }} />
                           </td>
                         </tr>
