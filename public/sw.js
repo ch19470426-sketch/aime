@@ -148,25 +148,79 @@ self.addEventListener('sync', (e) => {
   }
 })
 
+async function abrirDB() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open('aime-offline', 2)
+    req.onupgradeneeded = e => {
+      const db = e.target.result
+      if (!db.objectStoreNames.contains('vistorias_pendentes'))
+        db.createObjectStore('vistorias_pendentes', { keyPath: 'id', autoIncrement: true })
+    }
+    req.onsuccess = e => resolve(e.target.result)
+    req.onerror   = () => reject(req.error)
+  })
+}
+
 async function sincronizarVistorias() {
-  const req = indexedDB.open('aime-offline', 1)
-  req.onsuccess = async () => {
-    const db = req.result
-    if (!db.objectStoreNames.contains('vistorias_pendentes')) return
-    const tx  = db.transaction('vistorias_pendentes', 'readwrite')
-    const str = tx.objectStore('vistorias_pendentes')
-    const all = str.getAll()
-    all.onsuccess = async () => {
-      for (const item of all.result) {
+  const db      = await abrirDB()
+  const tx      = db.transaction('vistorias_pendentes', 'readwrite')
+  const store   = tx.objectStore('vistorias_pendentes')
+  const pendentes = await new Promise(res => { const r = store.getAll(); r.onsuccess = () => res(r.result) })
+
+  for (const item of pendentes) {
+    try {
+      const payload = item.payload ?? item
+      let { nc, cp } = payload
+
+      // Gerar NC/CP via IA se estiver pendente
+      if (item.nc_pendente && payload.sistema && payload.anomalia) {
         try {
-          const res = await fetch('/api/salvar-vistoria', {
+          const resIA = await fetch('/api/gerar-nc-cp', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(item)
+            body: JSON.stringify({
+              sistema: payload.sistema, subsistema: payload.subsistema,
+              anomalia: payload.anomalia, local: payload.local,
+              complemento: payload.complemento, origem: payload.origem,
+              abrangencia: payload.descAbrangencia ?? payload.abrangencia,
+            })
           })
-          if (res.ok) str.delete(item.id)
+          if (resIA.ok) {
+            const d = await resIA.json()
+            nc = d.nc || d.nao_conformidade || nc
+            cp = d.cp || d.causa_provavel || cp
+          }
         } catch {}
       }
-    }
+
+      // Obter número da foto
+      const nrRes = await fetch('/api/foto-nr', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          cpf_inspetor: payload.cpfInspetor,
+          cnpjoucpf:    payload.cnpjoucpf,
+          tipo_servico: payload.tipoServico,
+        })
+      })
+      const nrData  = await nrRes.json()
+      const nrFinal = nrData?.formatado ?? payload.fotoNr
+
+      const nomeArquivo = `${payload.chaveInspetor}_${payload.cnpjoucpf}_${payload.tipoServico}_${nrFinal}.json`
+      const dadosFinal  = { ...payload, nc, cp, fotoNr: nrFinal, savedAt: new Date().toISOString() }
+      delete dadosFinal.nc_pendente
+
+      const res = await fetch('/api/salvar-vistoria', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nomeArquivo, payload: dadosFinal })
+      })
+
+      if (res.ok) {
+        const tx2  = db.transaction('vistorias_pendentes', 'readwrite')
+        const str2 = tx2.objectStore('vistorias_pendentes')
+        str2.delete(item.id)
+      }
+    } catch {}
   }
 }

@@ -323,9 +323,27 @@ function Tela31Inner() {
       return
     }
 
-    } catch(e) {
-      setErroSave('Erro ao salvar: ' + String(e))
-      setSalvando(false)
+    } catch {
+      // Sem internet — salvar no IndexedDB
+      await salvarOffline({
+        chaveInspetor, cpfInspetor, cnpjoucpf, tipoServico,
+        cnpjDisplay, razaoSocial, tipoAtivo, tagNrSerie, finalidade,
+        sistema, subsistema, anomalia, origem, local, complemento,
+        gravidade: gravNum, urgencia: urgNum, abrangencia: abrNum, exposicao: expNum,
+        grauRisco, prioridade, dataVistoria, fotoBase64, nc, cp,
+        nc_pendente: !nc || !cp, fotoNr,
+        payload: { chaveInspetor, cpfInspetor, cnpjoucpf, tipoServico,
+          cnpjDisplay, razaoSocial, tipoAtivo, tagNrSerie, finalidade,
+          sistema, subsistema, anomalia, origem, local, complemento,
+          gravidade: gravNum, urgencia: urgNum, abrangencia: abrNum, exposicao: expNum,
+          grauRisco, prioridade, dataVistoria, fotoBase64, nc, cp, nc_pendente: !nc || !cp }
+      })
+      setFeedbackIA('📵 Sem internet. Vistoria salva localmente. NC/CP serão geradas pela IA ao reconectar.')
+      if ('serviceWorker' in navigator && 'SyncManager' in window) {
+        const reg = await navigator.serviceWorker.ready
+        await (reg as any).sync.register('aime-sync-vistoria')
+      }
+      setSalvando(false); setSalvoOk(true)
       return
     }
 

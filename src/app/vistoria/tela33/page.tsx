@@ -2,6 +2,7 @@
 // AIMÊ — Tela 31 SEM hook externo — toda lógica inline para evitar SSR issues
 
 'use client'
+import { salvarOffline } from '@/lib/offlineVistoria'
 
 import { Suspense, useEffect, useRef, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
@@ -287,35 +288,56 @@ function Tela31Inner() {
     if (!fotoBase64) { alert('Adicione a foto antes de salvar.'); return }
     setSalvando(true); setErroSave('')
 
-    // Incrementa o contador de foto
-    const nrRes = await fetch('/api/foto-nr', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ cpf_inspetor: cpfInspetor, cnpjoucpf, tipo_servico: tipoServico })
-    })
-    const nrData = await nrRes.json()
-    const nrFinal = nrData?.formatado ?? fotoNr
-
-    const nomeArquivo = `${chaveInspetor}_${cnpjoucpf}_${tipoServico}_${nrFinal}.json`
-    const payload = {
+    const dadosBase = {
       chaveInspetor, cpfInspetor, cnpjoucpf, tipoServico,
-      savedAt: new Date().toISOString(),
       cnpjDisplay, razaoSocial, tipoAtivo, tagNrSerie, finalidade,
       sistema, subsistema, anomalia, origem, local, complemento,
       gravidade: gravNum, urgencia: urgNum, abrangencia: abrNum, exposicao: expNum,
-      grauRisco, prioridade, fotoNr: nrFinal, dataVistoria, fotoBase64, nc, cp,
+      grauRisco, prioridade, dataVistoria, fotoBase64, nc, cp,
+      nc_pendente: !nc || !cp,  // flag: IA deve gerar ao reconectar
     }
 
-    const res = await fetch('/api/salvar-vistoria', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ nomeArquivo, payload })
-    })
-    const resultado = await res.json()
+    try {
+      // Incrementa o contador de foto
+      const nrRes = await fetch('/api/foto-nr', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ cpf_inspetor: cpfInspetor, cnpjoucpf, tipo_servico: tipoServico })
+      })
+      const nrData = await nrRes.json()
+      const nrFinal = nrData?.formatado ?? fotoNr
 
-    if (!res.ok || resultado.erro) {
-      setErroSave('Erro ao salvar: ' + (resultado.erro ?? res.statusText))
-      setSalvando(false)
+      const nomeArquivo = `${chaveInspetor}_${cnpjoucpf}_${tipoServico}_${nrFinal}.json`
+      const payload = { ...dadosBase, savedAt: new Date().toISOString(), fotoNr: nrFinal }
+
+      const res = await fetch('/api/salvar-vistoria', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nomeArquivo, payload })
+      })
+      const resultado = await res.json()
+
+      if (!res.ok || resultado.erro) {
+        setErroSave('Erro ao salvar: ' + (resultado.erro ?? res.statusText))
+        setSalvando(false)
+        return
+      }
+    } catch {
+      // Sem internet — salvar no IndexedDB para sincronizar depois
+      await salvarOffline({ ...dadosBase, fotoNr, payload: dadosBase })
+      setErroSave('')
+      setFeedbackIA('📵 Sem internet. Vistoria salva localmente. NC/CP serão geradas pela IA ao reconectar.')
+      // Limpar e continuar normalmente
+      setSistema(''); setSubsistema(''); setAnomalia(''); setOrigem(''); setLocal('')
+      setComplemento(''); setTipoAtivo(''); setTagNrSerie('')
+      setDescGravidade(''); setDescUrgencia(''); setDescAbrangencia(''); setDescExposicao('')
+      setFotoBase64(''); setNc(''); setCp(''); setFeedbackIA('📵 Salvo localmente. Sincronize ao reconectar.')
+      setSalvando(false); setSalvoOk(true)
+      // Registrar sync para quando internet retornar
+      if ('serviceWorker' in navigator && 'SyncManager' in window) {
+        const reg = await navigator.serviceWorker.ready
+        await (reg as any).sync.register('aime-sync-vistoria')
+      }
       return
     }
 
