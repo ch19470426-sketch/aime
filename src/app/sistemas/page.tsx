@@ -76,6 +76,7 @@ export default function SistemasConstrutivos() {
     if (!form.subsistema || !form.sistema || !form.tipo_servico || novoSubsistema) {
       setModoEdicao(false); setRegistroId(null); return
     }
+    let cancelado = false  // evita sobrescrever edição do usuário após resultado assíncrono
     const buscar = async () => {
       const { data } = await supabase
         .from("sistemas_construtivos")
@@ -84,13 +85,14 @@ export default function SistemasConstrutivos() {
         .eq("sistema", form.sistema)
         .eq("subsistema", form.subsistema)
         .single()
-      if (data) {
+      if (data && !cancelado) {
         setForm(f => ({ ...f, anomalias: data.anomalias || "", descricao_sistema: data.descricao_sistema || "" }))
         setRegistroId(data.id)
         setModoEdicao(true)
       }
     }
     buscar()
+    return () => { cancelado = true }  // cancela se subsistema mudar antes do fetch terminar
   }, [form.subsistema, novoSubsistema])
 
   const handleChange = (e) => {
@@ -130,6 +132,7 @@ export default function SistemasConstrutivos() {
       setErro("Descricao do sistema nao pode ultrapassar 300 caracteres."); return
     }
     if (modoEdicao && registroId) {
+      console.log('[AIMÊ] Salvando anomalias:', form.anomalias, 'id:', registroId)
       const { error } = await supabase
         .from("sistemas_construtivos")
         .update({ anomalias: form.anomalias, descricao_sistema: form.descricao_sistema })
