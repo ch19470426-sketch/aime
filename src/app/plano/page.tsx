@@ -487,8 +487,10 @@ function PlanoInner() {
                         </Field>
                       )}
                       <Field label="Data de início de operação *">
-                        <input style={S.input} type="date" value={ativoAtual.data_inicio_operacao}
+                        <input style={S.inputDate} type="date" value={ativoAtual.data_inicio_operacao}
+                          min="2000-01-01" max="2099-12-31"
                           onChange={e => atualizarAtivo('data_inicio_operacao', e.target.value)}
+                          onClick={e => { try { (e.target as any).showPicker?.() } catch {} }}
                           onFocus={e => { try { (e.target as any).showPicker?.() } catch {} }} />
                       </Field>
                     </div>
@@ -766,8 +768,10 @@ function PlanoInner() {
                         <tr key={i} style={{ background: i%2===0?'#f8fafc':'#fff', borderBottom: '1px solid #e2e8f0' }}>
                           <td style={{ padding: '3px 6px', textAlign: 'justify' }}>{a.descricao}</td>
                           <td style={{ padding: '2px 4px' }}>
-                            <input type="date" style={{ ...S.input, fontSize: '7.5pt', padding: '2px 4px' }}
+                            <input type="date" style={{ ...S.inputDate, fontSize: '7.5pt', padding: '2px 4px' }}
                               value={datas[i]?.ini ?? ''}
+                              min="2000-01-01" max="2099-12-31"
+                              onClick={e => { try { (e.target as any).showPicker?.() } catch {} }}
                               onFocus={e => { try { (e.target as any).showPicker?.() } catch {} }}
                               onChange={e => {
                                 const v = e.target.value
@@ -779,8 +783,10 @@ function PlanoInner() {
                               }} />
                           </td>
                           <td style={{ padding: '2px 4px' }}>
-                            <input type="date" style={{ ...S.input, fontSize: '7.5pt', padding: '2px 4px' }}
+                            <input type="date" style={{ ...S.inputDate, fontSize: '7.5pt', padding: '2px 4px' }}
                               value={datas[i]?.fim ?? ''}
+                              min="2000-01-01" max="2099-12-31"
+                              onClick={e => { try { (e.target as any).showPicker?.() } catch {} }}
                               onFocus={e => { try { (e.target as any).showPicker?.() } catch {} }}
                               onChange={e => {
                                 const v = e.target.value
@@ -933,6 +939,7 @@ const S: Record<string, React.CSSProperties> = {
   field:       { display: 'flex', flexDirection: 'column', gap: '2px' },
   fieldLabel:  { fontSize: '6.5pt', fontWeight: 600, color: '#4a6480' },
   input:       { width: '100%', border: '1px solid #c3d4f0', borderRadius: '4px', padding: '4px 6px', fontSize: '8pt', color: '#1a1a2e', fontFamily: 'inherit', background: '#ffffff', boxSizing: 'border-box' },
+  inputDate:   { width: '100%', border: '1px solid #c3d4f0', borderRadius: '4px', padding: '4px 6px', fontSize: '8pt', color: '#1a1a2e', fontFamily: 'inherit', background: '#ffffff', boxSizing: 'border-box', minHeight: '28px', WebkitAppearance: 'none', appearance: 'none' as any },
   inputRO:     { width: '100%', border: '1px solid #e2e8f0', borderRadius: '4px', padding: '4px 6px', fontSize: '8pt', color: '#64748b', fontFamily: 'inherit', background: '#f1f5f9', boxSizing: 'border-box' },
   footer:      { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginTop: '8px' },
   btn:         { padding: '8px 0', fontSize: '8pt', fontWeight: 700, borderRadius: '50px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'inherit' },
