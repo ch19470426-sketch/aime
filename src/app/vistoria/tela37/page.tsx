@@ -274,7 +274,12 @@ function Tela31Inner() {
       if (cpVal) setCp(cpVal)
       setFeedbackIA('✅ NC e CP gerados com sucesso!')
     } catch(e) {
-      setFeedbackIA('⚠️ Erro ao gerar NC/CP: ' + String(e))
+      const msg = String(e)
+      if (msg.includes('fetch') || msg.includes('network') || msg.includes('offline') || msg.includes('503')) {
+        setFeedbackIA('📵 Sem internet. Preencha NC e CP manualmente e salve normalmente.')
+      } else {
+        setFeedbackIA('⚠️ Erro ao gerar NC/CP. Preencha manualmente.')
+      }
     }
   }
 

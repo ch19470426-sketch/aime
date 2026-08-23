@@ -1,9 +1,9 @@
 // AIMÊ Service Worker — offline para vistorias 31-38
-const CACHE_STATIC = 'aime-static-v1'
-const CACHE_PAGES  = 'aime-pages-v1'
-const SYNC_TAG     = 'aime-sync-vistoria'
+const CACHE_VER     = 'aime-v4'
+const CACHE_STATIC  = CACHE_VER + '-static'
+const CACHE_PAGES   = CACHE_VER + '-pages'
+const CACHE_API     = CACHE_VER + '-api'
 
-// Assets que devem estar disponíveis offline
 const ASSETS_STATIC = [
   '/',
   '/dashboard',
@@ -15,46 +15,99 @@ const ASSETS_STATIC = [
   '/fluxo-aime.png',
 ]
 
-// Rotas de vistoria que devem funcionar offline
 const VISTORIA_ROUTES = [
   '/vistoria/tela31', '/vistoria/tela32', '/vistoria/tela33', '/vistoria/tela34',
   '/vistoria/tela35', '/vistoria/tela36', '/vistoria/tela37', '/vistoria/tela38',
 ]
+
+// APIs que devem ter resposta offline quando falham
+const API_OFFLINE_RESPONSES = {
+  '/api/gerar-nc-cp': {
+    ok: false,
+    status: 503,
+    body: JSON.stringify({
+      erro: 'Sem conexão com internet. A NC foi registrada localmente. Sincronize quando reconectar.',
+      offline: true
+    })
+  },
+  '/api/criticidade-gut': {
+    ok: true,
+    status: 200,
+    body: JSON.stringify({ valorGut: {}, percentuais: {} }) // usa fallback hardcoded
+  },
+  '/api/tabela-parametros': {
+    ok: true,
+    status: 200,
+    body: JSON.stringify([])
+  }
+}
 
 // ── Install ──────────────────────────────────────────────────────────────────
 self.addEventListener('install', (e) => {
   e.waitUntil(
     caches.open(CACHE_STATIC).then(cache =>
       cache.addAll([...ASSETS_STATIC, ...VISTORIA_ROUTES])
-    ).catch(() => {}) // não bloqueia se algum asset falhar
+    ).then(() => self.skipWaiting())
   )
-  self.skipWaiting()
 })
 
 // ── Activate ─────────────────────────────────────────────────────────────────
 self.addEventListener('activate', (e) => {
   e.waitUntil(
     caches.keys().then(keys =>
-      Promise.all(keys
-        .filter(k => k !== CACHE_STATIC && k !== CACHE_PAGES)
-        .map(k => caches.delete(k))
+      Promise.all(
+        keys.filter(k => k !== CACHE_STATIC && k !== CACHE_PAGES && k !== CACHE_API)
+          .map(k => caches.delete(k))
       )
-    )
+    ).then(() => self.clients.claim())
   )
-  self.clients.claim()
 })
 
-// ── Fetch ────────────────────────────────────────────────────────────────────
+// ── Fetch ─────────────────────────────────────────────────────────────────────
 self.addEventListener('fetch', (e) => {
   const { request } = e
   const url = new URL(request.url)
 
-  // Ignorar: extensões do Chrome, Supabase (dados online), não-GET
-  if (request.method !== 'GET') return
-  if (url.hostname.includes('supabase')) return
+  // Ignorar: extensões do Chrome, Supabase (dados online)
   if (url.protocol === 'chrome-extension:') return
+  if (url.hostname.includes('supabase')) return
 
-  // Assets estáticos (_next/static, imagens): Cache First
+  // ── APIs: Network First com fallback offline específico ──────────────────
+  if (url.pathname.startsWith('/api/')) {
+    e.respondWith(
+      fetch(request.clone()).then(res => {
+        // Cachear APIs GET bem-sucedidas
+        if (request.method === 'GET' && res.ok) {
+          const clone = res.clone()
+          caches.open(CACHE_API).then(c => c.put(request, clone))
+        }
+        return res
+      }).catch(async () => {
+        // Tentar cache para GETs
+        if (request.method === 'GET') {
+          const cached = await caches.match(request)
+          if (cached) return cached
+        }
+        // Resposta offline configurada
+        const apiPath = url.pathname
+        const offlineResp = API_OFFLINE_RESPONSES[apiPath]
+        if (offlineResp) {
+          return new Response(offlineResp.body, {
+            status: offlineResp.status,
+            headers: { 'Content-Type': 'application/json' }
+          })
+        }
+        // Fallback genérico para APIs desconhecidas
+        return new Response(
+          JSON.stringify({ erro: 'Sem conexão. Tente novamente quando reconectar.', offline: true }),
+          { status: 503, headers: { 'Content-Type': 'application/json' } }
+        )
+      })
+    )
+    return
+  }
+
+  // ── Assets estáticos: Cache First ────────────────────────────────────────
   if (url.pathname.startsWith('/_next/static') ||
       url.pathname.match(/\.(png|jpg|jpeg|svg|ico|woff2?)$/)) {
     e.respondWith(
@@ -69,7 +122,7 @@ self.addEventListener('fetch', (e) => {
     return
   }
 
-  // Telas de vistoria: Network First com fallback para cache
+  // ── Telas de vistoria e dashboard: Network First + cache fallback ─────────
   const isVistoria = VISTORIA_ROUTES.some(r => url.pathname.startsWith(r))
   if (isVistoria || url.pathname === '/dashboard' || url.pathname === '/') {
     e.respondWith(
@@ -82,65 +135,38 @@ self.addEventListener('fetch', (e) => {
     return
   }
 
-  // Demais: Network First simples
+  // ── Demais: Network First com fallback de cache ───────────────────────────
   e.respondWith(
     fetch(request).catch(() => caches.match(request))
   )
 })
 
 // ── Background Sync ───────────────────────────────────────────────────────────
-// Quando o inspetor salva uma vistoria offline, ela fica em IndexedDB.
-// Ao recuperar conexão, o sync é disparado automaticamente.
 self.addEventListener('sync', (e) => {
-  if (e.tag === SYNC_TAG) {
-    e.waitUntil(syncVistorias())
+  if (e.tag === 'aime-sync-vistoria') {
+    e.waitUntil(sincronizarVistorias())
   }
 })
 
-async function syncVistorias() {
-  // Abre o IndexedDB 'aime-offline' e envia os registros pendentes
-  try {
-    const db = await openDB()
-    const registros = await getAllPendentes(db)
-    for (const reg of registros) {
-      try {
-        const res = await fetch('/api/salvar-vistoria', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(reg.payload),
-        })
-        if (res.ok) await deletePendente(db, reg.id)
-      } catch { /* mantém na fila */ }
+async function sincronizarVistorias() {
+  const req = indexedDB.open('aime-offline', 1)
+  req.onsuccess = async () => {
+    const db = req.result
+    if (!db.objectStoreNames.contains('vistorias_pendentes')) return
+    const tx  = db.transaction('vistorias_pendentes', 'readwrite')
+    const str = tx.objectStore('vistorias_pendentes')
+    const all = str.getAll()
+    all.onsuccess = async () => {
+      for (const item of all.result) {
+        try {
+          const res = await fetch('/api/salvar-vistoria', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(item)
+          })
+          if (res.ok) str.delete(item.id)
+        } catch {}
+      }
     }
-  } catch { /* IndexedDB indisponível */ }
-}
-
-// ── IndexedDB helpers ─────────────────────────────────────────────────────────
-function openDB() {
-  return new Promise((resolve, reject) => {
-    const req = indexedDB.open('aime-offline', 1)
-    req.onupgradeneeded = () => {
-      req.result.createObjectStore('pendentes', { keyPath: 'id', autoIncrement: true })
-    }
-    req.onsuccess = () => resolve(req.result)
-    req.onerror = () => reject(req.error)
-  })
-}
-
-function getAllPendentes(db) {
-  return new Promise((resolve, reject) => {
-    const tx = db.transaction('pendentes', 'readonly')
-    const req = tx.objectStore('pendentes').getAll()
-    req.onsuccess = () => resolve(req.result)
-    req.onerror = () => reject(req.error)
-  })
-}
-
-function deletePendente(db, id) {
-  return new Promise((resolve, reject) => {
-    const tx = db.transaction('pendentes', 'readwrite')
-    const req = tx.objectStore('pendentes').delete(id)
-    req.onsuccess = () => resolve()
-    req.onerror = () => reject(req.error)
-  })
+  }
 }
