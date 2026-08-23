@@ -66,7 +66,7 @@ export default function TabelaParametros() {
     }
   }
 
-  const handleSubmit = async (e) => { const supabase = createClient()
+  const handleSubmit = async (e) => {
     e.preventDefault()
     setErro("")
     const valores = form.descricao_parametros
@@ -76,20 +76,18 @@ export default function TabelaParametros() {
     if (valores.length === 0) {
       setErro("Informe ao menos um valor."); return
     }
-    if (modoEdicao) {
-      await supabase
-        .from("tabela_parametros")
-        .delete()
-        .eq("tipo_servico", form.tipo_servico)
-        .eq("tipo_parametro", "Local ocorrência")
-    }
-    const registros = valores.map(v => ({
-      tipo_servico: form.tipo_servico,
-      tipo_parametro: "Local ocorrência",
-      descricao_parametros: v,
-    }))
-    const { error } = await supabase.from("tabela_parametros").insert(registros)
-    if (error) { setErro("Erro ao salvar: " + error.message); return }
+    const res = await fetch('/api/salvar-parametro', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        tipo_servico: form.tipo_servico,
+        tipo_parametro: "Local ocorrência",
+        valores,
+        modoEdicao,
+      })
+    })
+    const d = await res.json()
+    if (!res.ok) { setErro('Erro ao salvar: ' + (d.erro ?? res.statusText)); return }
     setSucesso(true)
   }
 
