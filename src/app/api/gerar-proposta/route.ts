@@ -382,13 +382,14 @@ i { font-style: italic; }
 ${(insp.cabecalho_documentos || TITULO_TIPO[tipoServico]) ? `<div class="cab">${insp.cabecalho_documentos || TITULO_TIPO[tipoServico]}</div>` : ''}
 
 <p>&nbsp;</p>
-<p style="text-align:right;margin:0;line-height:1">${municipio}, ${dataHoje}</p>
-<p>&nbsp;</p>
-<p>&nbsp;</p>
-<p style="text-align:right;margin:0;line-height:1">${ao}</p>
-<p style="text-align:right;margin:0;line-height:1">${razaoSocial}</p>
-<p style="text-align:right;margin:0;line-height:1">${labelDoc} ${docFmt}</p>
-<p style="text-align:right;margin:0;line-height:1">${municipioUF}</p>
+<div style="width:100%;text-align:right">
+<p style="margin:0;line-height:1.4">${municipio}, ${dataHoje}</p>
+<p style="margin:0">&nbsp;</p>
+<p style="margin:0;line-height:1.4">${ao}</p>
+<p style="margin:0;line-height:1.4">${razaoSocial}</p>
+<p style="margin:0;line-height:1.4">${labelDoc} ${docFmt}</p>
+<p style="margin:0;line-height:1.4">${municipioUF}</p>
+</div>
 <p>&nbsp;</p>
 <p>&nbsp;</p>
 <p style="margin:0;line-height:1"><b>${c.ref}</b></p>
