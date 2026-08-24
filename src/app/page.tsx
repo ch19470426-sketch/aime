@@ -21,10 +21,8 @@ export default function LoginPage() {
   useEffect(() => {
     // Verificar sessão primeiro
     supabase.auth.getSession().then(({ data: { session } }) => {
-      console.log('[AIMÊ] getSession:', session?.user?.email ?? 'sem sessão')
       if (session?.user) {
         // Sessão ativa — ir direto para dashboard sem mostrar capa
-        console.log('[AIMÊ] Sessão ativa → dashboard')
         router.replace('/dashboard')
       } else {
         // Sem sessão — mostrar capa
@@ -67,17 +65,13 @@ export default function LoginPage() {
 
       // Verifica se já existe cadastro de inspetor para este CPF
       const res = await fetch(`/api/verificar-inspetor?cpf=${cpfLimpo}`)
-      const resData = await res.json()
-      const jaCadastrado = resData.existe
-      console.log('[LOGIN] jaCadastrado:', jaCadastrado, 'cpf:', cpfLimpo)
+      const { existe: jaCadastrado } = await res.json()
 
       if (jaCadastrado) {
         // Login normal — tenta autenticar com a senha fornecida
         const { error } = await supabase.auth.signInWithPassword({ email: emailTecnico, password })
-        console.log('[LOGIN] signIn error:', error?.message ?? 'nenhum')
         if (!error) {
           setLoading(false)
-          console.log('[LOGIN] Sucesso → /dashboard')
           router.push("/dashboard")
           return
         }
