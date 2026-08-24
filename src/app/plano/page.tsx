@@ -1,5 +1,7 @@
 "use client"
 export const dynamic = 'force-dynamic'
+import dynamic_import from 'next/dynamic'
+const DatePickerYear = dynamic_import(() => import('@/components/DatePickerYear'), { ssr: false })
 import { Suspense, useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Image from 'next/image'
