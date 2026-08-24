@@ -292,7 +292,8 @@ export default function Dashboard() {
           const dados = await res.json()
           if (!Array.isArray(dados) || dados.length === 0) {
             deveRedirecionar = true
-            console.error('[AIMÊ] Redirecionando para novo=1. dados:', JSON.stringify(dados))
+            // CPF não tem cadastro — limpar sessão e redirecionar para novo cadastro
+            await createClient().auth.signOut()
             window.location.href = `/inspetor?cpf=${cpf}&novo=1`
             return
           }
