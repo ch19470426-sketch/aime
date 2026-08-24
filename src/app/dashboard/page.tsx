@@ -292,7 +292,9 @@ export default function Dashboard() {
           const dados = await res.json()
           if (!Array.isArray(dados) || dados.length === 0) {
             deveRedirecionar = true
-            window.location.href = `/inspetor?cpf=${cpf}&novo=1`
+            console.error('[AIMÊ] Redirecionando para novo=1. dados:', JSON.stringify(dados))
+            console.error('[AIMÊ] Redirecionando para novo=1 (fora do try). dados:', JSON.stringify(dados))
+          window.location.href = `/inspetor?cpf=${cpf}&novo=1`
             return
           }
           let chave = dados[0].chave_inspetor ?? ""
