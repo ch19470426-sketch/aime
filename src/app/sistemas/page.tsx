@@ -48,7 +48,7 @@ export default function SistemasConstrutivos() {
         .eq("tipo_servico", form.tipo_servico)
         .order("sistema")
       console.log("sistemas:", data, error)
-      if (data) setSistemas([...new Set(data.map((r: any) => r.sistema))])
+      if (data) setSistemas([...new Set(data.filter((r: any) => r.ativo !== false).map((r: any) => r.sistema))])
       setCarregando(false)
     }
     buscar()
@@ -65,7 +65,7 @@ export default function SistemasConstrutivos() {
         .eq("sistema", form.sistema)
         .order("subsistema")
       if (data && data.length > 0) {
-        setSubsistemas(data.map((r: any) => r.subsistema))
+        setSubsistemas(data.filter((r: any) => r.ativo !== false).map((r: any) => r.subsistema))
         setForm(f => ({ ...f, descricao_sistema: data[0].descricao_sistema || "" }))
       }
       setCarregando(false)
