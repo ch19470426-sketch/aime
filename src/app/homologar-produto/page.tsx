@@ -244,7 +244,7 @@ function HomologarProdutoInner() {
           border-top: 1px solid #ccc; padding-top: 3pt;
         }
       }
-      body { -webkit-print-color-adjust: exact; print-color-adjust: exact; margin: 0 !important; }
+      body { -webkit-print-color-adjust: exact; print-color-adjust: exact; margin: 0 !important; padding: 0 !important; }
       .cab, .rod { display: none !important; }
       .pg-capa { page-break-after: always; }
     `
