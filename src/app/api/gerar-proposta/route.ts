@@ -311,8 +311,7 @@ body {
   font-size: 10pt;
   line-height: 1.6;
   color: #000;
-  padding: 0;
-  margin: 0;
+  padding: 1cm 2cm 1cm 2.5cm;
 }
 .cab {
   text-align: center;

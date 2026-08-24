@@ -264,21 +264,26 @@ function HomologarProdutoInner() {
     const blob = new Blob([htmlPrint], { type: 'text/html;charset=utf-8' })
     const url  = URL.createObjectURL(blob)
 
-    // Abre a aba e comanda a impressao pela janela pai; o script embutido
-    // no documento continua como reserva caso o onload nao dispare.
-    const win = window.open(url, '_blank')
-    if (win) {
+    // Usar iframe oculto para imprimir sem bloquear a aba principal
+    const ifrPrint = document.createElement('iframe')
+    ifrPrint.style.cssText = 'position:fixed;width:0;height:0;border:none;left:-9999px;top:-9999px'
+    document.body.appendChild(ifrPrint)
+    ifrPrint.onload = () => {
       try {
-        win.addEventListener('load', () => {
-          try { win.focus(); win.print() } catch { /* reserva: script embutido */ }
-        })
-      } catch { /* navegador pode bloquear o acesso; script embutido assume */ }
-    } else {
-      const a = document.createElement('a')
-      a.href = url; a.target = '_blank'; a.rel = 'noopener'
-      document.body.appendChild(a); a.click(); document.body.removeChild(a)
+        ifrPrint.contentWindow?.focus()
+        ifrPrint.contentWindow?.print()
+      } catch {
+        // fallback: nova aba
+        const a = document.createElement('a')
+        a.href = url; a.target = '_blank'; a.rel = 'noopener'
+        document.body.appendChild(a); a.click(); document.body.removeChild(a)
+      }
+      setTimeout(() => {
+        document.body.removeChild(ifrPrint)
+        URL.revokeObjectURL(url)
+      }, 60000)
     }
-    setTimeout(() => URL.revokeObjectURL(url), 60000)
+    ifrPrint.src = url
   }
 
   async function baixarEditavel() {
