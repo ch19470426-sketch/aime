@@ -165,6 +165,12 @@ function PropostaInner() {
 
   async function carregar() {
     setCarregando(true)
+    // Resetar estados antes de carregar
+    setEst(null); setInsp(null)
+    setRazaoSocial(''); setCep(''); setNumero(''); setComplemento('')
+    setUsoEstab(''); setEndereco(''); setMunicipioUF(''); setLogradouro('')
+    setValor(''); setPrazo('15'); setHtmlProposta('')
+    setModoEdicao(false); setEtapa('cadastro')
     try {
       // Buscar inspetor
       const inspData = await query('inspetor', `cpf_inspetor=eq.${cpfInspetor}&select=nome_inspetor,titulo_profissional,inscricao_crea_cau,especializacao,cabecalho_documentos,rodape_documentos`)
