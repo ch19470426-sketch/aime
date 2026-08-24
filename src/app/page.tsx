@@ -21,8 +21,10 @@ export default function LoginPage() {
   useEffect(() => {
     // Verificar sessão primeiro
     supabase.auth.getSession().then(({ data: { session } }) => {
+      console.log('[AIMÊ] getSession:', session?.user?.email ?? 'sem sessão')
       if (session?.user) {
         // Sessão ativa — ir direto para dashboard sem mostrar capa
+        console.log('[AIMÊ] Sessão ativa → dashboard')
         router.replace('/dashboard')
       } else {
         // Sem sessão — mostrar capa
