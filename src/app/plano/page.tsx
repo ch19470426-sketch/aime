@@ -155,6 +155,10 @@ function PlanoInner() {
 
   useEffect(() => {
     setAtivoAtual({ ...ATIVO_VAZIO })
+    setAtivos([])
+    setPlanoInfo(null)
+    setDatas([])
+    setDocs([])
     carregar()
   }, [cnpjoucpf, cpfInspetor])
 
@@ -333,6 +337,7 @@ function PlanoInner() {
       const data = await res.json()
       if (data.sucesso) {
         const tituloPlano = htmlData.planoInfo?.titulo ?? 'Plano de Trabalho'
+        setSalvando(false)
         window.location.href = `/homologar-produto?cpf_inspetor=${cpfInspetor}&chave_inspetor=${chaveInspetor}&cnpjoucpf=${cnpjoucpf}&tipo_servico=${tipoServico}&nome_arquivo=${encodeURIComponent(nomeArq)}&titulo=${encodeURIComponent(tituloPlano)}`
       } else {
         informa('Erro', data.erro ?? 'Não foi possível salvar.')
@@ -766,8 +771,8 @@ function PlanoInner() {
                       {planoInfo.atividades.map((a, i) => (
                         <tr key={i} style={{ background: i%2===0?'#f8fafc':'#fff', borderBottom: '1px solid #e2e8f0' }}>
                           <td style={{ padding: '3px 6px', textAlign: 'justify' }}>{a.descricao}</td>
-                          <td style={{ padding: '2px 4px' }}>
-                            <input type="date" style={{ ...S.inputDate, fontSize: '7.5pt', padding: '2px 4px' }}
+                          <td style={{ padding: '2px 4px', textAlign: 'center' }}>
+                            <input type="date" style={{ ...S.inputDate, fontSize: '7.5pt', padding: '2px 4px', textAlign: 'center' }}
                               value={datas[i]?.ini ?? ''}
                               min="2000-01-01" max="2099-12-31"
                               onFocus={e => { try { (e.target as any).showPicker?.() } catch {} }}
@@ -780,8 +785,8 @@ function PlanoInner() {
                                 setDatas(prev => prev.map((d,j) => j===i ? {...d, ini:v} : d))
                               }} />
                           </td>
-                          <td style={{ padding: '2px 4px' }}>
-                            <input type="date" style={{ ...S.inputDate, fontSize: '7.5pt', padding: '2px 4px' }}
+                          <td style={{ padding: '2px 4px', textAlign: 'center' }}>
+                            <input type="date" style={{ ...S.inputDate, fontSize: '7.5pt', padding: '2px 4px', textAlign: 'center' }}
                               value={datas[i]?.fim ?? ''}
                               min="2000-01-01" max="2099-12-31"
                               onFocus={e => { try { (e.target as any).showPicker?.() } catch {} }}

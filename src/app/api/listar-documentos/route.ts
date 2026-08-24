@@ -42,8 +42,8 @@ export async function GET(request: NextRequest) {
         // Excluir fotos de vistoria (terminam com número antes da extensão)
         if (/\d+\.(jpg|jpeg|png|webp)$/i.test(nome)) return false
         const ehPdf  = nome.endsWith('.pdf')
-        const ehHtml = nome.endsWith('.html')
-        return ehPdf || ehHtml
+        // HTML é arquivo de trabalho interno — não deve aparecer para download
+        return ehPdf
       })
 
     // Gerar URLs assinadas e rótulos para cada arquivo

@@ -221,8 +221,8 @@ function HomologarProdutoInner() {
       ? html.replace(/(<body[^>]*>)[\s\S]*(<\/body>)/i, (_m, ab, fb) => ab + inner + fb)
       : html
 
-    const cabTxt = (doc?.querySelector('.cab') as HTMLElement | null)?.innerText?.trim() ?? ''
-    const rodTxt = (doc?.querySelector('.rod') as HTMLElement | null)?.innerText?.trim() ?? ''
+    // Extrair cab/rod via regex no HTML string (mais confiável que querySelector no iframe)
+    const { cabecalho: cabTxt, rodape: rodTxt } = extrairCabRod(htmlAtual)
 
     const printCss = `
       @page {
