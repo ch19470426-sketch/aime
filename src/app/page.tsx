@@ -67,13 +67,17 @@ export default function LoginPage() {
 
       // Verifica se já existe cadastro de inspetor para este CPF
       const res = await fetch(`/api/verificar-inspetor?cpf=${cpfLimpo}`)
-      const { existe: jaCadastrado } = await res.json()
+      const resData = await res.json()
+      const jaCadastrado = resData.existe
+      console.log('[LOGIN] jaCadastrado:', jaCadastrado, 'cpf:', cpfLimpo)
 
       if (jaCadastrado) {
         // Login normal — tenta autenticar com a senha fornecida
         const { error } = await supabase.auth.signInWithPassword({ email: emailTecnico, password })
+        console.log('[LOGIN] signIn error:', error?.message ?? 'nenhum')
         if (!error) {
           setLoading(false)
+          console.log('[LOGIN] Sucesso → /dashboard')
           router.push("/dashboard")
           return
         }
