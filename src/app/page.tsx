@@ -64,11 +64,8 @@ export default function LoginPage() {
       const emailTecnico = `${cpfLimpo}@aime-app.com.br`
 
       // Verifica se já existe cadastro de inspetor para este CPF
-      const res = await fetch(`${SUPA_URL}/rest/v1/inspetor?cpf_inspetor=eq.${cpfLimpo}&select=cpf_inspetor`, {
-        headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` }
-      })
-      const existentes = await res.json()
-      const jaCadastrado = Array.isArray(existentes) && existentes.length > 0
+      const res = await fetch(`/api/verificar-inspetor?cpf=${cpfLimpo}`)
+      const { existe: jaCadastrado } = await res.json()
 
       if (jaCadastrado) {
         // Login normal — tenta autenticar com a senha fornecida
