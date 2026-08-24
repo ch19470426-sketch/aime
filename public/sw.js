@@ -1,5 +1,5 @@
 // AIMÊ Service Worker — offline para vistorias 31-38
-const CACHE_VER     = 'aime-v5'
+const CACHE_VER     = 'aime-v6'
 const CACHE_STATIC  = CACHE_VER + '-static'
 const CACHE_PAGES   = CACHE_VER + '-pages'
 const CACHE_API     = CACHE_VER + '-api'
@@ -54,12 +54,9 @@ self.addEventListener('install', (e) => {
 // ── Activate ─────────────────────────────────────────────────────────────────
 self.addEventListener('activate', (e) => {
   e.waitUntil(
-    caches.keys().then(keys =>
-      Promise.all(
-        keys.filter(k => k !== CACHE_STATIC && k !== CACHE_PAGES && k !== CACHE_API)
-          .map(k => caches.delete(k))
-      )
-    ).then(() => self.clients.claim())
+    caches.keys()
+      .then(keys => Promise.all(keys.map(k => caches.delete(k))))
+      .then(() => self.clients.claim())
   )
 })
 
