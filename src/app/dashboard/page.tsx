@@ -288,9 +288,7 @@ export default function Dashboard() {
         const cpf = session.user.email.split("@")[0]
         const accessToken = session.access_token
         try {
-          const res = await fetch(`${SUPA_URL}/rest/v1/inspetor?cpf_inspetor=eq.${cpf}&select=cpf_inspetor,chave_inspetor,titulo_profissional,is_gestor`, {
-            headers: { apikey: SUPA_KEY, Authorization: `Bearer ${accessToken}` }
-          })
+          const res = await fetch(`/api/dados-inspetor?cpf=${cpf}`)
           const dados = await res.json()
           if (!Array.isArray(dados) || dados.length === 0) {
             deveRedirecionar = true
