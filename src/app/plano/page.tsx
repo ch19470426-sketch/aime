@@ -492,10 +492,11 @@ function PlanoInner() {
                         </Field>
                       )}
                       <Field label="Data de início de operação *">
-                        <input style={S.inputDate} type="date" value={ativoAtual.data_inicio_operacao}
-                          min="2000-01-01" max="2099-12-31"
-                          onChange={e => atualizarAtivo('data_inicio_operacao', e.target.value)}
-                          onFocus={e => { try { (e.target as any).showPicker?.() } catch {} }} />
+                        <DatePickerYear
+                          style={S.inputDate}
+                          value={ativoAtual.data_inicio_operacao}
+                          minYear={1950} maxYear={2030}
+                          onChange={v => atualizarAtivo('data_inicio_operacao', v)} />
                       </Field>
                     </div>
                     {/* Linha 2+: Características específicas por tipo */}

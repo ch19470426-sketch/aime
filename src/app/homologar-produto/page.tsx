@@ -227,7 +227,7 @@ function HomologarProdutoInner() {
     const printCss = `
       @page {
         size: A4;
-        margin: 20mm 20mm 15mm 25mm;
+        margin: 25mm 20mm 20mm 25mm;
         @top-center {
           content: ${JSON.stringify(cabTxt)};
           font-family: Arial, sans-serif; font-size: 10pt; font-weight: bold; color: #1E3A8A;
@@ -282,16 +282,13 @@ function HomologarProdutoInner() {
   }
 
   async function baixarEditavel() {
-    console.log('[AIME] clique registrado no botao Salvar como PDF')
     setGerandoDocx(true)
     try {
       // Todos os documentos: abrir HTML em nova aba para imprimir como PDF
       const ehLaudo = true  // sempre PDF
       if (ehLaudo) {
-        console.log('[AIME] baixarEditavel: inicio', { temIframe: !!iframeRef.current, temHtml: !!html })
         const doc = iframeRef.current?.contentDocument ?? null
         const win = iframeRef.current?.contentWindow ?? null
-        console.log('[AIME] iframe doc/win:', !!doc, !!win)
 
         const nomeBase = nomeAmigavel('pdf')
 
@@ -304,7 +301,7 @@ function HomologarProdutoInner() {
         const printCss = [
           '@page {',
           '  size: A4;',
-          '  margin: 20mm 20mm 15mm 25mm;',
+          '  margin: 25mm 20mm 20mm 25mm;',
           '  @top-center {',
           '    content: ' + JSON.stringify(cabTxt) + ';',
           '    font-family: Arial, sans-serif; font-size: 9pt; font-weight: bold; color: #1E3A8A;',
@@ -338,10 +335,8 @@ function HomologarProdutoInner() {
         doc.title = nomeBase
 
         // Imprime o que esta na tela, com as edicoes do usuario
-        console.log('[AIME] chamando print()')
         win.focus()
         win.print()
-        console.log('[AIME] print() retornou')
         setGerandoDocx(false)
         return
       }
@@ -487,7 +482,7 @@ function HomologarProdutoInner() {
             ↓ Salvar como PDF
           </button>
           <button style={{ ...S.btn, ...S.btnPri, opacity: enviando ? 0.6 : 1 }}
-            onClick={() => inputPdfRef.current?.click()} disabled={enviando}>
+            onClick={() => { setEnviando(false); inputPdfRef.current?.click() }} disabled={enviando}>
             {enviando ? 'Enviando...' : '↑ Salvar PDF no AIMÊ'}
           </button>
         </div>

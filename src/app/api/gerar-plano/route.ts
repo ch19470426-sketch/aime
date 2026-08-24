@@ -524,12 +524,10 @@ export async function POST(request: NextRequest) {
     // Linhas de ativos
     const stTd  = 'font-size:10pt'
     const stTdC = 'font-size:10pt;text-align:center'
-    // Usar tipo_servico do primeiro ativo (mais confiável) ou tipoVistoria ou tipoServico
-    const tsRef = (ativosCompletos[0] as any)?.tipo_servico ?? tipoVistoria ?? tipoServico ?? ''
-    const tsStr = tsRef
-    const tsN = Number(String(tsStr).split(' ')[0]) || 0
-    const isPred = (tsN >= 31 && tsN <= 34) || String(tsStr).includes('31') || String(tsStr).includes('32') || String(tsStr).includes('33') || String(tsStr).includes('34')
-    const isInd  = (tsN >= 35 && tsN <= 38) || String(tsStr).includes('35') || String(tsStr).includes('36') || String(tsStr).includes('37') || String(tsStr).includes('38')
+    // Usar tipoServico passado na requisição (mais confiável)
+    const tsN = Number(String(tipoServico).split(' ')[0]) || Number(String(tipoVistoria ?? '').split(' ')[0]) || 0
+    const isPred = tsN >= 21 && tsN <= 24  // planos 21-24 → vistorias 31-34 prediais
+    const isInd  = tsN >= 25 && tsN <= 28  // planos 25-28 → vistorias 35-38 NR
     const fmtDt  = (d: string) => { const p=d?.split('-'); return p?.length===3?p[2]+'/'+p[1]+'/'+p[0]:d??'' }
 
     const linhasAtivos = ativosCompletos.map((a, i) => {
@@ -621,6 +619,9 @@ export async function POST(request: NextRequest) {
     partes.push('<div class="cab">' + (insp.cabecalho_documentos || plano.titulo) + '</div>')
     partes.push('<p style="line-height:1;margin:0">&nbsp;</p>')
     partes.push('<p style="text-align:right;margin:0;line-height:1">' + municipio + ', ' + dataHoje + '</p>')
+    partes.push('<p style="line-height:1;margin:0">&nbsp;</p>')
+    partes.push('<p style="line-height:1;margin:0">&nbsp;</p>')
+    partes.push('<p style="line-height:1;margin:0">&nbsp;</p>')
     partes.push('<p style="line-height:1;margin:0">&nbsp;</p>')
     partes.push('<p style="line-height:1;margin:0">&nbsp;</p>')
     partes.push('<p style="line-height:1;margin:0">&nbsp;</p>')
