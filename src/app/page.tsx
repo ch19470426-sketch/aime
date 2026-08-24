@@ -169,6 +169,11 @@ export default function LoginPage() {
                 style={{ border: "1px solid #D1D5DB", borderRadius: "8px", padding: "10px 12px", fontSize: "14px", outline: "none" }} />
             </div>
             {erro && <p style={{ color: "#DC2626", fontSize: "13px", textAlign: "center" }}>{erro}</p>}
+            <div style={{ backgroundColor: "#FFF7ED", border: "1px solid #FED7AA", borderRadius: "8px",
+              padding: "8px 12px", fontSize: "11px", color: "#92400E", textAlign: "center", lineHeight: 1.5 }}>
+              ⚠️ Se ocorrerem erros na tela, desative a tradução automática e extensões do navegador,
+              ou utilize o app em <strong>aba anônima</strong>.
+            </div>
             <button type="submit" disabled={loading}
               style={{ backgroundColor: "#1E3A8A", color: "white", fontWeight: "600", padding: "12px", borderRadius: "50px", border: "none", cursor: "pointer", fontSize: "14px", opacity: loading ? 0.7 : 1 }}>
               {loading ? "Aguarde..." : "Entrar"}
