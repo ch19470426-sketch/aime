@@ -382,14 +382,14 @@ i { font-style: italic; }
 ${(insp.cabecalho_documentos || TITULO_TIPO[tipoServico]) ? `<div class="cab">${insp.cabecalho_documentos || TITULO_TIPO[tipoServico]}</div>` : ''}
 
 <p>&nbsp;</p>
-<div style="width:100%;text-align:right">
-<p style="margin:0;line-height:1.4">${municipio}, ${dataHoje}</p>
-<p style="margin:0">&nbsp;</p>
-<p style="margin:0;line-height:1.4">${ao}</p>
-<p style="margin:0;line-height:1.4">${razaoSocial}</p>
-<p style="margin:0;line-height:1.4">${labelDoc} ${docFmt}</p>
-<p style="margin:0;line-height:1.4">${municipioUF}</p>
-</div>
+<table style="width:100%;border:none;border-collapse:collapse">
+<tr><td style="text-align:right;padding:0;border:none;line-height:1.6">${municipio}, ${dataHoje}</td></tr>
+<tr><td style="border:none;padding:4pt 0 0">&nbsp;</td></tr>
+<tr><td style="text-align:right;padding:0;border:none;line-height:1.4">${ao}</td></tr>
+<tr><td style="text-align:right;padding:0;border:none;line-height:1.4">${razaoSocial}</td></tr>
+<tr><td style="text-align:right;padding:0;border:none;line-height:1.4">${labelDoc} ${docFmt}</td></tr>
+<tr><td style="text-align:right;padding:0;border:none;line-height:1.4">${municipioUF}</td></tr>
+</table>
 <p>&nbsp;</p>
 <p>&nbsp;</p>
 <p style="margin:0;line-height:1"><b>${c.ref}</b></p>

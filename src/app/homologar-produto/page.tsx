@@ -248,7 +248,8 @@ function HomologarProdutoInner() {
       .cab, .rod { display: none !important; }
       .pg-capa { page-break-after: always; }
     `
-    const nomeBase = nomeAmigavel('pdf')
+    // Nome do PDF baseado no arquivo HTML original (sem extensão)
+    const nomeBase = nomeArquivo.replace(/\.html$/i, '.pdf')
     const tagScript = '<scr' + 'ipt>document.title=' + JSON.stringify(nomeBase)
       + ';window.addEventListener("load",function(){document.title=' + JSON.stringify(nomeBase)
       + ';setTimeout(function(){window.print()},600)});</scr' + 'ipt>'
@@ -264,26 +265,15 @@ function HomologarProdutoInner() {
     const blob = new Blob([htmlPrint], { type: 'text/html;charset=utf-8' })
     const url  = URL.createObjectURL(blob)
 
-    // Usar iframe oculto para imprimir sem bloquear a aba principal
-    const ifrPrint = document.createElement('iframe')
-    ifrPrint.style.cssText = 'position:fixed;width:0;height:0;border:none;left:-9999px;top:-9999px'
-    document.body.appendChild(ifrPrint)
-    ifrPrint.onload = () => {
-      try {
-        ifrPrint.contentWindow?.focus()
-        ifrPrint.contentWindow?.print()
-      } catch {
-        // fallback: nova aba
-        const a = document.createElement('a')
-        a.href = url; a.target = '_blank'; a.rel = 'noopener'
-        document.body.appendChild(a); a.click(); document.body.removeChild(a)
-      }
-      setTimeout(() => {
-        document.body.removeChild(ifrPrint)
-        URL.revokeObjectURL(url)
-      }, 60000)
+    // Abrir em nova aba para impressão (mais compatível e não perturba o DOM React)
+    const win = window.open(url, '_blank', 'noopener')
+    if (!win) {
+      // Fallback se popup bloqueado
+      const a = document.createElement('a')
+      a.href = url; a.target = '_blank'; a.rel = 'noopener noreferrer'
+      a.click()
     }
-    ifrPrint.src = url
+    setTimeout(() => URL.revokeObjectURL(url), 120000)
   }
 
   async function baixarEditavel() {
@@ -476,9 +466,6 @@ function HomologarProdutoInner() {
           style={{ position: 'absolute', width: 1, height: 1, opacity: 0, overflow: 'hidden', pointerEvents: 'none' }}
           onChange={onArquivoPdfEscolhido} />
 
-        <div style={{ fontSize: '7pt', color: '#94a3b8', textAlign: 'right', marginBottom: '2px' }}>
-          build v4 — print via iframe
-        </div>
         <div style={{ ...S.footer, gridTemplateColumns: '1fr 1fr 1fr' }}>
           <button style={{ ...S.btn, ...S.btnSec }} onClick={() => window.location.href = retorno}>
             Voltar
