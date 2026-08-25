@@ -569,9 +569,10 @@ function Tela31Inner() {
                   <span style={{ fontSize: '7pt', color: '#6B7280' }}>Foto Nº</span>
                   <span style={{ fontSize: '8pt', fontWeight: 700, color: '#1E3A8A' }}>{fotoNr}</span>
                 </div>
-                {/* Data vistoria — centralizada */}
-                <div style={{ flex: 1, textAlign: 'center', fontSize: '8pt', color: '#374151', fontWeight: 600 }}>
-                  {dataVistoria}
+                {/* Box Data vistoria — centralizada */}
+                <div style={{ ...S.photoMeta, flex: 1, justifyContent: 'center' }}>
+                  <span style={{ fontSize: '7pt', color: '#6B7280' }}>Data vistoria</span>
+                  <span style={{ fontSize: '8pt', fontWeight: 600, color: '#374151' }}>{dataVistoria}</span>
                 </div>
                 {/* Botão Adicionar foto — à direita */}
                 <button
@@ -618,7 +619,7 @@ function Tela31Inner() {
                 setErroValidacao('')
                 fileInputRef.current?.click()
               }}>
-                {fotoBase64 && <img src={fotoBase64} alt="" style={{ display: 'block', width: '95%', maxHeight: '380px', objectFit: 'contain', margin: '0 auto', padding: '6px' }} />}
+                {fotoBase64 && <img src={fotoBase64} alt="" style={{ display: 'block', width: '100%', maxHeight: '420px', objectFit: 'contain', margin: '0 auto', padding: '4px' }} />}
                 {!fotoBase64 && <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#8aa3c4', fontSize: '8pt' }}>Clique para adicionar a foto da anomalia</div>}
               </div>
               {feedbackIA && <div style={S.aiStatus}>{feedbackIA}</div>}
