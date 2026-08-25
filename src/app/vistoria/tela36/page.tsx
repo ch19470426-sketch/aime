@@ -342,30 +342,28 @@ function Tela31Inner() {
     }
 
     } catch {
-      // Sem internet — salvar no IDB e navegar normalmente
+      // Sem internet — comprimir foto e salvar tudo junto no IDB
       try {
-        const fotoKeyNR = `foto_${Date.now()}`
+        let fotoOfflineNR = fotoBase64
+        try {
+          const img2 = new window.Image()
+          await new Promise<void>(rs => { img2.onload = () => rs(); img2.src = fotoBase64 })
+          const cv2 = document.createElement('canvas')
+          const MAXO = 320
+          let wo = img2.width, ho = img2.height
+          if (wo > MAXO) { ho = Math.round(ho * MAXO / wo); wo = MAXO }
+          if (ho > MAXO) { wo = Math.round(wo * MAXO / ho); ho = MAXO }
+          cv2.width = wo; cv2.height = ho
+          cv2.getContext('2d')?.drawImage(img2, 0, 0, wo, ho)
+          fotoOfflineNR = cv2.toDataURL('image/jpeg', 0.35)
+        } catch {}
         const dadosNR = { chaveInspetor, cpfInspetor, cnpjoucpf, tipoServico,
           cnpjDisplay, razaoSocial, tipoAtivo, tagNrSerie, finalidade,
           sistema, subsistema, anomalia, origem, resultado, local, complemento,
           gravidade: gravNum, urgencia: urgNum, abrangencia: abrNum, exposicao: expNum,
           grauRisco, prioridade, fotoNr, dataVistoria, nc, cp, nc_pendente: !nc || !cp }
-        try {
-          const dbF = await new Promise<IDBDatabase>((rs, rj) => {
-            const r = indexedDB.open('aime-fotos', 1)
-            r.onupgradeneeded = e => { (e.target as IDBOpenDBRequest).result.createObjectStore('fotos') }
-            r.onsuccess = e => rs((e.target as IDBOpenDBRequest).result)
-            r.onerror = () => rj(r.error)
-          })
-          await new Promise<void>((rs, rj) => {
-            const tx = dbF.transaction('fotos', 'readwrite')
-            const req = tx.objectStore('fotos').put(fotoBase64, fotoKeyNR)
-            req.onsuccess = () => rs(); req.onerror = () => rj(req.error)
-          })
-          await salvarOffline({ ...dadosNR, fotoBase64: '', fotoKey: fotoKeyNR, payload: { ...dadosNR, fotoBase64: '', fotoKey: fotoKeyNR } })
-        } catch {
-          await salvarOffline({ ...dadosNR, fotoBase64, payload: dadosNR })
-        }
+        await salvarOffline({ ...dadosNR, fotoBase64: fotoOfflineNR,
+          payload: { ...dadosNR, fotoBase64: fotoOfflineNR } })
         if ('serviceWorker' in navigator && 'SyncManager' in window) {
           const reg = await navigator.serviceWorker.ready
           await (reg as any).sync.register('aime-sync-vistoria')

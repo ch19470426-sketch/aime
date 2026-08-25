@@ -346,31 +346,25 @@ function Tela31Inner() {
         return
       }
     } catch {
-      // Sem internet — salvar no IDB e navegar normalmente
-      // A sincronização com o banco ocorre automaticamente ao reconectar (via SW)
+      // Sem internet — comprimir foto ainda mais e salvar tudo junto no IDB
       try {
-        // Salvar foto no IDB separado
-        const fotoKey = `foto_${Date.now()}`
+        // Recomprimir foto para garantir que cabe no IDB (máx ~80KB base64)
+        let fotoOffline = fotoBase64
         try {
-          const dbF = await new Promise<IDBDatabase>((rs, rj) => {
-            const r = indexedDB.open('aime-fotos', 1)
-            r.onupgradeneeded = e => { (e.target as IDBOpenDBRequest).result.createObjectStore('fotos') }
-            r.onsuccess = e => rs((e.target as IDBOpenDBRequest).result)
-            r.onerror = () => rj(r.error)
-          })
-          await new Promise<void>((rs, rj) => {
-            const tx = dbF.transaction('fotos', 'readwrite')
-            const req = tx.objectStore('fotos').put(fotoBase64, fotoKey)
-            req.onsuccess = () => rs(); req.onerror = () => rj(req.error)
-          })
-          // Salvar dados no IDB referenciando a foto
-          await salvarOffline({ ...dadosBase, fotoBase64: '', fotoKey, fotoNr,
-            nc_pendente: !nc || !cp, payload: { ...dadosBase, fotoBase64: '', fotoKey } })
-        } catch {
-          // Foto não coube no IDB — salvar com foto mesmo (pode ser menor)
-          await salvarOffline({ ...dadosBase, fotoNr,
-            nc_pendente: !nc || !cp, payload: dadosBase })
-        }
+          const img2 = new window.Image()
+          await new Promise<void>(rs => { img2.onload = () => rs(); img2.src = fotoBase64 })
+          const cv2 = document.createElement('canvas')
+          const MAXO = 320
+          let wo = img2.width, ho = img2.height
+          if (wo > MAXO) { ho = Math.round(ho * MAXO / wo); wo = MAXO }
+          if (ho > MAXO) { wo = Math.round(wo * MAXO / ho); ho = MAXO }
+          cv2.width = wo; cv2.height = ho
+          cv2.getContext('2d')?.drawImage(img2, 0, 0, wo, ho)
+          fotoOffline = cv2.toDataURL('image/jpeg', 0.35)
+        } catch {}
+        // Salvar tudo junto — sem IDB separado para foto
+        await salvarOffline({ ...dadosBase, fotoBase64: fotoOffline, fotoNr,
+          nc_pendente: !nc || !cp, payload: { ...dadosBase, fotoBase64: fotoOffline } })
         // Registrar sync no SW para quando internet voltar
         if ('serviceWorker' in navigator && 'SyncManager' in window) {
           const reg = await navigator.serviceWorker.ready
@@ -381,11 +375,8 @@ function Tela31Inner() {
         setSalvando(false)
         return
       }
-      // Navegar normalmente — sync acontece em background
       const nomeLocal = `${chaveInspetor}_${cnpjoucpf}_${tipoServico}_pendente.json`
-      setSalvando(false)
-      setSalvoOk(true)
-      setArquivoSalvo(nomeLocal)
+      setSalvando(false); setSalvoOk(true); setArquivoSalvo(nomeLocal)
       setFeedbackIA('📵 Salvo localmente. Será sincronizado ao reconectar.')
       setSistema(''); setSubsistema(''); setAnomalia(''); setOrigem(''); setLocal('')
       setComplemento(''); setTipoAtivo(''); setTagNrSerie('')
