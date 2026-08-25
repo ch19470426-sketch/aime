@@ -343,13 +343,17 @@ function Tela31Inner() {
         return
       }
     } catch {
-      // Sem internet — salvar no IndexedDB (sem foto para evitar limite de tamanho)
+      // Sem internet — salvar no IndexedDB com foto separada
       let idOffline = -1
       try {
-        const dadosSemFoto = { ...dadosBase, fotoBase64: '', fotoNr, payload: { ...dadosBase, fotoBase64: '' } }
+        // Salvar foto separadamente para não exceder limite de tamanho do IDB
+        const fotoKey = `foto_${Date.now()}`
+        try { localStorage.setItem(fotoKey, fotoBase64) } catch { /* foto muito grande para localStorage */ }
+        const dadosSemFoto = { ...dadosBase, fotoBase64: '', fotoKey, fotoNr, payload: { ...dadosBase, fotoBase64: '', fotoKey } }
         idOffline = await salvarOffline(dadosSemFoto)
-      } catch (errIDB) {
-        setErroSave('Sem internet. Tente salvar novamente ao reconectar.')
+      } catch {
+        // IDB também falhou — manter dados na tela para o inspetor tentar novamente
+        setErroSave('Não foi possível salvar localmente. Aguarde a internet retornar e tente salvar novamente.')
         setSalvando(false)
         return
       }
@@ -362,6 +366,15 @@ function Tela31Inner() {
           clearInterval(aguardarSync)
           setFeedbackIA('🔄 Internet restaurada. Salvando vistoria...')
           try {
+            // Recuperar foto do localStorage se foi salva separadamente
+            let fotoParaEnviar = fotoBase64
+            try {
+              const dadosSalvos = { fotoKey: (dadosBase as any).fotoKey }
+              if (dadosSalvos.fotoKey) {
+                const fotoLS = localStorage.getItem(dadosSalvos.fotoKey)
+                if (fotoLS) { fotoParaEnviar = fotoLS; localStorage.removeItem(dadosSalvos.fotoKey) }
+              }
+            } catch {}
             // Gerar NC/CP via IA se estiver pendente
             let ncFinal = nc, cpFinal = cp
             if (!nc || !cp) {
