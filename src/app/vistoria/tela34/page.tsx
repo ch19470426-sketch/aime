@@ -2,6 +2,7 @@
 // AIMÊ — Tela 31 SEM hook externo — toda lógica inline para evitar SSR issues
 
 'use client'
+import { fetchTimeout } from '@/lib/fetchTimeout'
 import { salvarOffline } from '@/lib/offlineVistoria'
 
 import { Suspense, useEffect, useRef, useState } from 'react'
@@ -259,11 +260,11 @@ function Tela31Inner() {
     setFeedbackIA('⏳ Gerando não conformidade e causa provável...')
 
     try {
-      const res = await fetch('/api/gerar-nc-cp', {
+      const res = await fetchTimeout('/api/gerar-nc-cp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ sistema, subsistema, anomalia, local, complemento, origem, abrangencia: descAbrangencia })
-      })
+      }, 10000)
       if (!res.ok) throw new Error('Status: ' + res.status)
       const data = await res.json()
       const ncVal = data.nc || data.nao_conformidade || ''
@@ -319,22 +320,22 @@ function Tela31Inner() {
 
     try {
       // Incrementa o contador de foto
-      const nrRes = await fetch('/api/foto-nr', {
+      const nrRes = await fetchTimeout('/api/foto-nr', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ cpf_inspetor: cpfInspetor, cnpjoucpf, tipo_servico: tipoServico })
-      })
+      }, 8000)
       const nrData = await nrRes.json()
       const nrFinal = nrData?.formatado ?? fotoNr
 
       const nomeArquivo = `${chaveInspetor}_${cnpjoucpf}_${tipoServico}_${nrFinal}.json`
       const payload = { ...dadosBase, savedAt: new Date().toISOString(), fotoNr: nrFinal }
 
-      const res = await fetch('/api/salvar-vistoria', {
+      const res = await fetchTimeout('/api/salvar-vistoria', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ nomeArquivo, payload })
-      })
+      }, 15000)
       const resultado = await res.json()
 
       if (!res.ok || resultado.erro) {
