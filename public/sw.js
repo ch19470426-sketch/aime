@@ -71,6 +71,10 @@ self.addEventListener('fetch', (e) => {
 
   // ── APIs: Network First com fallback offline específico ──────────────────
   if (url.pathname.startsWith('/api/')) {
+    // Não interceptar requisições de sync (marcadas com Cache-Control: no-store)
+    if (request.headers.get('Cache-Control') === 'no-store') {
+      return  // deixar passar direto para a rede
+    }
     e.respondWith(
       fetch(request.clone()).then(res => {
         // Cachear APIs GET bem-sucedidas

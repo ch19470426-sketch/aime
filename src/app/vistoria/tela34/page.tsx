@@ -323,6 +323,7 @@ function Tela31Inner() {
         body: JSON.stringify({ cpf_inspetor: cpfInspetor, cnpjoucpf, tipo_servico: tipoServico })
       }, 8000)
       const nrData = await nrRes.json()
+      if (!nrRes.ok && nrRes.status === 503) throw new Error('offline')
       const nrFinal = nrData?.formatado ?? fotoNr
 
       const nomeArquivo = `${chaveInspetor}_${cnpjoucpf}_${tipoServico}_${nrFinal}.json`
@@ -336,6 +337,10 @@ function Tela31Inner() {
       const resultado = await res.json()
 
       if (!res.ok || resultado.erro) {
+        // Verificar se é resposta offline do SW (503 com flag offline)
+        if (resultado.offline || res.status === 503) {
+          throw new Error('offline')  // força o catch offline
+        }
         setErroSave('Erro ao salvar: ' + (resultado.erro ?? res.statusText))
         setSalvando(false)
         return
@@ -400,12 +405,12 @@ function Tela31Inner() {
             const nrFinal2 = nrData2?.formatado ?? fotoNr
             const nomeArquivo2 = `${chaveInspetor}_${cnpjoucpf}_${tipoServico}_${nrFinal2}.json`
             // Incluir fotoBase64 do estado React (não foi salva no IndexedDB)
-            const payload2 = { ...dadosBase, nc: ncFinal, cp: cpFinal, fotoNr: nrFinal2, fotoBase64, savedAt: new Date().toISOString() }
-            const res2 = await fetch('/api/salvar-vistoria', {
+            const payload2 = { ...dadosBase, nc: ncFinal, cp: cpFinal, fotoNr: nrFinal2, fotoBase64: fotoParaEnviar, savedAt: new Date().toISOString() }
+            const res2 = await fetchTimeout('/api/salvar-vistoria', {
               method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
+              headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' },
               body: JSON.stringify({ nomeArquivo: nomeArquivo2, payload: payload2 })
-            })
+            }, 20000)
             if (res2.ok) {
               // Remover do IndexedDB após salvar com sucesso
               const { removerPendente } = await import('@/lib/offlineVistoria')

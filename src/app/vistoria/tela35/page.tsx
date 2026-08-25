@@ -327,14 +327,15 @@ function Tela31Inner() {
       grauRisco, prioridade, fotoNr: nrFinal, dataVistoria, fotoBase64, nc, cp,
     }
 
-    const res = await fetch('/api/salvar-vistoria', {
+    const res = await fetchTimeout('/api/salvar-vistoria', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ nomeArquivo, payload })
-    })
+    }, 15000)
     const resJson = await res.json()
 
     if (!res.ok || resJson.erro) {
+      if (resJson.offline || res.status === 503) throw new Error('offline')
       setErroSave('Erro ao salvar: ' + (resJson.erro ?? res.statusText))
       setSalvando(false)
       return
