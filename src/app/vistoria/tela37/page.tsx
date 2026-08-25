@@ -275,10 +275,29 @@ function Tela31Inner() {
       setFeedbackIA('✅ NC e CP gerados com sucesso!')
     } catch(e) {
       const msg = String(e)
-      if (msg.includes('fetch') || msg.includes('network') || msg.includes('offline') || msg.includes('503')) {
-        setFeedbackIA('📵 Sem internet. Preencha NC e CP manualmente e salve normalmente.')
+      if (msg.includes('fetch') || msg.includes('network') || msg.includes('offline') || msg.includes('503') || msg.includes('Failed')) {
+        setFeedbackIA('📵 Sem internet. Aguardando reconexão para gerar NC e CP...')
+        const aguardar = setInterval(async () => {
+          if (navigator.onLine) {
+            clearInterval(aguardar)
+            setFeedbackIA('🔄 Internet restaurada. Gerando NC e CP...')
+            try {
+              const r2 = await fetch('/api/gerar-nc-cp', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ sistema, subsistema, anomalia, local, complemento, origem, abrangencia: descAbrangencia })
+              })
+              if (r2.ok) {
+                const d2 = await r2.json()
+                if (d2.nc || d2.nao_conformidade) setNc(d2.nc || d2.nao_conformidade)
+                if (d2.cp || d2.causa_provavel) setCp(d2.cp || d2.causa_provavel)
+                setFeedbackIA('✅ NC e CP geradas com sucesso!')
+              }
+            } catch { setFeedbackIA('⚠️ Erro ao gerar NC/CP. Tente novamente.') }
+          }
+        }, 3000)
       } else {
-        setFeedbackIA('⚠️ Erro ao gerar NC/CP. Preencha manualmente.')
+        setFeedbackIA('⚠️ Erro ao gerar NC/CP. Tente novamente.')
       }
     }
   }
@@ -324,26 +343,58 @@ function Tela31Inner() {
     }
 
     } catch {
-      // Sem internet — salvar no IndexedDB
-      await salvarOffline({
-        chaveInspetor, cpfInspetor, cnpjoucpf, tipoServico,
+      // Sem internet — salvar localmente e aguardar reconexão
+      const dadosNR = { chaveInspetor, cpfInspetor, cnpjoucpf, tipoServico,
         cnpjDisplay, razaoSocial, tipoAtivo, tagNrSerie, finalidade,
         sistema, subsistema, anomalia, origem, local, complemento,
         gravidade: gravNum, urgencia: urgNum, abrangencia: abrNum, exposicao: expNum,
-        grauRisco, prioridade, dataVistoria, fotoBase64, nc, cp,
-        nc_pendente: !nc || !cp, fotoNr,
-        payload: { chaveInspetor, cpfInspetor, cnpjoucpf, tipoServico,
-          cnpjDisplay, razaoSocial, tipoAtivo, tagNrSerie, finalidade,
-          sistema, subsistema, anomalia, origem, local, complemento,
-          gravidade: gravNum, urgencia: urgNum, abrangencia: abrNum, exposicao: expNum,
-          grauRisco, prioridade, dataVistoria, fotoBase64, nc, cp, nc_pendente: !nc || !cp }
-      })
-      setFeedbackIA('📵 Sem internet. Vistoria salva localmente. NC/CP serão geradas pela IA ao reconectar.')
-      if ('serviceWorker' in navigator && 'SyncManager' in window) {
-        const reg = await navigator.serviceWorker.ready
-        await (reg as any).sync.register('aime-sync-vistoria')
-      }
-      setSalvando(false); setSalvoOk(true)
+        grauRisco, prioridade, dataVistoria, fotoBase64, nc, cp, nc_pendente: !nc || !cp }
+      const idOfflineNR = await salvarOffline({ ...dadosNR, fotoNr, payload: dadosNR })
+      setFeedbackIA('📵 Sem internet. Dados salvos localmente. Aguardando reconexão...')
+      setSalvando(false)
+      const aguardarNR = setInterval(async () => {
+        if (navigator.onLine) {
+          clearInterval(aguardarNR)
+          setFeedbackIA('🔄 Internet restaurada. Salvando vistoria...')
+          try {
+            let ncFinal = nc, cpFinal = cp
+            if (!nc || !cp) {
+              try {
+                const rIA = await fetch('/api/gerar-nc-cp', {
+                  method: 'POST', headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ sistema, subsistema, anomalia, local, complemento, origem, abrangencia: descAbrangencia })
+                })
+                if (rIA.ok) {
+                  const dIA = await rIA.json()
+                  ncFinal = dIA.nc || dIA.nao_conformidade || nc
+                  cpFinal = dIA.cp || dIA.causa_provavel || cp
+                  setNc(ncFinal); setCp(cpFinal)
+                }
+              } catch {}
+            }
+            const nrRes2 = await fetch('/api/foto-nr', {
+              method: 'POST', headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ cpf_inspetor: cpfInspetor, cnpjoucpf, tipo_servico: tipoServico })
+            })
+            const nrData2 = await nrRes2.json()
+            const nrFinal2 = nrData2?.formatado ?? fotoNr
+            const payload2 = { ...dadosNR, nc: ncFinal, cp: cpFinal, fotoNr: nrFinal2, savedAt: new Date().toISOString() }
+            const nomeArquivo2 = `${chaveInspetor}_${cnpjoucpf}_${tipoServico}_${nrFinal2}.json`
+            const res2 = await fetch('/api/salvar-vistoria', {
+              method: 'POST', headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ nomeArquivo: nomeArquivo2, payload: payload2 })
+            })
+            if (res2.ok) {
+              const { removerPendente } = await import('@/lib/offlineVistoria')
+              await removerPendente(idOfflineNR)
+              setFeedbackIA('✅ Vistoria salva com sucesso!')
+              setSalvoOk(true)
+            } else {
+              setFeedbackIA('⚠️ Erro ao salvar. Tente novamente.')
+            }
+          } catch { setFeedbackIA('⚠️ Erro ao sincronizar. Tente novamente.') }
+        }
+      }, 3000)
       return
     }
 
