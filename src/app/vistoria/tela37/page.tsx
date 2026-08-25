@@ -273,32 +273,30 @@ function Tela31Inner() {
       if (ncVal) setNc(ncVal)
       if (cpVal) setCp(cpVal)
       setFeedbackIA('✅ NC e CP gerados com sucesso!')
-    } catch(e) {
-      const msg = String(e)
-      if (msg.includes('fetch') || msg.includes('network') || msg.includes('offline') || msg.includes('503') || msg.includes('Failed')) {
-        setFeedbackIA('📵 Sem internet. Aguardando reconexão para gerar NC e CP...')
-        const aguardar = setInterval(async () => {
-          if (navigator.onLine) {
-            clearInterval(aguardar)
-            setFeedbackIA('🔄 Internet restaurada. Gerando NC e CP...')
-            try {
-              const r2 = await fetch('/api/gerar-nc-cp', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ sistema, subsistema, anomalia, local, complemento, origem, abrangencia: descAbrangencia })
-              })
-              if (r2.ok) {
-                const d2 = await r2.json()
-                if (d2.nc || d2.nao_conformidade) setNc(d2.nc || d2.nao_conformidade)
-                if (d2.cp || d2.causa_provavel) setCp(d2.cp || d2.causa_provavel)
-                setFeedbackIA('✅ NC e CP geradas com sucesso!')
-              }
-            } catch { setFeedbackIA('⚠️ Erro ao gerar NC/CP. Tente novamente.') }
-          }
-        }, 3000)
-      } else {
-        setFeedbackIA('⚠️ Erro ao gerar NC/CP. Tente novamente.')
-      }
+    } catch {
+      // Qualquer falha (sem internet, timeout, sinal fraco) → aguardar reconexão
+      setFeedbackIA('📵 Aguardando conexão para gerar NC e CP...')
+      const aguardar = setInterval(async () => {
+        if (navigator.onLine) {
+          clearInterval(aguardar)
+          setFeedbackIA('🔄 Conectado. Gerando NC e CP...')
+          try {
+            const r2 = await fetchTimeout('/api/gerar-nc-cp', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ sistema, subsistema, anomalia, local, complemento, origem, abrangencia: descAbrangencia })
+            }, 10000)
+            if (r2.ok) {
+              const d2 = await r2.json()
+              if (d2.nc || d2.nao_conformidade) setNc(d2.nc || d2.nao_conformidade)
+              if (d2.cp || d2.causa_provavel) setCp(d2.cp || d2.causa_provavel)
+              setFeedbackIA('✅ NC e CP geradas com sucesso!')
+            } else {
+              setFeedbackIA('⚠️ Erro ao gerar NC/CP. Tente novamente.')
+            }
+          } catch { /* continua aguardando na próxima iteração */ }
+        }
+      }, 3000)
     }
   }
 
