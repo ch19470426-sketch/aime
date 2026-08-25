@@ -344,7 +344,19 @@ function Tela31Inner() {
     } catch {
       // Sem internet — foto no localStorage, dados no IDB
       const fotoKeyNR = `foto_${Date.now()}`
-      try { localStorage.setItem(fotoKeyNR, fotoBase64) } catch {}
+      try {
+        const dbFotoNR = await new Promise<IDBDatabase>((res, rej) => {
+          const r = indexedDB.open('aime-fotos', 1)
+          r.onupgradeneeded = (e) => { (e.target as IDBOpenDBRequest).result.createObjectStore('fotos') }
+          r.onsuccess = (e) => res((e.target as IDBOpenDBRequest).result)
+          r.onerror = () => rej(r.error)
+        })
+        await new Promise<void>((res, rej) => {
+          const tx = dbFotoNR.transaction('fotos', 'readwrite')
+          const req = tx.objectStore('fotos').put(fotoBase64, fotoKeyNR)
+          req.onsuccess = () => res(); req.onerror = () => rej(req.error)
+        })
+      } catch {}
       const dadosNR = { chaveInspetor, cpfInspetor, cnpjoucpf, tipoServico,
         cnpjDisplay, razaoSocial, tipoAtivo, tagNrSerie, finalidade,
         sistema, subsistema, anomalia, origem, local, complemento,
@@ -366,7 +378,22 @@ function Tela31Inner() {
           setFeedbackIA('🔄 Internet restaurada. Salvando vistoria...')
           try {
             let fotoNR = ''
-            try { const fk = fotoKeyNR; if(fk){ const fl = localStorage.getItem(fk); if(fl){ fotoNR = fl; localStorage.removeItem(fk) } } } catch {}
+            try {
+              if (fotoKeyNR) {
+                const dbFotoNR2 = await new Promise<IDBDatabase>((res, rej) => {
+                  const r = indexedDB.open('aime-fotos', 1)
+                  r.onupgradeneeded = (e) => { (e.target as IDBOpenDBRequest).result.createObjectStore('fotos') }
+                  r.onsuccess = (e) => res((e.target as IDBOpenDBRequest).result)
+                  r.onerror = () => rej(r.error)
+                })
+                fotoNR = await new Promise<string>((res) => {
+                  const tx = dbFotoNR2.transaction('fotos', 'readwrite')
+                  const req = tx.objectStore('fotos').get(fotoKeyNR)
+                  req.onsuccess = () => { tx.objectStore('fotos').delete(fotoKeyNR); res(req.result || '') }
+                  req.onerror = () => res('')
+                })
+              }
+            } catch {}
             let ncFinal = nc, cpFinal = cp
             if (!nc || !cp) {
               try {
@@ -398,7 +425,7 @@ function Tela31Inner() {
               const { removerPendente } = await import('@/lib/offlineVistoria')
               await removerPendente(idOfflineNR)
               setFeedbackIA('✅ Vistoria salva com sucesso!')
-              setSalvoOk(true)
+              setSalvoOk(true); setArquivoSalvo(nomeArquivo2); setSalvando(false)
             } else {
               setFeedbackIA('⚠️ Erro ao salvar. Tente novamente.')
             }

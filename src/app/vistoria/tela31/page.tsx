@@ -350,8 +350,21 @@ function Tela31Inner() {
       let idOffline = -1
       try {
         // Salvar foto separadamente para não exceder limite de tamanho do IDB
+        // Salvar foto no IDB separadamente (localStorage tem limite de ~5MB)
         const fotoKey = `foto_${Date.now()}`
-        try { localStorage.setItem(fotoKey, fotoBase64) } catch { /* foto muito grande para localStorage */ }
+        try {
+          const dbFoto = await new Promise<IDBDatabase>((res, rej) => {
+            const r = indexedDB.open('aime-fotos', 1)
+            r.onupgradeneeded = (e) => { (e.target as IDBOpenDBRequest).result.createObjectStore('fotos') }
+            r.onsuccess = (e) => res((e.target as IDBOpenDBRequest).result)
+            r.onerror = () => rej(r.error)
+          })
+          await new Promise<void>((res, rej) => {
+            const tx = dbFoto.transaction('fotos', 'readwrite')
+            const req = tx.objectStore('fotos').put(fotoBase64, fotoKey)
+            req.onsuccess = () => res(); req.onerror = () => rej(req.error)
+          })
+        } catch { /* falhou salvar foto — sincroniza sem foto */ }
         const dadosSemFoto = { ...dadosBase, fotoBase64: '', fotoKey, fotoNr, payload: { ...dadosBase, fotoBase64: '', fotoKey } }
         idOffline = await salvarOffline(dadosSemFoto)
       } catch {
@@ -369,13 +382,23 @@ function Tela31Inner() {
           clearInterval(aguardarSync)
           setFeedbackIA('🔄 Internet restaurada. Salvando vistoria...')
           try {
-            // Recuperar foto do localStorage se foi salva separadamente
-            let fotoParaEnviar = fotoBase64
+            // Recuperar foto do IDB
+            let fotoParaEnviar = ''
             try {
-              const dadosSalvos = { fotoKey: (dadosBase as any).fotoKey }
-              if (dadosSalvos.fotoKey) {
-                const fotoLS = localStorage.getItem(dadosSalvos.fotoKey)
-                if (fotoLS) { fotoParaEnviar = fotoLS; localStorage.removeItem(dadosSalvos.fotoKey) }
+              const fotoKey = dadosSemFoto.fotoKey
+              if (fotoKey) {
+                const dbFoto = await new Promise<IDBDatabase>((res, rej) => {
+                  const r = indexedDB.open('aime-fotos', 1)
+                  r.onupgradeneeded = (e) => { (e.target as IDBOpenDBRequest).result.createObjectStore('fotos') }
+                  r.onsuccess = (e) => res((e.target as IDBOpenDBRequest).result)
+                  r.onerror = () => rej(r.error)
+                })
+                fotoParaEnviar = await new Promise<string>((res) => {
+                  const tx = dbFoto.transaction('fotos', 'readwrite')
+                  const req = tx.objectStore('fotos').get(fotoKey)
+                  req.onsuccess = () => { tx.objectStore('fotos').delete(fotoKey); res(req.result || '') }
+                  req.onerror = () => res('')
+                })
               }
             } catch {}
             // Gerar NC/CP via IA se estiver pendente
@@ -416,7 +439,8 @@ function Tela31Inner() {
               const { removerPendente } = await import('@/lib/offlineVistoria')
               await removerPendente(idOffline)
               setFeedbackIA('✅ Vistoria salva com sucesso!')
-              setSalvoOk(true)
+              setSalvoOk(true); setArquivoSalvo(nomeArquivo2)
+              setSalvando(false)
               // Limpar campos apenas após salvar com sucesso
               setSistema(''); setSubsistema(''); setAnomalia(''); setOrigem(''); setLocal('')
               setComplemento(''); setTipoAtivo(''); setTagNrSerie('')
