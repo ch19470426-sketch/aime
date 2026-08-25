@@ -605,7 +605,7 @@ function Tela31Inner() {
                 setErroValidacao('')
                 fileInputRef.current?.click()
               }}>
-                {fotoBase64 && <img src={fotoBase64} alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />}
+                {fotoBase64 && <img src={fotoBase64} alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'contain' }} />}
                 {!fotoBase64 && <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#8aa3c4', fontSize: '8pt' }}>Clique para adicionar a foto da anomalia</div>}
               </div>
               {erroValidacao && <div style={{ color: '#DC2626', fontSize: '8pt', textAlign: 'center', marginTop: '4px', padding: '4px 8px', background: '#FEF2F2', borderRadius: '4px' }}>⚠️ {erroValidacao}</div>}
@@ -697,7 +697,7 @@ const S: Record<string, React.CSSProperties> = {
   photoControls: { display: 'grid', gridTemplateColumns: '70px 1fr auto', gap: '6px', alignItems: 'end', marginBottom: '4px' },
   photoBtn:      { display: 'flex', alignItems: 'center', gap: '5px', padding: '3px 12px', height: '24px', background: '#E8EEF7', border: '1px solid #c3d4f0', borderRadius: '4px', cursor: 'pointer', fontSize: '7pt', color: '#1E3A8A', whiteSpace: 'nowrap', fontFamily: 'inherit' },
   dataDisplay:   { fontSize: '7.5pt', color: '#1E3A8A', fontWeight: 600, textAlign: 'center', padding: '2px 5px', border: '1px solid #c3d4f0', borderRadius: '4px', background: '#f5f7fc' },
-  photoArea:     { border: '1.5px dashed #c3d4f0', borderRadius: '5px', background: '#E8EEF7', height: '90mm', position: 'relative', overflow: 'hidden', cursor: 'pointer' },
+  photoArea:     { border: '1.5px dashed #c3d4f0', borderRadius: '5px', background: '#000', height: '280px', maxWidth: '380px', margin: '0 auto', position: 'relative', overflow: 'hidden', cursor: 'pointer', display: 'block', width: '100%' },
   aiStatus:      { fontSize: '6.5pt', color: '#1E3A8A', padding: '2px 6px', background: '#E8EEF7', borderRadius: '4px', marginTop: '2px' },
   footer:        { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginTop: '4px' },
   btn:           { padding: '8px 0', fontSize: '8pt', fontWeight: 700, borderRadius: '50px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', fontFamily: 'inherit' },
