@@ -349,7 +349,15 @@ function Tela31Inner() {
         sistema, subsistema, anomalia, origem, local, complemento,
         gravidade: gravNum, urgencia: urgNum, abrangencia: abrNum, exposicao: expNum,
         grauRisco, prioridade, dataVistoria, fotoBase64, nc, cp, nc_pendente: !nc || !cp }
-      const idOfflineNR = await salvarOffline({ ...dadosNR, fotoNr, payload: dadosNR })
+      let idOfflineNR = -1
+      try {
+        const dadosNRSemFoto = { ...dadosNR, fotoBase64: '', payload: { ...dadosNR, fotoBase64: '' } }
+        idOfflineNR = await salvarOffline({ ...dadosNRSemFoto, fotoNr })
+      } catch (errIDB) {
+        setErroSave('Sem internet. Tente salvar novamente ao reconectar.')
+        setSalvando(false)
+        return
+      }
       setFeedbackIA('📵 Sem internet. Dados salvos localmente. Aguardando reconexão...')
       setSalvando(false)
       const aguardarNR = setInterval(async () => {
@@ -378,7 +386,7 @@ function Tela31Inner() {
             })
             const nrData2 = await nrRes2.json()
             const nrFinal2 = nrData2?.formatado ?? fotoNr
-            const payload2 = { ...dadosNR, nc: ncFinal, cp: cpFinal, fotoNr: nrFinal2, savedAt: new Date().toISOString() }
+            const payload2 = { ...dadosNR, nc: ncFinal, cp: cpFinal, fotoNr: nrFinal2, fotoBase64, savedAt: new Date().toISOString() }
             const nomeArquivo2 = `${chaveInspetor}_${cnpjoucpf}_${tipoServico}_${nrFinal2}.json`
             const res2 = await fetch('/api/salvar-vistoria', {
               method: 'POST', headers: { 'Content-Type': 'application/json' },

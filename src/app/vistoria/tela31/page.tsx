@@ -343,8 +343,16 @@ function Tela31Inner() {
         return
       }
     } catch {
-      // Sem internet — salvar no IndexedDB e aguardar reconexão para enviar ao banco
-      const idOffline = await salvarOffline({ ...dadosBase, fotoNr, payload: dadosBase })
+      // Sem internet — salvar no IndexedDB (sem foto para evitar limite de tamanho)
+      let idOffline = -1
+      try {
+        const dadosSemFoto = { ...dadosBase, fotoBase64: '', fotoNr, payload: { ...dadosBase, fotoBase64: '' } }
+        idOffline = await salvarOffline(dadosSemFoto)
+      } catch (errIDB) {
+        setErroSave('Sem internet. Tente salvar novamente ao reconectar.')
+        setSalvando(false)
+        return
+      }
       setErroSave('')
       setFeedbackIA('📵 Sem internet. Dados salvos localmente. Aguardando reconexão...')
       setSalvando(false)
@@ -380,7 +388,8 @@ function Tela31Inner() {
             const nrData2 = await nrRes2.json()
             const nrFinal2 = nrData2?.formatado ?? fotoNr
             const nomeArquivo2 = `${chaveInspetor}_${cnpjoucpf}_${tipoServico}_${nrFinal2}.json`
-            const payload2 = { ...dadosBase, nc: ncFinal, cp: cpFinal, fotoNr: nrFinal2, savedAt: new Date().toISOString() }
+            // Incluir fotoBase64 do estado React (não foi salva no IndexedDB)
+            const payload2 = { ...dadosBase, nc: ncFinal, cp: cpFinal, fotoNr: nrFinal2, fotoBase64, savedAt: new Date().toISOString() }
             const res2 = await fetch('/api/salvar-vistoria', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
