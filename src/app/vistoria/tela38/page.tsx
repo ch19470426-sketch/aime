@@ -342,96 +342,42 @@ function Tela31Inner() {
     }
 
     } catch {
-      // Sem internet — foto no localStorage, dados no IDB
-      const fotoKeyNR = `foto_${Date.now()}`
+      // Sem internet — salvar no IDB e navegar normalmente
       try {
-        const dbFotoNR = await new Promise<IDBDatabase>((res, rej) => {
-          const r = indexedDB.open('aime-fotos', 1)
-          r.onupgradeneeded = (e) => { (e.target as IDBOpenDBRequest).result.createObjectStore('fotos') }
-          r.onsuccess = (e) => res((e.target as IDBOpenDBRequest).result)
-          r.onerror = () => rej(r.error)
-        })
-        await new Promise<void>((res, rej) => {
-          const tx = dbFotoNR.transaction('fotos', 'readwrite')
-          const req = tx.objectStore('fotos').put(fotoBase64, fotoKeyNR)
-          req.onsuccess = () => res(); req.onerror = () => rej(req.error)
-        })
-      } catch {}
-      const dadosNR = { chaveInspetor, cpfInspetor, cnpjoucpf, tipoServico,
-        cnpjDisplay, razaoSocial, tipoAtivo, tagNrSerie, finalidade,
-        sistema, subsistema, anomalia, origem, local, complemento,
-        gravidade: gravNum, urgencia: urgNum, abrangencia: abrNum, exposicao: expNum,
-        grauRisco, prioridade, dataVistoria, fotoBase64: '', fotoKey: fotoKeyNR, nc, cp, nc_pendente: !nc || !cp }
-      let idOfflineNR = -1
-      try {
-        idOfflineNR = await salvarOffline({ ...dadosNR, fotoNr, payload: dadosNR })
+        const fotoKeyNR = `foto_${Date.now()}`
+        const dadosNR = { chaveInspetor, cpfInspetor, cnpjoucpf, tipoServico,
+          cnpjDisplay, razaoSocial, tipoAtivo, tagNrSerie, finalidade,
+          sistema, subsistema, anomalia, origem, resultado, local, complemento,
+          gravidade: gravNum, urgencia: urgNum, abrangencia: abrNum, exposicao: expNum,
+          grauRisco, prioridade, fotoNr, dataVistoria, nc, cp, nc_pendente: !nc || !cp }
+        try {
+          const dbF = await new Promise<IDBDatabase>((rs, rj) => {
+            const r = indexedDB.open('aime-fotos', 1)
+            r.onupgradeneeded = e => { (e.target as IDBOpenDBRequest).result.createObjectStore('fotos') }
+            r.onsuccess = e => rs((e.target as IDBOpenDBRequest).result)
+            r.onerror = () => rj(r.error)
+          })
+          await new Promise<void>((rs, rj) => {
+            const tx = dbF.transaction('fotos', 'readwrite')
+            const req = tx.objectStore('fotos').put(fotoBase64, fotoKeyNR)
+            req.onsuccess = () => rs(); req.onerror = () => rj(req.error)
+          })
+          await salvarOffline({ ...dadosNR, fotoBase64: '', fotoKey: fotoKeyNR, payload: { ...dadosNR, fotoBase64: '', fotoKey: fotoKeyNR } })
+        } catch {
+          await salvarOffline({ ...dadosNR, fotoBase64, payload: dadosNR })
+        }
+        if ('serviceWorker' in navigator && 'SyncManager' in window) {
+          const reg = await navigator.serviceWorker.ready
+          await (reg as any).sync.register('aime-sync-vistoria')
+        }
       } catch {
-        setErroSave('Não foi possível salvar localmente. Aguarde a internet retornar e tente salvar novamente.')
+        setErroSave('Não foi possível salvar. Tente novamente.')
         setSalvando(false)
         return
       }
-      setFeedbackIA('📵 Sem internet. Dados salvos localmente. Aguardando reconexão...')
-      setSalvando(false)
-      const aguardarNR = setInterval(async () => {
-        if (navigator.onLine) {
-          clearInterval(aguardarNR)
-          setFeedbackIA('🔄 Internet restaurada. Salvando vistoria...')
-          try {
-            let fotoNR = ''
-            try {
-              if (fotoKeyNR) {
-                const dbFotoNR2 = await new Promise<IDBDatabase>((res, rej) => {
-                  const r = indexedDB.open('aime-fotos', 1)
-                  r.onupgradeneeded = (e) => { (e.target as IDBOpenDBRequest).result.createObjectStore('fotos') }
-                  r.onsuccess = (e) => res((e.target as IDBOpenDBRequest).result)
-                  r.onerror = () => rej(r.error)
-                })
-                fotoNR = await new Promise<string>((res) => {
-                  const tx = dbFotoNR2.transaction('fotos', 'readwrite')
-                  const req = tx.objectStore('fotos').get(fotoKeyNR)
-                  req.onsuccess = () => { tx.objectStore('fotos').delete(fotoKeyNR); res(req.result || '') }
-                  req.onerror = () => res('')
-                })
-              }
-            } catch {}
-            let ncFinal = nc, cpFinal = cp
-            if (!nc || !cp) {
-              try {
-                const rIA = await fetch('/api/gerar-nc-cp', {
-                  method: 'POST', headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ sistema, subsistema, anomalia, local, complemento, origem, abrangencia: descAbrangencia })
-                })
-                if (rIA.ok) {
-                  const dIA = await rIA.json()
-                  ncFinal = dIA.nc || dIA.nao_conformidade || nc
-                  cpFinal = dIA.cp || dIA.causa_provavel || cp
-                  setNc(ncFinal); setCp(cpFinal)
-                }
-              } catch {}
-            }
-            const nrRes2 = await fetch('/api/foto-nr', {
-              method: 'POST', headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ cpf_inspetor: cpfInspetor, cnpjoucpf, tipo_servico: tipoServico })
-            })
-            const nrData2 = await nrRes2.json()
-            const nrFinal2 = nrData2?.formatado ?? fotoNr
-            const payload2 = { ...dadosNR, nc: ncFinal, cp: cpFinal, fotoNr: nrFinal2, fotoBase64, savedAt: new Date().toISOString() }
-            const nomeArquivo2 = `${chaveInspetor}_${cnpjoucpf}_${tipoServico}_${nrFinal2}.json`
-            const res2 = await fetch('/api/salvar-vistoria', {
-              method: 'POST', headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ nomeArquivo: nomeArquivo2, payload: payload2 })
-            })
-            if (res2.ok) {
-              const { removerPendente } = await import('@/lib/offlineVistoria')
-              await removerPendente(idOfflineNR)
-              setFeedbackIA('✅ Vistoria salva com sucesso!')
-              setSalvoOk(true); setArquivoSalvo(nomeArquivo2); setSalvando(false)
-            } else {
-              setFeedbackIA('⚠️ Erro ao salvar. Tente novamente.')
-            }
-          } catch { setFeedbackIA('⚠️ Erro ao sincronizar. Tente novamente.') }
-        }
-      }, 3000)
+      const nomeLocal = `${chaveInspetor}_${cnpjoucpf}_${tipoServico}_pendente.json`
+      setSalvando(false); setSalvoOk(true); setArquivoSalvo(nomeLocal)
+      setFeedbackIA('📵 Salvo localmente. Será sincronizado ao reconectar.')
       return
     }
 
