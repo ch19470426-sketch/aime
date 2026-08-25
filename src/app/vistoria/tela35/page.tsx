@@ -349,13 +349,13 @@ function Tela31Inner() {
           const img2 = new window.Image()
           await new Promise<void>(rs => { img2.onload = () => rs(); img2.src = fotoBase64 })
           const cv2 = document.createElement('canvas')
-          const MAXO = 320
+          const MAXO = 640
           let wo = img2.width, ho = img2.height
           if (wo > MAXO) { ho = Math.round(ho * MAXO / wo); wo = MAXO }
           if (ho > MAXO) { wo = Math.round(wo * MAXO / ho); ho = MAXO }
           cv2.width = wo; cv2.height = ho
           cv2.getContext('2d')?.drawImage(img2, 0, 0, wo, ho)
-          fotoOfflineNR = cv2.toDataURL('image/jpeg', 0.35)
+          fotoOfflineNR = cv2.toDataURL('image/jpeg', 0.5)
         } catch {}
         const dadosNR = { chaveInspetor, cpfInspetor, cnpjoucpf, tipoServico,
           cnpjDisplay, razaoSocial, tipoAtivo, tagNrSerie, finalidade,
