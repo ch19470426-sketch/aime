@@ -617,18 +617,19 @@ export async function POST(request: NextRequest) {
     partes.push('</head><body>')
     partes.push('<div id="msgBanner" style="display:none;position:fixed;top:16px;left:50%;transform:translateX(-50%);background:#1E3A8A;color:#fff;padding:10px 24px;border-radius:8px;font-size:10pt;font-family:Arial;z-index:999;box-shadow:0 4px 12px rgba(0,0,0,0.3)"></div>')
     partes.push('<div class="cab">' + (insp.cabecalho_documentos || plano.titulo) + '</div>')
+    // Título primeiro
+    partes.push('<p style="text-align:center;font-size:10pt;font-weight:bold;margin:0;line-height:1">' + plano.titulo + '</p>')
+    // Linha de data à direita (1 linha abaixo do título)
     partes.push('<p style="line-height:1;margin:0">&nbsp;</p>')
     partes.push('<p style="text-align:right;margin:0;line-height:1">' + municipio + ', ' + dataHoje + '</p>')
+    // 5 linhas em branco após a data
     partes.push('<p style="line-height:1;margin:0">&nbsp;</p>')
     partes.push('<p style="line-height:1;margin:0">&nbsp;</p>')
     partes.push('<p style="line-height:1;margin:0">&nbsp;</p>')
     partes.push('<p style="line-height:1;margin:0">&nbsp;</p>')
     partes.push('<p style="line-height:1;margin:0">&nbsp;</p>')
-    partes.push('<p style="line-height:1;margin:0">&nbsp;</p>')
-    partes.push('<p style="text-align:center;font-size:10pt;font-weight:bold;margin:0;line-height:1">' + plano.titulo + '</p>')
-    partes.push('<p style="line-height:1;margin:0">&nbsp;</p>')
-    partes.push('<p style="line-height:1;margin:0">&nbsp;</p>')
-    partes.push('<table style="width:640px"><tr><td style="border:none;padding:0"><strong>Estabelecimento:</strong> ' + est.razao_social_nome + '</td><td style="border:none;padding:0;text-align:right"><strong>CNPJ/CPF:</strong> ' + fmtCNPJ(cnpjoucpf) + '</td></tr><tr><td colspan="2" style="border:none;padding:0"><strong>Endereço:</strong> ' + endereco + '</td></tr></table>')
+    // Estabelecimento
+    partes.push('<table style="width:100%;border-collapse:collapse"><tr><td style="border:none;padding:0"><strong>Estabelecimento:</strong> ' + est.razao_social_nome + '</td><td style="border:none;padding:0;text-align:right"><strong>CNPJ/CPF:</strong> ' + fmtCNPJ(cnpjoucpf) + '</td></tr><tr><td colspan="2" style="border:none;padding:0"><strong>Endereço:</strong> ' + endereco + '</td></tr></table>')
     partes.push('<p style="line-height:1;margin:0">&nbsp;</p>')
     partes.push('<h2 style="font-size:10pt;font-weight:bold">1.1.- Ativos a Vistoriar</h2>')
     const thStyle = 'padding:3px 6px;font-size:10pt;text-align:left;background:#1E3A8A;color:#fff'

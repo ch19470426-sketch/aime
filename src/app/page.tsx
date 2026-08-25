@@ -22,8 +22,19 @@ export default function LoginPage() {
     // Verificar sessão primeiro
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
-        // Sessão ativa — ir direto para dashboard sem mostrar capa
-        router.replace('/dashboard')
+        // Verificar se a sessão é válida antes de ir para o dashboard
+        // Saídas anormais podem deixar sessão inválida no localStorage
+        supabase.auth.getUser().then(({ data: { user }, error }) => {
+          if (user && !error) {
+            router.replace('/dashboard')
+          } else {
+            // Sessão inválida — limpar e mostrar login
+            supabase.auth.signOut().then(() => {
+              setVerificandoSessao(false)
+              setMostrarCapa(true)
+            })
+          }
+        })
       } else {
         // Sem sessão — mostrar capa
         setVerificandoSessao(false)
