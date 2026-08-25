@@ -343,18 +343,19 @@ function Tela31Inner() {
     }
 
     } catch {
-      // Sem internet — salvar localmente e aguardar reconexão
+      // Sem internet — foto no localStorage, dados no IDB
+      const fotoKeyNR = `foto_${Date.now()}`
+      try { localStorage.setItem(fotoKeyNR, fotoBase64) } catch {}
       const dadosNR = { chaveInspetor, cpfInspetor, cnpjoucpf, tipoServico,
         cnpjDisplay, razaoSocial, tipoAtivo, tagNrSerie, finalidade,
         sistema, subsistema, anomalia, origem, local, complemento,
         gravidade: gravNum, urgencia: urgNum, abrangencia: abrNum, exposicao: expNum,
-        grauRisco, prioridade, dataVistoria, fotoBase64, nc, cp, nc_pendente: !nc || !cp }
+        grauRisco, prioridade, dataVistoria, fotoBase64: '', fotoKey: fotoKeyNR, nc, cp, nc_pendente: !nc || !cp }
       let idOfflineNR = -1
       try {
-        const dadosNRSemFoto = { ...dadosNR, fotoBase64: '', payload: { ...dadosNR, fotoBase64: '' } }
-        idOfflineNR = await salvarOffline({ ...dadosNRSemFoto, fotoNr })
-      } catch (errIDB) {
-        setErroSave('Sem internet. Tente salvar novamente ao reconectar.')
+        idOfflineNR = await salvarOffline({ ...dadosNR, fotoNr, payload: dadosNR })
+      } catch {
+        setErroSave('Não foi possível salvar localmente. Aguarde a internet retornar e tente salvar novamente.')
         setSalvando(false)
         return
       }
@@ -365,6 +366,8 @@ function Tela31Inner() {
           clearInterval(aguardarNR)
           setFeedbackIA('🔄 Internet restaurada. Salvando vistoria...')
           try {
+            let fotoNR = ''
+            try { const fk = fotoKeyNR; if(fk){ const fl = localStorage.getItem(fk); if(fl){ fotoNR = fl; localStorage.removeItem(fk) } } } catch {}
             let ncFinal = nc, cpFinal = cp
             if (!nc || !cp) {
               try {
