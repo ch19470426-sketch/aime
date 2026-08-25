@@ -564,12 +564,14 @@ function Tela31Inner() {
             <div style={S.blockTitle}>Evidência Fotográfica</div>
             <div style={S.blockBody}>
               <div style={S.photoControls}>
-                <Field label="Foto nº">
-                  <input style={{ ...S.input, textAlign: 'center', background: '#f5f7fc', color: '#1E3A8A', fontWeight: 700 }} value={fotoNr} readOnly />
-                </Field>
-                <Field label="Data da vistoria">
-                  <div style={S.dataDisplay}>{dataVistoria}</div>
-                </Field>
+                {/* Box Foto Nº + Data — à esquerda */}
+                <div style={S.photoMeta}>
+                  <span style={{ fontSize: '7pt', color: '#6B7280' }}>Foto Nº</span>
+                  <span style={{ fontSize: '8pt', fontWeight: 700, color: '#1E3A8A' }}>{fotoNr}</span>
+                  <span style={{ fontSize: '7pt', color: '#6B7280', marginLeft: '8px' }}>Data</span>
+                  <span style={{ fontSize: '8pt', color: '#374151' }}>{dataVistoria}</span>
+                </div>
+                {/* Botão Adicionar foto — à direita */}
                 <button
                   style={S.photoBtn}
                   onClick={() => {
