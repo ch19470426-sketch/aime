@@ -346,112 +346,51 @@ function Tela31Inner() {
         return
       }
     } catch {
-      // Sem internet — salvar no IndexedDB com foto separada
-      let idOffline = -1
+      // Sem internet — salvar no IDB e navegar normalmente
+      // A sincronização com o banco ocorre automaticamente ao reconectar (via SW)
       try {
-        // Salvar foto separadamente para não exceder limite de tamanho do IDB
-        // Salvar foto no IDB separadamente (localStorage tem limite de ~5MB)
+        // Salvar foto no IDB separado
         const fotoKey = `foto_${Date.now()}`
         try {
-          const dbFoto = await new Promise<IDBDatabase>((res, rej) => {
+          const dbF = await new Promise<IDBDatabase>((rs, rj) => {
             const r = indexedDB.open('aime-fotos', 1)
-            r.onupgradeneeded = (e) => { (e.target as IDBOpenDBRequest).result.createObjectStore('fotos') }
-            r.onsuccess = (e) => res((e.target as IDBOpenDBRequest).result)
-            r.onerror = () => rej(r.error)
+            r.onupgradeneeded = e => { (e.target as IDBOpenDBRequest).result.createObjectStore('fotos') }
+            r.onsuccess = e => rs((e.target as IDBOpenDBRequest).result)
+            r.onerror = () => rj(r.error)
           })
-          await new Promise<void>((res, rej) => {
-            const tx = dbFoto.transaction('fotos', 'readwrite')
+          await new Promise<void>((rs, rj) => {
+            const tx = dbF.transaction('fotos', 'readwrite')
             const req = tx.objectStore('fotos').put(fotoBase64, fotoKey)
-            req.onsuccess = () => res(); req.onerror = () => rej(req.error)
+            req.onsuccess = () => rs(); req.onerror = () => rj(req.error)
           })
-        } catch { /* falhou salvar foto — sincroniza sem foto */ }
-        const dadosSemFoto = { ...dadosBase, fotoBase64: '', fotoKey, fotoNr, payload: { ...dadosBase, fotoBase64: '', fotoKey } }
-        idOffline = await salvarOffline(dadosSemFoto)
+          // Salvar dados no IDB referenciando a foto
+          await salvarOffline({ ...dadosBase, fotoBase64: '', fotoKey, fotoNr,
+            nc_pendente: !nc || !cp, payload: { ...dadosBase, fotoBase64: '', fotoKey } })
+        } catch {
+          // Foto não coube no IDB — salvar com foto mesmo (pode ser menor)
+          await salvarOffline({ ...dadosBase, fotoNr,
+            nc_pendente: !nc || !cp, payload: dadosBase })
+        }
+        // Registrar sync no SW para quando internet voltar
+        if ('serviceWorker' in navigator && 'SyncManager' in window) {
+          const reg = await navigator.serviceWorker.ready
+          await (reg as any).sync.register('aime-sync-vistoria')
+        }
       } catch {
-        // IDB também falhou — manter dados na tela para o inspetor tentar novamente
-        setErroSave('Não foi possível salvar localmente. Aguarde a internet retornar e tente salvar novamente.')
+        setErroSave('Não foi possível salvar. Tente novamente.')
         setSalvando(false)
         return
       }
-      setErroSave('')
-      setFeedbackIA('📵 Sem internet. Dados salvos localmente. Aguardando reconexão...')
+      // Navegar normalmente — sync acontece em background
+      const nomeLocal = `${chaveInspetor}_${cnpjoucpf}_${tipoServico}_pendente.json`
       setSalvando(false)
-      // Aguardar internet e sincronizar automaticamente sem limpar a tela
-      const aguardarSync = setInterval(async () => {
-        if (navigator.onLine) {
-          clearInterval(aguardarSync)
-          setFeedbackIA('🔄 Internet restaurada. Salvando vistoria...')
-          try {
-            // Recuperar foto do IDB
-            let fotoParaEnviar = ''
-            try {
-              const fotoKey = dadosSemFoto.fotoKey
-              if (fotoKey) {
-                const dbFoto = await new Promise<IDBDatabase>((res, rej) => {
-                  const r = indexedDB.open('aime-fotos', 1)
-                  r.onupgradeneeded = (e) => { (e.target as IDBOpenDBRequest).result.createObjectStore('fotos') }
-                  r.onsuccess = (e) => res((e.target as IDBOpenDBRequest).result)
-                  r.onerror = () => rej(r.error)
-                })
-                fotoParaEnviar = await new Promise<string>((res) => {
-                  const tx = dbFoto.transaction('fotos', 'readwrite')
-                  const req = tx.objectStore('fotos').get(fotoKey)
-                  req.onsuccess = () => { tx.objectStore('fotos').delete(fotoKey); res(req.result || '') }
-                  req.onerror = () => res('')
-                })
-              }
-            } catch {}
-            // Gerar NC/CP via IA se estiver pendente
-            let ncFinal = nc, cpFinal = cp
-            if (!nc || !cp) {
-              try {
-                const rIA = await fetch('/api/gerar-nc-cp', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ sistema, subsistema, anomalia, local, complemento, origem, abrangencia: descAbrangencia })
-                })
-                if (rIA.ok) {
-                  const dIA = await rIA.json()
-                  ncFinal = dIA.nc || dIA.nao_conformidade || nc
-                  cpFinal = dIA.cp || dIA.causa_provavel || cp
-                  setNc(ncFinal); setCp(cpFinal)
-                }
-              } catch {}
-            }
-            // Obter número da foto
-            const nrRes2 = await fetch('/api/foto-nr', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ cpf_inspetor: cpfInspetor, cnpjoucpf, tipo_servico: tipoServico })
-            })
-            const nrData2 = await nrRes2.json()
-            const nrFinal2 = nrData2?.formatado ?? fotoNr
-            const nomeArquivo2 = `${chaveInspetor}_${cnpjoucpf}_${tipoServico}_${nrFinal2}.json`
-            // Incluir fotoBase64 do estado React (não foi salva no IndexedDB)
-            const payload2 = { ...dadosBase, nc: ncFinal, cp: cpFinal, fotoNr: nrFinal2, fotoBase64: fotoParaEnviar, savedAt: new Date().toISOString() }
-            const res2 = await fetchTimeout('/api/salvar-vistoria', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' },
-              body: JSON.stringify({ nomeArquivo: nomeArquivo2, payload: payload2 })
-            }, 20000)
-            if (res2.ok) {
-              // Remover do IndexedDB após salvar com sucesso
-              const { removerPendente } = await import('@/lib/offlineVistoria')
-              await removerPendente(idOffline)
-              setFeedbackIA('✅ Vistoria salva com sucesso!')
-              setSalvoOk(true); setArquivoSalvo(nomeArquivo2)
-              setSalvando(false)
-              // Limpar campos apenas após salvar com sucesso
-              setSistema(''); setSubsistema(''); setAnomalia(''); setOrigem(''); setLocal('')
-              setComplemento(''); setTipoAtivo(''); setTagNrSerie('')
-              setDescGravidade(''); setDescUrgencia(''); setDescAbrangencia(''); setDescExposicao('')
-              setFotoBase64(''); setNc(''); setCp('')
-            } else {
-              setFeedbackIA('⚠️ Erro ao salvar. Tente novamente.')
-            }
-          } catch { setFeedbackIA('⚠️ Erro ao sincronizar. Tente novamente.') }
-        }
-      }, 3000)
+      setSalvoOk(true)
+      setArquivoSalvo(nomeLocal)
+      setFeedbackIA('📵 Salvo localmente. Será sincronizado ao reconectar.')
+      setSistema(''); setSubsistema(''); setAnomalia(''); setOrigem(''); setLocal('')
+      setComplemento(''); setTipoAtivo(''); setTagNrSerie('')
+      setDescGravidade(''); setDescUrgencia(''); setDescAbrangencia(''); setDescExposicao('')
+      setFotoBase64(''); setNc(''); setCp('')
       return
     }
 
