@@ -188,7 +188,7 @@ tr:nth-child(even) td { background: #f7f9ff; }
 /* Capa */
 .pg-capa { page-break-after:always; box-sizing:border-box; }
 @page :first { margin:0 !important; }
-.pg-capa { counter-reset: page 0; page-break-after: always; }
+.pg-capa { page-break-after: always; }
 @page :first { margin: 0 !important; }
 .capa-barra { background: #1E3A8A; height: 8mm; width: 100%; margin-bottom: 0; }
 .capa-logo  { text-align: center; padding: 20mm 0 10mm; }
@@ -1946,27 +1946,25 @@ export async function POST(request: NextRequest) {
     const logoB64 = inspetor?.logo_base64 || ''
     const logoTag = logoB64 ? `<img src="${logoB64}" style="max-height:28mm;max-width:80mm">` : `<div style="font-size:14pt;font-weight:900;color:#1E3A8A">${xe(inspetor?.cabecalho_documentos||'AIMÊ')}</div>`
     const CAPA_HTML = `
-<div class='pg-capa' style='counter-reset:page 0'>
-  <div style='background:#1E3A8A;height:8mm'></div>
-  <div style='height:20mm;display:flex;align-items:center;justify-content:center'>
-    ${logoTag}
-  </div>
-  <div style='height:90mm;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 20mm;text-align:center'>
+<table class='pg-capa' style='counter-reset:page 0;width:100%;height:297mm;border-collapse:collapse;table-layout:fixed'>
+  <tr><td style='background:#1E3A8A;height:8mm;padding:0'></td></tr>
+  <tr><td style='padding:8mm 20mm 0;text-align:center;vertical-align:middle;height:30mm'>${logoTag}</td></tr>
+  <tr><td style='padding:0 20mm;text-align:center;vertical-align:middle;height:80mm'>
     <div style='font-size:8pt;color:#6B7280;letter-spacing:3px;text-transform:uppercase;margin-bottom:8pt'>LAUDO T&Eacute;CNICO</div>
     <div style='font-size:18pt;font-weight:900;color:#1E3A8A;line-height:1.2;margin-bottom:6pt'>${titulo}</div>
     <div style='font-size:13pt;font-weight:700;color:#374151;margin-bottom:4pt'>${xe(estab?.razao_social_nome||estab?.razao_social||'')}</div>
     <div style='font-size:9pt;color:#374151'>${xe(estab?.logradouro||'')}${estab?.numero_imovel?', '+xe(estab.numero_imovel):''} &mdash; ${xe(estab?.cidade||'')}/${xe(estab?.uf||'')}</div>
-  </div>
-  <div style='height:50mm'></div>
-  <div style='border-top:2px solid #1E3A8A;margin:0 20mm'></div>
-  <div style='padding:10mm 20mm;font-size:9.5pt;color:#222;line-height:1.9'>
-    <b style='color:#1E3A8A'>Inspetor Respons&aacute;vel:</b> ${xe(inspetor?.nome_inspetor)}<br>
-    <b style='color:#1E3A8A'>T&iacute;tulo Profissional:</b> ${tituloIns} &mdash; ${siglaIns} ${numIns}<br>
-    ${inspetor?.especializacao ? '<b style="color:#1E3A8A">Especialidade:</b> Especialista ' + xe(inspetor.especializacao) + '<br>' : ''}
-    <b style='color:#1E3A8A'>Data:</b> ${dataHoje}
-  </div>
-  <div style='background:#1E3A8A;height:8mm'></div>
-</div>`
+  </td></tr>
+  <tr><td style='height:*;vertical-align:bottom;padding:0 20mm 6mm'>
+    <div style='border-top:2px solid #1E3A8A;padding-top:8mm;font-size:9.5pt;color:#222;line-height:1.9'>
+      <b style='color:#1E3A8A'>Inspetor Respons&aacute;vel:</b> ${xe(inspetor?.nome_inspetor)}<br>
+      <b style='color:#1E3A8A'>T&iacute;tulo Profissional:</b> ${tituloIns} &mdash; ${siglaIns} ${numIns}<br>
+      ${inspetor?.especializacao ? '<b style="color:#1E3A8A">Especialidade:</b> Especialista ' + xe(inspetor.especializacao) + '<br>' : ''}
+      <b style='color:#1E3A8A'>Data:</b> ${dataHoje}
+    </div>
+  </td></tr>
+  <tr><td style='background:#1E3A8A;height:8mm;padding:0'></td></tr>
+</table>`
 
     // ── ÍNDICE ───────────────────────────────────────────────────────────────
     const INDICE_ITENS = [
