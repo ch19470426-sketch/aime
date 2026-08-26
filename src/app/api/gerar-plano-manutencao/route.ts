@@ -335,13 +335,14 @@ tr:nth-child(even) td { background: #f7f9ff; }
       if (k) ativosPorTipo[k] = a
     })
 
-    // Ordenar por: Local ocorrência + Tag/Série + Grau risco DESC (2.9.1-h)
+    // Ordenar por: Local ocorrência → Tag/Série → Grau risco DESC
     const ncsArr: any[] = [...(Array.isArray(ncs) ? ncs : [])].sort((a:any,b:any) => {
       const la = String(a.local_ocorrencia||a.local||''), lb = String(b.local_ocorrencia||b.local||'')
-      if (la !== lb) return la.localeCompare(lb)
-      const ca = String(a.complemento_local||a.complemento||''), cb = String(b.complemento_local||b.complemento||'')
-      const ta = String(a.tagNrSerie||a.tag_ativo_nr_serie||a.tag||""), tb = String(b.tagNrSerie||b.tag_ativo_nr_serie||b.tag||"")
-      if (ta !== tb) return ta.localeCompare(tb)
+      if (la !== lb) return la.localeCompare(lb, 'pt-BR')
+      const ta = String(a.tagNrSerie||a.tag_ativo_nr_serie||a.tag||''), tb = String(b.tagNrSerie||b.tag_ativo_nr_serie||b.tag||'')
+      if (ta !== tb) return ta.localeCompare(tb, 'pt-BR')
+      const gra = Number(a.grau_risco||a.grauRisco||0), grb = Number(b.grau_risco||b.grauRisco||0)
+      return grb - gra  // DESC: maior grau primeiro
     })
     let anx1Rows = ''
 
