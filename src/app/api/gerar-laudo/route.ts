@@ -2224,7 +2224,7 @@ ${rodInspetor?`<div class="rod">${rodInspetor}</div>`:''}
         estab, inspetor, ncs, complemento,
       }),'utf-8'), { contentType:'application/json', upsert:true })
 
-    return NextResponse.json({ ok:true, nomeArquivo })
+    return NextResponse.json({ ok:true, nomeArquivo, html })
 
   } catch (err) {
     return NextResponse.json({ erro: String(err) }, { status: 500 })
