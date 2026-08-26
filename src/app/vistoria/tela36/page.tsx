@@ -502,7 +502,13 @@ function Tela31Inner() {
                   </select>
                 </Field>
                 <Field label="Local/Instalação/Setor/Área *">
-                  <input style={{ ...S.input, borderColor: !local ? '#E24B4A' : undefined }} value={local} onChange={e => setLocal(e.target.value)} placeholder="Ex: Quadro 2º pavimento..." />
+                  {locais.length > 0
+                    ? <select style={{ ...S.input, borderColor: !local ? '#E24B4A' : undefined }} value={local} onChange={e => setLocal(e.target.value)}>
+                        <option value="">Selecione...</option>
+                        {locais.map(l => <option key={l} value={l}>{l}</option>)}
+                      </select>
+                    : <input style={{ ...S.input, borderColor: !local ? '#E24B4A' : undefined }} value={local} onChange={e => setLocal(e.target.value)} placeholder="Ex: Quadro 2º pavimento..." />
+                  }
                 </Field>
                 <Field label="Complemento">
                   <input style={S.input} value={complemento} onChange={e => setComplemento(e.target.value)} placeholder="Detalhe adicional..." />
