@@ -316,7 +316,7 @@ function CadastroInspetor() {
                   <div style={{...grid3, marginTop:"6px"}}>
                     <div>
                       <label style={labelStyle}>Titulo Profissional *</label>
-                      <select name="titulo" value={form.titulo} onChange={ehVisualizar ? undefined : handleChange} required disabled={ehVisualizar} style={{...inputStyle,...(ehVisualizar?{backgroundColor:"#F3F4F6",color:"#6B7280"}:{})}}>
+                      <select name="titulo" value={form.titulo} onChange={(ehVisualizar || ehConsulta) ? undefined : handleChange} required disabled={ehVisualizar || ehConsulta} style={{...inputStyle,...((ehVisualizar || ehConsulta)?{backgroundColor:"#F3F4F6",color:"#6B7280"}:{})}}>
                         <option value="">Selecione...</option>
                         <option value="Arquiteto">Arquiteto</option>
                         <option value="Eng Civil">Eng Civil</option>
@@ -328,11 +328,11 @@ function CadastroInspetor() {
                     </div>
                     <div>
                       <label style={labelStyle}>Inscricao CREA/CAU *</label>
-                      <input name="inscricao_crea_cau" value={form.inscricao_crea_cau} onChange={ehVisualizar ? undefined : handleChange} placeholder="RS00000/D" required readOnly={ehVisualizar} style={{...inputStyle,...(ehVisualizar?{backgroundColor:"#F3F4F6",color:"#6B7280"}:{})}} />
+                      <input name="inscricao_crea_cau" value={form.inscricao_crea_cau} onChange={(ehVisualizar || ehConsulta) ? undefined : handleChange} placeholder="RS00000/D" required readOnly={ehVisualizar || ehConsulta} style={{...inputStyle,...((ehVisualizar || ehConsulta)?{backgroundColor:"#F3F4F6",color:"#6B7280"}:{})}} />
                     </div>
                     <div>
                       <label style={labelStyle}>Especializacao</label>
-                      <input name="especializacao" value={form.especializacao} onChange={ehVisualizar ? undefined : handleChange} readOnly={ehVisualizar} style={{...inputStyle,...(ehVisualizar?{backgroundColor:"#F3F4F6",color:"#6B7280"}:{})}} />
+                      <input name="especializacao" value={form.especializacao} onChange={(ehVisualizar || ehConsulta) ? undefined : handleChange} readOnly={ehVisualizar || ehConsulta} style={{...inputStyle,...((ehVisualizar || ehConsulta)?{backgroundColor:"#F3F4F6",color:"#6B7280"}:{})}} />
                     </div>
                   </div>
                 </div>
