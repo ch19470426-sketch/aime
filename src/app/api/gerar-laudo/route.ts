@@ -1946,25 +1946,29 @@ export async function POST(request: NextRequest) {
     const logoB64 = inspetor?.logo_base64 || ''
     const logoTag = logoB64 ? `<img src="${logoB64}" style="max-height:28mm;max-width:80mm">` : `<div style="font-size:14pt;font-weight:900;color:#1E3A8A">${xe(inspetor?.cabecalho_documentos||'AIMÊ')}</div>`
     const CAPA_HTML = `
-<table class='pg-capa' style='counter-reset:page 0;width:100%;height:297mm;border-collapse:collapse;table-layout:fixed'>
-  <tr><td style='background:#1E3A8A;height:8mm;padding:0'></td></tr>
-  <tr><td style='padding:8mm 20mm 0;text-align:center;vertical-align:middle;height:30mm'>${logoTag}</td></tr>
-  <tr><td style='padding:0 20mm;text-align:center;vertical-align:middle;height:80mm'>
-    <div style='font-size:8pt;color:#6B7280;letter-spacing:3px;text-transform:uppercase;margin-bottom:8pt'>LAUDO T&Eacute;CNICO</div>
-    <div style='font-size:18pt;font-weight:900;color:#1E3A8A;line-height:1.2;margin-bottom:6pt'>${titulo}</div>
+<div class='pg-capa' style='counter-reset:page 0;display:flex;flex-direction:column;height:297mm'>
+  <div style='height:1cm;background:#fff;flex-shrink:0'></div>
+  <div style='background:#1E3A8A;height:8mm;flex-shrink:0'></div>
+  <div style='text-align:center;padding:6mm 0 0;flex-shrink:0'>${logoTag}</div>
+  <div style='flex:1 1 0'></div>
+  <div style='text-align:center;padding:0 20mm;flex-shrink:0'>
+    <div style='font-size:8pt;color:#6B7280;letter-spacing:3px;text-transform:uppercase;margin-bottom:6pt'>LAUDO T&Eacute;CNICO</div>
+    <div style='font-size:18pt;font-weight:900;color:#1E3A8A;line-height:1.2;margin-bottom:2pt'>${titulo}</div>
     <div style='font-size:13pt;font-weight:700;color:#374151;margin-bottom:4pt'>${xe(estab?.razao_social_nome||estab?.razao_social||'')}</div>
-    <div style='font-size:9pt;color:#374151'>${xe(estab?.logradouro||'')}${estab?.numero_imovel?', '+xe(estab.numero_imovel):''} &mdash; ${xe(estab?.cidade||'')}/${xe(estab?.uf||'')}</div>
-  </td></tr>
-  <tr><td style='height:*;vertical-align:bottom;padding:0 20mm 6mm'>
-    <div style='border-top:2px solid #1E3A8A;padding-top:8mm;font-size:9.5pt;color:#222;line-height:1.9'>
+    <div style='font-size:9pt;color:#374151;text-align:center'>${xe(estab?.logradouro||'')}${estab?.numero_imovel?', '+xe(estab.numero_imovel):''} &mdash; ${xe(estab?.cidade||'')}/${xe(estab?.uf||'')}</div>
+  </div>
+  <div style='flex:1 1 0'></div>
+  <div style='flex-shrink:0'>
+    <div style='border-top:2px solid #1E3A8A;margin:0 20mm'></div>
+    <div style='padding:8mm 20mm;font-size:9.5pt;color:#222;line-height:1.9;flex-shrink:0'>
       <b style='color:#1E3A8A'>Inspetor Respons&aacute;vel:</b> ${xe(inspetor?.nome_inspetor)}<br>
       <b style='color:#1E3A8A'>T&iacute;tulo Profissional:</b> ${tituloIns} &mdash; ${siglaIns} ${numIns}<br>
       ${inspetor?.especializacao ? '<b style="color:#1E3A8A">Especialidade:</b> Especialista ' + xe(inspetor.especializacao) + '<br>' : ''}
       <b style='color:#1E3A8A'>Data:</b> ${dataHoje}
     </div>
-  </td></tr>
-  <tr><td style='background:#1E3A8A;height:8mm;padding:0'></td></tr>
-</table>`
+    <div style='background:#1E3A8A;height:8mm'></div>
+  </div>
+</div>`
 
     // ── ÍNDICE ───────────────────────────────────────────────────────────────
     const INDICE_ITENS = [
@@ -2164,7 +2168,7 @@ ${S5}
 <p><b>7.2.- Declaração de conformidade com o Código de Ética.</b></p>
 <p>O signatário atesta que a presente autovistoria segue criteriosamente os seguintes princípios:</p>
 <ul>
-  <li>Os itens deste trabalho foram revisados pessoalmente pelo responsável técnico que elaborou o Laudo Autovistoria;</li>
+  <li>Os itens deste trabalho foram revisados pessoalmente pelo responsável técnico que elaborou o Laudo;</li>
   <li>O responsável técnico não possui no presente, nem contempla para o futuro, interesse nos bens envolvidos neste trabalho;</li>
   <li>O responsável técnico não tem inclinações nem interesse em relação a finalidade deste trabalho, tão pouco em relação a solicitação;</li>
   <li>O trabalho encontra-se abrigado por absoluta confidencialidade, sendo garantido o sigilo perante terceiros quanto às razões que motivaram a presente contratação, bem como aos resultados alcançados;</li>
