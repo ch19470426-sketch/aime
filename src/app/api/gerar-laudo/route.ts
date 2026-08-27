@@ -800,14 +800,14 @@ i { font-style: italic; }
     const totT = totA+totM+totB
 
     const cabInspetor = xe(inspetor?.cabecalho_documentos) || titulo
-    const rodInspetor = xe(inspetor?.rodape_documentos) || `${xe(inspetor?.nome_inspetor)} — ${xe(inspetor?.titulo_profissional)} — CREA/CAU ${xe(inspetor?.inscricao_crea_cau)}`
+    const rodInspetor = xe(inspetor?.rodape_documentos) || (xe(inspetor?.nome_inspetor) + ' — ' + xe(inspetor?.titulo_profissional) + ' — CREA/CAU ' + xe(inspetor?.inscricao_crea_cau))
 
     // ── Buscar endereço por CEP se logradouro vazio ─────────────────────────
     if (estab?.cep_estabelecimento || estab?.cep) {
       try {
         const cepNum = String(estab.cep_estabelecimento || estab.cep || '').replace(/\D/g,'')
         if (cepNum.length === 8) {
-          const vr = await fetch(`https://viacep.com.br/ws/${cepNum}/json/`)
+          const vr = await fetch('https://viacep.com.br/ws/' + cepNum + '/json/')
           const vd = await vr.json()
           if (!vd.erro) {
             estab = { ...estab,
