@@ -2014,32 +2014,28 @@ export async function POST(request: NextRequest) {
     const logoB64 = inspetor?.logo_base64 || ''
     const logoTag = logoB64 ? `<img src="${logoB64}" style="max-height:28mm;max-width:80mm">` : `<div style="font-size:14pt;font-weight:900;color:#1E3A8A">${xe(inspetor?.cabecalho_documentos||'AIMÊ')}</div>`
     const CAPA_HTML = `
-<div class='pg-capa' style='counter-reset:page 0;height:297mm;display:flex;flex-direction:column;box-sizing:border-box'>
-  <!-- Faixa azul topo -->
-  <div style='background:#1E3A8A;height:10mm;flex-shrink:0'></div>
-
-  <!-- Área flexível: cabeçalho inspetor + bloco laudo centralizado -->
-  <div style='flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10mm 20mm'>
-    ${inspetor?.cabecalho_documentos ? `<div style='font-size:15pt;font-weight:900;color:#1E3A8A;text-align:center;margin-bottom:12mm;line-height:1.3'>${xe(inspetor.cabecalho_documentos)}</div>` : `<div style='margin-bottom:10mm'>${logoTag}</div>`}
-    <div style='text-align:center'>
-      <div style='font-size:8pt;color:#6B7280;letter-spacing:3px;text-transform:uppercase;margin-bottom:6pt'>LAUDO T&Eacute;CNICO</div>
-      <div style='font-size:18pt;font-weight:900;color:#1E3A8A;line-height:1.2;margin-bottom:4pt'>${titulo}</div>
-      <div style='font-size:13pt;font-weight:700;color:#374151;margin-bottom:4pt'>${xe(estab?.razao_social_nome||estab?.razao_social||'')}</div>
-      <div style='font-size:9pt;color:#374151'>${xe(estab?.logradouro||'')}${estab?.numero_imovel?', '+xe(estab.numero_imovel):''} &mdash; ${xe(estab?.cidade||'')}/${xe(estab?.uf||'')}</div>
-    </div>
-  </div>
-
-  <!-- Bloco responsável fixo acima do rodapé -->
-  <div style='flex-shrink:0'>
-    <div style='border-top:2px solid #1E3A8A;margin:0 20mm'></div>
-    <div style='padding:6mm 20mm;font-size:9.5pt;color:#222;line-height:1.9'>
-      <b style='color:#1E3A8A'>Inspetor Respons&aacute;vel:</b> ${xe(inspetor?.nome_inspetor)}<br>
-      <b style='color:#1E3A8A'>T&iacute;tulo Profissional:</b> ${tituloIns} &mdash; ${siglaIns} ${numIns}<br>
-      ${inspetor?.especializacao ? '<b style="color:#1E3A8A">Especialidade:</b> Especialista ' + xe(inspetor.especializacao) + '<br>' : ''}
-      <b style='color:#1E3A8A'>Data:</b> ${dataHoje}
-    </div>
-    <div style='background:#1E3A8A;height:10mm'></div>
-  </div>
+<div class='pg-capa' style='counter-reset:page 0;display:flex;flex-direction:column;height:297mm'>
+<div style='height:1cm;background:#fff;flex-shrink:0'></div>
+<div style='background:#1E3A8A;height:8mm;flex-shrink:0'></div>
+<div style='text-align:center;padding:6mm 0 0;flex-shrink:0'>${inspetor?.cabecalho_documentos ? `<div style='font-size:14pt;font-weight:900;color:#1E3A8A;padding:0 20mm;line-height:1.3'>${xe(inspetor.cabecalho_documentos)}</div>` : logoTag}</div>
+<div style='flex:1 1 0'></div>
+<div style='text-align:center;padding:0 20mm;flex-shrink:0'>
+<div style='font-size:8pt;color:#6B7280;letter-spacing:3px;text-transform:uppercase;margin-bottom:6pt'>LAUDO T&Eacute;CNICO</div>
+<div style='font-size:18pt;font-weight:900;color:#1E3A8A;line-height:1.2;margin-bottom:2pt'>${titulo}</div>
+<div style='font-size:13pt;font-weight:700;color:#374151;margin-bottom:4pt'>${xe(estab?.razao_social_nome||estab?.razao_social||'')}</div>
+<div style='font-size:9pt;color:#374151'>${xe(estab?.logradouro||'')}${estab?.numero_imovel?', '+xe(estab.numero_imovel):''} &mdash; ${xe(estab?.cidade||'')}/${xe(estab?.uf||'')}</div>
+</div>
+<div style='flex:1 1 0'></div>
+<div style='flex-shrink:0'>
+<div style='border-top:2px solid #1E3A8A;margin:0 20mm'></div>
+<div style='padding:8mm 20mm;font-size:9.5pt;color:#222;line-height:1.9;flex-shrink:0'>
+<b style='color:#1E3A8A'>Inspetor Respons&aacute;vel:</b> ${xe(inspetor?.nome_inspetor)}<br>
+<b style='color:#1E3A8A'>T&iacute;tulo Profissional:</b> ${tituloIns} &mdash; ${siglaIns} ${numIns}<br>
+${inspetor?.especializacao ? '<b style="color:#1E3A8A">Especialidade:</b> Especialista ' + xe(inspetor.especializacao) + '<br>' : ''}
+<b style='color:#1E3A8A'>Data:</b> ${dataHoje}
+</div>
+<div style='background:#1E3A8A;height:8mm'></div>
+</div>
 </div>`
 
     // ── ÍNDICE ───────────────────────────────────────────────────────────────
