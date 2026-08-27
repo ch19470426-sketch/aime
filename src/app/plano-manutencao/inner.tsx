@@ -21,6 +21,13 @@ const TIPO_APOIO_NUM: Record<string,string> = {
   '51':'31','52':'32','53':'33','54':'34',
   '55':'35','56':'36','57':'37','58':'38',
 }
+// Tipo de vistoria completo para busca em dados_vistoria
+const TIPO_VISTORIA_LONGO: Record<string,string> = {
+  '31':'31 Autovistoria','32':'32 Vistoria inspeção',
+  '33':'33 Vistoria imóvel novo','34':'34 Vistoria fachada',
+  '35':'35 Vistoria elevador','36':'36 Vistoria nr-10',
+  '37':'37 Vistoria nr-12','38':'38 Vistoria nr-13',
+}
 
 const SLUG: Record<string,string> = {
   '51':'plano_manut_autovistoria','52':'plano_manut_inspecao',
@@ -133,7 +140,12 @@ export default function PlanoManutencaoInner() {
           const fotoNr = Number(nc.fotoNr ?? nc.numero_foto ?? 0)
           if (!fotoNr) return nc
           const r = await fetch(
-            `/api/buscar-solucao-nc?cpf_inspetor=${encodeURIComponent(nc.cpfInspetor ?? nc.cpf_inspetor ?? '')}&cnpjoucpf=${encodeURIComponent(cnpjoucpf)}&tipo_servico=${encodeURIComponent(nc.tipoServico ?? tipoServico)}&foto_nr=${fotoNr}`
+            (() => {
+              const tsNum = String(nc.tipoServico ?? nc.tipo_servico ?? tsApoioNum ?? '').split(' ')[0]
+              const tsBanco = TIPO_VISTORIA_LONGO[tsNum] ?? tsNum
+              const cpfInsp = nc.cpfInspetor ?? nc.cpf_inspetor ?? cpfInspetor
+              return `/api/buscar-solucao-nc?cpf_inspetor=${encodeURIComponent(cpfInsp)}&cnpjoucpf=${encodeURIComponent(cnpjoucpf)}&tipo_servico=${encodeURIComponent(tsBanco)}&foto_nr=${fotoNr}`
+            })()
           )
           const d = await r.json()
           const snc = d.descricao_solucao_nc ?? ''

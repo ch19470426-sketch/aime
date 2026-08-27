@@ -898,6 +898,27 @@ export async function POST(request: NextRequest) {
       const ativosA3 = ativos41.length > 0 ? ativos41 : []
       let ativoIdxA3 = 0
 
+      // Buscar descrições dos sistemas do BD para laudos prediais (41-44)
+      const DESC_SIS_PRED: Record<string,string> = {}
+      const tsPred: Record<string,string> = {
+        '41':'31 Autovistoria','42':'32 Vistoria inspeção',
+        '43':'33 Vistoria imóvel novo','44':'34 Vistoria fachada'
+      }
+      try {
+        const { data: sistPred } = await supabase
+          .from('sistemas_construtivos')
+          .select('sistema,descricao_sistema')
+          .eq('tipo_servico', tsPred[tipoServico] ?? '31 Autovistoria')
+          .order('sistema')
+        ;(sistPred ?? []).forEach((s:any) => {
+          if (s.sistema && s.descricao_sistema) {
+            DESC_SIS_PRED[s.sistema] = s.descricao_sistema
+            const sk = s.sistema.replace(/^(\d+)-/, '$1_')
+            if (sk !== s.sistema) DESC_SIS_PRED[sk] = s.descricao_sistema
+          }
+        })
+      } catch {}
+
       let htmlA3 = ''
       let curSisA3 = ''
       let primeiroA3 = true
@@ -927,7 +948,7 @@ export async function POST(request: NextRequest) {
             '</tr></table>'
 
           // d. Descrição
-          const descSis = DESC_SIS[ncSis] ?? DESC_SIS[sisKey] ?? ''
+          const descSis = DESC_SIS_PRED[ncSis] ?? DESC_SIS_PRED[sisKey] ?? DESC_SIS[ncSis] ?? DESC_SIS[sisKey] ?? ''
           htmlA3 += '<table style="width:100%;border-collapse:collapse;margin-bottom:2px"><tr>' +
             '<td style="' + CELL + ';width:100%">' +
             '<div style="' + ROT + '">Descrição do sistema:</div>' +
