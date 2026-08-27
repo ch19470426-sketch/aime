@@ -1473,7 +1473,26 @@ export async function POST(request: NextRequest) {
     const ncsPorSistema: Record<string, any[]> = {}
     sistemas.forEach(s => { ncsPorSistema[s] = [] })
     ncsOrd41.forEach((nc: any) => {
-      if (ncsPorSistema[nc.sistema] !== undefined) ncsPorSistema[nc.sistema].push(nc)
+      const sistNC = String(nc.sistema||'').trim()
+      if (ncsPorSistema[sistNC] !== undefined) {
+        // Chave exata
+        ncsPorSistema[sistNC].push(nc)
+      } else {
+        // Normalizar: tentar com hífen ou underscore trocado
+        const sistAlt = sistNC.includes('-') ? sistNC.replace(/-/g, '_') : sistNC.replace(/_/g, '-')
+        if (ncsPorSistema[sistAlt] !== undefined) {
+          ncsPorSistema[sistAlt].push(nc)
+        } else {
+          // Buscar por prefixo numérico (ex: '04' encontra '04-Revestimentos')
+          const numPart = (sistNC.match(/^(\d+)/) || [])[1] || ''
+          if (numPart) {
+            const chave = Object.keys(ncsPorSistema).find(k =>
+              k.startsWith(numPart + '-') || k.startsWith(numPart + '_')
+            )
+            if (chave) ncsPorSistema[chave].push(nc)
+          }
+        }
+      }
     })
 
     // Estatística
