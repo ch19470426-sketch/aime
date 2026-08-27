@@ -309,11 +309,11 @@ function Tela31Inner() {
 
     try {
     // Incrementa o contador de foto
-    const nrRes = await fetch('/api/foto-nr', {
+    const nrRes = await fetchTimeout('/api/foto-nr', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ cpf_inspetor: cpfInspetor, cnpjoucpf, tipo_servico: tipoServico })
-    })
+    }, 8000)
     const nrData = await nrRes.json()
     const nrFinal = nrData?.formatado ?? fotoNr
 
