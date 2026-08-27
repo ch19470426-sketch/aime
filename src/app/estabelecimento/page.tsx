@@ -131,7 +131,7 @@ export default function CadastroEstabelecimento() {
                     </div>
                     <div>
                       <label style={labelStyle}>Uso / Atividade</label>
-                      <input name="uso_estabelecimento" value={(form as any).uso_estabelecimento ?? ""} onChange={handleChange} placeholder="Ex: Residencial, Comercial..." style={inputStyle} />
+                      <input name="uso_estabelecimento" value={(form as any).uso_estabelecimento ?? ""} onChange={handleChange} placeholder="Ex: Residencial, Comercial..." required style={inputStyle} />
                     </div>
                   </div>
                 </div>
