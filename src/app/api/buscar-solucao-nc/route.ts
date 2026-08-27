@@ -19,12 +19,13 @@ export async function GET(request: NextRequest) {
   if (!cpf_inspetor || !cnpjoucpf || !tipo_servico || !foto_nr)
     return NextResponse.json({ descricao_solucao_nc: '' })
 
+  // Buscar por tipo_servico exato ou por prefixo numérico (ex: '31' encontra '31 Autovistoria')
   const { data } = await supabase
     .from('dados_vistoria')
     .select('descricao_solucao_nc')
     .eq('cpf_inspetor', cpf_inspetor)
     .eq('cnpjoucpf', cnpjoucpf)
-    .eq('tipo_servico', tipo_servico)
+    .like('tipo_servico', `${tipo_servico.split(' ')[0]}%`)
     .eq('numero_foto', foto_nr)
     .maybeSingle()
 

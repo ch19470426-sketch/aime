@@ -471,8 +471,12 @@ export async function POST(request: NextRequest) {
         .order('sistema')
       const DESC_SIS: Record<string,string> = {}
       ;(sistDB ?? []).forEach((s:any) => {
-        if (s.sistema && s.descricao_sistema)
+        if (s.sistema && s.descricao_sistema) {
           DESC_SIS[s.sistema] = s.descricao_sistema
+          // Guardar também com sisKey (hífens → underscores) para compatibilidade
+          const sk = s.sistema.replace(/^(\d+)-/, '$1_')
+          if (sk !== s.sistema) DESC_SIS[sk] = s.descricao_sistema
+        }
       })
       const is45 = tipoServico === '45'
       const is46 = tipoServico === '46'
@@ -923,7 +927,7 @@ export async function POST(request: NextRequest) {
             '</tr></table>'
 
           // d. Descrição
-          const descSis = DESC_SIS[sisKey] ?? DESC_SIS[ncSis] ?? ''
+          const descSis = DESC_SIS[ncSis] ?? DESC_SIS[sisKey] ?? ''
           htmlA3 += '<table style="width:100%;border-collapse:collapse;margin-bottom:2px"><tr>' +
             '<td style="' + CELL + ';width:100%">' +
             '<div style="' + ROT + '">Descrição do sistema:</div>' +
