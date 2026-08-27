@@ -2019,9 +2019,9 @@ export async function POST(request: NextRequest) {
   <div style='background:#1E3A8A;height:10mm'></div>
 
   <!-- Cabeçalho do inspetor (grande, azul, centralizado) ou logo+título -->
-  ${(insp.cabecalho_documentos||inspetor?.cabecalho_documentos) ? `
+  ${inspetor?.cabecalho_documentos ? `
   <div style='text-align:center;padding:18mm 20mm 0'>
-    <div style='font-size:16pt;font-weight:900;color:#1E3A8A;line-height:1.3'>${xe(insp.cabecalho_documentos||inspetor?.cabecalho_documentos||'')}</div>
+    <div style='font-size:16pt;font-weight:900;color:#1E3A8A;line-height:1.3'>${xe(inspetor.cabecalho_documentos||'')}</div>
   </div>` : `
   <div style='text-align:center;padding:12mm 20mm 0'>${logoTag}</div>`}
 
