@@ -982,10 +982,9 @@ export async function POST(request: NextRequest) {
           htmlA3 += '<table style="width:100%;border-collapse:collapse">' +
             '<tr>' +
             '<td style="' + TH_NC + ';width:4%">Foto</td>' +
-            '<td style="' + TH_NC + ';width:27%;text-align:left">Não Conformidade</td>' +
-            '<td style="' + TH_NC + ';width:17%;text-align:left">Local</td>' +
-            '<td style="' + TH_NC + ';width:6%">G Risco</td>' +
-            '<td style="' + TH_NC + ';width:7%">Prioridade</td>' +
+            '<td style="' + TH_NC + ';width:30%;text-align:left">Não Conformidade</td>' +
+            '<td style="' + TH_NC + ';width:19%;text-align:left">Local</td>' +
+            '<td style="' + TH_NC + ';width:8%">Prioridade</td>' +
             '<td style="' + TH_NC + ';width:39%;text-align:left">Solução sugerida</td>' +
             '</tr>'
 
@@ -1000,7 +999,6 @@ export async function POST(request: NextRequest) {
           '<td style="' + TD_NC + ';text-align:center">' + xe(nc.fotoNr||'') + '</td>' +
           '<td style="' + TD_NC + '">' + xe(nc.nc||nc.anomalia||'') + '</td>' +
           '<td style="' + TD_NC + '">' + xe(nc.local||'') + '</td>' +
-          '<td style="' + TD_NC + ';text-align:center;font-weight:700;color:'+corP+'">' + grNnr + '</td>' +
           '<td style="' + TD_NC + ';text-align:center;font-weight:700;color:'+corP+'">' + priP + '</td>' +
           '<td style="' + TD_NC + '">' + xe(nc.solucaoNC||nc.descricao_solucao_nc||nc.solucao||nc.sugestao||'') + '</td>' +
           '</tr>'
@@ -1439,7 +1437,7 @@ export async function POST(request: NextRequest) {
       // 7. Encerramento
       partsNR.push('<div class="titulo">7.- Encerramento.</div>')
       partsNR.push('<div class="titulo">7.1.- Anexos:</div>')
-      partsNR.push('<ul><li>Anexo 1 – Relação de documentos solicitados e analisados;</li><li>Anexo 2 – Resultado da Vistoria;</li><li>Anexo 3 – Relação de Não Conformidades e Soluções;</li><li>Anexo 3 – Anotação de Responsabilidade Técnica.</li></ul>')
+      partsNR.push('<ul><li>Anexo 1 – Relação de documentos solicitados e analisados;</li><li>Anexo 2 – Resultado da Vistoria;</li><li>Anexo 3 – Anotação de Responsabilidade Técnica.</li></ul>')
       partsNR.push('<div class="titulo">7.2.- Declaração de Conformidade com o Código de Ética.</div>')
       partsNR.push('<p style="text-align:justify">O signatário atesta que a presente inspeção segue criteriosamente os seguintes princípios:</p>')
       partsNR.push('<ul><li>Os itens deste trabalho foram revisados pessoalmente pelo responsável técnico;</li><li>O responsável técnico não possui no presente, nem contempla para o futuro, interesse nos bens envolvidos neste trabalho;</li><li>O trabalho encontra-se abrigado por absoluta confidencialidade, sendo garantido o sigilo perante terceiros;</li><li>Este trabalho foi elaborado em observância estrita aos princípios dos Códigos de Ética Profissional do CONFEA e do IBAPE.</li></ul>')
