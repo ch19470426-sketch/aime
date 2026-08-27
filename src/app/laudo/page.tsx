@@ -310,6 +310,12 @@ function LaudoComplemento() {
         if (Array.isArray(dadosI) && dadosI.length > 0) setInspetor(dadosI[0])
 
         // NCs das vistorias
+        // Sincronizar vistorias offline antes de listar
+        try {
+          const { sincronizarPendentes } = await import('@/lib/offlineVistoria')
+          await sincronizarPendentes()
+        } catch {}
+
         const resNCs = await fetch(`/api/listar-vistorias?chave_inspetor=${chaveInspetor}&cnpjoucpf=${cnpjoucpf}&tipo_servico=${cfg.tipoVistoria}`)
         const dadosNCs = await resNCs.json()
         if (dadosNCs.ncs) setNcs(dadosNCs.ncs)
