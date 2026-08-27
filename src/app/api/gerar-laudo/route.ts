@@ -2014,7 +2014,7 @@ export async function POST(request: NextRequest) {
     const logoB64 = inspetor?.logo_base64 || ''
     const logoTag = logoB64 ? `<img src="${logoB64}" style="max-height:28mm;max-width:80mm">` : `<div style="font-size:14pt;font-weight:900;color:#1E3A8A">${xe(inspetor?.cabecalho_documentos||'AIMÊ')}</div>`
     const CAPA_HTML = `
-<div class='pg-capa' style='counter-reset:page 0'>
+<div class='pg-capa' style='counter-reset:page 0;min-height:297mm;display:flex;flex-direction:column'>
   <!-- Faixa azul topo -->
   <div style='background:#1E3A8A;height:10mm'></div>
 
@@ -2033,8 +2033,8 @@ export async function POST(request: NextRequest) {
     <div style='font-size:9pt;color:#374151'>${xe(estab?.logradouro||'')}${estab?.numero_imovel?', '+xe(estab.numero_imovel):''} &mdash; ${xe(estab?.cidade||'')}/${xe(estab?.uf||'')}</div>
   </div>
 
-  <!-- Espaçador -->
-  <div style='height:50mm'></div>
+  <!-- Espaçador flexível — empurra bloco responsável para baixo -->
+  <div style='flex:1'></div>
 
   <!-- Bloco responsável: à esquerda, acima do rodapé -->
   <div style='border-top:2px solid #1E3A8A;margin:0 20mm'></div>
