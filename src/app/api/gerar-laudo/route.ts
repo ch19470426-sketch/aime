@@ -1711,7 +1711,23 @@ export async function POST(request: NextRequest) {
     const S41 = sistemas.map(s => {
       const arr = ncsPorSistema[s]
       if (arr.length===0) return ''
-      const rec = xe((complemento?.recsSistema?.[s] ?? '')
+      // Buscar recomendação: tentar chave exata, depois normalizada (hifen/underscore/prefixo)
+      const _recsMap = complemento?.recsSistema ?? {}
+      let _recTexto = _recsMap[s] ?? ''
+      if (!_recTexto) {
+        const sAlt = s.includes('-') ? s.replace(/-/g, '_') : s.replace(/_/g, '-')
+        _recTexto = _recsMap[sAlt] ?? ''
+      }
+      if (!_recTexto) {
+        const numPart = (s.match(/^(\d+)/) || [])[1] || ''
+        if (numPart) {
+          const chaveRec = Object.keys(_recsMap).find(k =>
+            k.startsWith(numPart + '-') || k.startsWith(numPart + '_')
+          )
+          if (chaveRec) _recTexto = _recsMap[chaveRec] ?? ''
+        }
+      }
+      const rec = xe((_recTexto)
         .replace(/^Recomenda[çc][ãa]o T[eé]cnica[\s\S]*?\n+/im, '')
         .replace(/^Recomenda[çc][ãa]o T[eé]cnica[^:]*:[\s]*/im, '')
         .trim())
