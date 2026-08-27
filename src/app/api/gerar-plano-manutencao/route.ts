@@ -368,11 +368,11 @@ tr:nth-child(even) td { background: #f7f9ff; }
         anx1Rows += `<tr style="background:#dbeafe">
 <td colspan="2" style="font-size:6.5pt;color:#1E3A8A;padding:1pt 5pt"><b>Local ocorrência:</b></td>
 <td colspan="2" style="font-size:6.5pt;color:#1E3A8A;padding:1pt 5pt"><b>Tag/Nº Série — Ativo:</b></td>
-<td rowspan="2" style="font-size:8pt;font-weight:700;color:#1E3A8A;padding:3pt;text-align:center;vertical-align:middle;border:1px solid #1E3A8A">Foto Nº</td>
+<td rowspan="2" style="font-size:8pt;font-weight:700;color:#1E3A8A;padding:3pt;text-align:center;vertical-align:middle;border:1px solid #1E3A8A">Foto Laudo</td>
 <td rowspan="2" style="font-size:8pt;font-weight:700;color:#1E3A8A;padding:3pt;text-align:center;vertical-align:middle;border:1.5px solid #1E3A8A">Aceite</td>
 </tr>
 <tr style="background:#eff6ff">
-<td colspan="2" style="font-size:7.5pt;padding:2pt 5pt">${local}</td>
+<td colspan="2" style="font-size:7.5pt;padding:2pt 5pt">${local}${compl ? ' / ' + compl : ''}</td>
 <td colspan="2" style="font-size:7.5pt;padding:2pt 5pt">${tag} — ${ativo}</td>
 
 </tr>`
