@@ -60,21 +60,21 @@ const DOCS_ANEXO1 = [
 ]
 
 const DESC_SISTEMAS: Record<string, string> = {
-  // Sistemas novos (agosto/2026)
-  '01-Fundações': 'Elementos de apoio que transmitem as cargas da estrutura ao solo.',
-  '02-Estrutura': 'Esqueleto resistente que garante a estabilidade global da edificação.',
-  '03-Vedações': 'Elementos que dividem e fecham os espaços internos e externos.',
-  '04-Revestimentos': 'Acabamento protetor e estético de paredes, pisos e tetos.',
-  '05-Instalações hidrossanitárias': 'Condução de água potável, esgoto e escoamento de chuvas.',
-  '06-Impermeabilização': 'Proteção contra infiltrações em lajes, reservatórios e subsolos.',
-  '07-Instalações elétricas': 'Distribuição de energia elétrica, iluminação e proteção contra descargas.',
-  '08-Combate a Incêndio': 'Sistemas de detecção, alarme, supressão e rotas de fuga.',
-  '09-Climatização': 'Sistemas de ar-condicionado, ventilação e renovação de ar.',
-  '10-Acessibilidade/elvadores': 'Elementos de circulação e acesso para pessoas com deficiência.',
-  '11-Instalações de gás': 'Redes de distribuição de GLP ou GN, centrais e ramais.',
-  '12-Coberturas': 'Telhados, lajes impermeabilizadas, calhas e drenagem de águas pluviais.',
-  '13-Áreas externas': 'Calçadas, estacionamentos, jardins e infraestrutura externa.',
-  '14-Contenção de Encostas e Arrimos': 'Muros de arrimo, taludes e sistemas de contenção geotécnica.',
+  // Sistemas novos (agosto/2026) — descrições da planilha revisada
+  '01-Fundações': 'Conjunto de elementos estruturais destinados a receber e transmitir ao solo as cargas provenientes da edificação.',
+  '02-Estrutura': 'Conjunto de elementos estruturais que compõem o sistema resistente da edificação e suportam as ações atuantes.',
+  '03-Vedações': 'Conjunto de elementos destinados ao fechamento e à compartimentação dos ambientes da edificação.',
+  '04-Revestimentos': 'Conjunto de camadas e materiais aplicados sobre superfícies da edificação para proteção e acabamento.',
+  '05-Instalações hidrossanitárias': 'Conjunto de componentes destinados ao abastecimento de água, à distribuição, ao esgotamento sanitário e ao encaminhamento de águas servidas e pluviais.',
+  '06-Impermeabilização': 'Conjunto de materiais e sistemas aplicados para impedir ou reduzir a passagem de água e a ação da umidade sobre elementos da edificação.',
+  '07-Instalações elétricas': 'Conjunto de componentes destinados à entrada, distribuição, comando, proteção e utilização da energia elétrica na edificação.',
+  '08-Combate a Incêndio': 'Conjunto de sistemas, equipamentos e dispositivos destinados à prevenção, detecção, alarme e combate a incêndios.',
+  '09-Climatização': 'Conjunto de equipamentos, componentes e redes destinados ao controle das condições de temperatura, umidade e qualidade do ar nos ambientes.',
+  '10-Acessibilidade/elvadores': 'Conjunto de elementos e equipamentos destinados à acessibilidade, circulação e transporte vertical de pessoas na edificação.',
+  '11-Instalações de gás': 'Conjunto de tubulações, equipamentos, dispositivos de controle e componentes destinados ao recebimento, armazenamento, distribuição e utilização de gases combustíveis.',
+  '12-Coberturas': 'Conjunto de elementos que constitui o fechamento superior da edificação, destinado à proteção dos ambientes contra as intempéries e ao encaminhamento das águas pluviais.',
+  '13-Áreas externas': 'Conjunto de elementos construtivos e componentes localizados nas áreas externas e nos espaços de uso comum do empreendimento.',
+  '14-Contenção de Encostas e Arrimos': 'Conjunto de elementos estruturais destinados à contenção de solos e à estabilidade de taludes, encostas e desníveis do terreno.',
   // Sistemas antigos (compatibilidade)
   '01_Sistema Estrutural': 'Compreende os elementos de fundação, estrutura de concreto armado ou metálica, pilares, vigas e lajes.',
   '02_Fachadas, Empenas e Marquises': 'Inclui revestimentos externos, pintura de fachada, peitoris, pingadeiras e rufos.',

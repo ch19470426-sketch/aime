@@ -535,11 +535,11 @@ ${cabIns?`<div class="cab"><b>${cabIns}</b></div>`:''}
 </tr>
 <tr>
   <th style="width:4%">ID</th>
-  <th style="width:24%;text-align:left">Não Conformidade</th>
-  <th style="width:8%">Prioridade</th>
-  <th style="width:20%;text-align:left">Intervenção sugerida</th>
-  <th style="width:6%">Foto Nº</th>
-  <th style="width:14%">Responsável</th>
+  <th style="width:30%;text-align:left">Não Conformidade</th>
+  <th style="width:5%;text-align:center">Prior.</th>
+  <th style="width:45%;text-align:left">Intervenção sugerida</th>
+  <th style="width:6%;text-align:center">Foto Nº</th>
+  <th style="width:10%;text-align:center">Responsável</th>
 </tr>
 ${anx1Rows||'<tr><td colspan="6" style="text-align:center;color:#9a3412;font-style:italic;padding:12pt">Nenhuma não conformidade registrada.</td></tr>'}
 </table>
