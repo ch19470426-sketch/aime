@@ -415,7 +415,6 @@ tr:nth-child(even) td { background: #f7f9ff; }
       anx1Rows += `<tr>
 <td style="text-align:center">${idx+1}</td>
 <td>${xe(nc.descricao_nao_conformidade||nc.nc||'')}</td>
-<td style="text-align:center;font-weight:700;color:${cor}">${gr}</td>
 <td style="text-align:center;font-weight:700;color:${cor}">${pri}</td>
 <td style="vertical-align:top">${xe(nc.solucaoNC||nc.descricao_solucao_nc||nc.solucao||"")}</td>
 <td>${xe(nc.procedimento_corretivo||'')}</td>
@@ -567,19 +566,18 @@ ${cabIns?`<div class="cab"><b>${cabIns}</b></div>`:''}
 <div style="text-align:center;font-size:11pt;font-weight:700;margin:4pt 0 6pt;color:#1E3A8A">Anexo 1 – Plano Executivo dos Serviços de Manutenção</div>
 <table style="font-size:7.5pt;width:100%;border-collapse:collapse;border:1.5px solid #1E3A8A">
 <tr>
-  <th colspan="8" style="text-align:center;font-size:10pt;font-weight:700;background:#1E3A8A;color:#fff;padding:6pt;border-bottom:2px solid #fff">Plano Executivo para os Serviços de Manutenção</th>
+  <th colspan="7" style="text-align:center;font-size:10pt;font-weight:700;background:#1E3A8A;color:#fff;padding:6pt;border-bottom:2px solid #fff">Plano Executivo para os Serviços de Manutenção</th>
 </tr>
 <tr>
   <th style="width:4%">ID</th>
   <th style="width:24%;text-align:left">Não Conformidade</th>
-  <th style="width:6%">G Risco</th>
   <th style="width:8%">Prioridade</th>
   <th style="width:18%;text-align:left">Solução sugerida</th>
   <th style="width:20%;text-align:left">Intervenção sugerida</th>
   <th style="width:6%">Foto Nº</th>
   <th style="width:14%">Responsável</th>
 </tr>
-${anx1Rows||'<tr><td colspan="8" style="text-align:center;color:#9a3412;font-style:italic;padding:12pt">Nenhuma não conformidade registrada.</td></tr>'}
+${anx1Rows||'<tr><td colspan="7" style="text-align:center;color:#9a3412;font-style:italic;padding:12pt">Nenhuma não conformidade registrada.</td></tr>'}
 </table>
 ${rodIns?`<div class="rod" style="margin-top:8pt">${rodIns}</div>`:''}
 </div>
