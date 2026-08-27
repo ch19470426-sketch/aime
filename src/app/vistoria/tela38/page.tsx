@@ -315,6 +315,7 @@ function Tela31Inner() {
       body: JSON.stringify({ cpf_inspetor: cpfInspetor, cnpjoucpf, tipo_servico: tipoServico })
     }, 8000)
     const nrData = await nrRes.json()
+    if (!nrRes.ok && nrRes.status === 503) throw new Error('offline')
     const nrFinal = nrData?.formatado ?? fotoNr
 
     const nomeArquivo = `${chaveInspetor}_${cnpjoucpf}_${tipoServico}_${nrFinal}.json`
