@@ -470,9 +470,7 @@ export async function POST(request: NextRequest) {
         .eq('tipo_servico', tsV)
         .order('sistema')
       const DESC_SIS: Record<string,string> = {}
-      // DESC_SIS_PRED: descrições dos sistemas para laudos prediais (41-44)
-      // Preenchido abaixo — declarado aqui para estar no escopo do S41
-      const DESC_SIS_PRED: Record<string,string> = {}
+
       ;(sistDB ?? []).forEach((s:any) => {
         if (s.sistema && s.descricao_sistema) {
           DESC_SIS[s.sistema] = s.descricao_sistema
@@ -1470,6 +1468,28 @@ export async function POST(request: NextRequest) {
     }
     // ── FIM GERADOR NR (45-48) ────────────────────────────────────────────────
 
+    // Descrições dos sistemas para laudos prediais (41-44) — escopo acessível ao S41
+    const DESC_SIS_PRED: Record<string,string> = {}
+    const tsPred41: Record<string,string> = {
+      '41':'31 Autovistoria','42':'32 Vistoria inspeção',
+      '43':'33 Vistoria imóvel novo','44':'34 Vistoria fachada'
+    }
+    if (['41','42','43','44'].includes(tipoServico)) {
+      try {
+        const { data: sistPred2 } = await supabase
+          .from('sistemas_construtivos')
+          .select('sistema,descricao_sistema')
+          .eq('tipo_servico', tsPred41[tipoServico] ?? '31 Autovistoria')
+          .order('sistema')
+        ;(sistPred2 ?? []).forEach((s:any) => {
+          if (s.sistema && s.descricao_sistema) {
+            DESC_SIS_PRED[s.sistema] = s.descricao_sistema
+            const sk = s.sistema.replace(/^(\d+)-/, '$1_')
+            if (sk !== s.sistema) DESC_SIS_PRED[sk] = s.descricao_sistema
+          }
+        })
+      } catch {}
+    }
 
     const sistemas = SISTEMAS[tipoServico] ?? []
     const dataHoje = fmtData()
