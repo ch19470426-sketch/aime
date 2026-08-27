@@ -145,9 +145,8 @@ function HomologarProdutoInner() {
 
   async function carregarDocumento() {
     setCarregando(true)
-    // Sempre buscar HTML do Storage (versão mais recente gerada)
-    // sessionStorage pode ter versão antiga — ignorar
-    const htmlCached: string | null = null
+    // Tentar sessionStorage primeiro (gerado agora), depois Storage
+    const htmlCached = sessionStorage.getItem('laudoHtml_' + nomeArquivo)
     if (htmlCached) {
       sessionStorage.removeItem('laudoHtml_' + nomeArquivo)
       setHtml(htmlCached)
