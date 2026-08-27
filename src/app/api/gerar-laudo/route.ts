@@ -16,11 +16,11 @@ const supabase = createClient(
 
 // ─── Dados estáticos ──────────────────────────────────────────────────────────
 const SISTEMAS: Record<string, string[]> = {
-  // 45-48: sistemas vêm dos dados de vistoria NR
-  '41': ['01_Sistema Estrutural','02_Fachadas, Empenas e Marquises','03_Cobertura e Telhados','04_Instalações Hidrossanitárias','05_Instalações Elétricas e SPDA','06_Instalações de Gás','07_Sistema de Prevenção e Combate a Incêndio','08_Elevadores e Equipamentos Eletromecânicos','09_Impermeabilização','10_Acessibilidade','11_Contenção de Encostas e Arrimos','12_Áreas Comuns e Infraestrutura','13_Documentação e Conformidade Legal'],
-  '42': ['01_Estrutura','02_Vedações Verticais','03_Cobertura','04_Revestimentos','05_Impermeabilização','06_Esquadrias','07_Instalações Hidrossanitárias','08_Instalações Elétricas','09_Instalações de Gás','10_Instalações Ar Condicionado','11_Fachadas','12_Proteção e Combate a Incêndio','13_Acessibilidade','14_Áreas Comuns'],
-  '43': ['01_Sistema Estrutural','02_Sistema de Pisos','03_Vedações Verticais','04_Sistema de Cobertura','05_Instalações Hidrossanitárias','06_Instalações Elétricas','07_Esquadrias e Vidros','08_Revestimentos e Acabamentos','09_Impermeabilização','10_Fachadas','11_Proteção Contra Incêndio','12_Acessibilidade'],
-  '44': ['01_Revestimento Argamassado','02_Revestimento Cerâmico de Fachada','03_Revestimento em Pastilhas','04_Fachada Ventilada','05_Pintura de Fachada','06_EIFS / Reboco Sintético','07_Esquadrias e Juntas de Fachada','08_Peitoris, Pingadeiras e Rufos','09_Impermeabilização de Fachada','10_Estrutura de Fachada','11_Segurança Contra Incêndio','12_Manutenção e Equipamentos de Acesso'],
+  // 41/42: sistemas do banco agosto/2026
+  '41': ['01-Fundações','02-Estrutura','03-Vedações','04-Revestimentos','05-Instalações hidrossanitárias','06-Impermeabilização','07-Instalações elétricas','08-Combate a Incêndio','09-Climatização','10-Acessibilidade/elvadores','11-Instalações de gás','12-Coberturas','13-Áreas externas','14-Contenção de Encostas e Arrimos'],
+  '42': ['01-Fundações','02-Estrutura','03-Vedações','04-Revestimentos','05-Instalações hidrossanitárias','06-Impermeabilização','07-Instalações elétricas','08-Combate a Incêndio','09-Climatização','10-Acessibilidade/elvadores','11-Instalações de gás','12-Coberturas','13-Áreas externas','14-Contenção de Encostas e Arrimos'],
+  '43': ['01-Fundações','02-Estrutura','03-Vedações','04-Revestimentos','05-Instalações hidrossanitárias','06-Impermeabilização','07-Instalações elétricas','08-Combate a Incêndio','09-Climatização','10-Acessibilidade/elvadores','11-Instalações de gás','12-Coberturas','13-Áreas externas','14-Contenção de Encostas e Arrimos'],
+  '44': ['01-Fundações','02-Estrutura','03-Vedações','04-Revestimentos','05-Instalações hidrossanitárias','06-Impermeabilização','07-Instalações elétricas','08-Combate a Incêndio','09-Climatização','10-Acessibilidade/elvadores','11-Instalações de gás','12-Coberturas','13-Áreas externas','14-Contenção de Encostas e Arrimos'],
 }
 
 const TITULO: Record<string, string> = {
