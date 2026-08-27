@@ -220,9 +220,9 @@ b, strong { font-weight: bold; }
 .cell-3 { flex: 3; }
 .cell-4 { flex: 4; }
 table { width: 100%; border-collapse: collapse; margin-bottom: 10px; page-break-inside: auto; outline: 1.5px solid #1E3A8A; }
-th { background: #1E3A8A; color: #fff; font-size: 7.5pt; font-weight: 700; padding: 5px 6px; border-right: 1px solid #4a6fa5; text-align: center; vertical-align: middle; }
+th { background: #1E3A8A; color: #fff; font-size: 8pt; font-weight: 700; padding: 5px 8px; border-right: 1px solid #4a6fa5; text-align: center; }
 th:last-child { border-right: none; }
-td { border-top: 1px solid #1E3A8A; border-right: 1px solid #1E3A8A; padding: 5px 7px; font-size: 7.5pt; color: #222; vertical-align: top; overflow-wrap: break-word; word-break: break-word; }
+td { border-top: 1px solid #1E3A8A; border-right: 1px solid #1E3A8A; padding: 6px 8px; font-size: 8pt; color: #222; vertical-align: middle; }
 td:last-child { border-right: none; }
 tr:nth-child(even) td { background: #f7f9ff; }
 .pg-capa { page-break-after:always; display:flex; flex-direction:column; height:297mm; min-height:297mm; box-sizing:border-box; overflow:hidden; }
@@ -234,7 +234,7 @@ tr:nth-child(even) td { background: #f7f9ff; }
 .indice-num { min-width: 40pt; font-weight: 700; color: #1E3A8A; flex-shrink: 0; }
 .indice-dots { flex: 1; border-bottom: 1px dotted #aaa; margin: 0 4pt 2pt; }
 .anx1-page { page: anx1page; }
-@page anx1page { size: A4 portrait; margin: 15mm 15mm 15mm 20mm; }
+@page anx1page { size: A4 landscape; margin: 15mm 15mm 15mm 20mm; }
 `
 
     // ── Tabela 1.2 ────────────────────────────────────────────────────────
@@ -326,37 +326,7 @@ tr:nth-child(even) td { background: #f7f9ff; }
     ).join('')
 
     // ── Anexo 1 (formato aba Excel) ────────────────────────────────────────
-    // Enriquecer NCs com SNC do banco (dados_vistoria) — fonte única e consistente
-    const ncsEnriquecidas = await Promise.all((ncs as any[]).map(async (nc: any) => {
-      // Se já tem SNC (veio do cliente), usar
-      if (nc.solucaoNC || nc.descricao_solucao_nc) return nc
-      // Buscar do banco
-      try {
-        const fotoNr = Number(nc.fotoNr ?? nc.numero_foto ?? 0)
-        const cpfInsp = nc.cpfInspetor ?? nc.cpf_inspetor ?? cpfInspetor
-        const tsNum = String(nc.tipoServico ?? nc.tipo_servico ?? '').split(' ')[0]
-        const tsLongo: Record<string,string> = {
-          '31':'31 Autovistoria','32':'32 Vistoria inspeção',
-          '33':'33 Vistoria imóvel novo','34':'34 Vistoria fachada',
-          '35':'35 Vistoria elevador','36':'36 Vistoria nr-10',
-          '37':'37 Vistoria nr-12','38':'38 Vistoria nr-13',
-        }
-        const tsBanco = tsLongo[tsNum] ?? tsNum
-        if (!fotoNr || !cpfInsp || !cnpjoucpf) return nc
-        const { data } = await supabase
-          .from('dados_vistoria')
-          .select('descricao_solucao_nc')
-          .eq('cpf_inspetor', cpfInsp)
-          .eq('cnpjoucpf', cnpjoucpf)
-          .like('tipo_servico', `${tsNum}%`)
-          .eq('numero_foto', fotoNr)
-          .maybeSingle()
-        const snc = data?.descricao_solucao_nc ?? ''
-        if (snc) return { ...nc, solucaoNC: snc, descricao_solucao_nc: snc }
-      } catch {}
-      return nc
-    }))
-    const ncs2 = ncsEnriquecidas
+    // solução vem do nc.solucaoNC (AIME-NC-DATA)
 
     // Mapa de ativos por tipo_ativo (de ativos_a_vistoriar, que já tem dados)
     const ativosPorTipo: Record<string,any> = {}
@@ -366,7 +336,7 @@ tr:nth-child(even) td { background: #f7f9ff; }
     })
 
     // Ordenar por: Local ocorrência → Tag/Série → Grau risco DESC
-    const ncsArr: any[] = [...(Array.isArray(ncs2) ? ncs2 : [])].sort((a:any,b:any) => {
+    const ncsArr: any[] = [...(Array.isArray(ncs) ? ncs : [])].sort((a:any,b:any) => {
       const la = String(a.local_ocorrencia||a.local||''), lb = String(b.local_ocorrencia||b.local||'')
       if (la !== lb) return la.localeCompare(lb, 'pt-BR')
       const ta = String(a.tagNrSerie||a.tag_ativo_nr_serie||a.tag||''), tb = String(b.tagNrSerie||b.tag_ativo_nr_serie||b.tag||'')
@@ -414,9 +384,9 @@ tr:nth-child(even) td { background: #f7f9ff; }
       }
       anx1Rows += `<tr>
 <td style="text-align:center">${idx+1}</td>
-<td style="vertical-align:top">${xe(nc.descricao_nao_conformidade||nc.nc||'')}</td>
+<td>${xe(nc.descricao_nao_conformidade||nc.nc||'')}</td>
 <td style="text-align:center;font-weight:700;color:${cor}">${pri}</td>
-<td style="vertical-align:top">${xe(nc.procedimento_corretivo||'')}</td>
+<td>${xe(nc.procedimento_corretivo||'')}</td>
 <td style="text-align:center;border:1px solid #1E3A8A">${xe(String(nc.fotoNr||nc.numero_foto||""))}</td>
 <td style="border:1px solid #1E3A8A"></td>
 </tr>`
@@ -568,12 +538,12 @@ ${cabIns?`<div class="cab"><b>${cabIns}</b></div>`:''}
   <th colspan="6" style="text-align:center;font-size:10pt;font-weight:700;background:#1E3A8A;color:#fff;padding:6pt;border-bottom:2px solid #fff">Plano Executivo para os Serviços de Manutenção</th>
 </tr>
 <tr>
-  <th style="width:5%;text-align:center">ID</th>
-  <th style="width:32%;text-align:left">Não Conformidade</th>
-  <th style="width:8%;text-align:center">Prioridade</th>
-  <th style="width:38%;text-align:left">Intervenção Sugerida</th>
-  <th style="width:6%;text-align:center">Foto Nº</th>
-  <th style="width:11%;text-align:center">Responsável</th>
+  <th style="width:4%">ID</th>
+  <th style="width:24%;text-align:left">Não Conformidade</th>
+  <th style="width:8%">Prioridade</th>
+  <th style="width:20%;text-align:left">Intervenção sugerida</th>
+  <th style="width:6%">Foto Nº</th>
+  <th style="width:14%">Responsável</th>
 </tr>
 ${anx1Rows||'<tr><td colspan="6" style="text-align:center;color:#9a3412;font-style:italic;padding:12pt">Nenhuma não conformidade registrada.</td></tr>'}
 </table>
