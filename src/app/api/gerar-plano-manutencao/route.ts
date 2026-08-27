@@ -220,9 +220,9 @@ b, strong { font-weight: bold; }
 .cell-3 { flex: 3; }
 .cell-4 { flex: 4; }
 table { width: 100%; border-collapse: collapse; margin-bottom: 10px; page-break-inside: auto; outline: 1.5px solid #1E3A8A; }
-th { background: #1E3A8A; color: #fff; font-size: 7pt; font-weight: 700; padding: 4px 6px; border-right: 1px solid #4a6fa5; text-align: center; word-wrap: break-word; }
+th { background: #1E3A8A; color: #fff; font-size: 7.5pt; font-weight: 700; padding: 5px 6px; border-right: 1px solid #4a6fa5; text-align: center; vertical-align: middle; }
 th:last-child { border-right: none; }
-td { border-top: 1px solid #1E3A8A; border-right: 1px solid #1E3A8A; padding: 4px 6px; font-size: 7pt; color: #222; vertical-align: top; word-wrap: break-word; }
+td { border-top: 1px solid #1E3A8A; border-right: 1px solid #1E3A8A; padding: 5px 7px; font-size: 7.5pt; color: #222; vertical-align: top; overflow-wrap: break-word; word-break: break-word; }
 td:last-child { border-right: none; }
 tr:nth-child(even) td { background: #f7f9ff; }
 .pg-capa { page-break-after:always; display:flex; flex-direction:column; height:297mm; min-height:297mm; box-sizing:border-box; overflow:hidden; }
@@ -414,9 +414,9 @@ tr:nth-child(even) td { background: #f7f9ff; }
       }
       anx1Rows += `<tr>
 <td style="text-align:center">${idx+1}</td>
-<td style="word-wrap:break-word;vertical-align:top">${xe(nc.descricao_nao_conformidade||nc.nc||'')}</td>
+<td style="vertical-align:top">${xe(nc.descricao_nao_conformidade||nc.nc||'')}</td>
 <td style="text-align:center;font-weight:700;color:${cor}">${pri}</td>
-<td style="word-wrap:break-word;vertical-align:top">${xe(nc.procedimento_corretivo||'')}</td>
+<td style="vertical-align:top">${xe(nc.procedimento_corretivo||'')}</td>
 <td style="text-align:center;border:1px solid #1E3A8A">${xe(String(nc.fotoNr||nc.numero_foto||""))}</td>
 <td style="border:1px solid #1E3A8A"></td>
 </tr>`
@@ -563,7 +563,7 @@ ${rodIns?`<div class="rod">${rodIns}</div>`:''}
 <div class="anx1-page">
 ${cabIns?`<div class="cab"><b>${cabIns}</b></div>`:''}
 <div style="text-align:center;font-size:11pt;font-weight:700;margin:4pt 0 6pt;color:#1E3A8A">Anexo 1 – Plano Executivo dos Serviços de Manutenção</div>
-<table style="font-size:7pt;width:100%;border-collapse:collapse;border:1.5px solid #1E3A8A;table-layout:fixed">
+<table style="font-size:7.5pt;width:100%;border-collapse:collapse;border:1.5px solid #1E3A8A">
 <tr>
   <th colspan="6" style="text-align:center;font-size:10pt;font-weight:700;background:#1E3A8A;color:#fff;padding:6pt;border-bottom:2px solid #fff">Plano Executivo para os Serviços de Manutenção</th>
 </tr>
