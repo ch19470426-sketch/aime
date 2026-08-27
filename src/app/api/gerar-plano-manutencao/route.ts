@@ -326,7 +326,37 @@ tr:nth-child(even) td { background: #f7f9ff; }
     ).join('')
 
     // ── Anexo 1 (formato aba Excel) ────────────────────────────────────────
-    // solução vem do nc.solucaoNC (AIME-NC-DATA)
+    // Enriquecer NCs com SNC do banco (dados_vistoria) — fonte única e consistente
+    const ncsEnriquecidas = await Promise.all((ncs as any[]).map(async (nc: any) => {
+      // Se já tem SNC (veio do cliente), usar
+      if (nc.solucaoNC || nc.descricao_solucao_nc) return nc
+      // Buscar do banco
+      try {
+        const fotoNr = Number(nc.fotoNr ?? nc.numero_foto ?? 0)
+        const cpfInsp = nc.cpfInspetor ?? nc.cpf_inspetor ?? cpfInspetor
+        const tsNum = String(nc.tipoServico ?? nc.tipo_servico ?? '').split(' ')[0]
+        const tsLongo: Record<string,string> = {
+          '31':'31 Autovistoria','32':'32 Vistoria inspeção',
+          '33':'33 Vistoria imóvel novo','34':'34 Vistoria fachada',
+          '35':'35 Vistoria elevador','36':'36 Vistoria nr-10',
+          '37':'37 Vistoria nr-12','38':'38 Vistoria nr-13',
+        }
+        const tsBanco = tsLongo[tsNum] ?? tsNum
+        if (!fotoNr || !cpfInsp || !cnpjoucpf) return nc
+        const { data } = await supabase
+          .from('dados_vistoria')
+          .select('descricao_solucao_nc')
+          .eq('cpf_inspetor', cpfInsp)
+          .eq('cnpjoucpf', cnpjoucpf)
+          .like('tipo_servico', `${tsNum}%`)
+          .eq('numero_foto', fotoNr)
+          .maybeSingle()
+        const snc = data?.descricao_solucao_nc ?? ''
+        if (snc) return { ...nc, solucaoNC: snc, descricao_solucao_nc: snc }
+      } catch {}
+      return nc
+    }))
+    const ncs2 = ncsEnriquecidas
 
     // Mapa de ativos por tipo_ativo (de ativos_a_vistoriar, que já tem dados)
     const ativosPorTipo: Record<string,any> = {}
@@ -336,7 +366,7 @@ tr:nth-child(even) td { background: #f7f9ff; }
     })
 
     // Ordenar por: Local ocorrência → Tag/Série → Grau risco DESC
-    const ncsArr: any[] = [...(Array.isArray(ncs) ? ncs : [])].sort((a:any,b:any) => {
+    const ncsArr: any[] = [...(Array.isArray(ncs2) ? ncs2 : [])].sort((a:any,b:any) => {
       const la = String(a.local_ocorrencia||a.local||''), lb = String(b.local_ocorrencia||b.local||'')
       if (la !== lb) return la.localeCompare(lb, 'pt-BR')
       const ta = String(a.tagNrSerie||a.tag_ativo_nr_serie||a.tag||''), tb = String(b.tagNrSerie||b.tag_ativo_nr_serie||b.tag||'')
