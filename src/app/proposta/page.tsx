@@ -218,8 +218,8 @@ function PropostaInner() {
   }
 
   async function salvarEstabelecimento() {
-    if (!razaoSocial || !cep || !numero) {
-      informa('Atenção', 'Preencha Razão Social, CEP e Número.')
+    if (!razaoSocial || !cep || !numero || !usoEstab) {
+      informa('Atenção', 'Preencha Razão Social, CEP, Número e Uso do estabelecimento.')
       return
     }
     setSalvando(true)

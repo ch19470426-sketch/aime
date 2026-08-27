@@ -145,8 +145,9 @@ function HomologarProdutoInner() {
 
   async function carregarDocumento() {
     setCarregando(true)
-    // Verificar se HTML foi passado via sessionStorage (evita cache do Storage)
-    const htmlCached = sessionStorage.getItem('laudoHtml_' + nomeArquivo)
+    // Sempre buscar HTML do Storage (versão mais recente gerada)
+    // sessionStorage pode ter versão antiga — ignorar
+    const htmlCached: string | null = null
     if (htmlCached) {
       sessionStorage.removeItem('laudoHtml_' + nomeArquivo)
       setHtml(htmlCached)
