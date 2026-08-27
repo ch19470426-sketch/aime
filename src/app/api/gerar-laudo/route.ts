@@ -735,7 +735,7 @@ i { font-style: italic; }
           : '<div style="border:2px dashed #1E3A8A;min-height:260mm;margin:10mm 0;display:flex;align-items:center;justify-content:center"><p style="color:#6b7280;font-size:8.5pt;text-align:center">ART / RRT não anexada.<br>Inserir a ART ou RRT na tela de coleta de dados.</p></div>'
         ) +
         '</div>')
-      const rodNR = xe(inspetor?.rodape_documentos) || `${xe(inspetor?.nome_inspetor||'')} — ${xe(inspetor?.titulo_profissional||'')} — ${xe(inspetor?.sigla_conselho||'')} ${xe(inspetor?.numero_registro||'')}`
+      const rodNR = xe(inspetor?.rodape_documentos) || (xe(inspetor?.nome_inspetor||'') + ' — ' + xe(inspetor?.titulo_profissional||'') + ' — ' + xe(inspetor?.sigla_conselho||'') + ' ' + xe(inspetor?.numero_registro||''))
       if (rodNR) partsNR.push('<div class="rod">' + rodNR + '</div>')
       partsNR.push('</body></html>')
 
