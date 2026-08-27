@@ -124,22 +124,33 @@ export default function PlanoManutencaoInner() {
     try { sessionStorage.clear() } catch {}
     setEtapa('gerando')
     try {
-      setStatus('Gerando procedimentos corretivos via IA...')
-      const ncsComPC = await Promise.all(ncs.map(async (nc: any) => {
+      // 1. Buscar SNC já salva em dados_vistoria para cada NC
+      setStatus('Buscando soluções de NC do banco de dados...')
+      const SUPA_URL2 = process.env.NEXT_PUBLIC_SUPABASE_URL ?? ''
+      const SUPA_KEY2 = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? ''
+      const ncsComSNC = await Promise.all(ncs.map(async (nc: any) => {
         try {
-          const [rPC, rSol] = await Promise.all([
-            fetch('/api/ia-laudo', {
-              method: 'POST', headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ tipo: 'procedimento_corretivo', dados: { ...nc, tipo_servico: tipoServico } })
-            }),
-            fetch('/api/ia-laudo', {
-              method: 'POST', headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ tipo: 'solucao_nc', dados: { ...nc, tipo_servico: tipoServico } })
-            })
-          ])
-          const dPC  = await rPC.json()
-          const dSol = await rSol.json()
-          return { ...nc, procedimento_corretivo: dPC.texto ?? '', solucaoNC: dSol.texto ?? '' }
+          const fotoNr = Number(nc.fotoNr ?? nc.numero_foto ?? 0)
+          if (!fotoNr) return nc
+          const r = await fetch(
+            `/api/buscar-solucao-nc?cpf_inspetor=${encodeURIComponent(nc.cpfInspetor ?? nc.cpf_inspetor ?? '')}&cnpjoucpf=${encodeURIComponent(cnpjoucpf)}&tipo_servico=${encodeURIComponent(nc.tipoServico ?? tipoServico)}&foto_nr=${fotoNr}`
+          )
+          const d = await r.json()
+          const snc = d.descricao_solucao_nc ?? ''
+          return { ...nc, descricao_solucao_nc: snc, solucaoNC: snc }
+        } catch { return nc }
+      }))
+
+      // 2. Gerar PC via IA usando a SNC já salva
+      setStatus('Gerando procedimentos corretivos via IA...')
+      const ncsComPC = await Promise.all(ncsComSNC.map(async (nc: any) => {
+        try {
+          const rPC = await fetch('/api/ia-laudo', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ tipo: 'procedimento_corretivo', dados: { ...nc, tipo_servico: tipoServico } })
+          })
+          const dPC = await rPC.json()
+          return { ...nc, procedimento_corretivo: dPC.texto ?? '' }
         } catch { return nc }
       }))
 
