@@ -2238,6 +2238,16 @@ ${rodInspetor?`<div class="rod">${rodInspetor}</div>`:''}
         estab, inspetor, ncs, complemento,
       }),'utf-8'), { contentType:'application/json', upsert:true })
 
+    // Salvar HTML no Storage — remove versão anterior para eliminar cache
+    try {
+      await supabase.storage.from('aime').remove([`documentos_inspetor/${nomeArquivo}`])
+      await supabase.storage.from('aime').upload(
+        `documentos_inspetor/${nomeArquivo}`,
+        Buffer.from(html, 'utf-8'),
+        { contentType: 'text/html', upsert: true }
+      )
+    } catch {}
+
     return NextResponse.json({ ok:true, nomeArquivo, html })
 
   } catch (err) {
