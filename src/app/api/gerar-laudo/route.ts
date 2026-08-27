@@ -412,6 +412,24 @@ export async function POST(request: NextRequest) {
 
     // Rotear para gerador específico se for laudo NR (45-48)
     const ehNR = ['45','46','47','48'].includes(tipoServico)
+    const ehPred41 = ['41','42','43','44'].includes(tipoServico)
+
+    // Buscar contato_cliente para laudos prediais (41-44) — popula uso_estabelecimento
+    if (ehPred41 && cnpjoucpf && cpfInspetor) {
+      try {
+        const tsPred41Map: Record<string,string> = {
+          '41':'31 Autovistoria','42':'32 Vistoria inspeção',
+          '43':'33 Vistoria imóvel novo','44':'34 Vistoria fachada'
+        }
+        const { data: ccPred } = await supabase
+          .from('contato_cliente').select('*')
+          .eq('cpf_inspetor', cpfInspetor).eq('cnpjoucpf', cnpjoucpf)
+          .eq('tipo_servico', tsPred41Map[tipoServico] ?? '')
+          .order('data_cadastro', { ascending: false }).limit(1)
+        if (ccPred && ccPred.length > 0)
+          estab = { ...estab, ...ccPred[0] }
+      } catch {}
+    }
 
     // Buscar ativos e contato_cliente do BD para laudos NR
     if (ehNR && cnpjoucpf && cpfInspetor) {
