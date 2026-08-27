@@ -1717,7 +1717,7 @@ export async function POST(request: NextRequest) {
   <div class="bloco-header">${xe(nomeS(s))}</div>
   <div style="padding:5px 8px;border-bottom:1px solid #1E3A8A">
     <span style="font-size:7pt;font-weight:700;color:#1E3A8A">Descrição do sistema construtivo</span><br>
-    <span style="font-size:8pt;color:#222">${xe(DESC_SIS_PRED[s]||DESC_SIS_PRED[s.replace(/^(\\d+)-/,'$1_')]||DESC_SIS[s]||DESC_SIS[s.replace(/^(\\d+)-/,'$1_')]||descS(s))}</span>
+    <span style="font-size:8pt;color:#222">${xe(DESC_SIS_PRED[s]||DESC_SIS_PRED[s.replace(/^(\d+)-/,'$1_')]||descS(s))}</span>
   </div>
   ${rec?`<div style="padding:5px 8px;border-bottom:1px solid #1E3A8A;background:#EEF2FF">
     <span style="font-size:7pt;font-weight:700;color:#1E3A8A">Recomendação para o sistema</span><br>
