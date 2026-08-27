@@ -417,6 +417,8 @@ export async function POST(request: NextRequest) {
     if (ehNR && cnpjoucpf && cpfInspetor) {
       try {
         const tsVist: Record<string,string> = {
+          '41':'31 Autovistoria','42':'32 Vistoria inspeção',
+          '43':'33 Vistoria imóvel novo','44':'34 Vistoria fachada',
           '45':'35 Vistoria elevador','46':'36 Vistoria nr-10',
           '47':'37 Vistoria nr-12',  '48':'38 Vistoria nr-13'
         }
