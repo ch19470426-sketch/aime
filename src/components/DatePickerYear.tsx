@@ -105,7 +105,7 @@ export default function DatePickerYear({ value, onChange, style, minYear = 1950,
             maxHeight:'224px', flexShrink:0, scrollbarWidth:'thin' as any }}>
           {anos.map(a => (
             <div key={a} data-ano={a}
-              onClick={e=>{e.stopPropagation(); setViewAno(a)}}
+              onMouseDown={e=>{e.preventDefault(); setViewAno(a)}}
               style={{ textAlign:'center', padding:'5px 2px', fontSize:'10px', fontWeight:700,
                 cursor:'pointer', lineHeight:1.2,
                 backgroundColor: a===viewAno ? '#1E3A8A' : 'transparent',
@@ -120,7 +120,7 @@ export default function DatePickerYear({ value, onChange, style, minYear = 1950,
           {/* Meses rápidos */}
           <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:'2px', marginBottom:'6px' }}>
             {MESES_SHORT.map((m,i) => (
-              <div key={i} onClick={e=>{e.stopPropagation(); setViewMes(i)}}
+              <div key={i} onMouseDown={e=>{e.preventDefault(); setViewMes(i)}}
                 style={{ textAlign:'center', padding:'3px 1px', borderRadius:'3px', cursor:'pointer',
                   fontSize:'9px', fontWeight:700,
                   backgroundColor: i===viewMes ? '#EBF1FF' : 'transparent',
@@ -143,7 +143,7 @@ export default function DatePickerYear({ value, onChange, style, minYear = 1950,
               const ds = `${viewAno}-${mm}-${dd}`
               const sel = ds===value, isHj = ds===hoje
               return (
-                <div key={idx} onClick={e=>{e.stopPropagation();selDia(dia)}}
+                <div key={idx} onMouseDown={e=>{e.preventDefault();selDia(dia)}}
                   style={{ textAlign:'center', fontSize:'10px', padding:'4px 1px', borderRadius:'3px',
                     cursor:'pointer',
                     backgroundColor: sel?'#1E3A8A':isHj?'#EBF1FF':'transparent',
