@@ -234,7 +234,7 @@ tr:nth-child(even) td { background: #f7f9ff; }
 .indice-num { min-width: 40pt; font-weight: 700; color: #1E3A8A; flex-shrink: 0; }
 .indice-dots { flex: 1; border-bottom: 1px dotted #aaa; margin: 0 4pt 2pt; }
 .anx1-page { page: anx1page; }
-@page anx1page { size: A4 landscape; margin: 15mm 15mm 15mm 20mm; }
+@page anx1page { size: A4 portrait; margin: 15mm 15mm 15mm 20mm; }
 `
 
     // ── Tabela 1.2 ────────────────────────────────────────────────────────
@@ -367,17 +367,13 @@ tr:nth-child(even) td { background: #f7f9ff; }
       if (local !== curLocal || tag !== curTag) {
         anx1Rows += `<tr style="background:#dbeafe">
 <td colspan="2" style="font-size:6.5pt;color:#1E3A8A;padding:1pt 5pt"><b>Local ocorrência:</b></td>
-<td colspan="2" style="font-size:6.5pt;color:#1E3A8A;padding:1pt 5pt"><b>Complemento local:</b></td>
-<td style="font-size:6.5pt;color:#1E3A8A;padding:1pt 5pt"><b>Tag/Nº Série:</b></td>
-<td style="font-size:6.5pt;color:#1E3A8A;padding:1pt 5pt"><b>Ativo:</b></td>
-<td rowspan="2" style="font-size:8pt;font-weight:700;color:#1E3A8A;padding:3pt;text-align:center;vertical-align:middle;border:1px solid #1E3A8A">Nº na Vistoria</td>
-<td rowspan="2" style="font-size:8pt;font-weight:700;color:#1E3A8A;padding:3pt;text-align:center;vertical-align:middle;border:1.5px solid #1E3A8A">Aceite<br>na conclusão</td>
+<td colspan="2" style="font-size:6.5pt;color:#1E3A8A;padding:1pt 5pt"><b>Tag/Nº Série — Ativo:</b></td>
+<td rowspan="2" style="font-size:8pt;font-weight:700;color:#1E3A8A;padding:3pt;text-align:center;vertical-align:middle;border:1px solid #1E3A8A">Foto Nº</td>
+<td rowspan="2" style="font-size:8pt;font-weight:700;color:#1E3A8A;padding:3pt;text-align:center;vertical-align:middle;border:1.5px solid #1E3A8A">Aceite</td>
 </tr>
 <tr style="background:#eff6ff">
 <td colspan="2" style="font-size:7.5pt;padding:2pt 5pt">${local}</td>
-<td colspan="2" style="font-size:7.5pt;padding:2pt 5pt">${compl}</td>
-<td style="font-size:7.5pt;padding:2pt 5pt">${tag}</td>
-<td style="font-size:7.5pt;padding:2pt 5pt">${ativo}</td>
+<td colspan="2" style="font-size:7.5pt;padding:2pt 5pt">${tag} — ${ativo}</td>
 
 </tr>`
         curLocal = local; curTag = tag
