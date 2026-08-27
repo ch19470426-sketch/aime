@@ -188,8 +188,7 @@ tr:nth-child(even) td { background: #f7f9ff; }
 /* Capa */
 .pg-capa { page-break-after:always; box-sizing:border-box; }
 @page :first { margin:0 !important; }
-.pg-capa { page-break-after: always; }
-@page :first { margin: 0 !important; }
+.pg-capa { counter-reset: page 0; }
 .capa-barra { background: #1E3A8A; height: 8mm; width: 100%; margin-bottom: 0; }
 .capa-logo  { text-align: center; padding: 20mm 0 10mm; }
 .capa-logo img { max-height: 30mm; }
@@ -470,14 +469,9 @@ export async function POST(request: NextRequest) {
         .eq('tipo_servico', tsV)
         .order('sistema')
       const DESC_SIS: Record<string,string> = {}
-
       ;(sistDB ?? []).forEach((s:any) => {
-        if (s.sistema && s.descricao_sistema) {
+        if (s.sistema && s.descricao_sistema)
           DESC_SIS[s.sistema] = s.descricao_sistema
-          // Guardar também com sisKey (hífens → underscores) para compatibilidade
-          const sk = s.sistema.replace(/^(\d+)-/, '$1_')
-          if (sk !== s.sistema) DESC_SIS[sk] = s.descricao_sistema
-        }
       })
       const is45 = tipoServico === '45'
       const is46 = tipoServico === '46'
@@ -899,26 +893,6 @@ export async function POST(request: NextRequest) {
       const ativosA3 = ativos41.length > 0 ? ativos41 : []
       let ativoIdxA3 = 0
 
-      // Buscar descrições dos sistemas do BD para laudos prediais (41-44)
-      const tsPred: Record<string,string> = {
-        '41':'31 Autovistoria','42':'32 Vistoria inspeção',
-        '43':'33 Vistoria imóvel novo','44':'34 Vistoria fachada'
-      }
-      try {
-        const { data: sistPred } = await supabase
-          .from('sistemas_construtivos')
-          .select('sistema,descricao_sistema')
-          .eq('tipo_servico', tsPred[tipoServico] ?? '31 Autovistoria')
-          .order('sistema')
-        ;(sistPred ?? []).forEach((s:any) => {
-          if (s.sistema && s.descricao_sistema) {
-            DESC_SIS_PRED[s.sistema] = s.descricao_sistema
-            const sk = s.sistema.replace(/^(\d+)-/, '$1_')
-            if (sk !== s.sistema) DESC_SIS_PRED[sk] = s.descricao_sistema
-          }
-        })
-      } catch {}
-
       let htmlA3 = ''
       let curSisA3 = ''
       let primeiroA3 = true
@@ -948,7 +922,7 @@ export async function POST(request: NextRequest) {
             '</tr></table>'
 
           // d. Descrição
-          const descSis = DESC_SIS_PRED[ncSis] ?? DESC_SIS_PRED[sisKey] ?? DESC_SIS[ncSis] ?? DESC_SIS[sisKey] ?? ''
+          const descSis = DESC_SIS[sisKey] ?? DESC_SIS[ncSis] ?? ''
           htmlA3 += '<table style="width:100%;border-collapse:collapse;margin-bottom:2px"><tr>' +
             '<td style="' + CELL + ';width:100%">' +
             '<div style="' + ROT + '">Descrição do sistema:</div>' +
@@ -1468,28 +1442,6 @@ export async function POST(request: NextRequest) {
     }
     // ── FIM GERADOR NR (45-48) ────────────────────────────────────────────────
 
-    // Descrições dos sistemas para laudos prediais (41-44) — escopo acessível ao S41
-    const DESC_SIS_PRED: Record<string,string> = {}
-    const tsPred41: Record<string,string> = {
-      '41':'31 Autovistoria','42':'32 Vistoria inspeção',
-      '43':'33 Vistoria imóvel novo','44':'34 Vistoria fachada'
-    }
-    if (['41','42','43','44'].includes(tipoServico)) {
-      try {
-        const { data: sistPred2 } = await supabase
-          .from('sistemas_construtivos')
-          .select('sistema,descricao_sistema')
-          .eq('tipo_servico', tsPred41[tipoServico] ?? '31 Autovistoria')
-          .order('sistema')
-        ;(sistPred2 ?? []).forEach((s:any) => {
-          if (s.sistema && s.descricao_sistema) {
-            DESC_SIS_PRED[s.sistema] = s.descricao_sistema
-            const sk = s.sistema.replace(/^(\d+)-/, '$1_')
-            if (sk !== s.sistema) DESC_SIS_PRED[sk] = s.descricao_sistema
-          }
-        })
-      } catch {}
-    }
 
     const sistemas = SISTEMAS[tipoServico] ?? []
     const dataHoje = fmtData()
@@ -1717,7 +1669,7 @@ export async function POST(request: NextRequest) {
   <div class="bloco-header">${xe(nomeS(s))}</div>
   <div style="padding:5px 8px;border-bottom:1px solid #1E3A8A">
     <span style="font-size:7pt;font-weight:700;color:#1E3A8A">Descrição do sistema construtivo</span><br>
-    <span style="font-size:8pt;color:#222">${xe(DESC_SIS_PRED[s]||DESC_SIS_PRED[s.replace(/^(\d+)-/,'$1_')]||descS(s))}</span>
+    <span style="font-size:8pt;color:#222">${xe(descS(s))}</span>
   </div>
   ${rec?`<div style="padding:5px 8px;border-bottom:1px solid #1E3A8A;background:#EEF2FF">
     <span style="font-size:7pt;font-weight:700;color:#1E3A8A">Recomendação para o sistema</span><br>
@@ -1991,28 +1943,23 @@ export async function POST(request: NextRequest) {
     const logoB64 = inspetor?.logo_base64 || ''
     const logoTag = logoB64 ? `<img src="${logoB64}" style="max-height:28mm;max-width:80mm">` : `<div style="font-size:14pt;font-weight:900;color:#1E3A8A">${xe(inspetor?.cabecalho_documentos||'AIMÊ')}</div>`
     const CAPA_HTML = `
-<div class='pg-capa' style='counter-reset:page 0;display:flex;flex-direction:column;height:297mm'>
-  <div style='height:1cm;background:#fff;flex-shrink:0'></div>
-  <div style='background:#1E3A8A;height:8mm;flex-shrink:0'></div>
-  <div style='text-align:center;padding:6mm 0 0;flex-shrink:0'>${logoTag}</div>
-  <div style='flex:1 1 0'></div>
-  <div style='text-align:center;padding:0 20mm;flex-shrink:0'>
-    <div style='font-size:8pt;color:#6B7280;letter-spacing:3px;text-transform:uppercase;margin-bottom:6pt'>LAUDO T&Eacute;CNICO</div>
-    <div style='font-size:18pt;font-weight:900;color:#1E3A8A;line-height:1.2;margin-bottom:2pt'>${titulo}</div>
-    <div style='font-size:13pt;font-weight:700;color:#374151;margin-bottom:4pt'>${xe(estab?.razao_social_nome||estab?.razao_social||'')}</div>
-    <div style='font-size:9pt;color:#374151;text-align:center'>${xe(estab?.logradouro||'')}${estab?.numero_imovel?', '+xe(estab.numero_imovel):''} &mdash; ${xe(estab?.cidade||'')}/${xe(estab?.uf||'')}</div>
-  </div>
-  <div style='flex:1 1 0'></div>
-  <div style='flex-shrink:0'>
-    <div style='border-top:2px solid #1E3A8A;margin:0 20mm'></div>
-    <div style='padding:8mm 20mm;font-size:9.5pt;color:#222;line-height:1.9;flex-shrink:0'>
+<div class='pg-capa' style='counter-reset:page 0;display:flex;flex-direction:column;height:297mm;width:210mm;box-sizing:border-box;overflow:hidden;margin:0;padding:0'>
+  <div style='background:#1E3A8A;height:8mm;width:100%;flex-shrink:0'></div>
+  <div style='flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 20mm'>
+    <div style='margin-bottom:10mm'>${logoTag}</div>
+    <div style='font-size:8pt;color:#6B7280;letter-spacing:3px;text-transform:uppercase;margin-bottom:6pt;text-align:center'>LAUDO T&Eacute;CNICO</div>
+    <div style='font-size:18pt;font-weight:900;color:#1E3A8A;line-height:1.2;margin-bottom:2pt;text-align:center'>${titulo}</div>
+    <div style='font-size:13pt;font-weight:700;color:#374151;margin-bottom:4pt;text-align:center'>${xe(estab?.razao_social_nome||estab?.razao_social||'')}</div>
+    <div style='font-size:9pt;color:#374151;text-align:center;margin-bottom:10mm'>${xe(estab?.logradouro||'')}${estab?.numero_imovel?', '+xe(estab.numero_imovel):''} &mdash; ${xe(estab?.cidade||'')}/${xe(estab?.uf||'')}</div>
+    <div style='border-top:2px solid #1E3A8A;width:100%;margin-bottom:6mm'></div>
+    <div style='font-size:9.5pt;color:#222;line-height:1.9;width:100%'>
       <b style='color:#1E3A8A'>Inspetor Respons&aacute;vel:</b> ${xe(inspetor?.nome_inspetor)}<br>
       <b style='color:#1E3A8A'>T&iacute;tulo Profissional:</b> ${tituloIns} &mdash; ${siglaIns} ${numIns}<br>
       ${inspetor?.especializacao ? '<b style="color:#1E3A8A">Especialidade:</b> Especialista ' + xe(inspetor.especializacao) + '<br>' : ''}
       <b style='color:#1E3A8A'>Data:</b> ${dataHoje}
     </div>
-    <div style='background:#1E3A8A;height:8mm'></div>
   </div>
+  <div style='background:#1E3A8A;height:8mm;width:100%;flex-shrink:0'></div>
 </div>`
 
     // ── ÍNDICE ───────────────────────────────────────────────────────────────
@@ -2274,12 +2221,6 @@ ${rodInspetor?`<div class="rod">${rodInspetor}</div>`:''}
         cpfInspetor, chaveInspetor, cnpjoucpf, tipoServico,
         estab, inspetor, ncs, complemento,
       }),'utf-8'), { contentType:'application/json', upsert:true })
-
-    // Salvar HTML no Storage para que homologar-produto possa recuperar
-    await supabase.storage.from('aime')
-      .upload(`documentos_inspetor/${nomeArquivo}`,
-        Buffer.from(html, 'utf-8'),
-        { contentType:'text/html', upsert:true })
 
     return NextResponse.json({ ok:true, nomeArquivo, html })
 
