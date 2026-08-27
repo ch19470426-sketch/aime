@@ -1695,7 +1695,7 @@ export async function POST(request: NextRequest) {
   <div class="bloco-header">${xe(nomeS(s))}</div>
   <div style="padding:5px 8px;border-bottom:1px solid #1E3A8A">
     <span style="font-size:7pt;font-weight:700;color:#1E3A8A">Descrição do sistema construtivo</span><br>
-    <span style="font-size:8pt;color:#222">${xe(descS(s))}</span>
+    <span style="font-size:8pt;color:#222">${xe(DESC_SIS_PRED[s]||DESC_SIS_PRED[s.replace(/^(\\d+)-/,'$1_')]||DESC_SIS[s]||DESC_SIS[s.replace(/^(\\d+)-/,'$1_')]||descS(s))}</span>
   </div>
   ${rec?`<div style="padding:5px 8px;border-bottom:1px solid #1E3A8A;background:#EEF2FF">
     <span style="font-size:7pt;font-weight:700;color:#1E3A8A">Recomendação para o sistema</span><br>
@@ -1706,7 +1706,6 @@ export async function POST(request: NextRequest) {
       <th style="width:4%">Foto</th>
       <th style="width:28%;text-align:left">Não Conformidade</th>
       <th style="width:16%;text-align:left">Local</th>
-      <th style="width:6%">G.R.</th>
       <th style="width:8%">Prioridade</th>
       <th style="width:38%;text-align:left">Solução</th>
     </tr>
@@ -1715,7 +1714,6 @@ export async function POST(request: NextRequest) {
       <td style="text-align:center">${xe(nc.fotoNr)}</td>
       <td>${xe(nc.nc||nc.anomalia)}</td>
       <td>${xe(nc.local)}${nc.complemento?' — '+xe(nc.complemento):''}</td>
-      <td style="text-align:center">${xe(nc.grauRisco)}</td>
       <td style="text-align:center">${badgeP(nc.prioridade)}</td>
       <td>${xe(nc.solucaoNC||nc.descricao_solucao_nc||'—')}</td>
     </tr>`).join('')}
