@@ -137,7 +137,7 @@ const CSS = `
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: Arial, sans-serif; color: #000; background: #fff; font-size: 9pt; line-height: 1.4; }
+body { font-family: Arial, sans-serif; color: #000; background: #fff; font-size: 11pt; line-height: 1.4; }
 
 p { margin: 4pt 0; text-align: justify; color: #000; }
 h1, h2, h3 { font-weight: bold; color: #000; margin: 10pt 0 4pt; }
@@ -151,7 +151,7 @@ i, em { font-style: italic; }
 
 /* Print */
 @media print {
-  body { font-size: 9pt; }
+  body { font-size: 11pt; }
   .section { page-break-before: always; }
   .no-break { page-break-inside: avoid; }
   table { page-break-inside: auto; outline: 1.5px solid #1E3A8A; }
@@ -1215,8 +1215,8 @@ export async function POST(request: NextRequest) {
             ? '<img src="' + nc.fotoBase64 + '" style="width:85%;max-height:100mm;object-fit:cover;border-radius:5px;border:2px solid #1E3A8A;display:block;margin:0 auto">'
             : '<div style="border:1.5px dashed #c3d4f0;border-radius:5px;background:#E8EEF7;height:90mm;display:flex;align-items:center;justify-content:center;color:#8aa3c4;font-size:8pt">Foto não disponível</div>'
           const pb = idx > 0 ? '<div style="page-break-before:always"></div>' : ''
-          const GMAP:Record<string,string> = {'1':'Sem risco','2':'Lesão/dano baixo','3':'Lesão/dano moderado','4':'Lesão/dano grave','5':'Lesão/dano fatal','Sem risco':'Sem risco','Lesão/dano baixo':'Lesão/dano baixo','Lesão/dano moderado':'Lesão/dano moderado','Lesão/dano grave':'Lesão/dano grave','Lesão/dano fatal':'Lesão/dano fatal'}
-          const UMAP:Record<string,string> = {'1':'Pode aguardar','3':'Planejar','5':'Imediata','Pode aguardar':'Pode aguardar','Planejar':'Planejar','Imediata':'Imediata'}
+          const GMAP:Record<string,string> = {'1':'Sem risco','2':'Lesão/dano baixo','3':'Lesão/dano moderado','4':'Lesão/dano grave','5':'Lesão/dano fatal','Sem risco':'Sem risco','Lesão/dano baixo':'Lesão/dano baixo','Lesão/dano moderado':'Lesão/dano moderado','Lesão/dano grave':'Lesão/dano grave','Lesão/dano fatal':'Lesão/dano fatal','Estética':'Estética','Leve':'Leve','Moderada':'Moderada','Alta':'Alta','Crítica':'Crítica'}
+          const UMAP:Record<string,string> = {'1':'Pode aguardar','2':'Curto prazo','3':'Planejar','4':'Urgente','5':'Imediata','Pode aguardar':'Pode aguardar','Curto prazo':'Curto prazo','Planejar':'Planejar','Urgente':'Urgente','Imediata':'Imediata'}
           const AMAP:Record<string,string> = {'1':'Improvável','3':'Possível','5':'Provável/eminente','Improvável':'Improvável','Possível':'Possível','Provável/eminente':'Provável/eminente'}
           const EMAP:Record<string,string> = {'1':'Eventual','3':'Frequente','5':'Muitas pessoas','Eventual':'Eventual','Frequente':'Frequente','Muitas pessoas':'Muitas pessoas'}
           const gv=String(nc.gravidade??''), uv=String(nc.urgencia??''), av=String(nc.abrangencia??''), ev=String(nc.exposicao??'')
@@ -1235,7 +1235,7 @@ export async function POST(request: NextRequest) {
           return pb +
             '<div style="width:100%;background:#fff;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,.08);overflow:hidden">' +
             '<div style="background:#1E3A8A;padding:3px 10px;text-align:center">' +
-            '<div style="font-size:10pt;font-weight:700;color:#fff">' + xe(inspetor?.cabecalho_documentos||'AIME') + '</div>' +
+            '<div style="font-size:16pt;font-weight:700;color:#fff">' + xe(inspetor?.cabecalho_documentos||'AIME') + '</div>' +
             '<div style="font-size:6.5pt;color:#B5D4F4;margin-top:1px">Formulário de Registro de Conformidade Regulatória</div>' +
             '</div>' +
             '<div style="height:2px;background:#1E3A8A"></div>' +
@@ -1281,7 +1281,7 @@ export async function POST(request: NextRequest) {
       const cabNR       = xe(inspetor?.cabecalho_documentos||'')
       const logoB64NR   = inspetor?.logo_base64 || ''
       const logoTagNR   = logoB64NR
-        ? '<img src="' + logoB64NR + '" style="max-height:28mm;max-width:80mm">'
+        ? '<img src="' + logoB64NR + '" style="max-height:33mm;max-width:95mm">'
         : '<div style="font-size:14pt;font-weight:900;color:#1E3A8A">' + xe(inspetor?.cabecalho_documentos||'AIMÊ') + '</div>'
       const cidadeNR = estab?.cidade ? xe(estab.cidade) + '/' + xe(estab?.uf||'') + ', ' : ''
 
@@ -2010,7 +2010,7 @@ export async function POST(request: NextRequest) {
 
     // ── CAPA ─────────────────────────────────────────────────────────────────
     const logoB64 = inspetor?.logo_base64 || ''
-    const logoTag = logoB64 ? `<img src="${logoB64}" style="max-height:28mm;max-width:80mm">` : `<div style="font-size:14pt;font-weight:900;color:#1E3A8A">${xe(inspetor?.cabecalho_documentos||'AIMÊ')}</div>`
+    const logoTag = logoB64 ? `<img src="${logoB64}" style="max-height:33mm;max-width:95mm">` : `<div style="font-size:14pt;font-weight:900;color:#1E3A8A">${xe(inspetor?.cabecalho_documentos||'AIMÊ')}</div>`
     const CAPA_HTML = `
 <div class='pg-capa' style='counter-reset:page 0;display:flex;flex-direction:column;height:297mm'>
 <div style='height:1cm;background:#fff;flex-shrink:0'></div>
