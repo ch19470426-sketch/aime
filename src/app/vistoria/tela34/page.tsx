@@ -129,8 +129,8 @@ function Tela31Inner() {
   const abrNum  = valorGut[`abrangencia:${descAbrangencia}`] ?? 0
   const expNum  = valorGut[`exposicao:${descExposicao}`]   ?? 0
   const grauRisco = (gravNum && urgNum && abrNum && expNum) ? calcularGR(gravNum, urgNum, abrNum, expNum) : 0
-  const prioridade = grauRisco >= 64 ? 'Alta' : grauRisco >= 35 ? 'Média' : grauRisco > 0 ? 'Baixa' : '—'
-  const corGR = grauRisco >= 64 ? '#E24B4A' : grauRisco >= 35 ? '#E8A000' : '#1A7A3C'
+  const prioridade = grauRisco >= 59 ? 'Alta' : grauRisco >= 30 ? 'Média' : grauRisco > 0 ? 'Baixa' : '—'
+  const corGR = grauRisco >= 59 ? '#E24B4A' : grauRisco >= 30 ? '#E8A000' : '#1A7A3C'
 
   // Listas filtradas
   const subsistemasFiltrados = [...new Set(subsistemas.filter(s => s.sistema === sistema).map(s => s.subsistema))]
