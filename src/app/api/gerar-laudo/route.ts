@@ -2020,7 +2020,7 @@ export async function POST(request: NextRequest) {
     const logoB64 = inspetor?.logo_base64 || ''
     const logoTag = logoB64 ? `<img src="${logoB64}" style="max-height:33mm;max-width:95mm">` : `<div style="font-size:14pt;font-weight:900;color:#1E3A8A">${xe(inspetor?.cabecalho_documentos||'AIMÊ')}</div>`
     const CAPA_HTML = `
-<table class='pg-capa' style='counter-reset:page 0;width:210mm;height:297mm;border-collapse:collapse;table-layout:fixed;margin:0;padding:0'>
+<div class='pg-capa' style='counter-reset:page 0'><table style='width:100%;height:297mm;border-collapse:collapse;table-layout:fixed;margin:0;padding:0'>
 <tr style='height:8mm'><td style='background:#1E3A8A;padding:0'></td></tr>
 <tr style='height:25mm'><td style='text-align:center;vertical-align:middle;padding:4mm 20mm 0'>
 ${inspetor?.cabecalho_documentos ? `<div style='font-size:16pt;font-weight:900;color:#1E3A8A;line-height:1.3'>${xe(inspetor.cabecalho_documentos)}</div>` : logoTag}
@@ -2042,7 +2042,7 @@ ${inspetor?.especializacao ? '<b style="color:#1E3A8A">Especialidade:</b> Especi
 </div>
 </td></tr>
 <tr style='height:8mm'><td style='background:#1E3A8A;padding:0'></td></tr>
-</table>`
+</table></div>`
 
     // ── ÍNDICE ───────────────────────────────────────────────────────────────
     const INDICE_ITENS = [
