@@ -311,6 +311,7 @@ function Tela31Inner() {
       cnpjDisplay, razaoSocial, tipoAtivo, tagNrSerie, finalidade,
       sistema, subsistema, anomalia, origem, local, complemento,
       gravidade: gravNum, urgencia: urgNum, abrangencia: abrNum, exposicao: expNum,
+      descGravidade, descUrgencia, descAbrangencia, descExposicao,
       grauRisco, prioridade, dataVistoria, fotoBase64, nc, cp,
       nc_pendente: !nc || !cp,  // flag: IA deve gerar ao reconectar
     }

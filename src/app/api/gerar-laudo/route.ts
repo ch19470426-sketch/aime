@@ -1945,13 +1945,13 @@ export async function POST(request: NextRequest) {
           const cor  = grN>=59?'#CC0000':grN>=30?'#E8A000':'#16A34A'
           const bg   = grN>=59?'#FEE2E2':grN>=30?'#FEF9C3':'#DCFCE7'
           const pri  = grN>=59?'▲ Alta':grN>=30?'■ Média':'▼ Baixa'
-          const gv = String(nc.gravidade ?? nc.gravNum ?? '')
+          const gv = String(nc.descGravidade || nc.gravidade || nc.gravNum || '')
           const gDesc = GRAV_MAP[gv] || gv || '—'
-          const uv = String(nc.urgencia ?? nc.urgNum ?? '')
+          const uv = String(nc.descUrgencia || nc.urgencia || nc.urgNum || '')
           const uDesc = URG_MAP[uv] || uv || '—'
-          const av = String(nc.abrangencia ?? nc.abrNum ?? '')
+          const av = String(nc.descAbrangencia || nc.abrangencia || nc.abrNum || '')
           const aDesc = ABR_MAP[av] || av || '—'
-          const ev = String(nc.exposicao ?? nc.expNum ?? '')
+          const ev = String(nc.descExposicao || nc.exposicao || nc.expNum || '')
           const eDesc = EXP_MAP[ev] || ev || '—'
           const foto  = nc.fotoBase64?.startsWith('data:image')
             ? '<img src="'+nc.fotoBase64+'" style="width:100%;max-height:130mm;object-fit:contain;display:block">'
