@@ -202,8 +202,9 @@ tr:nth-child(even) td { background: #f7f9ff; }
 
 .s41-bloco { page-break-before: avoid !important; }
 /* Capa */
-.pg-capa { page-break-after:always; box-sizing:border-box; }
+.pg-capa { page-break-after:always; box-sizing:border-box; page: capa-page; }
 @page :first { margin:0 !important; }
+@page capa-page { size: A4; margin: 0; }
 .pg-capa { counter-reset: page 0; }
 .capa-barra { background: #1E3A8A; height: 8mm; width: 100%; margin-bottom: 0; }
 .capa-logo  { text-align: center; padding: 20mm 0 10mm; }
@@ -2019,22 +2020,19 @@ export async function POST(request: NextRequest) {
     const logoB64 = inspetor?.logo_base64 || ''
     const logoTag = logoB64 ? `<img src="${logoB64}" style="max-height:33mm;max-width:95mm">` : `<div style="font-size:14pt;font-weight:900;color:#1E3A8A">${xe(inspetor?.cabecalho_documentos||'AIMÊ')}</div>`
     const CAPA_HTML = `
-<div class='pg-capa' style='counter-reset:page 0;display:flex;flex-direction:column;height:297mm'>
-<div style='height:1cm;background:#fff;flex-shrink:0'></div>
-<div style='background:#1E3A8A;height:8mm;flex-shrink:0'></div>
-<div style='text-align:center;padding:8mm 0 0;flex-shrink:0'>${inspetor?.cabecalho_documentos ? `<div style='font-size:16pt;font-weight:900;color:#1E3A8A;padding:0 20mm;line-height:1.3'>${xe(inspetor.cabecalho_documentos)}</div>` : logoTag}</div>
-<div style='height:15mm;flex-shrink:0'></div>
-<div style='text-align:center;padding:0 20mm;flex-shrink:0'>
+<table class='pg-capa' style='counter-reset:page 0;width:210mm;height:297mm;border-collapse:collapse;table-layout:fixed;margin:0;padding:0'>
+<tr style='height:8mm'><td style='background:#1E3A8A;padding:0'></td></tr>
+<tr style='height:25mm'><td style='text-align:center;vertical-align:middle;padding:4mm 20mm 0'>
+${inspetor?.cabecalho_documentos ? `<div style='font-size:16pt;font-weight:900;color:#1E3A8A;line-height:1.3'>${xe(inspetor.cabecalho_documentos)}</div>` : logoTag}
+</td></tr>
+<tr style='height:50mm'><td style='text-align:center;vertical-align:middle;padding:0 20mm'>
 <div style='font-size:8pt;color:#6B7280;letter-spacing:3px;text-transform:uppercase;margin-bottom:6pt'>LAUDO T&Eacute;CNICO</div>
-<div style='font-size:18pt;font-weight:900;color:#1E3A8A;line-height:1.2'>${titulo}</div>
-</div>
-<div style='height:20mm;flex-shrink:0'></div>
-<div style='text-align:center;padding:0 20mm;flex-shrink:0'>
+<div style='font-size:18pt;font-weight:900;color:#1E3A8A;line-height:1.2;margin-bottom:20mm'>${titulo}</div>
 <div style='font-size:13pt;font-weight:700;color:#374151;margin-bottom:4pt'>${xe(estab?.razao_social_nome||estab?.razao_social||'')}</div>
 <div style='font-size:9pt;color:#374151'>${xe(estab?.logradouro||'')}${estab?.numero_imovel?', '+xe(estab.numero_imovel):''} &mdash; ${xe(estab?.cidade||'')}/${xe(estab?.uf||'')}</div>
-</div>
-<div style='flex:1 1 0;min-height:0'></div>
-<div style='flex-shrink:0'>
+</td></tr>
+<tr style='height:*'><td></td></tr>
+<tr style='height:45mm'><td style='vertical-align:bottom;padding:0'>
 <div style='border-top:2px solid #1E3A8A;margin:0 20mm'></div>
 <div style='padding:8mm 20mm;font-size:9.5pt;color:#222;line-height:1.9'>
 <b style='color:#1E3A8A'>Inspetor Respons&aacute;vel:</b> ${xe(inspetor?.nome_inspetor)}<br>
@@ -2042,9 +2040,9 @@ export async function POST(request: NextRequest) {
 ${inspetor?.especializacao ? '<b style="color:#1E3A8A">Especialidade:</b> Especialista ' + xe(inspetor.especializacao) + '<br>' : ''}
 <b style='color:#1E3A8A'>Data:</b> ${dataHoje}
 </div>
-<div style='background:#1E3A8A;height:8mm'></div>
-</div>
-</div>`
+</td></tr>
+<tr style='height:8mm'><td style='background:#1E3A8A;padding:0'></td></tr>
+</table>`
 
     // ── ÍNDICE ───────────────────────────────────────────────────────────────
     const INDICE_ITENS = [
