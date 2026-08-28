@@ -202,9 +202,8 @@ tr:nth-child(even) td { background: #f7f9ff; }
 
 .s41-bloco { page-break-before: avoid !important; }
 /* Capa */
-.pg-capa { page-break-after:always; box-sizing:border-box; page: capa-page; }
+.pg-capa { page-break-after:always; box-sizing:border-box; }
 @page :first { margin:0 !important; }
-@page capa-page { size: A4; margin: 0; }
 .pg-capa { counter-reset: page 0; }
 .capa-barra { background: #1E3A8A; height: 8mm; width: 100%; margin-bottom: 0; }
 .capa-logo  { text-align: center; padding: 20mm 0 10mm; }
@@ -1897,6 +1896,15 @@ export async function POST(request: NextRequest) {
 </div>`
 
     // ── Anexo 2 — buscar fotos faltantes das vistorias homologadas ────────────
+    // Função para extrair campo do HTML homologado predial
+    const extrH = (h:string, lbl:string) => {
+      const m = h.match(new RegExp('<label[^>]*>' + lbl + '[^<]*</label>[^<]*<[^>]+>([^<]+)<'))
+      return m ? m[1].trim() : ''
+    }
+    const extrSpan = (h:string, lbl:string) => {
+      const m = h.match(new RegExp('<span[^>]*>' + lbl + '</span>\\s*<span[^>]*>([^<]+)</span>'))
+      return m ? m[1].trim() : ''
+    }
     const ncsComFoto = await Promise.all((ncs??[]).map(async (nc:any) => {
       if (nc.fotoBase64?.startsWith('data:image')) return nc
       if (!nc._arquivo) return nc
@@ -1905,8 +1913,15 @@ export async function POST(request: NextRequest) {
           .download(`vistorias_homologadas/${nc._arquivo}`)
         if (!blob) return nc
         const html = await blob.text()
-        const m = html.match(/<img[^>]+src="(data:image[^"]+)"/)
-        if (m) return { ...nc, fotoBase64: m[1] }
+        const mImg = html.match(/<img[^>]+src="(data:image[^"]+)"/)
+        // Enriquecer com campos do HTML quando nc não tem (JSON antigo)
+        const extra: any = {}
+        if (!nc.gravidade && !nc.descGravidade) extra.descGravidade = extrH(html,'Gravidade') || extrSpan(html,'Gravidade')
+        if (!nc.urgencia  && !nc.descUrgencia)  extra.descUrgencia  = extrH(html,'Urgência')  || extrH(html,'Urgencia')
+        if (!nc.abrangencia && !nc.descAbrangencia) extra.descAbrangencia = extrH(html,'Abrangência') || extrH(html,'Abrangencia')
+        if (!nc.exposicao && !nc.descExposicao) extra.descExposicao = extrH(html,'Exposição') || extrH(html,'Exposicao')
+        if (mImg) return { ...extra, ...nc, fotoBase64: mImg[1] }
+        return { ...extra, ...nc }
       } catch { /* sem foto */ }
       return nc
     }))
@@ -2019,30 +2034,30 @@ export async function POST(request: NextRequest) {
     // ── CAPA ─────────────────────────────────────────────────────────────────
     const logoB64 = inspetor?.logo_base64 || ''
     const logoTag = logoB64 ? `<img src="${logoB64}" style="max-height:33mm;max-width:95mm">` : `<div style="font-size:14pt;font-weight:900;color:#1E3A8A">${xe(inspetor?.cabecalho_documentos||'AIMÊ')}</div>`
-    const CAPA_HTML = `
-<div class='pg-capa' style='counter-reset:page 0'><table style='width:100%;height:297mm;border-collapse:collapse;table-layout:fixed;margin:0;padding:0'>
-<tr style='height:8mm'><td style='background:#1E3A8A;padding:0'></td></tr>
-<tr style='height:25mm'><td style='text-align:center;vertical-align:middle;padding:4mm 20mm 0'>
-${inspetor?.cabecalho_documentos ? `<div style='font-size:16pt;font-weight:900;color:#1E3A8A;line-height:1.3'>${xe(inspetor.cabecalho_documentos)}</div>` : logoTag}
-</td></tr>
-<tr style='height:*'><td style='text-align:center;vertical-align:middle;padding:0 20mm'>
-<div style='font-size:8pt;color:#6B7280;letter-spacing:3px;text-transform:uppercase;margin-bottom:6pt'>LAUDO T&Eacute;CNICO</div>
-<div style='font-size:18pt;font-weight:900;color:#1E3A8A;line-height:1.2;margin-bottom:6pt'>${titulo}</div>
-<div style='height:20mm'></div>
-<div style='font-size:13pt;font-weight:700;color:#374151;margin-bottom:4pt'>${xe(estab?.razao_social_nome||estab?.razao_social||'')}</div>
-<div style='font-size:9pt;color:#374151'>${xe(estab?.logradouro||'')}${estab?.numero_imovel?', '+xe(estab.numero_imovel):''} &mdash; ${xe(estab?.cidade||'')}/${xe(estab?.uf||'')}</div>
-</td></tr>
-<tr style='height:45mm'><td style='vertical-align:bottom;padding:0'>
-<div style='border-top:2px solid #1E3A8A;margin:0 20mm'></div>
-<div style='padding:8mm 20mm;font-size:9.5pt;color:#222;line-height:1.9'>
-<b style='color:#1E3A8A'>Inspetor Respons&aacute;vel:</b> ${xe(inspetor?.nome_inspetor)}<br>
-<b style='color:#1E3A8A'>T&iacute;tulo Profissional:</b> ${tituloIns} &mdash; ${siglaIns} ${numIns}<br>
-${inspetor?.especializacao ? '<b style="color:#1E3A8A">Especialidade:</b> Especialista ' + xe(inspetor.especializacao) + '<br>' : ''}
-<b style='color:#1E3A8A'>Data:</b> ${dataHoje}
-</div>
-</td></tr>
-<tr style='height:8mm'><td style='background:#1E3A8A;padding:0'></td></tr>
-</table></div>`
+    const CAPA_HTML =
+      '<div class="pg-capa" style="counter-reset:page 0;display:flex;flex-direction:column;height:297mm">' +
+      '<div style="height:1cm;background:#fff;flex-shrink:0"></div>' +
+      '<div style="background:#1E3A8A;height:8mm;flex-shrink:0"></div>' +
+      '<div style="text-align:center;padding:6mm 0 0;flex-shrink:0">' + (inspetor?.cabecalho_documentos ? '<div style="font-size:16pt;font-weight:900;color:#1E3A8A;padding:0 20mm;line-height:1.3">' + xe(inspetor.cabecalho_documentos) + '</div>' : logoTag) + '</div>' +
+      '<div style="flex:1 1 0"></div>' +
+      '<div style="text-align:center;padding:0 20mm;flex-shrink:0">' +
+      '<div style="font-size:8pt;color:#6B7280;letter-spacing:3px;text-transform:uppercase;margin-bottom:6pt">LAUDO TÉCNICO</div>' +
+      '<div style="font-size:18pt;font-weight:900;color:#1E3A8A;line-height:1.2;margin-bottom:2pt">' + titulo + '</div>' +
+      '<div style="font-size:13pt;font-weight:700;color:#374151;margin-bottom:4pt">' + xe(estab?.razao_social_nome||estab?.razao_social||'') + '</div>' +
+      '<div style="font-size:9pt;color:#374151">' + xe(estab?.logradouro||'') + (estab?.numero_imovel?', '+xe(estab.numero_imovel):'') + ' — ' + xe(estab?.cidade||'') + '/' + xe(estab?.uf||'') + '</div>' +
+      '</div>' +
+      '<div style="flex:1 1 0"></div>' +
+      '<div style="flex-shrink:0">' +
+      '<div style="border-top:2px solid #1E3A8A;margin:0 20mm"></div>' +
+      '<div style="padding:8mm 20mm;font-size:9.5pt;color:#222;line-height:1.9;flex-shrink:0">' +
+      '<b style="color:#1E3A8A">Inspetor Responsável:</b> ' + xe(inspetor?.nome_inspetor) + '<br>' +
+      '<b style="color:#1E3A8A">Título Profissional:</b> ' + tituloIns + ' — ' + siglaIns + ' ' + numIns + '<br>' +
+      (inspetor?.especializacao ? '<b style="color:#1E3A8A">Especialidade:</b> Especialista ' + xe(inspetor.especializacao) + '<br>' : '') +
+      '<b style="color:#1E3A8A">Data:</b> ' + dataHoje +
+      '</div>' +
+      '<div style="background:#1E3A8A;height:8mm"></div>' +
+      '</div>' +
+      '</div>'
 
     // ── ÍNDICE ───────────────────────────────────────────────────────────────
     const INDICE_ITENS = [
