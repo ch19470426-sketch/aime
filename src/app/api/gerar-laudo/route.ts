@@ -1023,7 +1023,7 @@ export async function POST(request: NextRequest) {
         '<div>' +
         '<p style="text-align:justify">Neste item é apresentado, de forma clara e concisa, o conjunto de requisitos normativos identificados na vistoria, suas localizações e o número da foto no respectivo formulário de vistoria. Na tabela constam as prioridades para retificação dos problemas de cada um dos componentes, visando mitigar os riscos e garantir a conformidade e eficiência dos equipamentos, segundo normas técnicas vigentes.</p>' +
         '<p style="text-align:justify">A prioridade para manutenção de cada uma das não conformidades foi obtida pelo grau de risco (0 a 100), calculado com base nos parâmetros: gravidade (40%); abrangência (30%); urgência (20%); e exposição (10%); observado no requisito normativo.</p>' +
-        '<p style="text-align:justify">Quanto à definição das prioridades foi adotado o critério: grau de risco superior a 80 pontos, prioridade Muito Alta; grau de risco menor que 80 pontos e maior que 49 pontos, prioridade Alta; grau de risco menor que 50 pontos e maior que 29 pontos, prioridade Média; grau de risco inferior a 30 pontos, prioridade Baixa.</p>' +
+        '<p style="text-align:justify">Quanto à definição das prioridades foi adotado o critério: grau de risco superior a 59 pontos, prioridade ALTA; grau de risco menor que 60 pontos e maior que 29 pontos, prioridade MÉDIA; grau de risco menor que 30 pontos, prioridade BAIXA.</p>' +
         '<p style="text-align:justify">A Relação de Não Conformidades com o resultado da análise e da classificação é apresentada a seguir.</p>' +
         A3nr +
         '</div>'
@@ -1217,8 +1217,8 @@ export async function POST(request: NextRequest) {
           const pb = idx > 0 ? '<div style="page-break-before:always"></div>' : ''
           const GMAP:Record<string,string> = {'1':'Sem risco','2':'Lesão/dano baixo','3':'Lesão/dano moderado','4':'Lesão/dano grave','5':'Lesão/dano fatal','Sem risco':'Sem risco','Lesão/dano baixo':'Lesão/dano baixo','Lesão/dano moderado':'Lesão/dano moderado','Lesão/dano grave':'Lesão/dano grave','Lesão/dano fatal':'Lesão/dano fatal','Estética':'Estética','Leve':'Leve','Moderada':'Moderada','Alta':'Alta','Crítica':'Crítica'}
           const UMAP:Record<string,string> = {'1':'Pode aguardar','2':'Curto prazo','3':'Planejar','4':'Urgente','5':'Imediata','Pode aguardar':'Pode aguardar','Curto prazo':'Curto prazo','Planejar':'Planejar','Urgente':'Urgente','Imediata':'Imediata'}
-          const AMAP:Record<string,string> = {'1':'Improvável','3':'Possível','5':'Provável/eminente','Improvável':'Improvável','Possível':'Possível','Provável/eminente':'Provável/eminente'}
-          const EMAP:Record<string,string> = {'1':'Eventual','3':'Frequente','5':'Muitas pessoas','Eventual':'Eventual','Frequente':'Frequente','Muitas pessoas':'Muitas pessoas'}
+          const AMAP:Record<string,string> = {'1':'Improvável','2':'Remota','3':'Possível','4':'Provável','5':'Provável/eminente','Improvável':'Improvável','Remota':'Remota','Possível':'Possível','Provável':'Provável','Provável/eminente':'Provável/eminente','Local':'Local','Setorial':'Setorial','Geral':'Geral','Individual':'Individual'}
+          const EMAP:Record<string,string> = {'1':'Eventual','2':'Raro','3':'Frequente','4':'Contínuo','5':'Muitas pessoas','Eventual':'Eventual','Raro':'Raro','Frequente':'Frequente','Contínuo':'Contínuo','Muitas pessoas':'Muitas pessoas'}
           const gv=String(nc.gravidade??''), uv=String(nc.urgencia??''), av=String(nc.abrangencia??''), ev=String(nc.exposicao??'')
           const fld = (lbl:string, val:string) =>
             '<div>' +
@@ -2019,7 +2019,7 @@ export async function POST(request: NextRequest) {
 <div style='flex:1 1 0'></div>
 <div style='text-align:center;padding:0 20mm;flex-shrink:0'>
 <div style='font-size:8pt;color:#6B7280;letter-spacing:3px;text-transform:uppercase;margin-bottom:6pt'>LAUDO T&Eacute;CNICO</div>
-<div style='font-size:18pt;font-weight:900;color:#1E3A8A;line-height:1.2;margin-bottom:2pt'>${titulo}</div>
+<div style='font-size:18pt;font-weight:900;color:#1E3A8A;line-height:1.2;margin-bottom:72pt'>${titulo}</div>
 <div style='font-size:13pt;font-weight:700;color:#374151;margin-bottom:4pt'>${xe(estab?.razao_social_nome||estab?.razao_social||'')}</div>
 <div style='font-size:9pt;color:#374151'>${xe(estab?.logradouro||'')}${estab?.numero_imovel?', '+xe(estab.numero_imovel):''} &mdash; ${xe(estab?.cidade||'')}/${xe(estab?.uf||'')}</div>
 </div>
