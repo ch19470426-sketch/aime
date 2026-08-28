@@ -1918,15 +1918,22 @@ export async function POST(request: NextRequest) {
     // Exposição: 1=Baixa, 3=Média, 5=Alta
     const GRAV_MAP: Record<string,string> = {
       '1':'Estética','2':'Leve','3':'Moderada','4':'Alta','5':'Crítica',
+      'Estética':'Estética','Leve':'Leve','Moderada':'Moderada','Alta':'Alta','Crítica':'Crítica',
+      'Sem risco':'Sem risco','Lesão/dano baixo':'Leve','Lesão/dano moderado':'Moderada','Lesão/dano grave':'Alta','Lesão/dano fatal':'Crítica',
     }
     const URG_MAP: Record<string,string> = {
       '1':'Pode aguardar','2':'Pode aguardar','3':'Planejar','4':'Planejar','5':'Imediata',
+      'Pode aguardar':'Pode aguardar','Planejar':'Planejar','Imediata':'Imediata','Curto prazo':'Curto prazo','Urgente':'Urgente',
     }
     const ABR_MAP: Record<string,string> = {
       '1':'Ponto isolado','2':'Ponto isolado','3':'Vários pontos','4':'Vários pontos','5':'Sistema completo',
+      'Ponto isolado':'Ponto isolado','Vários pontos':'Vários pontos','Sistema completo':'Sistema completo',
+      'Individual':'Individual','Local':'Local','Setorial':'Setorial','Geral':'Geral',
     }
     const EXP_MAP: Record<string,string> = {
       '1':'Baixa','2':'Baixa','3':'Média','4':'Média','5':'Alta',
+      'Baixa':'Baixa','Média':'Média','Alta':'Alta',
+      'Eventual':'Eventual','Frequente':'Frequente','Contínuo':'Contínuo',
     }
 
     const A2 = (ncsComFoto??[]).length===0
@@ -1934,9 +1941,9 @@ export async function POST(request: NextRequest) {
       : (ncsComFoto??[]).map((nc:any,idx:number)=>{
           const ns   = xe((nc.sistema||'').slice(3).replace(/_/g,' '))
           const grN  = Number(nc.grauRisco)||0
-          const cor  = grN>=64?'#CC0000':grN>=35?'#E8A000':'#16A34A'
-          const bg   = grN>=64?'#FEE2E2':grN>=35?'#FEF9C3':'#DCFCE7'
-          const pri  = grN>=64?'▲ Alta':grN>=35?'■ Média':'▼ Baixa'
+          const cor  = grN>=59?'#CC0000':grN>=30?'#E8A000':'#16A34A'
+          const bg   = grN>=59?'#FEE2E2':grN>=30?'#FEF9C3':'#DCFCE7'
+          const pri  = grN>=59?'▲ Alta':grN>=30?'■ Média':'▼ Baixa'
           const gv = String(nc.gravidade||'')
           const gDesc = GRAV_MAP[gv] || gv || '—'
           const uv = String(nc.urgencia||'')
@@ -2210,7 +2217,7 @@ ${S33}
 <p>Neste item é apresentado, de forma clara e concisa, o conjunto de manifestações patológicas identificadas na vistoria, suas localizações e o número da foto no respectivo formulário de vistoria.</p>
 <p>Salientamos, também, a importância do condomínio documentar as manutenções corretivas realizadas no pós inspeção, indicando a solução aplicada, local, data e responsável técnico pela execução.</p>
 <p>A prioridade para manutenção de cada uma das não conformidades foi obtida pelo grau de risco (0 a 100), calculado com base nos parâmetros: gravidade, urgência, tendência e exposição ao risco.</p>
-<p>Quanto a definição das prioridades foi adotado o critério: grau de risco superior a 64 pontos, prioridade ALTA; grau de risco menor que 65 pontos e maior que 34 pontos, prioridade MÉDIA; grau de risco menor que 35 pontos, prioridade BAIXA.</p>
+<p>Quanto a definição das prioridades foi adotado o critério: grau de risco superior a 59 pontos, prioridade ALTA; grau de risco menor que 60 pontos e maior que 29 pontos, prioridade MÉDIA; grau de risco menor que 30 pontos, prioridade BAIXA.</p>
 ${S41||'<p><i>Nenhuma não conformidade registrada.</i></p>'}
 </div>
 
