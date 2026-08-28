@@ -1918,21 +1918,21 @@ export async function POST(request: NextRequest) {
     // Abrangência: 1=Ponto isolado, 3=Vários pontos, 5=Sistema completo
     // Exposição: 1=Baixa, 3=Média, 5=Alta
     const GRAV_MAP: Record<string,string> = {
-      '1':'Estética','2':'Leve','3':'Moderada','4':'Alta','5':'Crítica',
+      '0':'—','1':'Estética','2':'Leve','3':'Moderada','4':'Alta','5':'Crítica',
       'Estética':'Estética','Leve':'Leve','Moderada':'Moderada','Alta':'Alta','Crítica':'Crítica',
       'Sem risco':'Sem risco','Lesão/dano baixo':'Leve','Lesão/dano moderado':'Moderada','Lesão/dano grave':'Alta','Lesão/dano fatal':'Crítica',
     }
     const URG_MAP: Record<string,string> = {
-      '1':'Pode aguardar','2':'Pode aguardar','3':'Planejar','4':'Planejar','5':'Imediata',
+      '0':'—','1':'Pode aguardar','2':'Pode aguardar','3':'Planejar','4':'Planejar','5':'Imediata',
       'Pode aguardar':'Pode aguardar','Planejar':'Planejar','Imediata':'Imediata','Curto prazo':'Curto prazo','Urgente':'Urgente',
     }
     const ABR_MAP: Record<string,string> = {
-      '1':'Ponto isolado','2':'Ponto isolado','3':'Vários pontos','4':'Vários pontos','5':'Sistema completo',
+      '0':'—','1':'Ponto isolado','2':'Ponto isolado','3':'Vários pontos','4':'Vários pontos','5':'Sistema completo',
       'Ponto isolado':'Ponto isolado','Vários pontos':'Vários pontos','Sistema completo':'Sistema completo',
       'Individual':'Individual','Local':'Local','Setorial':'Setorial','Geral':'Geral',
     }
     const EXP_MAP: Record<string,string> = {
-      '1':'Baixa','2':'Baixa','3':'Média','4':'Média','5':'Alta',
+      '0':'—','1':'Baixa','2':'Baixa','3':'Média','4':'Média','5':'Alta',
       'Baixa':'Baixa','Média':'Média','Alta':'Alta',
       'Eventual':'Eventual','Frequente':'Frequente','Contínuo':'Contínuo',
     }
@@ -1945,13 +1945,13 @@ export async function POST(request: NextRequest) {
           const cor  = grN>=59?'#CC0000':grN>=30?'#E8A000':'#16A34A'
           const bg   = grN>=59?'#FEE2E2':grN>=30?'#FEF9C3':'#DCFCE7'
           const pri  = grN>=59?'▲ Alta':grN>=30?'■ Média':'▼ Baixa'
-          const gv = String(nc.gravidade||'')
+          const gv = String(nc.gravidade ?? nc.gravNum ?? '')
           const gDesc = GRAV_MAP[gv] || gv || '—'
-          const uv = String(nc.urgencia||'')
+          const uv = String(nc.urgencia ?? nc.urgNum ?? '')
           const uDesc = URG_MAP[uv] || uv || '—'
-          const av = String(nc.abrangencia||'')
+          const av = String(nc.abrangencia ?? nc.abrNum ?? '')
           const aDesc = ABR_MAP[av] || av || '—'
-          const ev = String(nc.exposicao||'')
+          const ev = String(nc.exposicao ?? nc.expNum ?? '')
           const eDesc = EXP_MAP[ev] || ev || '—'
           const foto  = nc.fotoBase64?.startsWith('data:image')
             ? '<img src="'+nc.fotoBase64+'" style="width:100%;max-height:130mm;object-fit:contain;display:block">'
@@ -2025,13 +2025,13 @@ export async function POST(request: NextRequest) {
 <tr style='height:25mm'><td style='text-align:center;vertical-align:middle;padding:4mm 20mm 0'>
 ${inspetor?.cabecalho_documentos ? `<div style='font-size:16pt;font-weight:900;color:#1E3A8A;line-height:1.3'>${xe(inspetor.cabecalho_documentos)}</div>` : logoTag}
 </td></tr>
-<tr style='height:50mm'><td style='text-align:center;vertical-align:middle;padding:0 20mm'>
+<tr style='height:*'><td style='text-align:center;vertical-align:middle;padding:0 20mm'>
 <div style='font-size:8pt;color:#6B7280;letter-spacing:3px;text-transform:uppercase;margin-bottom:6pt'>LAUDO T&Eacute;CNICO</div>
-<div style='font-size:18pt;font-weight:900;color:#1E3A8A;line-height:1.2;margin-bottom:20mm'>${titulo}</div>
+<div style='font-size:18pt;font-weight:900;color:#1E3A8A;line-height:1.2;margin-bottom:6pt'>${titulo}</div>
+<div style='height:20mm'></div>
 <div style='font-size:13pt;font-weight:700;color:#374151;margin-bottom:4pt'>${xe(estab?.razao_social_nome||estab?.razao_social||'')}</div>
 <div style='font-size:9pt;color:#374151'>${xe(estab?.logradouro||'')}${estab?.numero_imovel?', '+xe(estab.numero_imovel):''} &mdash; ${xe(estab?.cidade||'')}/${xe(estab?.uf||'')}</div>
 </td></tr>
-<tr style='height:*'><td></td></tr>
 <tr style='height:45mm'><td style='vertical-align:bottom;padding:0'>
 <div style='border-top:2px solid #1E3A8A;margin:0 20mm'></div>
 <div style='padding:8mm 20mm;font-size:9.5pt;color:#222;line-height:1.9'>
