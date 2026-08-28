@@ -365,7 +365,6 @@ function LaudoComplemento() {
         body: JSON.stringify({ tipo: 'descricao_vistoria', dados: {
           informacoes: dadosVistoria, tipo_servico: tipoServico, nivel_inspecao: nivelInspecao,
           razao_social: estab.razao_social_nome || '',
-          data_vistoria: (ncs[0] as any)?.dataVistoria || (ncs[0] as any)?.data_vistoria || '',
           nome_inspetor: inspetor.nome_inspetor || '',
           sistemas: Array.from(new Set(ncs.map((n: any) => String(n.sistema || n.sistema_vistoria || '').replace(/^\s*\d+[-_.\s]+/,'').trim()).filter(Boolean))).join('; '),
           qtd_ncs: ncs.length
