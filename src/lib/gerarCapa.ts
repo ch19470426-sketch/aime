@@ -49,7 +49,7 @@ export function gerarCapa(p: CapaParams): string {
 
   <div style="height:8mm;background:#1E3A8A;flex:0 0 8mm"></div>
 
-  <div style="flex:0 0 auto;text-align:center;padding:10mm 20mm 0">${cabHtml}</div>
+  ${cabHtml ? `<div style="flex:0 0 auto;text-align:center;padding:10mm 20mm 0">${cabHtml}</div>` : ''}
 
   <div style="flex:1 1 auto;display:flex;align-items:center;justify-content:center;padding:0 20mm;min-height:0">
     <div style="text-align:center">
