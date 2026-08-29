@@ -1,102 +1,82 @@
 "use client"
 export const dynamic = 'force-dynamic'
-import { useState, useEffect, Suspense } from "react"
+import { useState, Suspense } from "react"
 import { useSearchParams, useRouter } from "next/navigation"
+import React from "react"
 
-const SUPA_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? ''
-const SUPA_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? ''
-
-const S: Record<string, any> = {
-  body:    { minHeight:'100vh', backgroundColor:'#E8EEF7', display:'flex', justifyContent:'center', alignItems:'flex-start', padding:'24px 16px' },
-  page:    { width:'100%', maxWidth:'480px' },
-  card:    { background:'#fff', borderRadius:'12px', padding:'24px', boxShadow:'0 2px 8px rgba(0,0,0,.08)', marginBottom:'16px' },
-  label:   { display:'block', fontSize:'11px', fontWeight:600, color:'#4a6480', marginBottom:'4px', textTransform:'uppercase', letterSpacing:'0.5px' },
-  input:   { width:'100%', padding:'10px 12px', border:'1.5px solid #C8D8E8', borderRadius:'8px', fontSize:'14px', outline:'none' },
-  btn:     { width:'100%', padding:'12px', borderRadius:'8px', fontSize:'14px', fontWeight:700, border:'none', cursor:'pointer' },
-  btnPri:  { background:'#1E3A8A', color:'#fff' },
-  btnSec:  { background:'#E8EEF7', color:'#1E3A8A' },
-  titulo:  { fontSize:'16px', fontWeight:700, color:'#1E3A8A', marginBottom:'16px' },
-  erro:    { color:'#E24B4A', fontSize:'12px', marginTop:'4px' },
-  info:    { fontSize:'12px', color:'#6B7280', marginTop:'4px' },
-}
-
-function HeaderBar({ subtitulo }: { subtitulo: string }) {
-  return (
-    <div style={{ background:'#1E3A8A', padding:'10px 16px', display:'flex', alignItems:'center', gap:'10px' }}>
-      <div style={{ flex:1 }}>
-        <div style={{ fontSize:'11px', color:'#B5D4F4', fontWeight:600, letterSpacing:'0.5px', textTransform:'uppercase' }}>AIMÊ</div>
-        <div style={{ fontSize:'14px', color:'#fff', fontWeight:700 }}>{subtitulo}</div>
-      </div>
-    </div>
-  )
+const S: Record<string, React.CSSProperties> = {
+  body:       { background:'#E8EEF7', display:'flex', justifyContent:'center', padding:'24px', fontFamily:'Arial, Helvetica, sans-serif', minHeight:'100vh' },
+  page:       { width:'210mm', maxWidth:'100%', background:'#ffffff', borderRadius:'16px', boxShadow:'0 4px 24px rgba(0,0,0,.15)', overflow:'hidden', height:'fit-content' },
+  header:     { background:'#1E3A8A', padding:'8px 16px', display:'flex', alignItems:'center', gap:'12px' },
+  divider:    { height:'2px', background:'#1E3A8A' },
+  formBody:   { padding:'10px 14px', display:'flex', flexDirection:'column', gap:'8px' },
+  block:      { border:'1px solid #c3d4f0', borderRadius:'6px', overflow:'hidden' },
+  blockTitle: { background:'#1E3A8A', color:'#ffffff', fontSize:'7.5pt', fontWeight:700, padding:'3px 10px' },
+  blockBody:  { padding:'8px 10px', display:'flex', flexDirection:'column', gap:'6px' },
+  field:      { display:'flex', flexDirection:'column', gap:'2px' },
+  fieldLabel: { fontSize:'6.5pt', fontWeight:600, color:'#4a6480' },
+  input:      { width:'100%', border:'1px solid #c3d4f0', borderRadius:'4px', padding:'4px 6px', fontSize:'8pt', color:'#1a1a2e', fontFamily:'inherit', background:'#ffffff', boxSizing:'border-box' },
+  footer:     { display:'grid', gridTemplateColumns:'1fr 1fr', gap:'8px', marginTop:'4px', padding:'10px 14px' },
+  btn:        { padding:'8px 0', fontSize:'8pt', fontWeight:700, borderRadius:'50px', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:'6px', fontFamily:'inherit', border:'none' },
+  btnSec:     { background:'#ffffff', border:'2px solid #1E3A8A', color:'#1E3A8A' },
+  btnPri:     { background:'#1E3A8A', border:'2px solid #1E3A8A', color:'#ffffff' },
+  erro:       { color:'#E24B4A', fontSize:'7pt', marginTop:'2px' },
+  ok:         { color:'#16A34A', fontSize:'7pt', marginTop:'2px', fontWeight:600 },
 }
 
 function VistoriaEletricaInner() {
-  const params = useSearchParams()
-  const router = useRouter()
+  const params        = useSearchParams()
+  const router        = useRouter()
+  const cpfEletrico   = params.get('cpf_inspetor')   ?? ''
+  const chaveEletrico = params.get('chave_inspetor') ?? ''
 
-  const cpfEletrico   = params.get('cpf_inspetor')    ?? ''
-  const chaveEletrico = params.get('chave_inspetor')  ?? ''
-
-  const [cnpj,       setCnpj]       = useState('')
-  const [cpfCivil,   setCpfCivil]   = useState('')
-  const [artFile,    setArtFile]    = useState<File|null>(null)
-  const [salvando,   setSalvando]   = useState(false)
-  const [erro,       setErro]       = useState('')
-  const [msg,        setMsg]        = useState('')
-  const [credencial, setCredencial] = useState<any>(null)
+  const [cnpj,      setCnpj]      = useState('')
+  const [cpfCivil,  setCpfCivil]  = useState('')
+  const [artFile,   setArtFile]   = useState<File|null>(null)
+  const [salvando,  setSalvando]  = useState(false)
+  const [erro,      setErro]      = useState('')
+  const [credencial,setCredencial]= useState<any>(null)
 
   function fmtCNPJ(v: string) {
     const d = v.replace(/\D/g,'').slice(0,14)
     return d.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/,'$1.$2.$3/$4-$5')
-           .replace(/(\d{2})(\d{3})(\d{3})(\d{4})/, '$1.$2.$3/$4')
-           .replace(/(\d{2})(\d{3})(\d{3})/, '$1.$2.$3')
-           .replace(/(\d{2})(\d{3})/, '$1.$2')
+             .replace(/(\d{2})(\d{3})(\d{3})(\d{4})/,'$1.$2.$3/$4')
+             .replace(/(\d{2})(\d{3})(\d{3})/,'$1.$2.$3')
+             .replace(/(\d{2})(\d{3})/,'$1.$2')
   }
   function fmtCPF(v: string) {
     const d = v.replace(/\D/g,'').slice(0,11)
     return d.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/,'$1.$2.$3-$4')
-           .replace(/(\d{3})(\d{3})(\d{3})/,'$1.$2.$3')
-           .replace(/(\d{3})(\d{3})/,'$1.$2')
-           .replace(/(\d{3})/,'$1')
+             .replace(/(\d{3})(\d{3})(\d{3})/,'$1.$2.$3')
+             .replace(/(\d{3})(\d{3})/,'$1.$2')
   }
 
   async function credenciar() {
-    setErro(''); setMsg('')
+    setErro('')
     const cnpjLimpo = cnpj.replace(/\D/g,'')
     const cpfLimpo  = cpfCivil.replace(/\D/g,'')
     if (cnpjLimpo.length < 14) { setErro('CNPJ inválido'); return }
     if (cpfLimpo.length < 11)  { setErro('CPF inválido'); return }
-    if (!artFile)               { setErro('Selecione o arquivo da ART'); return }
+    if (!artFile)               { setErro('Selecione o arquivo da ART/RRT'); return }
     setSalvando(true)
     try {
-      // 1. Upload da ART
-      const ext     = artFile.name.split('.').pop() ?? 'pdf'
-      const nomeArt = `${cpfEletrico}_${cnpjLimpo}_art_eletrico.${ext}`
-      const buf     = await artFile.arrayBuffer()
-      const upRes   = await fetch(
-        `${SUPA_URL}/storage/v1/object/aime/arts/${nomeArt}`,
-        { method:'POST', headers:{ apikey: SUPA_KEY, Authorization:`Bearer ${SUPA_KEY}`, 'Content-Type': artFile.type || 'application/pdf', 'x-upsert':'true' },
-          body: buf }
-      )
-      if (!upRes.ok) throw new Error('Erro no upload da ART')
-
-      // 2. Salvar credencial em art_profissional
-      const insRes = await fetch(`${SUPA_URL}/rest/v1/art_profissional`, {
-        method: 'POST',
-        headers: { apikey: SUPA_KEY, Authorization:`Bearer ${SUPA_KEY}`, 'Content-Type':'application/json', Prefer:'return=representation' },
+      const ext  = artFile.name.split('.').pop() ?? 'pdf'
+      const nome = `${cpfEletrico}_${cnpjLimpo}_art_eletrico.${ext}`
+      const buf  = await artFile.arrayBuffer()
+      const b64  = btoa(String.fromCharCode(...new Uint8Array(buf)))
+      const res  = await fetch('/api/upload-art-eletrico', {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
         body: JSON.stringify({
-          cpf_inspetor: cpfLimpo,
-          cnpjoucpf:    cnpjLimpo,
-          tipo_servico: '32 Vistoria inspeção',
-          cpf_eletrico: cpfEletrico,
-          arquivo_art:  `arts/${nomeArt}`,
+          nomeArquivo: nome, base64: b64,
+          contentType: artFile.type || 'application/pdf',
+          cpfEletrico, cnpjoucpf: cnpjLimpo,
+          cpfInspetor: cpfLimpo, tipoServico: '32 Vistoria inspeção',
         })
       })
-      if (!insRes.ok) throw new Error('Erro ao salvar credencial')
-
+      const data = await res.json()
+      if (!res.ok || data.erro) throw new Error(data.erro || 'Erro no upload')
       setCredencial({ cnpj: cnpjLimpo, cpfCivil: cpfLimpo })
-      setMsg('Credencial registrada com sucesso!')
     } catch(e: any) {
       setErro(e.message ?? 'Erro inesperado')
     } finally {
@@ -104,66 +84,93 @@ function VistoriaEletricaInner() {
     }
   }
 
-  function irParaVistoria() {
-    if (!credencial) return
-    router.push(
-      `/vistoria/tela32?cpf_inspetor=${credencial.cpfCivil}&chave_inspetor=${chaveEletrico}&cnpjoucpf=${credencial.cnpj}&tipo_servico=32&sistema_fixo=07-Instalações elétricas&cpf_eletrico=${cpfEletrico}&chave_eletrico=${chaveEletrico}`
-    )
-  }
-
   return (
     <div style={S.body}>
       <div style={S.page}>
-        <HeaderBar subtitulo="39 — Vistoria Inspeção Elétrica" />
-        <div style={S.card}>
-          <p style={{ fontSize:'12px', color:'#6B7280', marginBottom:'16px' }}>
-            Informe o CNPJ do estabelecimento e o CPF do inspetor civil/arquiteto que realizou a vistoria de inspeção predial.
-          </p>
+        {/* Cabeçalho */}
+        <div style={S.header}>
+          <div>
+            <div style={{ fontSize:'7pt', color:'#B5D4F4', fontWeight:600, letterSpacing:'0.5px', textTransform:'uppercase' }}>AIMÊ</div>
+            <div style={{ fontSize:'11pt', color:'#fff', fontWeight:700 }}>39 — Vistoria Inspeção Elétrica</div>
+          </div>
+        </div>
+        <div style={S.divider} />
 
-          {!credencial ? (
-            <div style={{ display:'flex', flexDirection:'column', gap:'14px' }}>
-              <div>
-                <label style={S.label}>CNPJ do Estabelecimento *</label>
-                <input style={S.input} value={cnpj}
-                  onChange={e => setCnpj(fmtCNPJ(e.target.value))}
-                  placeholder="00.000.000/0000-00" inputMode="numeric" />
+        {!credencial ? (
+          <>
+            <div style={S.formBody}>
+              <div style={S.block}>
+                <div style={S.blockTitle}>Credenciamento</div>
+                <div style={S.blockBody}>
+                  <p style={{ fontSize:'7pt', color:'#4a6480', margin:0 }}>
+                    Informe o CNPJ do estabelecimento e o CPF do inspetor predial que realizou a vistoria de inspeção.
+                  </p>
+
+                  <div style={S.field}>
+                    <label style={S.fieldLabel}>CNPJ DO ESTABELECIMENTO *</label>
+                    <input style={S.input} value={cnpj}
+                      onChange={e => setCnpj(fmtCNPJ(e.target.value))}
+                      placeholder="00.000.000/0000-00" inputMode="numeric" />
+                  </div>
+
+                  <div style={S.field}>
+                    <label style={S.fieldLabel}>CPF DO INSPETOR PREDIAL (CIVIL/ARQUITETO) *</label>
+                    <input style={S.input} value={cpfCivil}
+                      onChange={e => setCpfCivil(fmtCPF(e.target.value))}
+                      placeholder="000.000.000-00" inputMode="numeric" />
+                  </div>
+
+                  <div style={S.field}>
+                    <label style={S.fieldLabel}>ART/RRT DO ENG. ELÉTRICO *</label>
+                    <input type="file" accept=".pdf,.jpg,.jpeg,.png"
+                      style={{ ...S.input, padding:'3px 6px' }}
+                      onChange={e => setArtFile(e.target.files?.[0] ?? null)} />
+                    <span style={{ fontSize:'6.5pt', color:'#6B7280' }}>PDF ou imagem da ART/RRT</span>
+                  </div>
+
+                  {erro && <span style={S.erro}>{erro}</span>}
+                </div>
               </div>
-              <div>
-                <label style={S.label}>CPF do Inspetor Predial (Civil/Arquiteto) *</label>
-                <input style={S.input} value={cpfCivil}
-                  onChange={e => setCpfCivil(fmtCPF(e.target.value))}
-                  placeholder="000.000.000-00" inputMode="numeric" />
-              </div>
-              <div>
-                <label style={S.label}>ART do Eng. Elétrico *</label>
-                <input type="file" accept=".pdf,.jpg,.jpeg,.png"
-                  style={{ ...S.input, padding:'6px' }}
-                  onChange={e => setArtFile(e.target.files?.[0] ?? null)} />
-                <span style={S.info}>PDF ou imagem da ART/RRT</span>
-              </div>
-              {erro && <span style={S.erro}>{erro}</span>}
-              {msg  && <span style={{ ...S.erro, color:'#16A34A' }}>{msg}</span>}
-              <button style={{ ...S.btn, ...S.btnPri }} onClick={credenciar} disabled={salvando}>
-                {salvando ? 'Registrando...' : 'Registrar Credencial'}
-              </button>
-              <button style={{ ...S.btn, ...S.btnSec }} onClick={() => router.back()}>
+            </div>
+
+            <div style={S.footer}>
+              <button style={{ ...S.btn, ...S.btnSec }}
+                onClick={() => router.push(`/dashboard?cpf_inspetor=${cpfEletrico}&chave_inspetor=${chaveEletrico}`)}>
                 Voltar
               </button>
+              <button style={{ ...S.btn, ...S.btnPri, opacity: salvando ? 0.6 : 1 }}
+                onClick={credenciar} disabled={salvando}>
+                {salvando ? 'Registrando...' : 'Registrar ART'}
+              </button>
             </div>
-          ) : (
-            <div style={{ display:'flex', flexDirection:'column', gap:'14px' }}>
-              <div style={{ background:'#DCFCE7', borderRadius:'8px', padding:'12px', fontSize:'13px', color:'#16A34A', fontWeight:600 }}>
-                ✓ Credencial registrada — acesso liberado ao sistema elétrico
+          </>
+        ) : (
+          <>
+            <div style={S.formBody}>
+              <div style={S.block}>
+                <div style={S.blockTitle}>Credencial Registrada</div>
+                <div style={S.blockBody}>
+                  <span style={S.ok}>✓ ART registrada — acesso liberado ao sistema elétrico</span>
+                  <p style={{ fontSize:'7pt', color:'#4a6480', margin:0 }}>
+                    Clique em <b>Iniciar Vistoria</b> para registrar as não conformidades do sistema elétrico.
+                  </p>
+                </div>
               </div>
-              <button style={{ ...S.btn, ...S.btnPri }} onClick={irParaVistoria}>
-                Iniciar Vistoria Elétrica
+            </div>
+            <div style={S.footer}>
+              <button style={{ ...S.btn, ...S.btnSec }}
+                onClick={() => router.push(`/dashboard?cpf_inspetor=${cpfEletrico}&chave_inspetor=${chaveEletrico}`)}>
+                Dashboard
               </button>
-              <button style={{ ...S.btn, ...S.btnSec }} onClick={() => router.push(`/dashboard?cpf_inspetor=${cpfEletrico}&chave_inspetor=${chaveEletrico}`)}>
-                Voltar ao Dashboard
+              <button style={{ ...S.btn, ...S.btnPri }}
+                onClick={() => router.push(
+                  `/vistoria/tela32?cpf_inspetor=${credencial.cpfCivil}&chave_inspetor=${chaveEletrico}&cnpjoucpf=${credencial.cnpj}&tipo_servico=32&sistema_fixo=07-Instalações elétricas&cpf_eletrico=${cpfEletrico}`
+                )}>
+                Iniciar Vistoria
               </button>
             </div>
-          )}
-        </div>
+          </>
+        )}
       </div>
     </div>
   )
