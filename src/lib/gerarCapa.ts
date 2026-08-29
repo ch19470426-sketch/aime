@@ -32,9 +32,6 @@ export function gerarCapa(p: CapaParams): string {
     (s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
 
   const F = 'font-family:Arial,sans-serif'
-  const m = p.margens ?? { top: 25, right: 20, bottom: 20, left: 25 }
-  const bleed = `margin:-${m.top}mm -${m.right}mm -${m.bottom}mm -${m.left}mm`
-
   const cabHtml = p.logo
     ? `<img src="${p.logo}" style="max-height:28mm;max-width:95mm">`
     : p.cabecalhoTexto
@@ -48,7 +45,7 @@ export function gerarCapa(p: CapaParams): string {
 
   const subtitulo = p.subtitulo ?? 'LAUDO TÉCNICO'
 
-  return `<div class="pg-capa" style="${F};${bleed};width:210mm;height:297mm;box-sizing:border-box;display:flex;flex-direction:column;page-break-after:always;counter-reset:page 0">
+  return `<div class="pg-capa" style="${F};display:flex;flex-direction:column;height:297mm;box-sizing:border-box">
 
   <div style="height:8mm;background:#1E3A8A;flex:0 0 8mm"></div>
 
