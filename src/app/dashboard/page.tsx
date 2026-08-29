@@ -393,6 +393,11 @@ export default function Dashboard() {
       window.location.href = `/meus-estabelecimentos?cpf_inspetor=${cpfInspetor}`
       return
     }
+    // Item 39: navegar direto sem coletar CNPJ
+    if (codigo === 39) {
+      window.location.href = `/vistoria-eletrica?cpf_inspetor=${cpfInspetor}&chave_inspetor=${chaveInspetor}`
+      return
+    }
     setTipoServico(codigo)
     setDocumento("")
     setEstadoDoc("aguardando")
@@ -400,6 +405,11 @@ export default function Dashboard() {
 
   async function handleIniciarVistoria() {
     const docLimpo = documentoSemMascara(documento)
+    // Código 39: Vistoria Elétrica — navega direto sem coletar CNPJ aqui
+    if (Number(tipoServico) === 39) {
+      window.location.href = `/vistoria-eletrica?cpf_inspetor=${cpfInspetor}&chave_inspetor=${chaveInspetor}`
+      return
+    }
     // Códigos 51-58: Planos de Manutenção — redirecionar antes da validação de tamanho
     if (Number(tipoServico) >= 51 && Number(tipoServico) <= 58) {
       if (docLimpo.length < 11) {
