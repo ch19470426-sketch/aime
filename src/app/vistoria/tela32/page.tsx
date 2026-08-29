@@ -71,6 +71,8 @@ function Tela31Inner() {
   const chaveInspetor = params.get('chave_inspetor') ?? cpfInspetor
   const cnpjoucpf     = params.get('cnpjoucpf')      ?? ''
   const tipoServico   = params.get('tipo_servico')   ?? '31'
+  const sistemaFixo   = params.get('sistema_fixo')  ?? ''   // se preenchido: modo elétrico
+  const cpfEletrico   = params.get('cpf_eletrico')  ?? ''
   const tipoServicoBanco = TIPO_SERVICO_BANCO[tipoServico] ?? `${tipoServico} Autovistoria`
   const tagObrigatorio   = ['35', '37', '38'].includes(tipoServico)
 
@@ -187,7 +189,13 @@ function Tela31Inner() {
 
         // Sistemas
         const sis = await query('sistemas_construtivos', `tipo_servico=eq.${encodeURIComponent(tipoServicoBanco)}&ativo=eq.true&select=sistema&order=sistema`)
-        if (Array.isArray(sis)) setSistemas([...new Map(sis.map((s: ItemSistema) => [s.sistema, s])).values()])
+        if (Array.isArray(sis)) {
+          const lista = [...new Map(sis.map((s: ItemSistema) => [s.sistema, s])).values()]
+          // Modo elétrico: mostrar apenas o sistema fixo
+          const listaFiltrada = sistemaFixo ? lista.filter(s => s.sistema === sistemaFixo) : lista
+          setSistemas(listaFiltrada)
+          if (sistemaFixo) setSistema(sistemaFixo)
+        }
 
         const sub = await query('sistemas_construtivos', `tipo_servico=eq.${encodeURIComponent(tipoServicoBanco)}&ativo=eq.true&subsistema=not.is.null&select=sistema,subsistema`)
         if (Array.isArray(sub)) setSubsistemas(sub)
@@ -313,6 +321,7 @@ function Tela31Inner() {
       gravidade: gravNum, urgencia: urgNum, abrangencia: abrNum, exposicao: expNum,
       descGravidade, descUrgencia, descAbrangencia, descExposicao,
       grauRisco, prioridade, dataVistoria, fotoBase64, nc, cp,
+      cpfEletrico: cpfEletrico || undefined,
       nc_pendente: !nc || !cp,  // flag: IA deve gerar ao reconectar
     }
 
@@ -400,7 +409,12 @@ function Tela31Inner() {
 
   function encerrar() {
     blurAll()
-    window.location.href = '/dashboard'
+    // Modo elétrico: retorna ao dashboard com credenciais do eng. elétrico
+    if (sistemaFixo && cpfEletrico) {
+      window.location.href = `/dashboard?cpf_inspetor=${cpfEletrico}&chave_inspetor=${chaveInspetor}`
+    } else {
+      window.location.href = '/dashboard'
+    }
   }
 
   if (carregando) return (
@@ -472,7 +486,7 @@ function Tela31Inner() {
             <div style={S.blockBody}>
               <div style={{ ...S.row, ...S.c3 }}>
                 <Field label="Sistema">
-                  <select style={S.input} value={sistema} onChange={e => { setSistema(e.target.value); setSubsistema(''); setAnomalia(''); setErroValidacao('') }}>
+                  <select style={{...S.input,...(sistemaFixo?{backgroundColor:'#F3F4F6',color:'#6B7280'}:{})}} value={sistema} disabled={!!sistemaFixo} onChange={e => { setSistema(e.target.value); setSubsistema(''); setAnomalia(''); setErroValidacao('') }}>
                     <option value="">Selecione...</option>
                     {sistemas.map(s => <option key={s.sistema} value={s.sistema}>{s.sistema}</option>)}
                   </select>
