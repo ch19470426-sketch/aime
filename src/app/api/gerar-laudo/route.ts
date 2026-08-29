@@ -2091,12 +2091,12 @@ export async function POST(request: NextRequest) {
 </head>
 <body>
 ${CAPA_HTML}
+<div style="page-break-before:always"></div>
 <div class="section">
 ${INDICE_HTML}
 </div>
 <div class="section">
-${cabInspetor?`<div class="cab">${cabInspetor}</div>`:''}
-<br><br><br><br><br>
+
 
 
 
