@@ -1,6 +1,7 @@
 "use client"
 export const dynamic = 'force-dynamic'
 import { useState, useEffect, Suspense } from "react"
+import HeaderBar from '@/components/HeaderBar'
 import { useSearchParams, useRouter } from "next/navigation"
 
 const SUPA_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? ''
@@ -59,17 +60,7 @@ function VistoriaEletricaInner() {
     if (!artFile)               { setErro('Selecione o arquivo da ART'); return }
     setSalvando(true)
     try {
-      // 1. Verificar vistoria 32 aberta para este CNPJ + CPF civil
-      const res = await fetch(
-        `${SUPA_URL}/rest/v1/dados_vistoria?cnpjoucpf=eq.${cnpjLimpo}&cpf_inspetor=eq.${cpfLimpo}&tipo_servico=ilike.32%25&select=numero_foto&limit=1`,
-        { headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` } }
-      )
-      const rows = await res.json()
-      if (!Array.isArray(rows) || rows.length === 0) {
-        setErro('Nenhuma vistoria de inspeção (32) encontrada para este CNPJ e CPF.'); setSalvando(false); return
-      }
-
-      // 2. Upload da ART
+      // 1. Upload da ART
       const ext     = artFile.name.split('.').pop() ?? 'pdf'
       const nomeArt = `${cpfEletrico}_${cnpjLimpo}_art_eletrico.${ext}`
       const buf     = await artFile.arrayBuffer()
@@ -80,7 +71,7 @@ function VistoriaEletricaInner() {
       )
       if (!upRes.ok) throw new Error('Erro no upload da ART')
 
-      // 3. Salvar credencial em art_profissional
+      // 2. Salvar credencial em art_profissional
       const insRes = await fetch(`${SUPA_URL}/rest/v1/art_profissional`, {
         method: 'POST',
         headers: { apikey: SUPA_KEY, Authorization:`Bearer ${SUPA_KEY}`, 'Content-Type':'application/json', Prefer:'return=representation' },
@@ -113,8 +104,8 @@ function VistoriaEletricaInner() {
   return (
     <div style={S.body}>
       <div style={S.page}>
-        <div style={{ ...S.card, borderTop:'4px solid #1E3A8A' }}>
-          <div style={S.titulo}>39 — Vistoria Inspeção Elétrica</div>
+        <HeaderBar subtitulo="39 — Vistoria Inspeção Elétrica" />
+        <div style={S.card}>
           <p style={{ fontSize:'12px', color:'#6B7280', marginBottom:'16px' }}>
             Informe o CNPJ do estabelecimento e o CPF do inspetor civil/arquiteto que realizou a vistoria de inspeção predial.
           </p>
