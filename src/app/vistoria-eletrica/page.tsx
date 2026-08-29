@@ -11,13 +11,13 @@ const S: Record<string, React.CSSProperties> = {
   divider:    { height:'2px', background:'#1E3A8A' },
   formBody:   { padding:'10px 14px', display:'flex', flexDirection:'column', gap:'8px' },
   block:      { border:'1px solid #c3d4f0', borderRadius:'6px', overflow:'hidden' },
-  blockTitle: { background:'#1E3A8A', color:'#ffffff', fontSize:'7.5pt', fontWeight:700, padding:'3px 10px' },
+  blockTitle: { background:'#1E3A8A', color:'#ffffff', fontSize:'11px', fontWeight:700, padding:'5px 10px' },
   blockBody:  { padding:'8px 10px', display:'flex', flexDirection:'column', gap:'6px' },
   field:      { display:'flex', flexDirection:'column', gap:'2px' },
-  fieldLabel: { fontSize:'6.5pt', fontWeight:600, color:'#4a6480' },
-  input:      { width:'100%', border:'1px solid #c3d4f0', borderRadius:'4px', padding:'4px 6px', fontSize:'8pt', color:'#1a1a2e', fontFamily:'inherit', background:'#ffffff', boxSizing:'border-box' },
+  fieldLabel: { fontSize:'10px', fontWeight:600, color:'#4a6480' },
+  input:      { width:'100%', border:'1px solid #c3d4f0', borderRadius:'4px', padding:'4px 6px', fontSize:'13px', color:'#1a1a2e', fontFamily:'inherit', background:'#ffffff', boxSizing:'border-box' },
   footer:     { display:'grid', gridTemplateColumns:'1fr 1fr', gap:'8px', marginTop:'4px', padding:'10px 14px' },
-  btn:        { padding:'8px 0', fontSize:'8pt', fontWeight:700, borderRadius:'50px', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:'6px', fontFamily:'inherit', border:'none' },
+  btn:        { padding:'8px 0', fontSize:'13px', fontWeight:700, borderRadius:'50px', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:'6px', fontFamily:'inherit', border:'none' },
   btnSec:     { background:'#ffffff', border:'2px solid #1E3A8A', color:'#1E3A8A' },
   btnPri:     { background:'#1E3A8A', border:'2px solid #1E3A8A', color:'#ffffff' },
   erro:       { color:'#E24B4A', fontSize:'7pt', marginTop:'2px' },
@@ -62,8 +62,12 @@ function VistoriaEletricaInner() {
     try {
       const ext  = artFile.name.split('.').pop() ?? 'pdf'
       const nome = `${cpfEletrico}_${cnpjLimpo}_art_eletrico.${ext}`
-      const buf  = await artFile.arrayBuffer()
-      const b64  = btoa(String.fromCharCode(...new Uint8Array(buf)))
+      const b64 = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader()
+        reader.onload = () => resolve((reader.result as string).split(',')[1])
+        reader.onerror = reject
+        reader.readAsDataURL(artFile)
+      })
       const res  = await fetch('/api/upload-art-eletrico', {
         method:'POST',
         headers:{'Content-Type':'application/json'},
@@ -89,9 +93,11 @@ function VistoriaEletricaInner() {
       <div style={S.page}>
         {/* Cabeçalho */}
         <div style={S.header}>
-          <div>
-            <div style={{ fontSize:'7pt', color:'#B5D4F4', fontWeight:600, letterSpacing:'0.5px', textTransform:'uppercase' }}>AIMÊ</div>
-            <div style={{ fontSize:'11pt', color:'#fff', fontWeight:700 }}>39 — Vistoria Inspeção Elétrica</div>
+          <div style={{ display:'flex', alignItems:'center', gap:'10px' }}>
+            <div>
+              <div style={{ fontSize:'10px', color:'#B5D4F4', fontWeight:600, letterSpacing:'0.5px', textTransform:'uppercase' }}>AIMÊ</div>
+              <div style={{ fontSize:'14px', color:'#fff', fontWeight:700 }}>39 — Vistoria Inspeção Elétrica</div>
+            </div>
           </div>
         </div>
         <div style={S.divider} />
@@ -102,7 +108,7 @@ function VistoriaEletricaInner() {
               <div style={S.block}>
                 <div style={S.blockTitle}>Credenciamento</div>
                 <div style={S.blockBody}>
-                  <p style={{ fontSize:'7pt', color:'#4a6480', margin:0 }}>
+                  <p style={{ fontSize:'12px', color:'#4a6480', margin:0 }}>
                     Informe o CNPJ do estabelecimento e o CPF do inspetor predial que realizou a vistoria de inspeção.
                   </p>
 
@@ -125,7 +131,7 @@ function VistoriaEletricaInner() {
                     <input type="file" accept=".pdf,.jpg,.jpeg,.png"
                       style={{ ...S.input, padding:'3px 6px' }}
                       onChange={e => setArtFile(e.target.files?.[0] ?? null)} />
-                    <span style={{ fontSize:'6.5pt', color:'#6B7280' }}>PDF ou imagem da ART/RRT</span>
+                    <span style={{ fontSize:'10px', color:'#6B7280' }}>PDF ou imagem da ART/RRT</span>
                   </div>
 
                   {erro && <span style={S.erro}>{erro}</span>}
@@ -151,7 +157,7 @@ function VistoriaEletricaInner() {
                 <div style={S.blockTitle}>Credencial Registrada</div>
                 <div style={S.blockBody}>
                   <span style={S.ok}>✓ ART registrada — acesso liberado ao sistema elétrico</span>
-                  <p style={{ fontSize:'7pt', color:'#4a6480', margin:0 }}>
+                  <p style={{ fontSize:'12px', color:'#4a6480', margin:0 }}>
                     Clique em <b>Iniciar Vistoria</b> para registrar as não conformidades do sistema elétrico.
                   </p>
                 </div>
