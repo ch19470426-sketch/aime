@@ -16,19 +16,21 @@ export async function GET(req: NextRequest) {
   * { box-sizing: border-box; margin: 0; padding: 0 }
   body { background: #888; display: flex; justify-content: center; padding: 20px }
   /* Simula página A4 em tela */
-  .pagina {
-    width: 210mm;
-    height: 297mm;
-    background: #fff;
+  /* Simula a AREA UTIL da pagina (210-25-20 x 297-25-20), com a folha ao redor.
+     E dentro dela que a capa e inserida no PDF real. */
+  .folha {
+    width: 210mm; height: 297mm; background: #fff;
     box-shadow: 0 4px 20px rgba(0,0,0,.4);
+    padding: 25mm 20mm 20mm 25mm;
+    box-sizing: border-box;
     overflow: hidden;
-    position: relative;
   }
+  .pagina { width: 100%; height: 100%; }
   .pg-capa { page-break-after: always; }
 </style>
 </head>
 <body>
-<div class="pagina">
+<div class="folha"><div class="pagina">
 ${gerarCapa({
   titulo:           p.get('titulo')           ?? 'Laudo de Inspeção Predial',
   subtitulo:        p.get('subtitulo')        ?? 'LAUDO TÉCNICO',
@@ -44,7 +46,7 @@ ${gerarCapa({
   especializacao:   p.get('especializacao')   ?? '',
   data:             p.get('data')             ?? new Date().toLocaleDateString('pt-BR'),
 })}
-</div>
+</div></div>
 </body>
 </html>`
 

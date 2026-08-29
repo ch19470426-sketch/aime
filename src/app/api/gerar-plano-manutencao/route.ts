@@ -226,8 +226,7 @@ th:last-child { border-right: none; }
 td { border-top: 1px solid #1E3A8A; border-right: 1px solid #1E3A8A; padding: 6px 8px; font-size: 8pt; color: #222; vertical-align: middle; }
 td:last-child { border-right: none; }
 tr:nth-child(even) td { background: #f7f9ff; }
-@page capa-pg { size: A4 portrait; margin: 0; }
-.pg-capa { page: capa-pg; page-break-after: always; counter-reset: page 0; box-sizing: border-box; }
+.pg-capa { page-break-after: always; counter-reset: page 0; }
 .pg-indice { page-break-after: always; padding-top: 10mm; counter-reset: page 1; }
 .indice-titulo { font-size: 14pt; font-weight: 900; color: #1E3A8A; text-align: center; margin-bottom: 16pt; border-bottom: 2px solid #1E3A8A; padding-bottom: 6pt; }
 .indice-item { display: flex; align-items: baseline; padding: 3pt 0; font-size: 9pt; }
