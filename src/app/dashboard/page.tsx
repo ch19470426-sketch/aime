@@ -443,6 +443,21 @@ export default function Dashboard() {
     }
     // Código 40: Homologar Vistoria
     if (Number(tipoServico) === 40) {
+      // Eng. Elétrico: verificar se tem vistorias elétricas (art_profissional) pendentes
+      if (tituloInspetor === 'Eng Elétrico') {
+        try {
+          const resArt = await fetch(
+            `${SUPA_URL}/rest/v1/art_profissional?cpf_eletrico=eq.${cpfInspetor}&select=id,cnpjoucpf,cpf_inspetor&limit=10`,
+            { headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` } }
+          )
+          const arts = await resArt.json()
+          if (Array.isArray(arts) && arts.length > 0) {
+            // Tem vistorias elétricas pendentes — ir para seleção
+            window.location.href = `/selecao-homologar-eletrico?cpf_inspetor=${cpfInspetor}&chave_inspetor=${chaveInspetor}&cnpjoucpf=${docLimpo}`
+            return
+          }
+        } catch {}
+      }
       window.location.href = `/homologar?cpf_inspetor=${cpfInspetor}&chave_inspetor=${chaveInspetor}&cnpjoucpf=${docLimpo}`
       return
     }
