@@ -388,7 +388,7 @@ function Tela31Inner() {
       const nomeLocal = `${chaveInspetor}_${cnpjoucpf}_${tipoServico}_pendente.json`
       setSalvando(false); setSalvoOk(true); setArquivoSalvo(nomeLocal)
       setFeedbackIA('📵 Salvo localmente. Será sincronizado ao reconectar.')
-      setSistema(''); setSubsistema(''); setAnomalia(''); setOrigem(''); setLocal('')
+      setSistema(sistemaFixo || ''); setSubsistema(''); setAnomalia(''); setOrigem(''); setLocal('')
       setComplemento(''); setTipoAtivo(''); setTagNrSerie('')
       setDescGravidade(''); setDescUrgencia(''); setDescAbrangencia(''); setDescExposicao('')
       setFotoBase64(''); setNc(''); setCp('')
@@ -396,7 +396,7 @@ function Tela31Inner() {
     }
 
     // Limpa formulário preservando CNPJ/RS
-    setSistema(''); setSubsistema(''); setAnomalia(''); setOrigem(''); setLocal('')
+    setSistema(sistemaFixo || ''); setSubsistema(''); setAnomalia(''); setOrigem(''); setLocal('')
     setComplemento(''); setTipoAtivo(''); setTagNrSerie('')
     setDescGravidade(''); setDescUrgencia(''); setDescAbrangencia(''); setDescExposicao('')
     setFotoBase64(''); setNc(''); setCp(''); setFeedbackIA('')
