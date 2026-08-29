@@ -187,7 +187,6 @@ export async function POST(request: NextRequest) {
     // ── CSS idêntico aos laudos 41-44 ─────────────────────────────────────
     const CSS = `
 @page { size: A4; margin: 25mm 20mm 20mm 25mm; }
-@page :first { margin: 0 !important; }
 @media print {
   head, title { display: none; }
   body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
