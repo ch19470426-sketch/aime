@@ -60,7 +60,7 @@ export async function POST(request: NextRequest) {
         format: 'A4',
         printBackground: true,
         // Margens controladas pelo @page no CSS — não passar aqui para não sobrescrever
-        margin: { top: '0', right: '0', bottom: '0', left: '0' },
+        margin: { top: '25mm', right: '20mm', bottom: '20mm', left: '25mm' },
       })
       return new NextResponse(pdf, {
         headers: {

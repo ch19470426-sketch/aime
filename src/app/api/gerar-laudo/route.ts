@@ -204,6 +204,7 @@ tr:nth-child(even) td { background: #f7f9ff; }
 .s41-bloco { page-break-before: avoid !important; }
 /* Capa — @page capa com margin:0 garante area 210x297mm completa */
 @page capa-pg { size: A4 portrait; margin: 0; }
+@page capa-pg { @bottom-right { content: none; } }
 .pg-capa { page: capa-pg; page-break-after: always; counter-reset: page 0; }
 .capa-barra { background: #1E3A8A; height: 8mm; width: 100%; margin-bottom: 0; }
 .capa-logo  { text-align: center; padding: 20mm 0 10mm; }
