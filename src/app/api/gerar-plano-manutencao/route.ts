@@ -2,6 +2,7 @@ export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
 
 import { NextRequest, NextResponse } from 'next/server'
+import { gerarCapa } from '@/lib/gerarCapa'
 import { createClient } from '@supabase/supabase-js'
 
 const supabase = createClient(
@@ -392,28 +393,21 @@ tr:nth-child(even) td { background: #f7f9ff; }
     const html = `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>${xe(titulo)}</title><style>${CSS}</style></head><body>
 
 
-<div class="pg-capa" style="counter-reset:page 0">
-  <div style="height:1cm;background:#fff;flex-shrink:0"></div>
-  <div style="background:#1E3A8A;height:8mm;flex-shrink:0"></div>
-
-  <div style="text-align:center;padding:6mm 0 0;flex-shrink:0">${logoTag}</div>
-  <div style="flex:1"></div>
-  <div style="text-align:center;padding:0 20mm;flex-shrink:0">
-    <div style="font-size:8pt;color:#6B7280;letter-spacing:3px;text-transform:uppercase;margin-bottom:6pt">PLANO DE MANUTENÇÃO</div>
-    <div style="font-size:18pt;font-weight:900;color:#1E3A8A;line-height:1.2;margin-bottom:2pt">${xe(titulo)}</div>
-    <div style="font-size:13pt;font-weight:700;color:#374151;margin-bottom:4pt">${xe(estab?.razao_social_nome||estab?.razao_social||'')}</div>
-  </div>
-  <div style="flex:1"></div>
-  <div style="flex-shrink:0">
-    <div style="border-top:2px solid #1E3A8A;margin:0 20mm"></div>
-    <div style="padding:8mm 20mm;font-size:9.5pt;color:#222;line-height:1.9">
-      <b style="color:#1E3A8A">Inspetor Responsável:</b> ${nomeIns}<br>
-      <b style="color:#1E3A8A">Título Profissional:</b> ${xe(tituloIns)} — ${siglaIns} ${xe(numIns)}${espIns?`<br><b style="color:#1E3A8A">Especialidade:</b> Especialista ${espIns}`:''}
-    </div>
-    <div style="background:#1E3A8A;height:8mm"></div>
-    <div style="height:1cm;background:#fff"></div>
-  </div>
-</div>
+${gerarCapa({
+  titulo: xe(titulo),
+  subtitulo: 'PLANO DE MANUTENÇÃO',
+  razaoSocial: xe(estab?.razao_social_nome||estab?.razao_social||''),
+  logradouro: xe(estab?.logradouro||''),
+  cidade: xe(estab?.cidade||''),
+  uf: xe(estab?.uf||''),
+  logo: logoB64 || '',
+  cabecalhoTexto: inspetor?.cabecalho_documentos || '',
+  nomeInspetor: nomeIns,
+  tituloInspetor: tituloIns,
+  registroInspetor: siglaIns + ' ' + numIns,
+  especializacao: inspetor?.especializacao || '',
+  data: new Date().toLocaleDateString('pt-BR'),
+})}
 
 
 <div class="section"><div class="pg-indice">
@@ -457,7 +451,7 @@ ${paragrafoHtml(grupo5154?OBJETIVOS_51_54:OBJETIVOS_55_58)}
 <p>A guarda e vigilância das ferramentas, equipamentos e dos materiais necessários à execução dos serviços são de inteira responsabilidade da contratada.</p>
 <p>Compete-lhe:</p>
 <p style="margin:2pt 0 2pt 10pt">&#8226;&nbsp;fornecer profissionais legalmente habilitados;</p>
-<p style="margin:2pt 0 2pt 10pt">&#8226;&nbsp;designar responsável técnico e emitir ART/TRT quando aplicável;</p>
+<p style="margin:2pt 0 2pt 10pt">&#8226;&nbsp;designar responsável técnico e emitir ART/RRT quando aplicável;</p>
 <p style="margin:2pt 0 2pt 10pt">&#8226;&nbsp;fornecer materiais certificados e utilizar equipamentos calibrados;</p>
 <p style="margin:2pt 0 2pt 10pt">&#8226;&nbsp;cumprir integralmente as normas de segurança;</p>
 <p style="margin:2pt 0 2pt 10pt">&#8226;&nbsp;preservar a limpeza das áreas e registrar todas as intervenções;</p>
