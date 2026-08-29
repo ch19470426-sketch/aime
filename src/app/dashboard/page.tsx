@@ -25,7 +25,7 @@ if (typeof window !== 'undefined') {
 const permissoes: Record<string, number[]> = {
   "Arquiteto":          [11,12,13,19,21,22,23,29,31,32,33,40,41,42,43,51,52,53,54,55,61,62,63,99],
   "Eng Civil":          [11,12,13,14,21,22,23,24,31,32,33,34,40,41,42,43,44,51,52,53,54,61,62,63,99],
-  "Eng Elétrico":       [16,26,36,40,46,56,61,62,63,99],
+  "Eng Elétrico":       [16,26,36,39,40,46,56,61,62,63,99],
   "Eng Mecânico":       [15,17,18,25,27,28,35,37,38,40,45,47,48,55,57,58,61,62,63,99],
   "Técnico Edificação": [13,23,33,40,43,61,62,63,99],
   "Corretor Imóvel":    [13,23,33,40,43,61,62,63,99],
@@ -61,6 +61,7 @@ const menuGrupos = [
     { codigo: 36, label: "Vistoria NR-10" },
     { codigo: 37, label: "Vistoria NR-12" },
     { codigo: 38, label: "Vistoria NR-13" },
+    { codigo: 39, label: "Vistoria Inspeção - Elétrica" },
   ]},
   { grupo: "Homologar Vistoria", itens: [
     { codigo: 40, label: "Homologar vistoria" },
@@ -94,7 +95,7 @@ const menuGrupos = [
 ]
 
 // Tipos de serviço que são vistorias (abre tela de CNPJ/CPF)
-const CODIGOS_VISTORIA = [11,12,13,14,15,16,17,18,19,21,22,23,24,25,26,27,28,29,31,32,33,34,35,36,37,38,40,41,42,43,44,45,46,47,48,51,52,53,54,55,56,57,58,42,43,44,45,46,47,48,61]
+const CODIGOS_VISTORIA = [11,12,13,14,15,16,17,18,19,21,22,23,24,25,26,27,28,29,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,51,52,53,54,55,56,57,58,61]
 
 // Tipos de serviço que coletam CPF (pessoa física) em vez de CNPJ
 const CODIGOS_CPF = [13, 23, 33, 43]
@@ -468,7 +469,9 @@ export default function Dashboard() {
       }
       setEstadoDoc('aguardando')
     }
-    const url = `/vistoria/tela${tipoServico}?cpf_inspetor=${cpfInspetor}&chave_inspetor=${chaveInspetor}&cnpjoucpf=${docLimpo}&tipo_servico=${tipoServico}`
+    const url = tipoServico === '39'
+      ? `/vistoria-eletrica?cpf_inspetor=${cpfInspetor}&chave_inspetor=${chaveInspetor}`
+      : `/vistoria/tela${tipoServico}?cpf_inspetor=${cpfInspetor}&chave_inspetor=${chaveInspetor}&cnpjoucpf=${docLimpo}&tipo_servico=${tipoServico}`
     window.location.href = url
   }
 
