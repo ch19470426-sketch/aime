@@ -27,16 +27,23 @@ export async function POST(request: NextRequest) {
     if (errUp) return NextResponse.json({ erro: errUp.message }, { status: 500 })
 
     // Salvar referência em art_profissional
+    // Remover registro anterior se existir (mesmo cpf_eletrico+cnpjoucpf+cpf_inspetor)
+    await supabase.from('art_profissional')
+      .delete()
+      .eq('cpf_eletrico', cpfEletrico)
+      .eq('cnpjoucpf', cnpjoucpf)
+      .eq('cpf_inspetor', cpfInspetor)
+
     const { error: errDb } = await supabase
       .from('art_profissional')
-      .upsert({
+      .insert({
         cpf_inspetor:  cpfInspetor,
         cnpjoucpf:     cnpjoucpf,
         tipo_servico:  tipoServico || '32 Vistoria inspeção',
         cpf_eletrico:  cpfEletrico,
         arquivo_art:   `arts/${nomeArquivo}`,
         data_cadastro: new Date().toISOString().split('T')[0],
-      }, { onConflict: 'cpf_eletrico,cnpjoucpf,cpf_inspetor' })
+      })
 
     if (errDb) return NextResponse.json({ erro: errDb.message }, { status: 500 })
 
