@@ -400,7 +400,6 @@ ${gerarCapa({
   cidade: xe(estab?.cidade||''),
   uf: xe(estab?.uf||''),
   logo: logoB64 || '',
-  cabecalhoTexto: inspetor?.cabecalho_documentos || '',
   nomeInspetor: nomeIns,
   tituloInspetor: tituloIns,
   registroInspetor: siglaIns + ' ' + numIns,
