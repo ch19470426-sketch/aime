@@ -1,7 +1,6 @@
 "use client"
 export const dynamic = 'force-dynamic'
 import { useState, useEffect, Suspense } from "react"
-import HeaderBar from '@/components/HeaderBar'
 import { useSearchParams, useRouter } from "next/navigation"
 
 const SUPA_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? ''
@@ -19,6 +18,17 @@ const S: Record<string, any> = {
   titulo:  { fontSize:'16px', fontWeight:700, color:'#1E3A8A', marginBottom:'16px' },
   erro:    { color:'#E24B4A', fontSize:'12px', marginTop:'4px' },
   info:    { fontSize:'12px', color:'#6B7280', marginTop:'4px' },
+}
+
+function HeaderBar({ subtitulo }: { subtitulo: string }) {
+  return (
+    <div style={{ background:'#1E3A8A', padding:'10px 16px', display:'flex', alignItems:'center', gap:'10px' }}>
+      <div style={{ flex:1 }}>
+        <div style={{ fontSize:'11px', color:'#B5D4F4', fontWeight:600, letterSpacing:'0.5px', textTransform:'uppercase' }}>AIMÊ</div>
+        <div style={{ fontSize:'14px', color:'#fff', fontWeight:700 }}>{subtitulo}</div>
+      </div>
+    </div>
+  )
 }
 
 function VistoriaEletricaInner() {
