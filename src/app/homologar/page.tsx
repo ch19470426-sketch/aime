@@ -636,7 +636,7 @@ function Tela40Inner() {
       <div style={S.formBody}>
 
         <div style={S.block}>
-          <div style={S.blockTitle}>Verificação de ativos</div>
+          <div style={S.blockTitle}>Vistorias pendentes de homologação</div>
           <div style={{ padding: '8px 10px' }}>
             {planoAtivos.length === 0 && (
               <p style={{ fontSize: '8pt', color: '#9a3412' }}>
