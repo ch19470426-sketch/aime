@@ -228,7 +228,7 @@ function Tela31Inner() {
     const img = new window.Image()
     const url = URL.createObjectURL(file)
     img.onload = () => {
-      const MAX_W = 480, MAX_H = 360
+      const MAX_W = 1280, MAX_H = 960
       let w = img.width, h = img.height
       if (w > MAX_W) { h = Math.round(h * MAX_W / w); w = MAX_W }
       if (h > MAX_H) { w = Math.round(w * MAX_H / h); h = MAX_H }
@@ -236,7 +236,7 @@ function Tela31Inner() {
       canvas.width = w; canvas.height = h
       canvas.getContext('2d')?.drawImage(img, 0, 0, w, h)
       URL.revokeObjectURL(url)
-      const compressed = canvas.toDataURL('image/jpeg', 0.5)
+      const compressed = canvas.toDataURL('image/jpeg', 0.82)
       setFotoBase64(compressed)
       setDataVistoria(new Date().toLocaleDateString('pt-BR'))
       fetch('/api/foto-nr?cpf_inspetor=' + cpfInspetor + '&cnpjoucpf=' + cnpjoucpf + '&tipo_servico=' + tipoServico)
