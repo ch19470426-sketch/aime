@@ -287,11 +287,16 @@ function Tela40Inner() {
       const filtrados = sistemaFixo
         ? lista.filter((f: any) => {
             const sis = (f.sistema || f.sistema_vistoria || '').toLowerCase()
-            return sis.includes('07') || sis.includes('elétric') || sis.includes('eletric')
+            const sf  = sistemaFixo.toLowerCase()
+            return sis.includes('07') || sis.includes('elétric') || sis.includes('eletric') ||
+                   sis.includes('instalações') || sis.includes('instalacoes') ||
+                   (sf && sis === sf)
           })
         : lista
       if (sistemaFixo && filtrados.length === 0) {
-        informa('Atenção', 'Nenhuma vistoria do sistema elétrico encontrada para este estabelecimento.')
+        // Usar lista completa se filtro não encontrar nada — permite homologar visualmente
+        setFormularios(lista)
+        await prepararGate(lista)
         setCarregando(false)
         return
       }
