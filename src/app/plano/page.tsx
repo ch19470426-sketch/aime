@@ -779,6 +779,7 @@ function PlanoInner() {
                               value={datas[i]?.ini ?? ''}
                               min="2000-01-01" max="2099-12-31"
                               onFocus={e => { try { (e.target as any).showPicker?.() } catch {} }}
+                              onClick={e => { try { (e.target as any).showPicker?.() } catch {} }}
                               onChange={e => {
                                 const v = e.target.value
                                 if (i > 0 && datas[i-1]?.ini && v < datas[i-1].ini) {
@@ -793,6 +794,7 @@ function PlanoInner() {
                               value={datas[i]?.fim ?? ''}
                               min="2000-01-01" max="2099-12-31"
                               onFocus={e => { try { (e.target as any).showPicker?.() } catch {} }}
+                              onClick={e => { try { (e.target as any).showPicker?.() } catch {} }}
                               onChange={e => {
                                 const v = e.target.value
                                 if (datas[i]?.ini && v < datas[i].ini) {
