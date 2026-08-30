@@ -17,6 +17,11 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
     const { nomeArquivo, payload, pasta, contentType } = body
+    // Log tamanho para diagnóstico
+    const tamanho = JSON.stringify(payload).length
+    if (tamanho > 3_000_000) {
+      console.warn(`[salvar-vistoria] payload grande: ${(tamanho/1024).toFixed(0)}KB`)
+    }
 
     if (!nomeArquivo || !payload) {
       return NextResponse.json({ erro: 'nomeArquivo e payload são obrigatórios' }, { status: 400 })
