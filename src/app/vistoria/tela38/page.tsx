@@ -378,6 +378,9 @@ function Tela31Inner() {
       const nomeLocal = `${chaveInspetor}_${cnpjoucpf}_${tipoServico}_pendente.json`
       setSalvando(false); setSalvoOk(true); setArquivoSalvo(nomeLocal)
       setFeedbackIA('📵 Salvo localmente. Será sincronizado ao reconectar.')
+      setSistema(''); setSubsistema(''); setAnomalia(''); setLocal(''); setComplemento('')
+      setTipoAtivo(''); setTagNrSerie(''); setFotoBase64(''); setNc(''); setCp('')
+      if (fileInputRef.current) fileInputRef.current.value = ''
       return
     }
 
