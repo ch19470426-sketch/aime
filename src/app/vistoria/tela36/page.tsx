@@ -114,6 +114,8 @@ function Tela31Inner() {
   // ── Estado ──
   const [feedbackIA,  setFeedbackIA]  = useState('')
   const [erroSave,    setErroSave]    = useState('')
+  const [debugLogs,   setDebugLogs]   = useState<string[]>([])
+  const addLog = (msg: string) => setDebugLogs(prev => [...prev.slice(-8), new Date().toLocaleTimeString('pt-BR') + ' ' + msg])
   const [erroValidacao, setErroValidacao] = useState('')
   const [salvando,    setSalvando]    = useState(false)
   const [salvoOk,     setSalvoOk]     = useState(false)
@@ -154,6 +156,7 @@ function Tela31Inner() {
 
     async function carregar() {
       setCarregando(true)
+      addLog('Carregando dados...')
       setDataVistoria(new Date().toLocaleDateString('pt-BR'))
 
       try {
@@ -172,6 +175,7 @@ function Tela31Inner() {
               : c.replace(/^(\d{3})(\d{3})(\d{3})(\d{2})$/, '$1.$2.$3-$4')
             setCnpjDisplay(fmt)
             setRazaoSocial(estArr[0].razao_social_nome)
+            addLog('Estab: ' + estArr[0].razao_social_nome?.slice(0,20))
           }
         }
 
@@ -382,11 +386,13 @@ function Tela31Inner() {
           await (reg as any).sync.register('aime-sync-vistoria')
         }
       } catch(errIDB) {
+        addLog('Erro IDB: ' + String(errIDB).slice(0,40))
         setErroSave('Erro IDB: ' + String(errIDB))
         setSalvando(false)
         return
       }
       const nomeLocal = `${chaveInspetor}_${cnpjoucpf}_${tipoServico}_pendente.json`
+      addLog('Salvo offline 📵')
       setSalvando(false); setSalvoOk(true); setArquivoSalvo(nomeLocal)
       setFeedbackIA('📵 Salvo localmente. Será sincronizado ao reconectar.')
       setSistema(''); setSubsistema(''); setAnomalia(''); setLocal(''); setComplemento('')
@@ -400,6 +406,7 @@ function Tela31Inner() {
     setComplemento(''); setTipoAtivo(''); setTagNrSerie('')
     setDescGravidade(''); setDescUrgencia(''); setDescProbabilidade(''); setDescExposicaoRisco('')
     setFotoBase64(''); setNc(''); setCp(''); setFeedbackIA('')
+    addLog('Salvo online ✅')
     setSalvando(false); setSalvoOk(true); setArquivoSalvo(nomeArquivo)
   }
 
