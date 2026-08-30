@@ -130,6 +130,8 @@ function Tela40Inner() {
   const chaveInspetor = params.get('chave_inspetor') ?? 'INS-001'
   const cpfInspetor   = params.get('cpf_inspetor')   ?? ''
   const cnpjoucpf     = params.get('cnpjoucpf')      ?? ''
+  const sistemaFixo   = params.get('sistema_fixo')  ?? ''
+  const cpfEletrico   = params.get('cpf_eletrico')  ?? ''
 
 
   const { bannerProps, informa, orienta, agradece, solicita, fechar } = useBanner()
@@ -280,8 +282,21 @@ function Tela40Inner() {
         setCarregando(false)
         return
       }
-      setFormularios(data.formularios)
-      await prepararGate(data.formularios)
+      // Modo elétrico: filtrar NCs do sistema 07
+      const lista = data.formularios
+      const filtrados = sistemaFixo
+        ? lista.filter((f: any) => {
+            const sis = (f.sistema || f.sistema_vistoria || '').toLowerCase()
+            return sis.includes('07') || sis.includes('elétric') || sis.includes('eletric')
+          })
+        : lista
+      if (sistemaFixo && filtrados.length === 0) {
+        informa('Atenção', 'Nenhuma vistoria do sistema elétrico encontrada para este estabelecimento.')
+        setCarregando(false)
+        return
+      }
+      setFormularios(filtrados)
+      await prepararGate(filtrados)
     } catch(e) {
       informa('Erro', 'Não foi possível carregar as vistorias.')
       setCarregando(false)
