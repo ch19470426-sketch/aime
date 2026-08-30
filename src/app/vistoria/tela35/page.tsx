@@ -2,6 +2,7 @@
 import { Suspense, useEffect, useRef, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Image from 'next/image'
+import { salvarOffline } from '@/lib/offlineVistoria'
 
 // ─── Tipos ───────────────────────────────────────────────────────────────────
 
