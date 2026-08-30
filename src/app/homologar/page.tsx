@@ -402,8 +402,14 @@ function Tela40Inner() {
   // Botão "Homologar vistoria": valida se todos os ativos do plano foram vistoriados
   async function acionarHomologarVistoria() {
     setVerificando(true)
-    // Só bloquear se há ativos cadastrados no plano
-    if (planoAtivos.length === 0) { setEtapa('form'); setVerificando(false); setCarregando(true); await carregarFormularioCompleto(formularios[0].nome, formularios, 0); return }
+    // NR (35-38) e plano sem ativos: ir direto para o formulário
+    const tsAtual = formularios[0]?.tipoServico ?? ''
+    const isNRAtual = ['35','36','37','38'].includes(tsAtual)
+    if (planoAtivos.length === 0 || isNRAtual) {
+      setEtapa('form'); setVerificando(false); setCarregando(true)
+      await carregarFormularioCompleto(formularios[0].nome, formularios, 0)
+      return
+    }
     const faltando = planoAtivos.filter(a =>
       !formularios.some(f => f.tipoAtivo === a.tipo_ativo && f.tagNrSerie === a.tag_ativo_nr_serie)
     )
