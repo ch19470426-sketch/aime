@@ -46,6 +46,7 @@ function formatDoc(v: string) {
 function MeusEstabelecimentosInner() {
   const params = useSearchParams()
   const cpfInspetor = params.get('cpf_inspetor') ?? ''
+  const [cabInspetor, setCabInspetor] = useState('')
   const origem = params.get('origem') ?? 'dashboard'
 
   const [estabs, setEstabs] = useState<Estab[]>([])
@@ -59,6 +60,12 @@ function MeusEstabelecimentosInner() {
 
   useEffect(() => {
     if (!cpfInspetor) { setCarregando(false); return }
+    // Buscar cabeçalho do inspetor
+    fetch(`${SUPA_URL}/rest/v1/inspetor?cpf_inspetor=eq.${cpfInspetor}&select=cabecalho_documentos`, {
+      headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` }
+    }).then(r => r.json()).then(d => {
+      if (Array.isArray(d) && d[0]?.cabecalho_documentos) setCabInspetor(d[0].cabecalho_documentos)
+    }).catch(() => {})
     fetch(`/api/meus-estabelecimentos?cpf=${cpfInspetor}`)
       .then(r => r.json())
       .then(d => {
@@ -132,9 +139,14 @@ function MeusEstabelecimentosInner() {
         <div style={S.header}>
           <img src="/logo.png" alt="AIMÊ" height={32} width={80}
             style={{ filter:'brightness(0) invert(1)', objectFit:'contain' }} />
-          <span style={{ color:'white', fontWeight:700, fontSize:'13px', flex:1, textAlign:'center' }}>
-            Meus Estabelecimentos
-          </span>
+          <div style={{ flex:1, textAlign:'center' }}>
+            <div style={{ color:'white', fontWeight:900, fontSize:'16px', lineHeight:1.2 }}>
+              {cabInspetor || 'AIMÊ'}
+            </div>
+            <div style={{ color:'#B5D4F4', fontWeight:700, fontSize:'11px', marginTop:'2px' }}>
+              Meus Estabelecimentos
+            </div>
+          </div>
           <button onClick={() => window.location.href = origem === 'gestor' ? '/gestor' : '/dashboard'}
             style={{ ...S.btnSec, padding:'4px 12px', fontSize:'11px',
               backgroundColor:'transparent', color:'white', borderColor:'white' }}>
