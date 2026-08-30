@@ -449,7 +449,7 @@ ${insp.especializacao ? `<p style="margin:0;line-height:1">Especialista ${insp.e
 <p style="margin:0;line-height:1">De acordo: _____________________ CPF: _______________ Data: ___/___/______</p>
 <p style="text-align:justify;margin:6pt 0">Síndico/Preposto</p>
 
-${`<div class="rod">${insp.rodape_documentos || 'Mapeamento Inteligente de Edificações e Equipamentos'}</div>`}
+${insp.rodape_documentos ? `<div class="rod">${insp.rodape_documentos}</div>` : `<div class="rod">${insp.nome_inspetor || ''} — ${insp.titulo_profissional || ''} — CREA/CAU ${insp.inscricao_crea_cau || ''}</div>`}
 
 </body>
 </html>`
