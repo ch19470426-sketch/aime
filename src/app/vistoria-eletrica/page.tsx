@@ -93,10 +93,11 @@ function VistoriaEletricaInner() {
     <div style={S.body}>
       <div style={S.page}>
         {/* Cabeçalho */}
-        <div style={{ ...S.header, flexDirection:'column', alignItems:'center', justifyContent:'center', gap:'6px' }}>
+        <div style={{ ...S.header, alignItems:'center', justifyContent:'space-between' }}>
           <Image src="/logo.png" alt="AIMÊ" width={80} height={36}
-            style={{ filter:'brightness(0) invert(1)', objectFit:'contain' }} />
-          <div style={{ fontSize:'14px', color:'#fff', fontWeight:700, textAlign:'center' }}>39 — Vistoria Inspeção Elétrica</div>
+            style={{ filter:'brightness(0) invert(1)', objectFit:'contain', flexShrink:0 }} />
+          <div style={{ flex:1, textAlign:'center', fontSize:'16px', color:'#fff', fontWeight:700 }}>39 — Vistoria Inspeção Elétrica</div>
+          <div style={{ width:80 }}></div>
         </div>
         <div style={S.divider} />
 
