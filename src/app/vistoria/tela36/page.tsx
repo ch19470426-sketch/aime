@@ -157,16 +157,21 @@ function Tela31Inner() {
       setDataVistoria(new Date().toLocaleDateString('pt-BR'))
 
       try {
-        // Estabelecimento
+        // Estabelecimento — com cache localStorage
         if (cnpjoucpf) {
-          const est = await query('estabelecimento', `cnpjoucpf=eq.${cnpjoucpf}&select=cnpjoucpf,razao_social_nome`)
-          if (Array.isArray(est) && est[0]) {
-            const c = est[0].cnpjoucpf
+          const cacheEstKey = `aime_est_${cnpjoucpf}`
+          let estCached: any = null
+          try { const r = localStorage.getItem(cacheEstKey); if (r) estCached = JSON.parse(r) } catch {}
+          const estFetch = estCached ? Promise.resolve([estCached]) : query('estabelecimento', `cnpjoucpf=eq.${cnpjoucpf}&select=cnpjoucpf,razao_social_nome`)
+          const estArr = await estFetch
+          if (Array.isArray(estArr) && estArr[0]) {
+            if (!estCached) { try { localStorage.setItem(cacheEstKey, JSON.stringify(estArr[0])) } catch {} }
+            const c = estArr[0].cnpjoucpf
             const fmt = c.length === 14
               ? c.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, '$1.$2.$3/$4-$5')
               : c.replace(/^(\d{3})(\d{3})(\d{3})(\d{2})$/, '$1.$2.$3-$4')
             setCnpjDisplay(fmt)
-            setRazaoSocial(est[0].razao_social_nome)
+            setRazaoSocial(estArr[0].razao_social_nome)
           }
         }
 
@@ -184,8 +189,11 @@ function Tela31Inner() {
         }
 
         // Sistemas
-        const sis = await query('sistemas_construtivos', `tipo_servico=eq.${encodeURIComponent(tipoServicoBanco)}&ativo=eq.true&select=sistema&order=sistema`)
-        if (Array.isArray(sis)) setSistemas([...new Map(sis.map((s: ItemSistema) => [s.sistema, s])).values()])
+        // Sistemas — com cache localStorage
+        const cacheSisKey = `aime_sis_${tipoServico}`
+        const sisCached = (() => { try { const r = localStorage.getItem(cacheSisKey); return r ? JSON.parse(r) : null } catch { return null } })()
+        const sis = sisCached ?? await query('sistemas_construtivos', `tipo_servico=eq.${encodeURIComponent(tipoServicoBanco)}&ativo=eq.true&select=sistema&order=sistema`)
+        if (Array.isArray(sis)) { if (!sisCached) { try { localStorage.setItem(cacheSisKey, JSON.stringify(sis)) } catch {} } setSistemas([...new Map(sis.map((s: ItemSistema) => [s.sistema, s])).values()]) }
 
         const sub = await query('sistemas_construtivos', `tipo_servico=eq.${encodeURIComponent(tipoServicoBanco)}&ativo=eq.true&subsistema=not.is.null&select=sistema,subsistema`)
         if (Array.isArray(sub)) setSubsistemas(sub)
@@ -203,8 +211,11 @@ function Tela31Inner() {
           })
           .catch(() => {})
 
-        const par = await query('tabela_parametros', `tipo_servico=eq.${encodeURIComponent(tipoServicoBanco)}&select=tipo_parametro,descricao_parametros&order=tipo_parametro,descricao_parametros`)
-        if (Array.isArray(par)) {
+        // Parâmetros — com cache localStorage
+        const cacheParKey = `aime_par_${tipoServico}`
+        const parCached = (() => { try { const r = localStorage.getItem(cacheParKey); return r ? JSON.parse(r) : null } catch { return null } })()
+        const par = parCached ?? await query('tabela_parametros', `tipo_servico=eq.${encodeURIComponent(tipoServicoBanco)}&select=tipo_parametro,descricao_parametros&order=tipo_parametro,descricao_parametros`)
+        if (Array.isArray(par)) { if (!parCached) { try { localStorage.setItem(cacheParKey, JSON.stringify(par)) } catch {} }
           const f = (tipo: string) => par.filter((p: {tipo_parametro: string, descricao_parametros: string}) => p.tipo_parametro === tipo).map((p: {descricao_parametros: string}) => p.descricao_parametros)
           setOrigens(f('Origem'))
           setLocais(f('Local ocorrência'))
