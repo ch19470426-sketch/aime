@@ -127,7 +127,7 @@ export default function Tela40Page() {
 
 function Tela40Inner() {
   const params        = useSearchParams()
-  const chaveInspetor = params.get('chave_inspetor') ?? 'INS-001'
+  const chaveInspetor = params.get('chave_inspetor') ?? ''
   const cpfInspetor   = params.get('cpf_inspetor')   ?? ''
   const cnpjoucpf     = params.get('cnpjoucpf')      ?? ''
   const sistemaFixo   = params.get('sistema_fixo')  ?? ''
