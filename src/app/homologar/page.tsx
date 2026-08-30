@@ -385,9 +385,11 @@ function Tela40Inner() {
 
     setEtapa('gate')
     setCarregando(false)
-    orienta('Homologação de Documentos e Vistoria',
-      'Neste processo os dados coletados em campo podem ser revisados e ajustados e, caso necessário, a IA pode ser acionada para reescrever a NC ou CP com os dados atualizados.'
-    )
+    if (!sistemaFixo) {
+      orienta('Homologação de Documentos e Vistoria',
+        'Neste processo os dados coletados em campo podem ser revisados e ajustados e, caso necessário, a IA pode ser acionada para reescrever a NC ou CP com os dados atualizados.'
+      )
+    }
   }
 
   // Botão "Homologar vistoria": valida se todos os ativos do plano foram vistoriados
