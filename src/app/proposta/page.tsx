@@ -218,8 +218,8 @@ function PropostaInner() {
   }
 
   async function salvarEstabelecimento() {
-    if (!razaoSocial || !cep || !numero || !usoEstab) {
-      informa('Atenção', 'Preencha Razão Social, CEP, Número e Uso do estabelecimento.')
+    if (!razaoSocial) {
+      informa('Atenção', 'Razão Social do estabelecimento é obrigatória.')
       return
     }
     setSalvando(true)
@@ -551,7 +551,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 
 const S: Record<string, React.CSSProperties> = {
   body:       { background: '#E8EEF7', display: 'flex', justifyContent: 'center', padding: '24px', fontFamily: 'Arial, Helvetica, sans-serif', minHeight: '100vh' },
-  page:       { width: '210mm', maxWidth: '100%', background: '#ffffff', borderRadius: '16px', boxShadow: '0 4px 24px rgba(0,0,0,.15)', overflow: 'hidden', height: 'fit-content' },
+  page:       { width: '100%', maxWidth: '800px', background: '#ffffff', borderRadius: '16px', boxShadow: '0 4px 24px rgba(0,0,0,.15)', overflow: 'hidden', height: 'fit-content' },
   header:     { background: '#1E3A8A', padding: '8px 16px', display: 'flex', alignItems: 'center', gap: '12px' },
   divider:    { height: '2px', background: '#1E3A8A' },
   formBody:   { padding: '10px 14px', display: 'flex', flexDirection: 'column', gap: '8px' },
