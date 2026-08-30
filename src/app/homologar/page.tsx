@@ -302,6 +302,7 @@ function Tela40Inner() {
       }
       setFormularios(filtrados)
       await prepararGate(filtrados)
+      setCarregando(false)  // garantia — prepararGate pode não chamar em todos os fluxos
     } catch(e) {
       informa('Erro', 'Não foi possível carregar as vistorias.')
       setCarregando(false)
