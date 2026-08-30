@@ -369,8 +369,8 @@ function Tela31Inner() {
           const reg = await navigator.serviceWorker.ready
           await (reg as any).sync.register('aime-sync-vistoria')
         }
-      } catch {
-        setErroSave('Não foi possível salvar. Tente novamente.')
+      } catch(errIDB) {
+        setErroSave('Erro IDB: ' + String(errIDB))
         setSalvando(false)
         return
       }

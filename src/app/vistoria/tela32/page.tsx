@@ -351,11 +351,12 @@ function Tela31Inner() {
         if (resultado.offline || res.status === 503) {
           throw new Error('offline')  // força o catch offline
         }
-        setErroSave('Erro ao salvar: ' + (resultado.erro ?? res.statusText))
+        setErroSave('Erro servidor: ' + (resultado.erro ?? res.statusText) + ' [' + res.status + ']')
         setSalvando(false)
         return
       }
-    } catch {
+    } catch(errOnline) {
+      console.warn('[salvar] erro online:', String(errOnline))
       // Sem internet — comprimir foto ainda mais e salvar tudo junto no IDB
       try {
         // Recomprimir foto para garantir que cabe no IDB (máx ~80KB base64)
@@ -380,8 +381,8 @@ function Tela31Inner() {
           const reg = await navigator.serviceWorker.ready
           await (reg as any).sync.register('aime-sync-vistoria')
         }
-      } catch {
-        setErroSave('Não foi possível salvar. Tente novamente.')
+      } catch(errIDB) {
+        setErroSave('Erro IDB: ' + String(errIDB))
         setSalvando(false)
         return
       }
