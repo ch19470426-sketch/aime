@@ -377,7 +377,7 @@ export default function Dashboard() {
     return valor.replace(/\D/g, "")
   }
 
-  function handleSelecionar(codigo: number) {
+  async function handleSelecionar(codigo: number) {
     if (!permitidos.includes(codigo)) return
     if (codigo === 99) {
       createClient().auth.signOut().then(() => { window.location.href = "/" })
