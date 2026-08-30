@@ -46,6 +46,7 @@ export async function GET(request: NextRequest) {
     const { data: files, error } = await supabase.storage
       .from('aime')
       .list('vistorias', {
+        limit: 1000,
         search: chaveInspetor,
         sortBy: { column: 'name', order: 'asc' }
       })
