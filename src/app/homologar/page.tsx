@@ -740,6 +740,7 @@ function Tela40Inner() {
                   <Field label="Resultado">
                     <select style={S.input} value={resultado} onChange={e => {
                       setResultado(e.target.value)
+                      if (e.target.value === 'Conforme') setCp('')
                       const val = e.target.value
                       if (val === 'Conforme') { setNc('Requisito atendido plenamente.') }
                       else if (val === 'Não aplicável') { setNc('Requisito não se aplica à instalação.') }

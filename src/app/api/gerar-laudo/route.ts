@@ -2096,6 +2096,7 @@ ${CAPA_HTML}
 ${INDICE_HTML}
 </div>
 <div class="section">
+${cabInspetor ? `<div class="cab">${cabInspetor}</div>` : ''}
 
 
 
