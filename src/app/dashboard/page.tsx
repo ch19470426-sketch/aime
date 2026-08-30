@@ -318,11 +318,16 @@ export default function Dashboard() {
           setTitulo(dados[0].titulo_profissional ?? "")
           setIsGestor(dados[0].is_gestor === true)
 
-          // Sincronizar vistorias offline pendentes (silencioso, não bloqueia o dashboard)
+          // Sincronizar vistorias offline pendentes
           try {
-            const { sincronizarPendentes } = await import('@/lib/offlineVistoria')
-            sincronizarPendentes().catch(() => {})
-          } catch {}
+            const { sincronizarPendentes, listarPendentes } = await import('@/lib/offlineVistoria')
+            const pendentes = await listarPendentes()
+            if (pendentes.length > 0) {
+              const { ok, erro } = await sincronizarPendentes()
+              if (ok > 0) console.log(`[sync] ${ok} vistoria(s) sincronizada(s)`)
+              if (erro > 0) console.warn(`[sync] ${erro} vistoria(s) com erro`)
+            }
+          } catch(e) { console.warn('[sync] erro:', e) }
 
           if (chave) {
             // Verifica o termo no novo padrão (sem CPF) e no antigo (com CPF) para
