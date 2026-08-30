@@ -346,7 +346,7 @@ function Tela31Inner() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ cpf_inspetor: cpfInspetor, cnpjoucpf, tipo_servico: tipoServico })
-      }, 8000)
+      }, 12000)
       const nrData = await nrRes.json()
       if (!nrRes.ok && nrRes.status === 503) throw new Error('offline')
       const nrFinal = nrData?.formatado ?? fotoNr
@@ -358,7 +358,7 @@ function Tela31Inner() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ nomeArquivo, payload })
-      }, 30000)
+      }, 45000)
       const resultado = await res.json()
 
       if (!res.ok || resultado.erro) {
@@ -411,6 +411,7 @@ function Tela31Inner() {
       setComplemento(''); setTipoAtivo(''); setTagNrSerie('')
       setDescGravidade(''); setDescUrgencia(''); setDescAbrangencia(''); setDescExposicao('')
       setFotoBase64(''); setNc(''); setCp('')
+      setDescGravidade(''); setDescUrgencia(''); setDescAbrangencia(''); setDescExposicao('')
       setDataVistoria(''); setErroValidacao('')
       if (fileInputRef.current) fileInputRef.current.value = ''
       return

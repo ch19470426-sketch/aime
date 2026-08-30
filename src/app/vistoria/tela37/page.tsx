@@ -397,6 +397,7 @@ function Tela31Inner() {
       setFeedbackIA('📵 Salvo localmente. Será sincronizado ao reconectar.')
       setSistema(''); setSubsistema(''); setAnomalia(''); setLocal(''); setComplemento('')
       setTipoAtivo(''); setTagNrSerie(''); setFotoBase64(''); setNc(''); setCp('')
+      setDescGravidade(''); setDescUrgencia(''); setDescProbabilidade(''); setDescExposicaoRisco('')
       if (fileInputRef.current) fileInputRef.current.value = ''
       return
     }
