@@ -399,7 +399,7 @@ export default function Dashboard() {
       return
     }
     // Item 40 para Eng Elétrico: verificar art_profissional e navegar direto
-    if (codigo === 40 && tituloInspetor === 'Eng Elétrico') {
+    if (codigo === 40 && titulo === 'Eng Elétrico') {
       try {
         const resArt = await fetch(
           `${SUPA_URL}/rest/v1/art_profissional?cpf_eletrico=eq.${cpfInspetor}&select=id,cnpjoucpf,cpf_inspetor&limit=10`,
