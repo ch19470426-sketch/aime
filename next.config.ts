@@ -12,6 +12,13 @@ const nextConfig: NextConfig = {
       bodySizeLimit: '80mb',
     },
   },
+  // Aumentar limite de body para route handlers (foto base64 pode ser grande)
+  api: {
+    bodyParser: {
+      sizeLimit: '20mb',
+    },
+    responseLimit: '20mb',
+  },
 }
 
 export default nextConfig
