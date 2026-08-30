@@ -384,6 +384,8 @@ function Tela31Inner() {
       setComplemento(''); setTipoAtivo(''); setTagNrSerie('')
       setDescGravidade(''); setDescUrgencia(''); setDescAbrangencia(''); setDescExposicao('')
       setFotoBase64(''); setNc(''); setCp('')
+      setDataVistoria(''); setErroValidacao('')
+      if (fileInputRef.current) fileInputRef.current.value = ''
       return
     }
 
