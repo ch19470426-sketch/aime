@@ -39,14 +39,12 @@ function SelecaoInner() {
     if (!cpfEletrico) { setCarregando(false); return }
     async function carregar() {
       try {
-        const res = await fetch(
-          `${SUPA_URL}/rest/v1/art_profissional?cpf_eletrico=eq.${cpfEletrico}&select=id,cnpjoucpf,cpf_inspetor,data_cadastro&order=data_cadastro.desc`,
-          { headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` } }
-        )
+        const res = await fetch(`/api/arts-eletrico?cpf_eletrico=${cpfEletrico}`)
         if (!res.ok) throw new Error(`HTTP ${res.status}`)
-        const data = await res.json()
+        const json = await res.json()
+        const data = json.arts ?? []
         if (Array.isArray(data) && data.length > 0) {
-          const cnpjs = [...new Set(data.map((d:any) => d.cnpjoucpf))]
+          const cnpjs = [...new Set((data as any[]).map((d:any) => d.cnpjoucpf))]
           const estabs: Record<string,string> = {}
           await Promise.all(cnpjs.map(async (cnpj: string) => {
             try {
