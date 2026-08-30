@@ -21,7 +21,7 @@ function CadastroInspetor() {
   const ehNovo = params.get('novo') === '1'
   const ehGestor = params.get('gestor') === '1'
   const ehVisualizar = params.get('visualizar') === '1'  // MG: gestor visualizando inspetor
-  const ehConsulta = !!cpfUrl && !ehGestor && !ehVisualizar  // item 62: inspetor vendo próprio cadastro
+  const ehConsulta = !!cpfUrl && !ehGestor && !ehVisualizar && !ehNovo  // item 62: inspetor vendo próprio cadastro
 
   const [form, setForm] = useState({
     cpf: "",
@@ -267,7 +267,7 @@ function CadastroInspetor() {
         <div style={{backgroundColor:"#1E3A8A",padding:"8px 16px",display:"flex",alignItems:"center",gap:"12px"}}>
           <Image src="/logo.png" alt="AIME" width={80} height={32} priority style={{filter:"brightness(0) invert(1)"}} />
           <span style={{color:"white",fontWeight:"bold",fontSize:"16px",flex:1,textAlign:"center"}}>
-            {ehGestor ? 'Cadastro do Gestor' : params.get('visualizar') === '1' ? 'Cadastro Inspetor' : ehConsulta ? 'Meu Cadastro' : 'Cadastro do Inspetor'}
+            {ehGestor ? 'Cadastro do Gestor' : params.get('visualizar') === '1' ? 'Cadastro Inspetor' : ehNovo ? 'Cadastro Inicial' : ehConsulta ? 'Meu Cadastro' : 'Cadastro do Inspetor'}
           </span>
         </div>
         <div style={{height:"2px",backgroundColor:"#1E3A8A"}} />
