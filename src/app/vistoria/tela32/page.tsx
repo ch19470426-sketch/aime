@@ -706,6 +706,11 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
       <label style={S.fieldLabel}>{label}</label>
       {children}
     </div>
+    {debugLogs.length > 0 && (
+      <div style={{ position:'fixed', bottom:0, left:0, right:0, background:'rgba(0,0,0,0.88)', color:'#0f0', fontFamily:'monospace', fontSize:'11px', padding:'8px', maxHeight:'130px', overflowY:'auto', zIndex:9999 }}>
+        {debugLogs.map((l,i) => <div key={i}>{l}</div>)}
+      </div>
+    )}
   )
 }
 
