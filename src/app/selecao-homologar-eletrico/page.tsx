@@ -69,10 +69,22 @@ function SelecaoInner() {
     carregar()
   }, [cpfEletrico])
 
-  function irVistoriaEletrica(art: any) {
+  async function irVistoriaEletrica(art: any) {
     const sistemaEnc = encodeURIComponent('07-Instalações elétricas')
+    // Buscar chave_inspetor do civil pelo CPF — os arquivos no Storage usam a chave do civil
+    let chaveCivil = art.cpf_inspetor  // fallback
+    try {
+      const r = await fetch(
+        `${SUPA_URL}/rest/v1/inspetor?cpf_inspetor=eq.${art.cpf_inspetor}&select=chave_inspetor&limit=1`,
+        { headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` } }
+      )
+      const rows = await r.json()
+      if (Array.isArray(rows) && rows.length > 0 && rows[0].chave_inspetor) {
+        chaveCivil = rows[0].chave_inspetor
+      }
+    } catch {}
     window.location.href =
-      `/homologar?cpf_inspetor=${art.cpf_inspetor}&chave_inspetor=${chaveEletrico}&cnpjoucpf=${art.cnpjoucpf}&sistema_fixo=${sistemaEnc}&cpf_eletrico=${cpfEletrico}`
+      `/homologar?cpf_inspetor=${art.cpf_inspetor}&chave_inspetor=${chaveCivil}&cnpjoucpf=${art.cnpjoucpf}&sistema_fixo=${sistemaEnc}&cpf_eletrico=${cpfEletrico}`
   }
 
   function irNR10() {
