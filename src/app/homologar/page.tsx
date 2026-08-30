@@ -301,8 +301,14 @@ function Tela40Inner() {
         return
       }
       setFormularios(filtrados)
-      await prepararGate(filtrados)
-      setCarregando(false)  // garantia — prepararGate pode não chamar em todos os fluxos
+      if (sistemaFixo) {
+        // Modo elétrico: pular gate de ativos, ir direto para o primeiro formulário
+        await carregarFormularioCompleto(filtrados[0].nome, filtrados, 0)
+        setCarregando(false)
+      } else {
+        await prepararGate(filtrados)
+        setCarregando(false)
+      }
     } catch(e) {
       informa('Erro', 'Não foi possível carregar as vistorias.')
       setCarregando(false)
