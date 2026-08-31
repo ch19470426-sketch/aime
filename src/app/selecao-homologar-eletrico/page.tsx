@@ -39,31 +39,13 @@ function SelecaoInner() {
     if (!cpfEletrico) { setCarregando(false); return }
     async function carregar() {
       try {
-        const res = await fetch(`/api/arts-eletrico?cpf_eletrico=${cpfEletrico}`)
+        const res = await fetch(`/api/selecao-eletrico?cpf_eletrico=${cpfEletrico}`)
         if (!res.ok) throw new Error(`HTTP ${res.status}`)
         const json = await res.json()
         const data = json.arts ?? []
         if (Array.isArray(data) && data.length > 0) {
-          const cnpjs = [...new Set((data as any[]).map((d:any) => d.cnpjoucpf))]
-          const estabs: Record<string,string> = {}
-          await Promise.all(cnpjs.map(async (cnpj: string) => {
-            try {
-              const r = await fetch(
-                `${SUPA_URL}/rest/v1/estabelecimento?cnpjoucpf=eq.${cnpj}&select=razao_social_nome`,
-                { headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` } }
-              )
-              const e = await r.json()
-              if (Array.isArray(e) && e.length > 0) estabs[cnpj] = e[0].razao_social_nome
-            } catch {}
-          }))
-          setArts(data.map((d:any) => ({ ...d, razao_social: estabs[d.cnpjoucpf] ?? d.cnpjoucpf })))
+          setArts(data)
         }
-      } catch(e) {
-        setErro('Erro ao carregar: ' + String(e))
-      } finally {
-        setCarregando(false)
-      }
-    }
     carregar()
   }, [cpfEletrico])
 
