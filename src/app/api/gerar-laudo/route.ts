@@ -202,10 +202,14 @@ tr:nth-child(even) td { background: #f7f9ff; }
 .th-sub { background: #2a52a8 !important; color: #fff !important; font-weight: 700; }
 
 .s41-bloco { page-break-before: avoid !important; }
-/* Capa — @page capa com margin:0 garante area 210x297mm completa */
-@page capa-pg { size: A4 portrait; margin: 0; }
-@page capa-pg { @bottom-right { content: none; } }
-.pg-capa { page: capa-pg; page-break-after: always; counter-reset: page 0; }
+/* Capa — usa @page :first (suporte confiável no Chromium) em vez de named page
+   (page: <ident> tem suporte limitado/inconsistente no Chromium headless) */
+@page :first {
+  size: A4 portrait;
+  margin: 0;
+  @bottom-right { content: none; }
+}
+.pg-capa { page-break-after: always; counter-reset: page 0; }
 .capa-barra { background: #1E3A8A; height: 8mm; width: 100%; margin-bottom: 0; }
 .capa-logo  { text-align: center; padding: 20mm 0 10mm; }
 .capa-logo img { max-height: 30mm; }

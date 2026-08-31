@@ -59,8 +59,10 @@ export async function POST(request: NextRequest) {
       const pdf = await page.pdf({
         format: 'A4',
         printBackground: true,
-        // Margens controladas pelo @page no CSS — não passar aqui para não sobrescrever
-        margin: { top: '25mm', right: '20mm', bottom: '20mm', left: '25mm' },
+        // Margens ZERADAS aqui — controladas exclusivamente pelo @page no CSS do HTML.
+        // Puppeteer sobrepõe QUALQUER margem passada aqui ao @page CSS, ignorando-o.
+        // Isso é o que impedia a capa (@page capa-pg { margin:0 }) de ocupar a página inteira.
+        margin: { top: '0mm', right: '0mm', bottom: '0mm', left: '0mm' },
       })
       return new NextResponse(pdf, {
         headers: {

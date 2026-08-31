@@ -1,13 +1,13 @@
 // src/lib/gerarCapa.ts
 // Componente gerador de capa — laudos 41-44, 45-48 e planos 51-58
 //
-// TÉCNICA: full-bleed por margens negativas.
-// A página tem margens (@page margin: 25mm 20mm 20mm 25mm). Em vez de tentar
-// zerá-las (named pages / @page :first são ignorados pelo WeasyPrint da Vercel),
-// a capa usa margens negativas idênticas. Resultado:
-//   - caixa de MARGEM = 165x252mm → cabe na área útil, sem overflow/quebra
-//   - caixa de BORDA  = 210x297mm → ocupa a página física inteira
-// As faixas azuis alcançam as bordas reais do papel.
+// TÉCNICA: full-bleed via @page :first { margin: 0 } (ver gerar-laudo/route.ts CSS).
+// Motor de renderização: Puppeteer/Chromium (NÃO WeasyPrint).
+// A página de capa usa margem zero real — a div .pg-capa ocupa os 210x297mm
+// completos da folha física, sem necessidade de margens negativas.
+// IMPORTANTE: o Puppeteer só respeita essa margem se page.pdf({margin}) também
+// estiver zerado — caso contrário ele sobrepõe QUALQUER @page CSS com seu
+// próprio valor fixo (ver gerar-laudo-pdf/route.ts).
 
 export interface CapaParams {
   titulo: string
