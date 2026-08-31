@@ -289,15 +289,28 @@ export default function Dashboard() {
         const cpf = session.user.email.split("@")[0]
         const accessToken = session.access_token
         try {
-          const res = await fetch(`/api/dados-inspetor?cpf=${cpf}`)
-          const dados = await res.json()
+          let dados: any[] = []
+          try {
+            const res = await fetch(`/api/dados-inspetor?cpf=${cpf}`)
+            if (res.ok) dados = await res.json()
+          } catch {
+            // Sem internet — tentar ler do localStorage (cache offline)
+            try {
+              const cached = localStorage.getItem(`aime_inspetor_${cpf}`)
+              if (cached) dados = [JSON.parse(cached)]
+            } catch {}
+          }
           if (!Array.isArray(dados) || dados.length === 0) {
-            deveRedirecionar = true
-            // CPF não tem cadastro — limpar sessão e redirecionar para novo cadastro
-            await createClient().auth.signOut()
-            window.location.href = `/inspetor?cpf=${cpf}&novo=1`
+            // Só redirecionar se tiver internet — offline mantém na tela
+            if (navigator.onLine) {
+              deveRedirecionar = true
+              await createClient().auth.signOut()
+              window.location.href = `/inspetor?cpf=${cpf}&novo=1`
+            }
             return
           }
+          // Cache dos dados do inspetor para uso offline
+          try { localStorage.setItem(`aime_inspetor_${cpf}`, JSON.stringify(dados[0])) } catch {}
           let chave = dados[0].chave_inspetor ?? ""
           if (!chave) {
             try {
