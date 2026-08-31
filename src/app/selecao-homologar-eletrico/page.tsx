@@ -78,11 +78,11 @@ function SelecaoInner() {
         {/* Cabeçalho */}
         <div style={S.header}>
           <Image src="/logo.png" alt="AIMÊ" width={80} height={36}
-            style={{ filter:'brightness(0) invert(1)', objectFit:'contain' }} />
-          <div>
-            <div style={{ fontSize:'10px', color:'#B5D4F4', fontWeight:600, letterSpacing:'0.5px', textTransform:'uppercase' }}>AIMÊ</div>
-            <div style={{ fontSize:'14px', color:'#fff', fontWeight:700 }}>Homologar Vistoria</div>
+            style={{ filter:'brightness(0) invert(1)', objectFit:'contain', flexShrink:0 }} />
+          <div style={{ flex:1, textAlign:'center' }}>
+            <div style={{ fontSize:'17px', color:'#fff', fontWeight:700 }}>Homologar Vistoria</div>
           </div>
+          <div style={{ width:80 }} />
         </div>
         <div style={S.divider} />
 
@@ -117,7 +117,7 @@ function SelecaoInner() {
 
             <div style={S.footer}>
               <button style={{ ...S.btn, ...S.btnVolt }} onClick={voltar}>
-                ← Voltar ao Dashboard
+                ← Voltar ao Menu
               </button>
             </div>
           </>
