@@ -139,7 +139,7 @@ function Tela40Inner() {
   // Lista de formulários
   const [formularios,  setFormularios]  = useState<Formulario[]>([])
   const [indice,       setIndice]       = useState(0)
-  const [carregando,   setCarregando]   = useState(true)
+  const [carregando,   setCarregando]   = useState(false)
   const [salvando,     setSalvando]     = useState(false)
   const [gerandoIA,    setGerandoIA]    = useState(false)
   const [feedbackIA,   setFeedbackIA]   = useState('')
@@ -246,11 +246,11 @@ function Tela40Inner() {
   // Carregar formulários
   useEffect(() => {
     if (!cnpjoucpf || !chaveInspetor) return
+    setCarregando(true)
     carregarFormularios()
   }, [cnpjoucpf, chaveInspetor])
 
   async function carregarFormularios() {
-    setCarregando(true)
     try {
       const res = await fetch(`/api/vistorias?chave_inspetor=${chaveInspetor}&cnpjoucpf=${cnpjoucpf}`)
       const data = await res.json()
