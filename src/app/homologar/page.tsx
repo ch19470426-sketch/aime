@@ -180,6 +180,7 @@ function Tela40Inner() {
   const [descAbrangencia,  setDescAbrangencia]  = useState('')
   const [descExposicao,    setDescExposicao]    = useState('')
   const [nc,               setNc]               = useState('')
+  const [cpAnterior,       setCpAnterior]       = useState('')
   const [cp,               setCp]               = useState('')
 
   const form = formularios[indice]
@@ -753,8 +754,10 @@ function Tela40Inner() {
                 <div style={{ ...S.row, ...S.c3 }}>
                   <Field label="Resultado">
                     <select style={S.input} value={resultado} onChange={e => {
-                      setResultado(e.target.value)
-                      if (e.target.value === 'Conforme') setCp('')
+                      const novo = e.target.value
+                      setResultado(novo)
+                      if (novo === 'Conforme') { setCpAnterior(cp); setCp('') }
+                      else if (cpAnterior) { setCp(cpAnterior); setCpAnterior('') }
                       const val = e.target.value
                       if (val === 'Conforme') { setNc('Requisito atendido plenamente.') }
                       else if (val === 'Não aplicável') { setNc('Requisito não se aplica à instalação.') }
