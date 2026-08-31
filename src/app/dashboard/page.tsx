@@ -412,11 +412,9 @@ export default function Dashboard() {
     // Item 40 para Eng Elétrico: verificar art_profissional e navegar direto
     if (codigo === 40 && titulo === 'Eng Elétrico') {
       try {
-        const resArt = await fetch(
-          `${SUPA_URL}/rest/v1/art_profissional?cpf_eletrico=eq.${cpfInspetor}&select=id,cnpjoucpf,cpf_inspetor&limit=10`,
-          { headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` } }
-        )
-        const arts = await resArt.json()
+        const resArt = await fetch(`/api/arts-eletrico?cpf_eletrico=${cpfInspetor}`)
+        const artData = await resArt.json()
+        const arts = artData.arts ?? []
         if (Array.isArray(arts) && arts.length > 0) {
           window.location.href = `/selecao-homologar-eletrico?cpf_inspetor=${cpfInspetor}&chave_inspetor=${chaveInspetor}`
           return
