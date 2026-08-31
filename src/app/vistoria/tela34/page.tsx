@@ -243,13 +243,6 @@ function Tela31Inner() {
     carregar()
   }, [cpfInspetor, cnpjoucpf, tipoServico])
 
-  // Recarregar ao reconectar
-  useEffect(() => {
-    const fn = () => { if (cnpjoucpf && cpfInspetor) carregar() }
-    window.addEventListener('online', fn)
-    return () => window.removeEventListener('online', fn)
-  }, [cnpjoucpf, cpfInspetor])
-
   // ── Foto e IA ──
   function handleFotoChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
