@@ -465,10 +465,18 @@ function Tela40Inner() {
       // Mapear valores numéricos de volta para texto nas listas
       const isNRLocal = ehNR(data.tipoServico ?? '')
       const mapRev = isNRLocal ? GR_NR_REVERSO : GR_PREDIAL_REVERSO
-      if (data.gravidade)   setDescGravidade(  (mapRev.gravidade   as Record<number,string>)[data.gravidade]   ?? '')
-      if (data.urgencia)    setDescUrgencia(   (mapRev.urgencia    as Record<number,string>)[data.urgencia]    ?? '')
-      if (data.abrangencia) setDescAbrangencia((mapRev.abrangencia as Record<number,string>)[data.abrangencia] ?? '')
-      if (data.exposicao)   setDescExposicao(  (mapRev.exposicao   as Record<number,string>)[data.exposicao]   ?? '')
+      // Usar texto descritivo salvo diretamente quando disponível (mais confiável)
+      // Fallback: converter número via mapa reverso (vistorias antigas)
+      if (data.descGravidade)        setDescGravidade(data.descGravidade)
+      else if (data.gravidade)       setDescGravidade((mapRev.gravidade   as Record<number,string>)[data.gravidade]   ?? '')
+      if (data.descUrgencia)         setDescUrgencia(data.descUrgencia)
+      else if (data.urgencia)        setDescUrgencia((mapRev.urgencia    as Record<number,string>)[data.urgencia]    ?? '')
+      if (data.descProbabilidade)    setDescAbrangencia(data.descProbabilidade)
+      else if (data.descAbrangencia) setDescAbrangencia(data.descAbrangencia)
+      else if (data.abrangencia)     setDescAbrangencia((mapRev.abrangencia as Record<number,string>)[data.abrangencia] ?? '')
+      if (data.descExposicaoRisco)   setDescExposicao(data.descExposicaoRisco)
+      else if (data.descExposicao)   setDescExposicao(data.descExposicao)
+      else if (data.exposicao)       setDescExposicao((mapRev.exposicao   as Record<number,string>)[data.exposicao]   ?? '')
     } catch(e) {
       informa('Erro', 'Não foi possível carregar o formulário.')
     } finally {

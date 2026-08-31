@@ -345,6 +345,7 @@ function Tela31Inner() {
       cnpjDisplay, razaoSocial, tipoAtivo, tagNrSerie, finalidade,
       sistema, subsistema, anomalia, origem, resultado, local, complemento,
       gravidade: gravNum, urgencia: urgNum, abrangencia: abrNum, exposicao: expNum,
+      descGravidade, descUrgencia, descProbabilidade, descExposicaoRisco,
       grauRisco, prioridade, fotoNr: nrFinal, dataVistoria, fotoBase64, nc, cp,
     }
 
