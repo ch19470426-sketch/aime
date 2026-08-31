@@ -55,28 +55,34 @@ export async function GET(request: NextRequest) {
     if (error) return NextResponse.json({ erro: error.message }, { status: 500 })
     if (!files || files.length === 0) return NextResponse.json({ formularios: [] })
 
-    // Filtrar por nome — formato: {chave}_{cnpj}_{tipo}_{nr}.json
-    // Não baixa nenhum arquivo na listagem — extrai dados do nome
+    // Filtrar por nome antes de baixar — evita abrir arquivos de outros CNPJs
     const filtradosPorNome = files.filter(f =>
       f.name.includes(`_${cnpjoucpf}_`) && f.name.endsWith('.json') && !f.name.includes('pendente')
     )
     if (filtradosPorNome.length === 0) return NextResponse.json({ formularios: [] })
 
-    // Montar lista básica apenas com dados do nome do arquivo
-    // O conteúdo completo só é carregado quando o formulário é aberto individualmente
-    const formularios = filtradosPorNome.map(file => {
-      const partes = file.name.replace('.json','').split('_')
-      // formato: chave_cnpj_tipo_nr ou chave_cnpj_tipo_nr (pode ter _ no meio)
-      const tipoServico = partes.length >= 4 ? partes[partes.length - 2] : ''
-      const fotoNr = partes[partes.length - 1] ?? ''
-      return {
-        nome: file.name,
-        chaveInspetor,
-        cnpjoucpf,
-        tipoServico,
-        fotoNr,
-      }
-    })
+    // Download em paralelo com timeout individual por arquivo (5s cada)
+    const resultados = await Promise.all(
+      filtradosPorNome.map(async (file) => {
+        try {
+          const ctrl = new AbortController()
+          const timer = setTimeout(() => ctrl.abort(), 5000)
+          const { data, error: readError } = await supabase.storage
+            .from('aime')
+            .download(`vistorias/${file.name}`)
+          clearTimeout(timer)
+          if (readError || !data) return null
+          const text = await data.text()
+          const json = JSON.parse(text)
+          // Excluir fotoBase64 — economiza banda
+          const { fotoBase64, ...semFoto } = json
+          return { nome: file.name, ...semFoto }
+        } catch {
+          return null
+        }
+      })
+    )
+    const formularios = resultados.filter(Boolean)
 
     return NextResponse.json({ formularios })
   } catch (e) {
