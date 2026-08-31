@@ -411,9 +411,11 @@ function Tela40Inner() {
       await carregarFormularioCompleto(formularios[0].nome, formularios, 0)
       return
     }
-    const faltando = planoAtivos.filter(a =>
+    // Só validar ativos se formulários têm dados completos (tipoAtivo preenchido)
+    const temDadosCompletos = formularios.some(f => f.tipoAtivo)
+    const faltando = temDadosCompletos ? planoAtivos.filter(a =>
       !formularios.some(f => f.tipoAtivo === a.tipo_ativo && f.tagNrSerie === a.tag_ativo_nr_serie)
-    )
+    ) : []
     if (faltando.length > 0) {
       const nomes = faltando.map(a => `${a.tipo_ativo} (${a.tag_ativo_nr_serie})`).join(', ')
       informa('Vistoria incompleta',
