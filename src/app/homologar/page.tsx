@@ -286,11 +286,12 @@ function Tela40Inner() {
       const lista = data.formularios
       const filtrados = sistemaFixo
         ? lista.filter((f: any) => {
+            // Modo elétrico: filtrar por tipoServico=32 (arquivo baixado terá sistema=07)
+            // A listagem rápida não inclui campo sistema — usar tipoServico como proxy
+            if (f.tipoServico === '32') return true
             const sis = (f.sistema || f.sistema_vistoria || '').toLowerCase()
-            const sf  = sistemaFixo.toLowerCase()
             return sis.includes('07') || sis.includes('elétric') || sis.includes('eletric') ||
-                   sis.includes('instalações') || sis.includes('instalacoes') ||
-                   (sf && sis === sf)
+                   sis.includes('instalações') || sis.includes('instalacoes')
           })
         : lista
       if (sistemaFixo && filtrados.length === 0) {
