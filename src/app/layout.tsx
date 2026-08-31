@@ -39,7 +39,18 @@ export default function RootLayout({
           if ('serviceWorker' in navigator) {
             window.addEventListener('load', function() {
               navigator.serviceWorker.register('/sw.js')
-                .then(function(reg) { console.log('[AIMÊ] SW registrado:', reg.scope) })
+                .then(function(reg) {
+                  console.log('[AIMÊ] SW registrado:', reg.scope)
+                  // Forçar verificação de atualização a cada carregamento
+                  reg.update()
+                  // Recarregar a página quando um novo SW assumir o controle
+                  let jaRecarregou = false
+                  navigator.serviceWorker.addEventListener('controllerchange', function() {
+                    if (jaRecarregou) return
+                    jaRecarregou = true
+                    window.location.reload()
+                  })
+                })
                 .catch(function(err) { console.log('[AIMÊ] SW erro:', err) })
             })
           }
