@@ -757,10 +757,10 @@ function Tela40Inner() {
                       setResultado(novo)
                       // CP mantém o texto original da vistoria — não é limpa ao marcar Conforme
                       const val = e.target.value
-                      if (val === 'Conforme') { setNc('Requisito atendido plenamente.') }
-                      else if (val === 'Não aplicável') { setNc('Requisito não se aplica à instalação.') }
-                      else if (val === 'Não verificado') { setNc('') }
-                      else if (val === 'Não conforme') { setNc('') }
+                      if (val === 'Conforme') { setNc('Requisito atendido plenamente.'); setCp('Instalação de acordo com o projeto e normas aplicáveis.') }
+                      else if (val === 'Não aplicável') { setNc('Requisito não se aplica à instalação.'); setCp('') }
+                      else if (val === 'Não verificado') { setNc(''); setCp('') }
+                      else if (val === 'Não conforme') { setNc(''); setCp('') }
                     }}>
                       <option value="">Selecione...</option>
                       {['Conforme', 'Não conforme', 'Não aplicável', 'Não verificado'].map(r => <option key={r} value={r}>{r}</option>)}
