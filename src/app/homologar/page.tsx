@@ -181,6 +181,7 @@ function Tela40Inner() {
   const [descExposicao,    setDescExposicao]    = useState('')
   const [nc,               setNc]               = useState('')
   const [cpAnterior,       setCpAnterior]       = useState('')
+  const cpRef = useRef('')  // ref sempre atualizada para uso em closures
   const [cp,               setCp]               = useState('')
 
   const form = formularios[indice]
@@ -461,7 +462,7 @@ function Tela40Inner() {
         }
       }
       setNc(fixEnc(data.nc ?? ''))
-      setCp(fixEnc(data.cp ?? ''))
+      setCp(fixEnc(data.cp ?? '')); cpRef.current = fixEnc(data.cp ?? '')
       setFeedbackIA('')
       // Mapear valores numéricos de volta para texto nas listas
       const isNRLocal = ehNR(data.tipoServico ?? '')
@@ -756,8 +757,8 @@ function Tela40Inner() {
                     <select style={S.input} value={resultado} onChange={e => {
                       const novo = e.target.value
                       setResultado(novo)
-                      if (novo === 'Conforme') { setCpAnterior(cp); setCp('') }
-                      else if (cpAnterior) { setCp(cpAnterior); setCpAnterior('') }
+                      if (novo === 'Conforme') { setCpAnterior(cpRef.current); setCp(''); cpRef.current = '' }
+                      else if (cpAnterior) { setCp(cpAnterior); cpRef.current = cpAnterior; setCpAnterior('') }
                       const val = e.target.value
                       if (val === 'Conforme') { setNc('Requisito atendido plenamente.') }
                       else if (val === 'Não aplicável') { setNc('Requisito não se aplica à instalação.') }
@@ -883,7 +884,7 @@ function Tela40Inner() {
                   onChange={e => setNc(e.target.value)} />
               </Field>
               <Field label="Causa provável (CP)">
-                <textarea style={{ ...S.input, ...S.textarea }} value={cp} maxLength={500} onChange={e => setCp(e.target.value)} />
+                <textarea style={{ ...S.input, ...S.textarea }} value={cp} maxLength={500} onChange={e => { setCp(e.target.value); cpRef.current = e.target.value }} />
               </Field>
 
 
