@@ -182,7 +182,6 @@ function Tela40Inner() {
   const [nc,               setNc]               = useState('')
   const [cpAnterior,       setCpAnterior]       = useState('')
   const cpRef = useRef('')  // ref sempre atualizada para uso em closures
-  const [debugRaw, setDebugRaw] = useState('')
   const [cp,               setCp]               = useState('')
 
   const form = formularios[indice]
@@ -443,7 +442,6 @@ function Tela40Inner() {
     try {
       const res  = await fetch(`/api/vistorias?nome=${nome}`)
       const data = await res.json()
-      setDebugRaw(`descExpRisco=[${data.descExposicaoRisco}] typeof=${typeof data.descExposicaoRisco} exposicao=[${data.exposicao}]`)
       const atualizado = lista.map((f, i) => i === idx ? { ...f, ...data } : f)
       setFormularios(atualizado); formulariosRef.current = atualizado
       setIndice(idx)
@@ -825,10 +823,7 @@ function Tela40Inner() {
                     <option value="">Sel...</option>
                     {exposicoes.map(v => <option key={v} value={v}>{v}</option>)}
                   </select>
-                  <span style={{fontSize:'8px',color:'#f00',display:'block'}}>
-                    DEBUG: valor="{descExposicao}" opcoes=[{exposicoes.join('|')}]<br/>
-                    RAW: {debugRaw}
-                  </span>
+
                 </Field>
               </div>
               <div style={S.riskMetrics}>
