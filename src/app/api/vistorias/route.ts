@@ -54,23 +54,25 @@ export async function GET(request: NextRequest) {
     if (error) return NextResponse.json({ erro: error.message }, { status: 500 })
     if (!files || files.length === 0) return NextResponse.json({ formularios: [] })
 
-    const formularios = []
-    for (const file of files) {
-      const { data, error: readError } = await supabase.storage
-        .from('aime')
-        .download(`vistorias/${file.name}`)
-
-      if (readError || !data) continue
-
-      const text = await data.text()
-      const json = JSON.parse(text)
-
-      if (json.cnpjoucpf !== cnpjoucpf) continue
-
-      // Excluir fotoBase64 da listagem para economizar banda
-      const { fotoBase64, ...semFoto } = json
-      formularios.push({ nome: file.name, ...semFoto })
-    }
+    // Download em paralelo — evita timeout com muitos arquivos
+    const resultados = await Promise.all(
+      files.map(async (file) => {
+        try {
+          const { data, error: readError } = await supabase.storage
+            .from('aime')
+            .download(`vistorias/${file.name}`)
+          if (readError || !data) return null
+          const text = await data.text()
+          const json = JSON.parse(text)
+          if (json.cnpjoucpf !== cnpjoucpf) return null
+          const { fotoBase64, ...semFoto } = json
+          return { nome: file.name, ...semFoto }
+        } catch {
+          return null
+        }
+      })
+    )
+    const formularios = resultados.filter(Boolean)
 
     return NextResponse.json({ formularios })
   } catch (e) {
