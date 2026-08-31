@@ -346,6 +346,7 @@ function Tela31Inner() {
       sistema, subsistema, anomalia, origem, resultado, local, complemento,
       gravidade: gravNum, urgencia: urgNum, abrangencia: abrNum, exposicao: expNum,
       descGravidade, descUrgencia, descProbabilidade, descExposicaoRisco,
+      _buildCheck: 'v20260831-2030',
       grauRisco, prioridade, fotoNr: nrFinal, dataVistoria, fotoBase64, nc, cp,
     }
 
