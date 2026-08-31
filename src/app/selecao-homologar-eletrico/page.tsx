@@ -46,6 +46,12 @@ function SelecaoInner() {
         if (Array.isArray(data) && data.length > 0) {
           setArts(data)
         }
+      } catch(e) {
+        setErro('Erro ao carregar: ' + String(e))
+      } finally {
+        setCarregando(false)
+      }
+    }
     carregar()
   }, [cpfEletrico])
 
