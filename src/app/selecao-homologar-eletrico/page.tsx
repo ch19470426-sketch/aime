@@ -114,16 +114,14 @@ function SelecaoInner() {
                   {arts.length > 0 && arts.map(art => (
                     <button key={art.id} style={{ ...S.btn, ...S.btnPri }}
                       onClick={() => irVistoriaEletrica(art)}>
-                      <span>⚡ Vistoria Elétrica — Inspeção Predial</span>
-                      <span style={S.sub2}>{art.razao_social}</span>
-                      <span style={S.sub2}>CPF inspetor predial: {art.cpf_inspetor}</span>
+                      <span style={{ fontSize:'13px' }}>{art.razao_social}</span>
+                      <span style={S.sub2}>{art.nome_inspetor} · {art.cpf_inspetor}</span>
                     </button>
                   ))}
 
                   {/* NR-10 */}
                   <button style={{ ...S.btn, ...S.btnSec }} onClick={irNR10}>
-                    <span>🔌 Vistoria NR-10</span>
-                    <span style={S.sub2}>Acesso completo às vistorias NR-10</span>
+                    Vistoria NR-10
                   </button>
                 </div>
               </div>

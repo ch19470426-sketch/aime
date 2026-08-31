@@ -202,9 +202,11 @@ function Tela31Inner() {
         if (Array.isArray(sis)) {
           const lista = [...new Map(sis.map((s: ItemSistema) => [s.sistema, s])).values()]
           // Modo elétrico: mostrar apenas o sistema fixo
-          const listaFiltrada = sistemaFixo ? lista.filter(s => s.sistema === sistemaFixo) : lista
+          const listaFiltrada = sistemaFixo
+            ? lista.filter(s => s.sistema.includes('07') || s.sistema === sistemaFixo)
+            : lista
           setSistemas(listaFiltrada)
-          if (sistemaFixo) setSistema(sistemaFixo)
+          if (sistemaFixo) setSistema(listaFiltrada[0]?.sistema || sistemaFixo)
         }
 
         // Subsistemas — com cache localStorage

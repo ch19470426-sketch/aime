@@ -631,8 +631,7 @@ function Tela40Inner() {
       <HeaderBar subtitulo={ts ? `Homologação do Resultado - ${TITULO_TIPO[ts] ?? ts}` : 'Carregando...'} />
       <div style={S.divider} />
       <p style={{ padding: '40px', textAlign: 'center', color: '#4a6480', fontSize: '9pt' }}>
-        Carregando formulários...<br/>
-        <span style={{fontSize:'10px',color:'#9ca3af'}}>{chaveInspetor||'?'} | {cnpjoucpf||'?'} | {sistemaFixo||'-'}</span>
+        Carregando formulários...
       </p>
       <Banner {...bannerProps} />
     </div></div>
@@ -688,8 +687,8 @@ function Tela40Inner() {
       <div style={S.page}>
         <HeaderBar subtitulo={`Homologação do Resultado - ${TITULO_TIPO[ts] ?? ts}`} />
         {sistemaFixo && (
-          <div style={{ background:'#FEF9C3', borderBottom:'2px solid #EAB308', padding:'6px 16px', fontSize:'11px', fontWeight:700, color:'#854D0E', textAlign:'center' }}>
-            ⚡ MODO ELÉTRICO — Sistema: {sistemaFixo}
+          <div style={{ background:'#EFF6FF', borderBottom:'2px solid #1E3A8A', padding:'6px 16px', fontSize:'11px', fontWeight:700, color:'#1E3A8A', textAlign:'center' }}>
+            ⚡ Sistema Elétrico — {sistemaFixo}
           </div>
         )}
         <div style={S.divider} />
