@@ -406,7 +406,7 @@ function Tela40Inner() {
     // NR (35-38) e plano sem ativos: ir direto para o formulário
     const tsAtual = formularios[0]?.tipoServico ?? ''
     const isNRAtual = ['35','36','37','38'].includes(tsAtual)
-    if (planoAtivos.length === 0 || isNRAtual) {
+    if (planoAtivos.length === 0 || isNRAtual || !!sistemaFixo) {
       setEtapa('form'); setVerificando(false); setCarregando(true)
       await carregarFormularioCompleto(formularios[0].nome, formularios, 0)
       return
