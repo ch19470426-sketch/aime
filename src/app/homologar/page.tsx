@@ -824,6 +824,9 @@ function Tela40Inner() {
                     <option value="">Sel...</option>
                     {exposicoes.map(v => <option key={v} value={v}>{v}</option>)}
                   </select>
+                  <span style={{fontSize:'8px',color:'#f00',display:'block'}}>
+                    DEBUG: valor="{descExposicao}" opcoes=[{exposicoes.join('|')}]
+                  </span>
                 </Field>
               </div>
               <div style={S.riskMetrics}>
