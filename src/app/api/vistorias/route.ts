@@ -1,5 +1,6 @@
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
+export const maxDuration = 60  // Vercel Pro: até 60s para download de muitos arquivos
 
 // src/app/api/vistorias/route.ts
 // AIMÊ — API para listar, ler e deletar formulários de vistoria do Storage
@@ -54,9 +55,14 @@ export async function GET(request: NextRequest) {
     if (error) return NextResponse.json({ erro: error.message }, { status: 500 })
     if (!files || files.length === 0) return NextResponse.json({ formularios: [] })
 
-    // Download em paralelo — evita timeout com muitos arquivos
+    // Filtrar por nome antes de baixar — nome: {chave}_{cnpj}_{tipo}_{nr}.json
+    // Evita baixar arquivos de outros CNPJs sem precisar abrir cada um
+    const filtradosPorNome = files.filter(f => f.name.includes(`_${cnpjoucpf}_`))
+    if (filtradosPorNome.length === 0) return NextResponse.json({ formularios: [] })
+
+    // Download em paralelo apenas dos arquivos relevantes
     const resultados = await Promise.all(
-      files.map(async (file) => {
+      filtradosPorNome.map(async (file) => {
         try {
           const { data, error: readError } = await supabase.storage
             .from('aime')
@@ -64,7 +70,6 @@ export async function GET(request: NextRequest) {
           if (readError || !data) return null
           const text = await data.text()
           const json = JSON.parse(text)
-          if (json.cnpjoucpf !== cnpjoucpf) return null
           const { fotoBase64, ...semFoto } = json
           return { nome: file.name, ...semFoto }
         } catch {
