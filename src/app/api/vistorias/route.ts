@@ -55,29 +55,28 @@ export async function GET(request: NextRequest) {
     if (error) return NextResponse.json({ erro: error.message }, { status: 500 })
     if (!files || files.length === 0) return NextResponse.json({ formularios: [] })
 
-    // Filtrar por nome antes de baixar — nome: {chave}_{cnpj}_{tipo}_{nr}.json
-    // Evita baixar arquivos de outros CNPJs sem precisar abrir cada um
-    const filtradosPorNome = files.filter(f => f.name.includes(`_${cnpjoucpf}_`))
+    // Filtrar por nome — formato: {chave}_{cnpj}_{tipo}_{nr}.json
+    // Não baixa nenhum arquivo na listagem — extrai dados do nome
+    const filtradosPorNome = files.filter(f =>
+      f.name.includes(`_${cnpjoucpf}_`) && f.name.endsWith('.json') && !f.name.includes('pendente')
+    )
     if (filtradosPorNome.length === 0) return NextResponse.json({ formularios: [] })
 
-    // Download em paralelo apenas dos arquivos relevantes
-    const resultados = await Promise.all(
-      filtradosPorNome.map(async (file) => {
-        try {
-          const { data, error: readError } = await supabase.storage
-            .from('aime')
-            .download(`vistorias/${file.name}`)
-          if (readError || !data) return null
-          const text = await data.text()
-          const json = JSON.parse(text)
-          const { fotoBase64, ...semFoto } = json
-          return { nome: file.name, ...semFoto }
-        } catch {
-          return null
-        }
-      })
-    )
-    const formularios = resultados.filter(Boolean)
+    // Montar lista básica apenas com dados do nome do arquivo
+    // O conteúdo completo só é carregado quando o formulário é aberto individualmente
+    const formularios = filtradosPorNome.map(file => {
+      const partes = file.name.replace('.json','').split('_')
+      // formato: chave_cnpj_tipo_nr ou chave_cnpj_tipo_nr (pode ter _ no meio)
+      const tipoServico = partes.length >= 4 ? partes[partes.length - 2] : ''
+      const fotoNr = partes[partes.length - 1] ?? ''
+      return {
+        nome: file.name,
+        chaveInspetor,
+        cnpjoucpf,
+        tipoServico,
+        fotoNr,
+      }
+    })
 
     return NextResponse.json({ formularios })
   } catch (e) {
