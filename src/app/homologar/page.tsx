@@ -757,8 +757,7 @@ function Tela40Inner() {
                     <select style={S.input} value={resultado} onChange={e => {
                       const novo = e.target.value
                       setResultado(novo)
-                      if (novo === 'Conforme') { setCpAnterior(cpRef.current); setCp(''); cpRef.current = '' }
-                      else if (cpAnterior) { setCp(cpAnterior); cpRef.current = cpAnterior; setCpAnterior('') }
+                      // CP mantém o texto original da vistoria — não é limpa ao marcar Conforme
                       const val = e.target.value
                       if (val === 'Conforme') { setNc('Requisito atendido plenamente.') }
                       else if (val === 'Não aplicável') { setNc('Requisito não se aplica à instalação.') }
