@@ -642,8 +642,8 @@ function Tela40Inner() {
           <div style={S.blockTitle}>Vistorias pendentes de homologação</div>
           <div style={{ padding: '8px 10px' }}>
             {planoAtivos.length === 0 && (
-              <p style={{ fontSize: '8pt', color: '#9a3412' }}>
-                Nenhum ativo cadastrado para ser homologado. Necessário cadastrar ativos para este serviço.
+              <p style={{ fontSize: '8pt', color: '#1E3A8A', fontWeight: 700 }}>
+                {formularios.length} vistoria(s) aguardando homologação.
               </p>
             )}
             {planoAtivos.length > 0 && (
