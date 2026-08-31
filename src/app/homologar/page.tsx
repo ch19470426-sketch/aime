@@ -138,6 +138,7 @@ function Tela40Inner() {
 
   // Lista de formulários
   const [formularios,  setFormularios]  = useState<Formulario[]>([])
+  const [gateTotal,    setGateTotal]    = useState(0)
   const [indice,       setIndice]       = useState(0)
   const [carregando,   setCarregando]   = useState(false)
   const [salvando,     setSalvando]     = useState(false)
@@ -391,6 +392,7 @@ function Tela40Inner() {
       setPlanoEncontrado(false)
     }
 
+    setGateTotal(listaFormularios.length)
     setEtapa('gate')
     setCarregando(false)
     if (!sistemaFixo) {
@@ -647,7 +649,7 @@ function Tela40Inner() {
           <div style={{ padding: '8px 10px' }}>
             {planoAtivos.length === 0 && (
               <p style={{ fontSize: '8pt', color: '#1E3A8A', fontWeight: 700 }}>
-                {formularios.length} vistoria(s) aguardando homologação.
+                {gateTotal || formularios.length} vistoria(s) aguardando homologação.
               </p>
             )}
             {planoAtivos.length > 0 && (
