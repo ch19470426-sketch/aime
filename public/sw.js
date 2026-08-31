@@ -1,5 +1,5 @@
 // AIMÊ Service Worker — offline para vistorias 31-38
-const CACHE_VER     = 'aime-v6'
+const CACHE_VER     = 'aime-v7'
 const CACHE_STATIC  = CACHE_VER + '-static'
 const CACHE_PAGES   = CACHE_VER + '-pages'
 const CACHE_API     = CACHE_VER + '-api'
