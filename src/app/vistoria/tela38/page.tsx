@@ -197,11 +197,17 @@ function Tela31Inner() {
         const sis = sisCached ?? await query('sistemas_construtivos', `tipo_servico=eq.${encodeURIComponent(tipoServicoBanco)}&ativo=eq.true&select=sistema&order=sistema`)
         if (Array.isArray(sis)) { if (!sisCached) { try { localStorage.setItem(cacheSisKey, JSON.stringify(sis)) } catch {} } setSistemas([...new Map(sis.map((s: ItemSistema) => [s.sistema, s])).values()]) }
 
-        const sub = await query('sistemas_construtivos', `tipo_servico=eq.${encodeURIComponent(tipoServicoBanco)}&ativo=eq.true&subsistema=not.is.null&select=sistema,subsistema`)
-        if (Array.isArray(sub)) setSubsistemas(sub)
+        // Subsistemas — com cache localStorage
+        const cacheSubKey = `aime_sub_${tipoServico}`
+        const subCached = (() => { try { const r = localStorage.getItem(cacheSubKey); return r ? JSON.parse(r) : null } catch { return null } })()
+        const sub = subCached ?? await query('sistemas_construtivos', `tipo_servico=eq.${encodeURIComponent(tipoServicoBanco)}&ativo=eq.true&subsistema=not.is.null&select=sistema,subsistema`)
+        if (Array.isArray(sub)) { if (!subCached) { try { localStorage.setItem(cacheSubKey, JSON.stringify(sub)) } catch {} } setSubsistemas(sub) }
 
-        const ano = await query('sistemas_construtivos', `tipo_servico=eq.${encodeURIComponent(tipoServicoBanco)}&ativo=eq.true&anomalias=not.is.null&select=sistema,subsistema,anomalias`)
-        if (Array.isArray(ano)) setAnomalias(ano)
+        // Anomalias — com cache localStorage
+        const cacheAnoKey = `aime_ano_${tipoServico}`
+        const anoCached = (() => { try { const r = localStorage.getItem(cacheAnoKey); return r ? JSON.parse(r) : null } catch { return null } })()
+        const ano = anoCached ?? await query('sistemas_construtivos', `tipo_servico=eq.${encodeURIComponent(tipoServicoBanco)}&ativo=eq.true&anomalias=not.is.null&select=sistema,subsistema,anomalias`)
+        if (Array.isArray(ano)) { if (!anoCached) { try { localStorage.setItem(cacheAnoKey, JSON.stringify(ano)) } catch {} } setAnomalias(ano) }
 
         // Parâmetros
         // Buscar pesos GUT do banco com fallback
