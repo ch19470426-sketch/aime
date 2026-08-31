@@ -657,14 +657,12 @@ function Tela40Inner() {
         <div style={S.block}>
           <div style={S.blockTitle}>Vistorias pendentes de homologação</div>
           <div style={{ padding: '8px 10px' }}>
-            {planoAtivos.length === 0 && (
-              <p style={{ fontSize: '8pt', color: '#1E3A8A', fontWeight: 700 }}>
-                {gateTotal || formularios.length} vistoria(s) para revisar e homologar.
-              </p>
-            )}
+            <p style={{ fontSize: '8pt', color: '#1E3A8A', fontWeight: 700 }}>
+              {gateTotal || formularios.length} vistoria(s) para revisar e homologar.
+            </p>
             {planoAtivos.length > 0 && (
-              <p style={{ fontSize: '8pt', color: '#4a6480' }}>
-                {planoAtivos.length} ativo(s) cadastrado(s) no plano de trabalho serão verificados antes de iniciar a homologação.
+              <p style={{ fontSize: '8pt', color: '#4a6480', marginTop: '4px' }}>
+                {planoAtivos.length} ativo(s) cadastrado(s) no plano serão verificados.
               </p>
             )}
           </div>
