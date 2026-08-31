@@ -138,6 +138,7 @@ function Tela40Inner() {
 
   // Lista de formulários
   const [formularios,  setFormularios]  = useState<Formulario[]>([])
+  const formulariosRef = useRef<Formulario[]>([])  // ref sempre atualizada para closures
   const [gateTotal,    setGateTotal]    = useState(0)
   const [indice,       setIndice]       = useState(0)
   const [carregando,   setCarregando]   = useState(false)
@@ -297,12 +298,12 @@ function Tela40Inner() {
         : lista
       if (sistemaFixo && filtrados.length === 0) {
         // Usar lista completa se filtro não encontrar nada — permite homologar visualmente
-        setFormularios(lista)
+        setFormularios(lista); formulariosRef.current = lista
         await prepararGate(lista)
         setCarregando(false)
         return
       }
-      setFormularios(filtrados)
+      setFormularios(filtrados); formulariosRef.current = filtrados
       if (sistemaFixo) {
         // Modo elétrico: pular gate de ativos, ir direto para o primeiro formulário
         await carregarFormularioCompleto(filtrados[0].nome, filtrados, 0)
@@ -440,7 +441,7 @@ function Tela40Inner() {
       const res  = await fetch(`/api/vistorias?nome=${nome}`)
       const data = await res.json()
       const atualizado = lista.map((f, i) => i === idx ? { ...f, ...data } : f)
-      setFormularios(atualizado)
+      setFormularios(atualizado); formulariosRef.current = atualizado
       setIndice(idx)
       setSistema(data.sistema ?? '')
       setSubsistema(data.subsistema ?? '')
@@ -585,7 +586,7 @@ function Tela40Inner() {
       }
       
       const proximoIdx = indice < novaLista.length ? indice : novaLista.length - 1
-      setFormularios(novaLista)
+      setFormularios(novaLista); formulariosRef.current = novaLista
       await carregarFormularioCompleto(novaLista[proximoIdx].nome, novaLista, proximoIdx)
     } catch(e) {
       informa('Erro ao salvar', String(e))
@@ -608,12 +609,12 @@ function Tela40Inner() {
           fechar()
           try {
             await fetch(`/api/vistorias?nome=${form?.nome}`, { method: 'DELETE' })
-            const novaLista = formularios.filter((_, i) => i !== indice)
+            const novaLista = formulariosRef.current.filter((_, i) => i !== indice)
             if (novaLista.length === 0) {
               agradece('Pronto', 'Todos os registros foram processados.', () => window.location.href = '/dashboard')
             } else {
               const novoIdx = Math.min(indice, novaLista.length - 1)
-              setFormularios(novaLista)
+              setFormularios(novaLista); formulariosRef.current = novaLista
               await carregarFormularioCompleto(novaLista[novoIdx].nome, novaLista, novoIdx)
             }
           } catch(e) {
