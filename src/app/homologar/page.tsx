@@ -629,7 +629,8 @@ function Tela40Inner() {
       <HeaderBar subtitulo={ts ? `Homologação do Resultado - ${TITULO_TIPO[ts] ?? ts}` : 'Carregando...'} />
       <div style={S.divider} />
       <p style={{ padding: '40px', textAlign: 'center', color: '#4a6480', fontSize: '9pt' }}>
-        Carregando formulários...
+        Carregando formulários...<br/>
+        <span style={{fontSize:'10px',color:'#9ca3af'}}>{chaveInspetor||'?'} | {cnpjoucpf||'?'} | {sistemaFixo||'-'}</span>
       </p>
       <Banner {...bannerProps} />
     </div></div>
