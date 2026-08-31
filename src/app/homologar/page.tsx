@@ -648,7 +648,7 @@ function Tela40Inner() {
           <div style={{ padding: '8px 10px' }}>
             {planoAtivos.length === 0 && (
               <p style={{ fontSize: '8pt', color: '#1E3A8A', fontWeight: 700 }}>
-                {gateTotal || formularios.length} vistoria(s) aguardando homologação.
+                {gateTotal || formularios.length} vistoria(s) para revisar e homologar.
               </p>
             )}
             {planoAtivos.length > 0 && (
