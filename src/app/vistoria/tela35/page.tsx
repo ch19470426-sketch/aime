@@ -383,6 +383,7 @@ function Tela31Inner() {
           cnpjDisplay, razaoSocial, tipoAtivo, tagNrSerie, finalidade,
           sistema, subsistema, anomalia, origem, resultado, local, complemento,
           gravidade: gravNum, urgencia: urgNum, abrangencia: abrNum, exposicao: expNum,
+          descGravidade, descUrgencia, descProbabilidade, descExposicaoRisco,
           grauRisco, prioridade, fotoNr, dataVistoria, nc, cp, nc_pendente: !nc || !cp }
         await salvarOffline({ ...dadosNR, fotoBase64: fotoOfflineNR,
           payload: { ...dadosNR, fotoBase64: fotoOfflineNR } })
