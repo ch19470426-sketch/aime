@@ -227,10 +227,13 @@ function HomologarProdutoInner() {
       // Gera o PDF no servidor via Puppeteer — controle total de margens,
       // sem depender do driver de impressão do navegador/Windows (que ignora
       // margens negativas e não permite full-bleed real).
+      // Não enviamos o HTML completo aqui (fotos em base64 estouram o limite
+      // de 4.5MB do Vercel para corpo de requisição) — o servidor busca o
+      // HTML já salvo no Storage, sem limite de tamanho.
       const res = await fetch('/api/gerar-laudo-pdf', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ nomeArquivo, html: htmlAtual })
+        body: JSON.stringify({ nomeArquivo })
       })
       if (!res.ok) {
         let detalhe = ''
