@@ -12,13 +12,22 @@ const supabase = createClient(
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { cnpjoucpf, razao_social_nome, uso_estabelecimento, numero_imovel, complemento, cep_estabelecimento } = body
+    const { cnpjoucpf, razao_social_nome, uso_estabelecimento, numero_imovel, complemento, cep_estabelecimento, tipo_id, data_cadastro } = body
     if (!cnpjoucpf) return NextResponse.json({ erro: 'CNPJ/CPF obrigatório.' }, { status: 400 })
+    const cnpjLimpo = cnpjoucpf.replace(/\D/g,'')
+
+    // upsert (service_role) funciona tanto para criar quanto atualizar,
+    // sem depender de RLS na anon key — evita "não foi possível salvar"
+    const payload: Record<string, unknown> = {
+      cnpjoucpf: cnpjLimpo, razao_social_nome, uso_estabelecimento,
+      numero_imovel, complemento, cep_estabelecimento,
+    }
+    if (tipo_id !== undefined) payload.tipo_id = tipo_id
+    if (data_cadastro) payload.data_cadastro = data_cadastro
 
     const { error } = await supabase
       .from('estabelecimento')
-      .update({ razao_social_nome, uso_estabelecimento, numero_imovel, complemento, cep_estabelecimento })
-      .eq('cnpjoucpf', cnpjoucpf.replace(/\D/g,''))
+      .upsert(payload, { onConflict: 'cnpjoucpf' })
 
     if (error) return NextResponse.json({ erro: error.message }, { status: 500 })
     return NextResponse.json({ ok: true })

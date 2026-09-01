@@ -225,10 +225,6 @@ function PropostaInner() {
     setSalvando(true)
     try {
       const isUpdate = !!est
-      const method = isUpdate ? 'PATCH' : 'POST'
-      const url = isUpdate
-        ? `${SUPA_URL}/rest/v1/estabelecimento?cnpjoucpf=eq.${cnpjoucpf}`
-        : `${SUPA_URL}/rest/v1/estabelecimento`
       const payload = {
         cnpjoucpf,
         razao_social_nome: razaoSocial,
@@ -239,12 +235,10 @@ function PropostaInner() {
         tipo_id: 1,
         ...(isUpdate ? {} : { data_cadastro: new Date().toISOString().split('T')[0] })
       }
-      const res = await fetch(url, {
-        method,
-        headers: {
-          'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}`,
-          'Content-Type': 'application/json', 'Prefer': 'return=minimal'
-        },
+      // Usa API server-side (service_role) — evita bloqueio por RLS na anon key
+      const res = await fetch('/api/salvar-estabelecimento', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       })
       if (res.ok) {
@@ -280,7 +274,9 @@ function PropostaInner() {
           setEtapa('valor')
         }
       } else {
-        informa('Erro', 'Não foi possível salvar o estabelecimento.')
+        let detalhe = ''
+        try { detalhe = (await res.json())?.erro ?? '' } catch {}
+        informa('Erro', 'Não foi possível salvar o estabelecimento.' + (detalhe ? ' ' + detalhe : ''))
       }
     } finally {
       setSalvando(false)
@@ -436,7 +432,19 @@ function PropostaInner() {
                 {modoEdicao && (
                   <div style={S.footer}>
                     <button style={{ ...S.btn, ...S.btnSec }}
-                      onClick={() => { est ? setModoEdicao(false) : window.location.href = '/dashboard' }}>
+                      onClick={() => {
+                        if (est) {
+                          // Reverter campos para os valores salvos, descartando a edição
+                          setRazaoSocial(est.razao_social_nome ?? '')
+                          setCep(est.cep_estabelecimento ?? '')
+                          setNumero(est.numero_imovel ?? '')
+                          setComplemento(est.complemento ?? '')
+                          setUsoEstab(est.uso_estabelecimento ?? '')
+                          setModoEdicao(false)
+                        } else {
+                          window.location.href = '/dashboard'
+                        }
+                      }}>
                       {est ? 'Cancelar alteração' : 'Voltar ao dashboard'}
                     </button>
                     <button style={{ ...S.btn, ...S.btnPri, opacity: salvando ? 0.6 : 1 }}
