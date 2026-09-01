@@ -62,7 +62,11 @@ export async function POST(request: NextRequest) {
     try {
       const page = await browser.newPage()
       console.log('[gerar-laudo-pdf] browser ok, carregando conteudo...')
-      await page.setContent(htmlFinal, { waitUntil: 'networkidle0', timeout: 30000 })
+      // 'load' é mais rápido e confiável que 'networkidle0' para documentos
+      // sem recursos externos (tudo embutido em base64) — networkidle0 exige
+      // rede ociosa por 500ms contínuos, o que pode nunca ocorrer de forma
+      // confiável em ambientes serverless com overhead de rede variável.
+      await page.setContent(htmlFinal, { waitUntil: 'load', timeout: 90000 })
       console.log('[gerar-laudo-pdf] conteudo carregado, gerando pdf...')
       const pdf = await page.pdf({
         // preferCSSPageSize: true é OBRIGATÓRIO para o Puppeteer respeitar as
