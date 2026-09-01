@@ -204,22 +204,9 @@ tr:nth-child(even) td { background: #f7f9ff; }
 .s41-bloco { page-break-before: avoid !important; }
 /* Capa — usa @page :first (suporte confiável no Chromium) em vez de named page
    (page: <ident> tem suporte limitado/inconsistente no Chromium headless) */
-@page :first {
-  size: A4 portrait;
-  /* superior=0 | direita=20mm | inferior=0 | esquerda=25mm — igual ao restante
-     do documento nas laterais; zero em cima/baixo para as faixas azuis */
-  margin: 0 20mm 0 25mm;
-  @top-left-corner    { content: none; }
-  @top-left           { content: none; }
-  @top-center         { content: none; }
-  @top-right          { content: none; }
-  @top-right-corner   { content: none; }
-  @bottom-left-corner { content: none; }
-  @bottom-left        { content: none; }
-  @bottom-center      { content: none; }
-  @bottom-right       { content: none; }
-  @bottom-right-corner{ content: none; }
-}
+/* @page :first removido — capa agora usa a MESMA margem do resto do documento
+   (25/20/20/25mm), sem tentar full-bleed. As faixas azuis ficam dentro da área
+   útil normal (165mm de largura), não tocando as bordas físicas do papel. */
 .pg-capa { page-break-after: always; counter-reset: page 0; }
 .capa-barra { background: #1E3A8A; height: 8mm; width: 100%; margin-bottom: 0; }
 .capa-logo  { text-align: center; padding: 20mm 0 10mm; }
@@ -361,7 +348,7 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
     const { cpfInspetor, chaveInspetor, cnpjoucpf, tipoServico,
-            estab: estabRaw, inspetor, ncs, nomeArquivo, complemento } = body
+            estab: estabRaw, inspetor, ncs, nomeArquivo, complemento, semCapa } = body
     let estab = estabRaw
 
     if (!cpfInspetor || !tipoServico || !nomeArquivo)
@@ -1343,8 +1330,8 @@ export async function POST(request: NextRequest) {
       const partsNR: string[] = []
       partsNR.push('<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>' + titulo + '</title><style>' + CSS + '</style></head><body>')
 
-      // CAPA
-      partsNR.push(gerarCapa({
+      // CAPA (condicional)
+      if (!semCapa) partsNR.push(gerarCapa({
         titulo: TITULO_DOC[tipoServico] ?? 'Laudo Técnico',
         subtitulo: 'LAUDO TÉCNICO',
         razaoSocial: xe(estab?.razao_social_nome||estab?.razao_social||''),
@@ -2107,14 +2094,14 @@ export async function POST(request: NextRequest) {
 <style>${CSS}</style>
 </head>
 <body>
-${CAPA_HTML}
-<div style="page-break-before:always"></div>
+${semCapa ? '' : CAPA_HTML}
+${semCapa ? '' : '<div style="page-break-before:always"></div>'}
 <div class="section">
 ${INDICE_HTML}
 </div>
 <div class="section">
 ${cabInspetor ? `<div class="cab">${cabInspetor}</div>` : ''}
-<div style="height:14pt"></div>
+<div style="height:80pt"></div>
 <div class="titulo">1.- Considerações Preliminares.</div>
 <p>Este ${titulo} é o documento completo resultante do trabalho executado na vistoria da edificação, análise, classificação e priorização das manifestações patológicas, conforme exigências da <i>ABNT NBR 16.747/2020 e NBR 15.575</i>, recomendações da <i>Norma de Inspeção Predial do IBAPE de 2025</i> e legislação vigente.</p>
 <p>A inspeção apresentada neste laudo é o resultado de um exame "clínico geral" que avalia as condições globais do objeto em estudo e detecta a existência de problemas de conservação ou funcionamento, com base em uma análise fundamentalmente sensorial e efetuada por um profissional habilitado. Com base nesta análise, pode ocorrer a recomendação de contratação de ensaios especializadas ou outras ações para que se possa aprofundar e refinar o diagnóstico.</p>

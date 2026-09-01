@@ -109,6 +109,7 @@ function LaudoComplemento() {
   const [etapa, setEtapa]       = useState<'complemento'|'gerando'|'pronto'>('complemento')
   const [erro, setErro]         = useState('')
   const [nomeArquivo, setNomeArquivo] = useState('')
+  const [semCapa, setSemCapa] = useState(false)  // temp: gerar sem capa para validar resto do documento
 
   // Dados do estabelecimento
   const [estab, setEstab]       = useState<Record<string,string>>({})
@@ -576,7 +577,7 @@ function LaudoComplemento() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          cpfInspetor, chaveInspetor, cnpjoucpf, tipoServico,
+          cpfInspetor, chaveInspetor, cnpjoucpf, tipoServico, semCapa,
           estab: { ...estab, ...contato }, inspetor, ncs: ncsComSolucao.map(({fotoBase64: _f, ...rest}: any) => rest), nomeArquivo: nome,
           complemento: {
             nomeConvencao, sinteseEdif,
@@ -1020,6 +1021,11 @@ function LaudoComplemento() {
           )}
 
           {erro && <p style={{ color: "#DC2626", fontSize: "12px", marginBottom: "12px" }}>{erro}</p>}
+
+          <label style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "12px", color: "#4a6480", marginBottom: "10px", cursor: "pointer" }}>
+            <input type="checkbox" checked={semCapa} onChange={e => setSemCapa(e.target.checked)} />
+            Gerar sem capa (temporário — para validar o restante do documento)
+          </label>
 
           <div style={{ display: "flex", gap: "10px", justifyContent: "flex-end" }}>
             <button style={S.btnSec} onClick={() => window.location.href = '/dashboard'}>Voltar</button>

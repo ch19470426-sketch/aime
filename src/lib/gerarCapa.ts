@@ -1,16 +1,11 @@
 // src/lib/gerarCapa.ts
 // Componente gerador de capa — laudos 41-44, 45-48 e planos 51-58
 //
-// MARGENS DA CAPA (@page :first no gerar-laudo/route.ts):
-//   superior = 0 | inferior = 0 | esquerda = 25mm | direita = 20mm
-// As faixas azuis (topo/rodapé) usam margem negativa lateral para
-// alcançar as bordas físicas esquerda/direita (full-bleed só nesse eixo).
-// O restante do conteúdo (texto, título, dados do inspetor) respeita a
-// área útil normal (165mm de largura), igual ao resto do documento.
-// Motor de renderização: Puppeteer/Chromium (NÃO WeasyPrint).
-// IMPORTANTE: o Puppeteer só respeita as margens do @page se page.pdf({margin})
-// também estiver zerado — caso contrário ele sobrepõe QUALQUER @page CSS com
-// seu próprio valor fixo (ver gerar-laudo-pdf/route.ts).
+// SIMPLIFICADO: a capa usa a MESMA margem do resto do documento (25/20/20/25mm).
+// Sem full-bleed — as faixas azuis ficam dentro da área útil normal (165mm),
+// não tocando as bordas físicas do papel. Full-bleed real via CSS/@page se
+// mostrou pouco confiável entre motores de renderização (Puppeteer vs
+// impressão nativa do navegador) — abandonado em favor de robustez.
 
 export interface CapaParams {
   titulo: string
@@ -50,7 +45,7 @@ export function gerarCapa(p: CapaParams): string {
 
   return `<div class="pg-capa" style="${F};display:flex;flex-direction:column;height:297mm;box-sizing:border-box;background:#fff;position:relative;z-index:100">
 
-  <div style="height:8mm;background:#1E3A8A;flex:0 0 8mm;margin:0 -20mm 0 -25mm"></div>
+  <div style="height:8mm;background:#1E3A8A;flex:0 0 8mm"></div>
 
   ${cabHtml ? `<div style="flex:0 0 auto;text-align:center;padding:10mm 0 0">${cabHtml}</div>` : ''}
 
@@ -73,7 +68,7 @@ export function gerarCapa(p: CapaParams): string {
     </div>
   </div>
 
-  <div style="height:8mm;background:#1E3A8A;flex:0 0 8mm;margin:0 -20mm 0 -25mm"></div>
+  <div style="height:8mm;background:#1E3A8A;flex:0 0 8mm"></div>
 
 </div>`
 }
