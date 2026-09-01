@@ -88,6 +88,7 @@ export default function PlanoManutencaoInner() {
   const [nomeArq,   setNomeArq]  = useState('')
   const [status,    setStatus]   = useState('')
   const [enviando,  setEnviando] = useState(false)
+  const [gerandoPdf, setGerandoPdf] = useState(false)
   const [htmlGerado, setHtmlGerado] = useState('')
   const inputPdfRef = useRef<HTMLInputElement>(null)
   const editRef = useRef<HTMLDivElement>(null)
@@ -184,65 +185,36 @@ export default function PlanoManutencaoInner() {
     } catch (err) { setErro(String(err)); setEtapa('erro') }
   }
 
-  function salvarPDF() {
-    if (!htmlGerado) return
-    // Se foi editado, substituir o body pelo conteúdo editado
-    const innerEditado = editRef.current?.innerHTML
-    const htmlAtual = innerEditado
-      ? htmlGerado.replace(/<body>([\s\S]*)<\/body>/, `<body>${innerEditado}</body>`)
-      : htmlGerado
-    // Extrair cab e rod do HTML
-    const mCab = htmlAtual.match(/<div[^>]*(?:class="cab"|border-bottom:2px solid #1E3A8A)[^>]*>([\s\S]*?)<\/div>/)
-    const mRod = htmlGerado.match(/<div class="rod">([\s\S]*?)<\/div>/)
-    const cabTxt = mCab ? mCab[1].replace(/<[^>]+>/g,'').trim() : ''
-    const rodTxt = mRod ? mRod[1].replace(/<[^>]+>/g,'').trim() : ''
-
-    const printCss = `
-      @page {
-        size: A4;
-        margin: 20mm 20mm 15mm 25mm;
-        @top-center {
-          content: ${JSON.stringify(cabTxt || '')};
-          font-family: Arial, sans-serif; font-size: 10pt; font-weight: bold; color: #1E3A8A;
-          border-bottom: 1.5px solid #1E3A8A; padding-bottom: 3pt; width: 100%; text-align: center;
-        }
-        @bottom-left {
-          content: ${JSON.stringify(rodTxt || '')};
-          font-family: Arial, sans-serif; font-size: 7.5pt; color: #374151;
-          border-top: 1px solid #ccc; padding-top: 3pt;
-        }
-        @bottom-right {
-          content: 'Pág. ' counter(page);
-          font-family: Arial, sans-serif; font-size: 7.5pt; color: #374151;
-          border-top: 1px solid #ccc; padding-top: 3pt;
-        }
+  async function salvarPDF() {
+    if (!htmlGerado || !nomeArq) return
+    if (gerandoPdf) return
+    setGerandoPdf(true)
+    try {
+      // Gera o PDF no servidor via Puppeteer — mesma técnica confiável usada
+      // nos laudos (window.print() não respeita margens/paginação corretamente).
+      const res = await fetch('/api/gerar-laudo-pdf', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nomeArquivo: nomeArq })
+      })
+      if (!res.ok) {
+        let detalhe = ''
+        try { detalhe = (await res.json())?.erro ?? '' } catch {}
+        throw new Error(`Falha ao gerar o PDF (${res.status}). ${detalhe}`)
       }
-      body { -webkit-print-color-adjust: exact; print-color-adjust: exact; margin: 0 !important; }
-      .cab, .rod { display: none !important; }
-      .pg-capa { page-break-after: always; }
-      @page { size: A4 portrait; }
-      @page anx1page { size: A4 landscape; margin: 10mm 10mm 10mm 10mm; }
-      .anx1-page { page: anx1page; page-break-before: always; }
-
-    `
-    const nomeBase = nomeArq.replace('.html','') + '.pdf'
-    const htmlPrint = htmlAtual
-      .replace(/<title>[^<]*<\/title>/, `<title>${nomeBase}</title>`)
-      .replace('</head>', `<style>${printCss}</style></head>`)
-      .replace('</body>', `<script>
-        document.title = ${JSON.stringify(nomeBase)};
-        window.addEventListener('load', function() {
-          document.title = ${JSON.stringify(nomeBase)};
-          setTimeout(function() { window.print(); }, 600);
-        });
-      </script></body>`)
-
-    const blob = new Blob([htmlPrint], { type: 'text/html;charset=utf-8' })
-    const url  = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url; a.target = '_blank'; a.rel = 'noopener'
-    document.body.appendChild(a); a.click(); document.body.removeChild(a)
-    setTimeout(() => URL.revokeObjectURL(url), 10000)
+      const blob = await res.blob()
+      const url = URL.createObjectURL(blob)
+      const nomeBase = nomeArq.replace('.html','') + '.pdf'
+      const a = document.createElement('a')
+      a.href = url
+      a.download = nomeBase
+      a.click()
+      URL.revokeObjectURL(url)
+    } catch (erro) {
+      alert(erro instanceof Error ? erro.message : 'Não foi possível gerar o PDF. Tente novamente.')
+    } finally {
+      setGerandoPdf(false)
+    }
   }
 
   async function enviarPdfAssinado(e: React.ChangeEvent<HTMLInputElement>) {
@@ -371,8 +343,8 @@ export default function PlanoManutencaoInner() {
               <button style={{ ...S.btn, ...S.btnSec }} onClick={() => window.location.href = retorno}>
                 Voltar
               </button>
-              <button style={{ ...S.btn, ...S.btnSec }} onClick={salvarPDF}>
-                ↓ Baixar PDF
+              <button style={{ ...S.btn, ...S.btnSec, opacity: gerandoPdf ? 0.6 : 1 }} onClick={salvarPDF} disabled={gerandoPdf}>
+                {gerandoPdf ? '⏳ Gerando PDF...' : '↓ Baixar PDF'}
               </button>
               <button style={{ ...S.btn, ...S.btnPri, opacity: enviando ? 0.6 : 1 }}
                 onClick={() => inputPdfRef.current?.click()} disabled={enviando}>

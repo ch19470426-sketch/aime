@@ -2,7 +2,6 @@ export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
 
 import { NextRequest, NextResponse } from 'next/server'
-import { gerarCapa } from '@/lib/gerarCapa'
 import { createClient } from '@supabase/supabase-js'
 
 const supabase = createClient(
@@ -186,14 +185,44 @@ export async function POST(request: NextRequest) {
 
     // ── CSS idêntico aos laudos 41-44 ─────────────────────────────────────
     const CSS = `
-@page { size: A4; margin: 25mm 20mm 20mm 25mm; }
+@page {
+  size: A4; margin: 25mm 20mm 20mm 25mm;
+  @top-center {
+    content: ${JSON.stringify(cabIns)};
+    font-family: Arial, sans-serif; font-size: 13pt; font-weight: bold; color: #1E3A8A;
+    border-bottom: 1.5px solid #1E3A8A; padding-bottom: 4pt; width: 100%; text-align: center;
+  }
+  @bottom-left {
+    content: ${JSON.stringify(rodIns)};
+    font-family: Arial, sans-serif; font-size: 7.5pt; color: #374151;
+    border-top: 1px solid #ccc; padding-top: 3pt;
+  }
+  @bottom-center { content: ''; border-top: 1px solid #ccc; padding-top: 3pt; }
+  @bottom-right {
+    content: "Pág. " counter(page);
+    font-family: Arial, sans-serif; font-size: 7.5pt; color: #374151;
+    border-top: 1px solid #ccc; padding-top: 3pt;
+  }
+}
+@page :first {
+  margin: 8mm 20mm 8mm 25mm;
+  counter-reset: page 0;
+  @top-left-corner  { content: ''; background: #1E3A8A; }
+  @top-left         { content: ''; background: #1E3A8A; }
+  @top-center       { content: ''; background: #1E3A8A; }
+  @top-right        { content: ''; background: #1E3A8A; }
+  @top-right-corner { content: ''; background: #1E3A8A; }
+  @bottom-left-corner  { content: ''; background: #1E3A8A; }
+  @bottom-left         { content: ''; background: #1E3A8A; }
+  @bottom-center       { content: ''; background: #1E3A8A; }
+  @bottom-right        { content: ''; background: #1E3A8A; }
+  @bottom-right-corner { content: ''; background: #1E3A8A; }
+}
 @media print {
   head, title { display: none; }
   body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
-.rodape-fixo { position: running(rodapefixo); }
-@page { @bottom-center { content: element(rodapefixo); font-size: 8pt; color: #374151; } }
 body { font-family: Arial, sans-serif; color: #000; background: #fff; font-size: 9pt; line-height: 1.5; }
 p { margin: 4pt 0; text-align: justify; color: #000; }
 h1, h2, h3 { font-weight: bold; color: #000; margin: 10pt 0 4pt; }
@@ -225,16 +254,11 @@ th:last-child { border-right: none; }
 td { border-top: 1px solid #1E3A8A; border-right: 1px solid #1E3A8A; padding: 6px 8px; font-size: 8pt; color: #222; vertical-align: middle; }
 td:last-child { border-right: none; }
 tr:nth-child(even) td { background: #f7f9ff; }
-@page capa-pg { size: A4 portrait; margin: 0; }
-@page capa-pg { @bottom-center { content: none; } }
-.pg-capa { page: capa-pg; page-break-after: always; counter-reset: page 0; }
-.pg-indice { page-break-after: always; padding-top: 10mm; counter-reset: page 1; }
+.pg-indice { page-break-after: always; padding-top: 10mm; }
 .indice-titulo { font-size: 14pt; font-weight: 900; color: #1E3A8A; text-align: center; margin-bottom: 16pt; border-bottom: 2px solid #1E3A8A; padding-bottom: 6pt; }
 .indice-item { display: flex; align-items: baseline; padding: 3pt 0; font-size: 9pt; }
 .indice-num { min-width: 40pt; font-weight: 700; color: #1E3A8A; flex-shrink: 0; }
 .indice-dots { flex: 1; border-bottom: 1px dotted #aaa; margin: 0 4pt 2pt; }
-.anx1-page { page: anx1page; }
-@page anx1page { size: A4 portrait; margin: 15mm 15mm 15mm 20mm; }
 `
 
     // ── Tabela 1.2 ────────────────────────────────────────────────────────
@@ -392,21 +416,32 @@ tr:nth-child(even) td { background: #f7f9ff; }
     const html = `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>${xe(titulo)}</title><style>${CSS}</style></head><body>
 
 
-${gerarCapa({
-  titulo: xe(titulo),
-  subtitulo: 'PLANO DE MANUTENÇÃO',
-  razaoSocial: xe(estab?.razao_social_nome||estab?.razao_social||''),
-  logradouro: xe(estab?.logradouro||''),
-  cidade: xe(estab?.cidade||''),
-  uf: xe(estab?.uf||''),
-  logo: logoB64 || '',
-  cabecalhoTexto: xe(inspetor?.cabecalho_documentos || ''),
-  nomeInspetor: nomeIns,
-  tituloInspetor: tituloIns,
-  registroInspetor: siglaIns + ' ' + numIns,
-  especializacao: inspetor?.especializacao || '',
-  data: new Date().toLocaleDateString('pt-BR'),
-})}
+${(() => {
+  const capaEnderecoPM = [xe(estab?.logradouro||''), estab?.cidade && estab?.uf ? `${xe(estab.cidade)}/${xe(estab.uf)}` : xe(estab?.cidade||estab?.uf||'')].filter(Boolean).join(' — ')
+  const capaLogoTagPM = logoB64
+    ? `<img src="${logoB64}" style="max-height:28mm;max-width:95mm">`
+    : (cabIns ? `<div style="font-family:Arial,sans-serif;font-size:18pt;font-weight:900;color:#1E3A8A;line-height:1.3">${cabIns}</div>` : '')
+  return `
+<div class="pg-capa" style="page-break-after:always;position:relative;height:281mm;font-family:Arial,sans-serif">
+  ${capaLogoTagPM ? `<div style="position:absolute;top:16mm;left:0;right:0;text-align:center">${capaLogoTagPM}</div>` : ''}
+  <div style="position:absolute;top:140mm;left:0;right:0;text-align:center">
+    <div style="font-size:8pt;color:#6B7280;letter-spacing:3px;text-transform:uppercase;margin-bottom:8pt">PLANO DE MANUTENÇÃO</div>
+    <div style="font-size:20pt;font-weight:900;color:#1E3A8A;line-height:1.2;margin-bottom:8pt">${xe(titulo)}</div>
+    <div style="font-size:13pt;font-weight:700;color:#374151;margin-bottom:4pt">${xe(estab?.razao_social_nome||estab?.razao_social||'')}</div>
+    ${capaEnderecoPM ? `<div style="font-size:9pt;color:#374151">${capaEnderecoPM}</div>` : ''}
+  </div>
+  <div style="position:absolute;top:262mm;left:0;right:0">
+    <div style="border-top:2px solid #1E3A8A;margin:0"></div>
+    <div style="padding:3mm 0 1mm;font-size:9.5pt;color:#222;line-height:1.9">
+      <b style="color:#1E3A8A">Inspetor Respons&aacute;vel:</b> ${nomeIns}<br>
+      ${tituloIns ? `<b style="color:#1E3A8A">T&iacute;tulo Profissional:</b> ${xe(tituloIns)}${siglaIns||numIns ? ' &mdash; ' + xe(siglaIns + ' ' + numIns) : ''}<br>` : ''}
+      ${inspetor?.especializacao ? `<b style="color:#1E3A8A">Especialidade:</b> Especialista ${xe(inspetor.especializacao)}<br>` : ''}
+      <b style="color:#1E3A8A">Data:</b> ${xe(new Date().toLocaleDateString('pt-BR'))}
+    </div>
+  </div>
+</div>
+`
+})()}
 
 
 <div class="section"><div class="pg-indice">
@@ -419,9 +454,7 @@ ${gerarCapa({
 
 
 <div>
-${cabIns?`<div class="cab"><b>${cabIns}</b></div>`:''}
-<br><br><br><br><br>
-
+<div style="height:80pt"></div>
 <div class="titulo">1.- Considerações Preliminares.</div>
 <p>&nbsp;</p>
 <p>A execução da manutenção representa uma das principais ações para garantir a continuidade operacional das edificações e dos processos, proteger pessoas e trabalhadores, preservar o patrimônio, e assegurar a conformidade com a legislação vigente.</p>
@@ -516,11 +549,8 @@ ${paragrafoHtml(grupo5154?OBJETIVOS_51_54:OBJETIVOS_55_58)}
   ${espIns?`<p>${espIns}</p>`:''}
 </div>
 
-${rodIns?`<div class="rod">${rodIns}</div>`:''}
 </div>
 <div class="section" style="page-break-before:always">
-<div class="anx1-page">
-${cabIns?`<div class="cab"><b>${cabIns}</b></div>`:''}
 <div style="text-align:center;font-size:11pt;font-weight:700;margin:4pt 0 6pt;color:#1E3A8A">Anexo 1 – Plano Executivo dos Serviços de Manutenção</div>
 <table style="font-size:7.5pt;width:100%;border-collapse:collapse;border:1.5px solid #1E3A8A">
 <tr>
@@ -536,8 +566,6 @@ ${cabIns?`<div class="cab"><b>${cabIns}</b></div>`:''}
 </tr>
 ${anx1Rows||'<tr><td colspan="6" style="text-align:center;color:#9a3412;font-style:italic;padding:12pt">Nenhuma não conformidade registrada.</td></tr>'}
 </table>
-${rodIns?`<div class="rod" style="margin-top:8pt">${rodIns}</div>`:''}
-</div>
 </div>
 
 
