@@ -244,6 +244,14 @@ function HomologarProdutoInner() {
           border-top: 1px solid #ccc; padding-top: 3pt;
         }
       }
+      /* Capa (página 1): superior=0, inferior=0, esquerda=25mm, direita=20mm.
+         Sem cabeçalho/rodapé de página — a própria capa já tem suas faixas azuis. */
+      @page :first {
+        margin: 0 20mm 0 25mm;
+        @top-center    { content: none; }
+        @bottom-left   { content: none; }
+        @bottom-right  { content: none; }
+      }
       body { -webkit-print-color-adjust: exact; print-color-adjust: exact; margin: 0 !important; padding: 0 !important; }
       .cab, .rod { display: none !important; }
       .pg-capa { page-break-after: always; }
@@ -313,9 +321,16 @@ function HomologarProdutoInner() {
           '    border-top: 1px solid #ccc; padding-top: 3pt;',
           '  }',
           '}',
+          '@page :first {',
+          '  margin: 0 20mm 0 25mm;',
+          '  @top-center { content: none; }',
+          '  @bottom-left { content: none; }',
+          '  @bottom-right { content: none; }',
+          '}',
           '@media print {',
           '  body { -webkit-print-color-adjust: exact; print-color-adjust: exact; margin: 0 !important; padding: 0 !important; }',
           '  .cab, .rod { display: none !important; }',
+          '  .pg-capa { page-break-after: always; }',
           '}',
         ].join('\n')
 
