@@ -2128,8 +2128,8 @@ const capaLogoTag = logoB64
 
 const CAPA_HTML = `
 <div class="pg-capa" style="page-break-after:always;counter-reset:page 0;display:flex;flex-direction:column;min-height:265mm;font-family:Arial,sans-serif">
-  ${capaLogoTag ? `<div style="text-align:center;padding:8mm 0 0">${capaLogoTag}</div>` : ''}
-  <div style="flex:1;display:flex;align-items:center;justify-content:center">
+  ${capaLogoTag ? `<div style="text-align:center;padding:24mm 0 0">${capaLogoTag}</div>` : ''}
+  <div style="flex:1;display:flex;align-items:flex-end;justify-content:center;padding-bottom:20mm">
     <div style="text-align:center">
       <div style="font-size:8pt;color:#6B7280;letter-spacing:3px;text-transform:uppercase;margin-bottom:8pt">LAUDO TÉCNICO</div>
       <div style="font-size:20pt;font-weight:900;color:#1E3A8A;line-height:1.2;margin-bottom:8pt">${xe(titulo)}</div>
@@ -2139,7 +2139,7 @@ const CAPA_HTML = `
   </div>
   <div>
     <div style="border-top:2px solid #1E3A8A;margin:0"></div>
-    <div style="padding:7mm 0;font-size:9.5pt;color:#222;line-height:1.9">
+    <div style="padding:3mm 0 1mm;font-size:9.5pt;color:#222;line-height:1.9">
       <b style="color:#1E3A8A">Inspetor Respons&aacute;vel:</b> ${xe(inspetor?.nome_inspetor||'')}<br>
       ${tituloIns ? `<b style="color:#1E3A8A">T&iacute;tulo Profissional:</b> ${xe(tituloIns)}${siglaIns||numIns ? ' &mdash; ' + xe(siglaIns + ' ' + numIns) : ''}<br>` : ''}
       ${inspetor?.especializacao ? `<b style="color:#1E3A8A">Especialidade:</b> Especialista ${xe(inspetor.especializacao)}<br>` : ''}
