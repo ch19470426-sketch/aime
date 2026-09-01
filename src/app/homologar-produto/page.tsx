@@ -227,16 +227,20 @@ function HomologarProdutoInner() {
     const nomeBase = nomeArquivo.replace(/\.html$/i, '.pdf')
 
     try {
-      // Gera o PDF no servidor via Puppeteer — controle total de margens,
-      // sem depender do driver de impressão do navegador/Windows (que ignora
-      // margens negativas e não permite full-bleed real).
-      // Não enviamos o HTML completo aqui (fotos em base64 estouram o limite
-      // de 4.5MB do Vercel para corpo de requisição) — o servidor busca o
-      // HTML já salvo no Storage, sem limite de tamanho.
+      // Fotos em base64 estouram o limite de 4.5MB do Vercel para o corpo da
+      // requisição. Em vez de reenviá-las, extraímos cada src="data:image/..."
+      // e trocamos por um placeholder pequeno — o servidor já tem as fotos
+      // originais salvas no Storage e as reinsere na mesma ordem, mantendo o
+      // texto editado na tela.
+      let fotoIdx = 0
+      const htmlSemFotos = htmlAtual.replace(/src="(data:image\/[^"]+)"/g, () => {
+        return `src="PLACEHOLDER_FOTO_${fotoIdx++}"`
+      })
+
       const res = await fetch('/api/gerar-laudo-pdf', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ nomeArquivo })
+        body: JSON.stringify({ nomeArquivo, htmlSemFotos })
       })
       if (!res.ok) {
         let detalhe = ''

@@ -13,13 +13,36 @@ const supabase = createClient(
 
 export async function POST(request: NextRequest) {
   try {
-    const { nomeArquivo, html: htmlDireto } = await request.json()
+    const { nomeArquivo, html: htmlDireto, htmlSemFotos } = await request.json()
     if (!nomeArquivo)
       return NextResponse.json({ erro: 'nomeArquivo obrigatório.' }, { status: 400 })
 
     let html: string
-    if (htmlDireto) {
-      // HTML enviado diretamente (ex: com edições do usuário na tela) — usa sem buscar do Storage
+    if (htmlSemFotos) {
+      // Texto editado na tela, mas SEM as fotos (removidas no cliente para não
+      // estourar o limite de 4.5MB do corpo da requisição). Busca o HTML
+      // original salvo no Storage, extrai as fotos na ordem em que aparecem
+      // e reinsere nos placeholders — mantém a edição de texto sem reenviar
+      // fotos que o servidor já tem.
+      const { data: blobOriginal, error: errOriginal } = await supabase.storage
+        .from('aime')
+        .download(`documentos_inspetor/${nomeArquivo}`)
+      if (errOriginal || !blobOriginal)
+        return NextResponse.json({ erro: 'HTML original não encontrado para mesclar fotos.' }, { status: 404 })
+      const htmlOriginal = await blobOriginal.text()
+      const fotosOriginais = [...htmlOriginal.matchAll(/src="(data:image\/[^"]+)"/g)].map(m => m[1])
+
+      let fotoIdx = 0
+      html = htmlSemFotos.replace(/src="PLACEHOLDER_FOTO_(\d+)"/g, (_m: string, idxStr: string) => {
+        const idx = Number(idxStr)
+        const foto = fotosOriginais[idx]
+        fotoIdx++
+        return foto ? `src="${foto}"` : `src=""`
+      })
+      console.log(`[gerar-laudo-pdf] fotos mescladas: ${fotoIdx} placeholders, ${fotosOriginais.length} disponiveis no original`)
+    } else if (htmlDireto) {
+      // HTML enviado diretamente e completo (sem placeholders) — usado quando
+      // não há risco de payload grande (ex: plano de manutenção, sem fotos)
       html = htmlDireto
     } else {
       // Baixar HTML do storage
