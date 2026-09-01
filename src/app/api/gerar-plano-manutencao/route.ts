@@ -428,7 +428,7 @@ ${(() => {
     <div style="font-size:13pt;font-weight:700;color:#374151;margin-bottom:4pt">${xe(estab?.razao_social_nome||estab?.razao_social||'')}</div>
     ${capaEnderecoPM ? `<div style="font-size:9pt;color:#374151">${capaEnderecoPM}</div>` : ''}
   </div>
-  <div style="position:absolute;top:248mm;left:0;right:0">
+  <div style="position:absolute;top:238mm;left:0;right:0">
     <div style="border-top:2px solid #1E3A8A;margin:0"></div>
     <div style="padding:3mm 0 1mm;font-size:9.5pt;color:#222;line-height:1.9">
       <b style="color:#1E3A8A">Inspetor Respons&aacute;vel:</b> ${nomeIns}<br>
