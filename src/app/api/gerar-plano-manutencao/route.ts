@@ -393,7 +393,6 @@ tr:nth-child(even) td { background: #f7f9ff; }
 <td colspan="2" style="font-size:6.5pt;color:#1E3A8A;padding:1pt 5pt"><b>Local ocorrência:</b></td>
 <td colspan="2" style="font-size:6.5pt;color:#1E3A8A;padding:1pt 5pt"><b>Tag/Nº Série — Ativo:</b></td>
 <td rowspan="2" style="font-size:8pt;font-weight:700;color:#1E3A8A;padding:3pt;text-align:center;vertical-align:middle;border:1px solid #1E3A8A">Foto Laudo</td>
-<td rowspan="2" style="font-size:8pt;font-weight:700;color:#1E3A8A;padding:3pt;text-align:center;vertical-align:middle;border:1.5px solid #1E3A8A">Aceite</td>
 </tr>
 <tr style="background:#eff6ff">
 <td colspan="2" style="font-size:7.5pt;padding:2pt 5pt">${local}${compl ? ' / ' + compl : ''}</td>
@@ -408,7 +407,6 @@ tr:nth-child(even) td { background: #f7f9ff; }
 <td style="text-align:center;font-weight:700;color:${cor}">${pri}</td>
 <td>${xe(nc.procedimento_corretivo||'')}</td>
 <td style="text-align:center;border:1px solid #1E3A8A">${xe(String(nc.fotoNr||nc.numero_foto||""))}</td>
-<td style="border:1px solid #1E3A8A"></td>
 </tr>`
     })
 
@@ -554,17 +552,16 @@ ${paragrafoHtml(grupo5154?OBJETIVOS_51_54:OBJETIVOS_55_58)}
 <div style="text-align:center;font-size:11pt;font-weight:700;margin:4pt 0 6pt;color:#1E3A8A">Anexo 1 – Plano Executivo dos Serviços de Manutenção</div>
 <table style="font-size:7.5pt;width:100%;border-collapse:collapse;border:1.5px solid #1E3A8A">
 <tr>
-  <th colspan="6" style="text-align:center;font-size:10pt;font-weight:700;background:#1E3A8A;color:#fff;padding:6pt;border-bottom:2px solid #fff">Plano Executivo para os Serviços de Manutenção</th>
+  <th colspan="5" style="text-align:center;font-size:10pt;font-weight:700;background:#1E3A8A;color:#fff;padding:6pt;border-bottom:2px solid #fff">Plano Executivo para os Serviços de Manutenção</th>
 </tr>
 <tr>
   <th style="width:4%">ID</th>
-  <th style="width:30%;text-align:left">Não Conformidade</th>
+  <th style="width:35%;text-align:left">Não Conformidade</th>
   <th style="width:5%;text-align:center">Prior.</th>
-  <th style="width:45%;text-align:left">Intervenção sugerida</th>
+  <th style="width:50%;text-align:left">Intervenção sugerida</th>
   <th style="width:6%;text-align:center">Foto Nº</th>
-  <th style="width:10%;text-align:center">Responsável</th>
 </tr>
-${anx1Rows||'<tr><td colspan="6" style="text-align:center;color:#9a3412;font-style:italic;padding:12pt">Nenhuma não conformidade registrada.</td></tr>'}
+${anx1Rows||'<tr><td colspan="5" style="text-align:center;color:#9a3412;font-style:italic;padding:12pt">Nenhuma não conformidade registrada.</td></tr>'}
 </table>
 </div>
 
