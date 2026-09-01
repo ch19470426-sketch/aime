@@ -53,6 +53,7 @@ function HomologarProdutoInner() {
   const [blobUrl,     setBlobUrl]     = useState('')
   const [erroCarregar, setErroCarregar] = useState(false)
   const [gerandoDocx, setGerandoDocx] = useState(false)
+  const [gerandoPdf, setGerandoPdf] = useState(false)
   const [enviando,    setEnviando]    = useState(false)
   const inputPdfRef = useRef<HTMLInputElement>(null)
   const iframeRef    = useRef<HTMLIFrameElement>(null)
@@ -214,6 +215,8 @@ function HomologarProdutoInner() {
   // PDF do laudo — padrao sincrono identico ao do plano de manutencao (aprovado)
   async function salvarPDFLaudo() {
     if (!html) { informa('Aviso', 'Documento ainda nao carregado. Aguarde.'); return }
+    if (gerandoPdf) return  // evita cliques duplicados
+    setGerandoPdf(true)
 
     const doc = iframeRef.current?.contentDocument ?? null
     const inner = doc?.body?.innerHTML ?? ''
@@ -249,6 +252,8 @@ function HomologarProdutoInner() {
       URL.revokeObjectURL(url)
     } catch (erro) {
       informa('Erro', erro instanceof Error ? erro.message : 'Não foi possível gerar o PDF. Tente novamente.')
+    } finally {
+      setGerandoPdf(false)
     }
   }
 
@@ -452,8 +457,8 @@ function HomologarProdutoInner() {
           <button style={{ ...S.btn, ...S.btnSec }} onClick={() => window.location.href = retorno}>
             Voltar
           </button>
-          <button style={{ ...S.btn, ...S.btnSec }} onClick={salvarPDFLaudo}>
-            ↓ Salvar como PDF
+          <button style={{ ...S.btn, ...S.btnSec, opacity: gerandoPdf ? 0.6 : 1 }} onClick={salvarPDFLaudo} disabled={gerandoPdf}>
+            {gerandoPdf ? '⏳ Gerando PDF... (até 40s)' : '↓ Salvar como PDF'}
           </button>
           <button style={{ ...S.btn, ...S.btnPri, opacity: enviando ? 0.6 : 1 }}
             onClick={() => { setEnviando(false); inputPdfRef.current?.click() }} disabled={enviando}>

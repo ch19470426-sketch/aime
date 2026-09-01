@@ -1,7 +1,7 @@
 // src/app/api/gerar-laudo-pdf/route.ts
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
-export const maxDuration = 60
+export const maxDuration = 120  // Chromium cold-start pode levar 20-40s; margem de seguranca
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
@@ -46,6 +46,7 @@ export async function POST(request: NextRequest) {
     const chromium = (await import('@sparticuz/chromium')).default
     const puppeteer = (await import('puppeteer-core')).default
 
+    console.log('[gerar-laudo-pdf] iniciando browser...')
     const browser = await puppeteer.launch({
       // @sparticuz/chromium v149+: headless e defaultViewport não são mais
       // propriedades expostas — o modo headless já vem embutido em chromium.args
@@ -60,7 +61,9 @@ export async function POST(request: NextRequest) {
 
     try {
       const page = await browser.newPage()
+      console.log('[gerar-laudo-pdf] browser ok, carregando conteudo...')
       await page.setContent(htmlFinal, { waitUntil: 'networkidle0', timeout: 30000 })
+      console.log('[gerar-laudo-pdf] conteudo carregado, gerando pdf...')
       const pdf = await page.pdf({
         // preferCSSPageSize: true é OBRIGATÓRIO para o Puppeteer respeitar as
         // regras @page do CSS (inclusive @page :first). Sem isso, TODAS as
@@ -72,6 +75,7 @@ export async function POST(request: NextRequest) {
         // Sem margin aqui — o @page CSS do HTML controla tudo (agora que
         // preferCSSPageSize está ativado).
       })
+      console.log('[gerar-laudo-pdf] pdf gerado, tamanho:', pdf.length)
       return new NextResponse(pdf, {
         headers: {
           'Content-Type': 'application/pdf',
