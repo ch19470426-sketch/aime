@@ -2103,6 +2103,8 @@ export async function POST(request: NextRequest) {
    manual no corpo do documento (mais confiável que negative-margin). */
 @page :first {
   margin: 8mm 20mm 8mm 25mm;
+  /* Reseta a numeração — a capa não conta, índice começa como página 1 */
+  counter-reset: page 0;
   @top-left-corner  { content: ''; background: #1E3A8A; }
   @top-left         { content: ''; background: #1E3A8A; }
   @top-center       { content: ''; background: #1E3A8A; }
@@ -2135,7 +2137,7 @@ const CAPA_HTML = `
     <div style="font-size:13pt;font-weight:700;color:#374151;margin-bottom:4pt">${xe(estab?.razao_social_nome||estab?.razao_social||'')}</div>
     ${capaEndereco ? `<div style="font-size:9pt;color:#374151">${capaEndereco}</div>` : ''}
   </div>
-  <div style="position:absolute;top:255mm;left:0;right:0">
+  <div style="position:absolute;top:262mm;left:0;right:0">
     <div style="border-top:2px solid #1E3A8A;margin:0"></div>
     <div style="padding:3mm 0 1mm;font-size:9.5pt;color:#222;line-height:1.9">
       <b style="color:#1E3A8A">Inspetor Respons&aacute;vel:</b> ${xe(inspetor?.nome_inspetor||'')}<br>
