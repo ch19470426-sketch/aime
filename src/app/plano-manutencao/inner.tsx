@@ -190,12 +190,20 @@ export default function PlanoManutencaoInner() {
     if (gerandoPdf) return
     setGerandoPdf(true)
     try {
+      // Se foi editado na tela, usar o conteúdo editado — plano de manutenção
+      // não embute fotos em base64, então o HTML fica bem abaixo do limite
+      // de tamanho da requisição (diferente dos laudos, que têm várias fotos).
+      const innerEditado = editRef.current?.innerHTML
+      const htmlParaPdf = innerEditado
+        ? htmlGerado.replace(/<body>([\s\S]*)<\/body>/, `<body>${innerEditado}</body>`)
+        : htmlGerado
+
       // Gera o PDF no servidor via Puppeteer — mesma técnica confiável usada
       // nos laudos (window.print() não respeita margens/paginação corretamente).
       const res = await fetch('/api/gerar-laudo-pdf', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ nomeArquivo: nomeArq })
+        body: JSON.stringify({ nomeArquivo: nomeArq, html: htmlParaPdf })
       })
       if (!res.ok) {
         let detalhe = ''
