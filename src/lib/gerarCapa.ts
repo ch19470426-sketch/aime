@@ -45,7 +45,7 @@ export function gerarCapa(p: CapaParams): string {
 
   const subtitulo = p.subtitulo ?? 'LAUDO TÉCNICO'
 
-  return `<div class="pg-capa" style="${F};display:flex;flex-direction:column;height:297mm;box-sizing:border-box">
+  return `<div class="pg-capa" style="${F};display:flex;flex-direction:column;width:210mm;height:297mm;box-sizing:border-box;background:#fff;position:relative;z-index:100;overflow:hidden">
 
   <div style="height:8mm;background:#1E3A8A;flex:0 0 8mm"></div>
 

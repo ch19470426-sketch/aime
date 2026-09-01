@@ -207,7 +207,16 @@ tr:nth-child(even) td { background: #f7f9ff; }
 @page :first {
   size: A4 portrait;
   margin: 0;
-  @bottom-right { content: none; }
+  @top-left-corner    { content: none; }
+  @top-left           { content: none; }
+  @top-center         { content: none; }
+  @top-right          { content: none; }
+  @top-right-corner   { content: none; }
+  @bottom-left-corner { content: none; }
+  @bottom-left        { content: none; }
+  @bottom-center      { content: none; }
+  @bottom-right       { content: none; }
+  @bottom-right-corner{ content: none; }
 }
 .pg-capa { page-break-after: always; counter-reset: page 0; }
 .capa-barra { background: #1E3A8A; height: 8mm; width: 100%; margin-bottom: 0; }
