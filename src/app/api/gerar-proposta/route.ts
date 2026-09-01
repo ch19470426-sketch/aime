@@ -300,6 +300,8 @@ export async function POST(request: NextRequest) {
     const municipio = municipioUF.split('/')[0].trim()
     const ao = c.ao ?? 'AO'
 
+    const rodIns = insp.rodape_documentos || `${insp.nome_inspetor || ''} — ${insp.titulo_profissional || ''} — CREA/CAU ${insp.inscricao_crea_cau || ''}`
+
     const html = `<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -308,6 +310,17 @@ export async function POST(request: NextRequest) {
 @page {
   size: A4;
   margin: 25mm 20mm 20mm 25mm;
+  @bottom-left {
+    content: ${JSON.stringify(rodIns)};
+    font-family: Arial, sans-serif; font-size: 7.5pt; color: #374151;
+    border-top: 1px solid #ccc; padding-top: 3pt;
+  }
+  @bottom-center { content: ''; border-top: 1px solid #ccc; padding-top: 3pt; }
+  @bottom-right {
+    content: "Pág. " counter(page);
+    font-family: Arial, sans-serif; font-size: 7.5pt; color: #374151;
+    border-top: 1px solid #ccc; padding-top: 3pt;
+  }
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body {
@@ -451,8 +464,6 @@ ${insp.especializacao ? `<p style="margin:0;line-height:1">Especialista ${insp.e
 <p>&nbsp;</p>
 <p style="margin:0;line-height:1">De acordo: _____________________ CPF: _______________ Data: ___/___/______</p>
 <p style="text-align:justify;margin:6pt 0">Síndico/Preposto</p>
-
-${insp.rodape_documentos ? `<div class="rod">${insp.rodape_documentos}</div>` : `<div class="rod">${insp.nome_inspetor || ''} — ${insp.titulo_profissional || ''} — CREA/CAU ${insp.inscricao_crea_cau || ''}</div>`}
 
 </body>
 </html>`
