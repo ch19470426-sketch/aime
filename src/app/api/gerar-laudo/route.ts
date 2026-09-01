@@ -2098,10 +2098,21 @@ export async function POST(request: NextRequest) {
     width: 100%;
   }
 }
-/* Capa: sem cabeçalho/rodapé de página — ela tem suas próprias faixas azuis */
+/* Capa: margem superior/inferior reduzida a 8mm, preenchida de azul —
+   usa a própria área de margem para as faixas, sem depender de posicionamento
+   manual no corpo do documento (mais confiável que negative-margin). */
 @page :first {
-  @top-center { content: none; }
-  @bottom-left { content: none; }
+  margin: 8mm 20mm 8mm 25mm;
+  @top-left-corner  { content: ''; background: #1E3A8A; }
+  @top-left         { content: ''; background: #1E3A8A; }
+  @top-center       { content: ''; background: #1E3A8A; }
+  @top-right        { content: ''; background: #1E3A8A; }
+  @top-right-corner { content: ''; background: #1E3A8A; }
+  @bottom-left-corner  { content: ''; background: #1E3A8A; }
+  @bottom-left         { content: ''; background: #1E3A8A; }
+  @bottom-center       { content: ''; background: #1E3A8A; }
+  @bottom-right        { content: ''; background: #1E3A8A; }
+  @bottom-right-corner { content: ''; background: #1E3A8A; }
 }
 `
 
@@ -2116,9 +2127,8 @@ const capaLogoTag = logoB64
   : (cabInspetor ? `<div style="font-family:Arial,sans-serif;font-size:18pt;font-weight:900;color:#1E3A8A;line-height:1.3">${xe(cabInspetor)}</div>` : '')
 
 const CAPA_HTML = `
-<div class="pg-capa" style="page-break-after:always;display:flex;flex-direction:column;min-height:230mm;font-family:Arial,sans-serif">
-  <div style="height:8mm;background:#1E3A8A"></div>
-  ${capaLogoTag ? `<div style="text-align:center;padding:10mm 0 0">${capaLogoTag}</div>` : ''}
+<div class="pg-capa" style="page-break-after:always;counter-reset:page 0;display:flex;flex-direction:column;min-height:265mm;font-family:Arial,sans-serif">
+  ${capaLogoTag ? `<div style="text-align:center;padding:8mm 0 0">${capaLogoTag}</div>` : ''}
   <div style="flex:1;display:flex;align-items:center;justify-content:center">
     <div style="text-align:center">
       <div style="font-size:8pt;color:#6B7280;letter-spacing:3px;text-transform:uppercase;margin-bottom:8pt">LAUDO TÉCNICO</div>
@@ -2136,7 +2146,6 @@ const CAPA_HTML = `
       <b style="color:#1E3A8A">Data:</b> ${xe(dataHoje)}
     </div>
   </div>
-  <div style="height:8mm;background:#1E3A8A"></div>
 </div>
 `
 
