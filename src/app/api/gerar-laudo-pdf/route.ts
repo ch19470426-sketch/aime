@@ -57,12 +57,15 @@ export async function POST(request: NextRequest) {
       const page = await browser.newPage()
       await page.setContent(htmlFinal, { waitUntil: 'networkidle0', timeout: 30000 })
       const pdf = await page.pdf({
+        // preferCSSPageSize: true é OBRIGATÓRIO para o Puppeteer respeitar as
+        // regras @page do CSS (inclusive @page :first). Sem isso, TODAS as
+        // regras @page são silenciosamente ignoradas e só valem format/margin
+        // abaixo — foi isso que impediu todas as correções de capa até agora.
+        preferCSSPageSize: true,
         format: 'A4',
         printBackground: true,
-        // Margens ZERADAS aqui — controladas exclusivamente pelo @page no CSS do HTML.
-        // Puppeteer sobrepõe QUALQUER margem passada aqui ao @page CSS, ignorando-o.
-        // Isso é o que impedia a capa (@page capa-pg { margin:0 }) de ocupar a página inteira.
-        margin: { top: '0mm', right: '0mm', bottom: '0mm', left: '0mm' },
+        // Sem margin aqui — o @page CSS do HTML controla tudo (agora que
+        // preferCSSPageSize está ativado).
       })
       return new NextResponse(pdf, {
         headers: {
