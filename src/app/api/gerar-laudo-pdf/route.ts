@@ -47,15 +47,15 @@ export async function POST(request: NextRequest) {
     const puppeteer = (await import('puppeteer-core')).default
 
     const browser = await puppeteer.launch({
+      // @sparticuz/chromium v149+: headless e defaultViewport não são mais
+      // propriedades expostas — o modo headless já vem embutido em chromium.args
       args: [
         ...chromium.args,
         '--no-sandbox',
         '--disable-setuid-sandbox',
         '--disable-dev-shm-usage',
       ],
-      defaultViewport: chromium.defaultViewport,
       executablePath: await chromium.executablePath(),
-      headless: chromium.headless,
     })
 
     try {
