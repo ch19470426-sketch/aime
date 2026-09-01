@@ -722,34 +722,34 @@ function PlanoInner() {
                     <thead>
                       {Number(tsNum) <= 34 ? (
                         <tr style={{ background: '#1E3A8A', color: '#fff' }}>
-                          <th style={{ padding: '3px 6px', textAlign: 'left' }}>Tipo de ativo</th>
-                           <th style={{ padding: '3px 6px', textAlign: 'left' }}>Data Habite-se</th>
-                          <th style={{ padding: '3px 6px', textAlign: 'left' }}>Nº pavimentos</th>
-                          <th style={{ padding: '3px 6px', textAlign: 'left' }}>Aptos/Salas</th>
+                          <th style={{ padding: '7px 8px', textAlign: 'left' }}>Tipo de ativo</th>
+                           <th style={{ padding: '7px 8px', textAlign: 'left' }}>Data Habite-se</th>
+                          <th style={{ padding: '7px 8px', textAlign: 'left' }}>Nº pavimentos</th>
+                          <th style={{ padding: '7px 8px', textAlign: 'left' }}>Aptos/Salas</th>
                         </tr>
                       ) : (
                         <tr style={{ background: '#1E3A8A', color: '#fff' }}>
-                          <th style={{ padding: '3px 6px', textAlign: 'left' }}>Tipo de ativo</th>
-                          <th style={{ padding: '3px 6px', textAlign: 'left' }}>Tag/Nº Série</th>
-                          <th style={{ padding: '3px 6px', textAlign: 'left' }}>Dt. início operação</th>
-                          <th style={{ padding: '3px 6px', textAlign: 'left' }}>Subtipo</th>
+                          <th style={{ padding: '7px 8px', textAlign: 'left' }}>Tipo de ativo</th>
+                          <th style={{ padding: '7px 8px', textAlign: 'left' }}>Tag/Nº Série</th>
+                          <th style={{ padding: '7px 8px', textAlign: 'left' }}>Dt. início operação</th>
+                          <th style={{ padding: '7px 8px', textAlign: 'left' }}>Subtipo</th>
                         </tr>
                       )}
                     </thead>
                     <tbody>
                       {ativos.map((a, i) => Number(tsNum) <= 34 ? (
                         <tr key={i} style={{ background: i%2===0?'#f8fafc':'#fff', borderBottom: '1px solid #e2e8f0' }}>
-                          <td style={{ padding: '3px 6px' }}>{a.tipo_ativo}</td>
-                          <td style={{ padding: '3px 6px' }}>{a.data_inicio_operacao ? new Date(a.data_inicio_operacao+'T00:00:00').toLocaleDateString('pt-BR') : ''}</td>
-                          <td style={{ padding: '3px 6px' }}>{a.numero_pavimentos}</td>
-                          <td style={{ padding: '3px 6px' }}>{a.numero_unidades_salas}</td>
+                          <td style={{ padding: '7px 8px' }}>{a.tipo_ativo}</td>
+                          <td style={{ padding: '7px 8px' }}>{a.data_inicio_operacao ? new Date(a.data_inicio_operacao+'T00:00:00').toLocaleDateString('pt-BR') : ''}</td>
+                          <td style={{ padding: '7px 8px' }}>{a.numero_pavimentos}</td>
+                          <td style={{ padding: '7px 8px' }}>{a.numero_unidades_salas}</td>
                         </tr>
                       ) : (
                         <tr key={i} style={{ background: i%2===0?'#f8fafc':'#fff', borderBottom: '1px solid #e2e8f0' }}>
-                          <td style={{ padding: '3px 6px' }}>{a.tipo_ativo}</td>
-                          <td style={{ padding: '3px 6px' }}>{a.tag_ativo_nr_serie}</td>
-                          <td style={{ padding: '3px 6px' }}>{a.data_inicio_operacao ? new Date(a.data_inicio_operacao+'T00:00:00').toLocaleDateString('pt-BR') : ''}</td>
-                          <td style={{ padding: '3px 6px' }}>{a.subtipo}</td>
+                          <td style={{ padding: '7px 8px' }}>{a.tipo_ativo}</td>
+                          <td style={{ padding: '7px 8px' }}>{a.tag_ativo_nr_serie}</td>
+                          <td style={{ padding: '7px 8px' }}>{a.data_inicio_operacao ? new Date(a.data_inicio_operacao+'T00:00:00').toLocaleDateString('pt-BR') : ''}</td>
+                          <td style={{ padding: '7px 8px' }}>{a.subtipo}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -765,17 +765,17 @@ function PlanoInner() {
                   <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '8pt', marginBottom: '10px' }}>
                     <thead>
                       <tr style={{ background: '#1E3A8A', color: '#fff' }}>
-                        <th style={{ padding: '3px 6px', textAlign: 'left' }}>Atividade</th>
-                        <th style={{ padding: '3px 6px', textAlign: 'center', width: '130px' }}>Dt. Início</th>
-                        <th style={{ padding: '3px 6px', textAlign: 'center', width: '130px' }}>Dt. Fim</th>
+                        <th style={{ padding: '7px 8px', textAlign: 'left' }}>Atividade</th>
+                        <th style={{ padding: '7px 8px', textAlign: 'center', width: '130px' }}>Dt. Início</th>
+                        <th style={{ padding: '7px 8px', textAlign: 'center', width: '130px' }}>Dt. Fim</th>
                       </tr>
                     </thead>
                     <tbody>
                       {planoInfo.atividades.map((a, i) => (
                         <tr key={i} style={{ background: i%2===0?'#f8fafc':'#fff', borderBottom: '1px solid #e2e8f0' }}>
-                          <td style={{ padding: '3px 6px', textAlign: 'justify' }}>{a.descricao}</td>
-                          <td style={{ padding: '2px 4px', textAlign: 'center' }}>
-                            <input type="date" style={{ ...S.inputDate, fontSize: '7.5pt', padding: '2px 4px', textAlign: 'center' }}
+                          <td style={{ padding: '7px 8px', textAlign: 'justify' }}>{a.descricao}</td>
+                          <td style={{ padding: '6px 6px', textAlign: 'center' }}>
+                            <input type="date" style={{ ...S.inputDate, fontSize: '7.5pt', padding: '6px 6px', textAlign: 'center' }}
                               value={datas[i]?.ini ?? ''}
                               min="2000-01-01" max="2099-12-31"
                               onFocus={e => { try { (e.target as any).showPicker?.() } catch {} }}
@@ -789,8 +789,8 @@ function PlanoInner() {
                                 setDatas(prev => prev.map((d,j) => j===i ? {...d, ini:v} : d))
                               }} />
                           </td>
-                          <td style={{ padding: '2px 4px', textAlign: 'center' }}>
-                            <input type="date" style={{ ...S.inputDate, fontSize: '7.5pt', padding: '2px 4px', textAlign: 'center' }}
+                          <td style={{ padding: '6px 6px', textAlign: 'center' }}>
+                            <input type="date" style={{ ...S.inputDate, fontSize: '7.5pt', padding: '6px 6px', textAlign: 'center' }}
                               value={datas[i]?.fim ?? ''}
                               min="2000-01-01" max="2099-12-31"
                               onFocus={e => { try { (e.target as any).showPicker?.() } catch {} }}
@@ -820,10 +820,10 @@ function PlanoInner() {
                   <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '8pt', marginBottom: '6px' }}>
                     <thead>
                       <tr style={{ background: '#1E3A8A', color: '#fff' }}>
-                        <th style={{ padding: '3px 6px', textAlign: 'left' }}>Documento</th>
-                        <th style={{ padding: '3px 6px', textAlign: 'left', width: '120px' }}>Situação</th>
-                        <th style={{ padding: '3px 6px', textAlign: 'left', width: '120px' }}>Resultado</th>
-                        <th style={{ padding: '3px 6px', width: '32px' }}></th>
+                        <th style={{ padding: '7px 8px', textAlign: 'left' }}>Documento</th>
+                        <th style={{ padding: '7px 8px', textAlign: 'left', width: '120px' }}>Situação</th>
+                        <th style={{ padding: '7px 8px', textAlign: 'left', width: '120px' }}>Resultado</th>
+                        <th style={{ padding: '7px 8px', width: '32px' }}></th>
                       </tr>
                     </thead>
                     <tbody>
@@ -838,28 +838,28 @@ function PlanoInner() {
                         )
                         : (
                         <tr key={i} style={{ background: i%2===0?'#f8fafc':'#fff', borderBottom: '1px solid #e2e8f0' }}>
-                          <td style={{ padding: '2px 4px' }}>
-                            <input style={{ ...S.input, fontSize: '7.5pt', padding: '2px 4px' }}
+                          <td style={{ padding: '6px 6px' }}>
+                            <input style={{ ...S.input, fontSize: '7.5pt', padding: '6px 6px' }}
                               value={d.doc}
                               onChange={e => setDocs(prev => prev.map((x,j) => j===i ? {...x, doc:e.target.value} : x))} />
                           </td>
-                          <td style={{ padding: '2px 4px' }}>
-                            <select style={{ ...S.input, fontSize: '7.5pt', padding: '2px 4px' }}
+                          <td style={{ padding: '6px 6px' }}>
+                            <select style={{ ...S.input, fontSize: '7.5pt', padding: '6px 6px' }}
                               value={d.sit}
                               onChange={e => setDocs(prev => prev.map((x,j) => j===i ? {...x, sit:e.target.value} : x))}>
                               <option value="">—</option>
                               <option>Entregue</option><option>Pendente</option><option>Desnecessário</option>
                             </select>
                           </td>
-                          <td style={{ padding: '2px 4px' }}>
-                            <select style={{ ...S.input, fontSize: '7.5pt', padding: '2px 4px' }}
+                          <td style={{ padding: '6px 6px' }}>
+                            <select style={{ ...S.input, fontSize: '7.5pt', padding: '6px 6px' }}
                               value={d.res}
                               onChange={e => setDocs(prev => prev.map((x,j) => j===i ? {...x, res:e.target.value} : x))}>
                               <option value="">—</option>
                               <option>Conforme</option><option>Não conforme</option><option>Não se aplica</option>
                             </select>
                           </td>
-                          <td style={{ padding: '2px 4px', textAlign: 'center' }}>
+                          <td style={{ padding: '6px 6px', textAlign: 'center' }}>
                             <button onClick={() => setDocs(prev => prev.filter((_,j) => j!==i))}
                               style={{ background:'#DC2626', color:'#fff', border:'none', borderRadius:'4px', padding:'2px 6px', cursor:'pointer', fontSize:'8pt' }}>✕</button>
                           </td>
@@ -868,7 +868,15 @@ function PlanoInner() {
                       ))}
                     </tbody>
                   </table>
-                  <button onClick={() => setDocs(prev => [...prev, {doc:'', sit:'', res:''}])}
+                  <button onClick={() => setDocs(prev => {
+                    // Inserir sempre ANTES do aviso (⚠️), mantendo-o na última posição
+                    const avisoIdx = prev.findIndex(d => d.doc.startsWith('⚠️'))
+                    const novo = {doc:'', sit:'', res:''}
+                    if (avisoIdx === -1) return [...prev, novo]
+                    const copia = [...prev]
+                    copia.splice(avisoIdx, 0, novo)
+                    return copia
+                  })}
                     style={{ background:'#1E3A8A', color:'#fff', border:'none', borderRadius:'4px', padding:'3px 10px', cursor:'pointer', fontSize:'7.5pt', marginBottom:'10px' }}>
                     + Adicionar documento
                   </button>
