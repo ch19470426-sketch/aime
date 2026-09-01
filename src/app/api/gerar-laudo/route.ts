@@ -1330,8 +1330,8 @@ export async function POST(request: NextRequest) {
       const partsNR: string[] = []
       partsNR.push('<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>' + titulo + '</title><style>' + CSS + '</style></head><body>')
 
-      // CAPA (condicional)
-      if (!semCapa) partsNR.push(gerarCapa({
+      // CAPA NR DESLIGADA — se (false) nunca executa, mantém código para o futuro
+      if (false) partsNR.push(gerarCapa({
         titulo: TITULO_DOC[tipoServico] ?? 'Laudo Técnico',
         subtitulo: 'LAUDO TÉCNICO',
         razaoSocial: xe(estab?.razao_social_nome||estab?.razao_social||''),
@@ -2030,7 +2030,8 @@ export async function POST(request: NextRequest) {
     // ── CAPA ─────────────────────────────────────────────────────────────────
     const logoB64 = inspetor?.logo_base64 || ''
     const logoTag = logoB64 ? `<img src="${logoB64}" style="max-height:33mm;max-width:95mm">` : `<div style="font-size:14pt;font-weight:900;color:#1E3A8A">${xe(inspetor?.cabecalho_documentos||'AIMÊ')}</div>`
-    const CAPA_HTML = gerarCapa({
+    // CAPA DESLIGADA — código mantido para reconstrução futura, mas não usado agora
+    const CAPA_HTML_DESATIVADO = gerarCapa({
       titulo,
       subtitulo: 'LAUDO TÉCNICO',
       razaoSocial: xe(estab?.razao_social_nome||estab?.razao_social||''),
@@ -2086,21 +2087,35 @@ export async function POST(request: NextRequest) {
       ).join('') +
       '</div>'
 
-    const html = `<!DOCTYPE html>
+    const CSS_HEADER_FOOTER = `
+@page {
+  @top-center {
+    content: ${JSON.stringify(cabInspetor)};
+    font-family: Arial, sans-serif; font-size: 9pt; font-weight: bold; color: #1E3A8A;
+    border-bottom: 1.5px solid #1E3A8A; padding-bottom: 4pt; width: 100%; text-align: center;
+  }
+  @bottom-left {
+    content: ${JSON.stringify(rodInspetor)};
+    font-family: Arial, sans-serif; font-size: 7.5pt; color: #374151;
+    border-top: 1px solid #ccc; padding-top: 3pt;
+  }
+}
+`
+
+const html = `<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
 <title>${titulo}</title>
 <style>${CSS}</style>
+<style>${CSS_HEADER_FOOTER}</style>
 </head>
 <body>
-${semCapa ? '' : CAPA_HTML}
-${semCapa ? '' : '<div style="page-break-before:always"></div>'}
+<!-- capa desativada temporariamente -->
 <div class="section">
 ${INDICE_HTML}
 </div>
 <div class="section">
-${cabInspetor ? `<div class="cab">${cabInspetor}</div>` : ''}
 <div style="height:80pt"></div>
 <div class="titulo">1.- Considerações Preliminares.</div>
 <p>Este ${titulo} é o documento completo resultante do trabalho executado na vistoria da edificação, análise, classificação e priorização das manifestações patológicas, conforme exigências da <i>ABNT NBR 16.747/2020 e NBR 15.575</i>, recomendações da <i>Norma de Inspeção Predial do IBAPE de 2025</i> e legislação vigente.</p>
@@ -2281,8 +2296,6 @@ ${srcArt
   ?`<div style="page-break-inside:avoid;text-align:center">${artTag(srcArt)}</div>`
   :`<div class="foto-box" style="height:560px;margin-top:8px">[ ART / RRT — inserir pelo responsável técnico ]</div>`}
 </div>
-
-${rodInspetor?`<div class="rod">${rodInspetor}</div>`:''}
 
 </body>
 </html>`

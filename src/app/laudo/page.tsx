@@ -1022,11 +1022,6 @@ function LaudoComplemento() {
 
           {erro && <p style={{ color: "#DC2626", fontSize: "12px", marginBottom: "12px" }}>{erro}</p>}
 
-          <label style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "12px", color: "#4a6480", marginBottom: "10px", cursor: "pointer" }}>
-            <input type="checkbox" checked={semCapa} onChange={e => setSemCapa(e.target.checked)} />
-            Gerar sem capa (temporário — para validar o restante do documento)
-          </label>
-
           <div style={{ display: "flex", gap: "10px", justifyContent: "flex-end" }}>
             <button style={S.btnSec} onClick={() => window.location.href = '/dashboard'}>Voltar</button>
             <button style={S.btn} onClick={gerarLaudo} disabled={carregando}>
