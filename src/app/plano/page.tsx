@@ -325,7 +325,7 @@ function PlanoInner() {
       const resHtml = await fetch('/api/gerar-plano', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ tipoServico, cpfInspetor, cnpjoucpf, ativos, datas, docs })
+        body: JSON.stringify({ tipoServico, cpfInspetor, cnpjoucpf, ativos, datas, docs: docs.filter(d => d.doc.trim() !== '') })
       })
       const htmlData = await resHtml.json()
       if (!htmlData.html) { informa('Erro', 'Não foi possível gerar o plano.'); return }
