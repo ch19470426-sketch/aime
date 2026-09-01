@@ -129,12 +129,9 @@ const CSS = `
 /* Impressão A4 */
 @page {
   size: A4; margin: 25mm 20mm 20mm 25mm;
-  @bottom-right {
-    content: "Pág. " counter(page);
-    font-family: Arial, sans-serif;
-    font-size: 7.5pt;
-    color: #374151;
-  }
+  /* Cabeçalho e rodapé reais (com dados do inspetor) são injetados
+     dinamicamente via CSS_HEADER_FOOTER, pois dependem de dados por
+     requisição — este @page fica só com tamanho/margem base. */
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -2091,15 +2088,56 @@ export async function POST(request: NextRequest) {
 @page {
   @top-center {
     content: ${JSON.stringify(cabInspetor)};
-    font-family: Arial, sans-serif; font-size: 9pt; font-weight: bold; color: #1E3A8A;
+    font-family: Arial, sans-serif; font-size: 13pt; font-weight: bold; color: #1E3A8A;
     border-bottom: 1.5px solid #1E3A8A; padding-bottom: 4pt; width: 100%; text-align: center;
   }
   @bottom-left {
-    content: ${JSON.stringify(rodInspetor)};
+    content: ${JSON.stringify(rodInspetor)} "   |   Pág. " counter(page);
     font-family: Arial, sans-serif; font-size: 7.5pt; color: #374151;
     border-top: 1px solid #ccc; padding-top: 3pt;
+    width: 100%;
   }
 }
+/* Capa: sem cabeçalho/rodapé de página — ela tem suas próprias faixas azuis */
+@page :first {
+  @top-center { content: none; }
+  @bottom-left { content: none; }
+}
+`
+
+// ── CAPA (reconstruída simples — sem full-bleed, dentro da margem normal) ───
+const capaEndereco = [
+  xe(estab?.logradouro||'') + (estab?.numero_imovel ? ', ' + xe(estab.numero_imovel) : ''),
+  estab?.cidade && estab?.uf ? `${xe(estab.cidade)}/${xe(estab.uf)}` : xe(estab?.cidade||estab?.uf||''),
+].filter(Boolean).join(' — ')
+
+const capaLogoTag = logoB64
+  ? `<img src="${logoB64}" style="max-height:28mm;max-width:95mm">`
+  : (cabInspetor ? `<div style="font-family:Arial,sans-serif;font-size:18pt;font-weight:900;color:#1E3A8A;line-height:1.3">${xe(cabInspetor)}</div>` : '')
+
+const CAPA_HTML = `
+<div class="pg-capa" style="page-break-after:always;display:flex;flex-direction:column;min-height:230mm;font-family:Arial,sans-serif">
+  <div style="height:8mm;background:#1E3A8A"></div>
+  ${capaLogoTag ? `<div style="text-align:center;padding:10mm 0 0">${capaLogoTag}</div>` : ''}
+  <div style="flex:1;display:flex;align-items:center;justify-content:center">
+    <div style="text-align:center">
+      <div style="font-size:8pt;color:#6B7280;letter-spacing:3px;text-transform:uppercase;margin-bottom:8pt">LAUDO TÉCNICO</div>
+      <div style="font-size:20pt;font-weight:900;color:#1E3A8A;line-height:1.2;margin-bottom:8pt">${xe(titulo)}</div>
+      <div style="font-size:13pt;font-weight:700;color:#374151;margin-bottom:4pt">${xe(estab?.razao_social_nome||estab?.razao_social||'')}</div>
+      ${capaEndereco ? `<div style="font-size:9pt;color:#374151">${capaEndereco}</div>` : ''}
+    </div>
+  </div>
+  <div>
+    <div style="border-top:2px solid #1E3A8A;margin:0"></div>
+    <div style="padding:7mm 0;font-size:9.5pt;color:#222;line-height:1.9">
+      <b style="color:#1E3A8A">Inspetor Respons&aacute;vel:</b> ${xe(inspetor?.nome_inspetor||'')}<br>
+      ${tituloIns ? `<b style="color:#1E3A8A">T&iacute;tulo Profissional:</b> ${xe(tituloIns)}${siglaIns||numIns ? ' &mdash; ' + xe(siglaIns + ' ' + numIns) : ''}<br>` : ''}
+      ${inspetor?.especializacao ? `<b style="color:#1E3A8A">Especialidade:</b> Especialista ${xe(inspetor.especializacao)}<br>` : ''}
+      <b style="color:#1E3A8A">Data:</b> ${xe(dataHoje)}
+    </div>
+  </div>
+  <div style="height:8mm;background:#1E3A8A"></div>
+</div>
 `
 
 const html = `<!DOCTYPE html>
@@ -2111,7 +2149,7 @@ const html = `<!DOCTYPE html>
 <style>${CSS_HEADER_FOOTER}</style>
 </head>
 <body>
-<!-- capa desativada temporariamente -->
+${CAPA_HTML}
 <div class="section">
 ${INDICE_HTML}
 </div>
