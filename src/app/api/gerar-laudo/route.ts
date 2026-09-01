@@ -1126,8 +1126,8 @@ export async function POST(request: NextRequest) {
         '48': 'Documentação das Máquinas e Equipamentos para Análise',
       }
       const docsAnexo = DOCS_NR_MAP[tipoServico] ?? []
-      const docsA1 = Object.keys(complemento?.docsAnexo1 ?? {}).length > 0
-        ? Object.keys(complemento.docsAnexo1) : docsAnexo
+      const docsA1 = (Object.keys(complemento?.docsAnexo1 ?? {}).length > 0
+        ? Object.keys(complemento.docsAnexo1) : docsAnexo).filter((d:string) => !d.startsWith('⚠️'))
       const A1nr =
         '<div class="titulo" style="text-align:center">Anexo 1 — ' + (A1_TITULO[tipoServico]??'Documentação Solicitada') + '</div>' +
         '<div>' +
@@ -1919,8 +1919,8 @@ export async function POST(request: NextRequest) {
       <th style="width:21%">Situação</th>
       <th style="text-align:left;width:21%">Resultado</th>
     </tr>
-    ${Object.keys(complemento?.docsAnexo1??{}).length>0
-      ? Object.keys(complemento.docsAnexo1).map(d=>{
+    ${Object.keys(complemento?.docsAnexo1??{}).filter(d=>!d.startsWith('⚠️')).length>0
+      ? Object.keys(complemento.docsAnexo1).filter(d=>!d.startsWith('⚠️')).map(d=>{
       const info=(complemento.docsAnexo1??{})[d]??{situacao:'',resultado:''}
       const sit=info.situacao||'—'
       const res=info.resultado||'—'
