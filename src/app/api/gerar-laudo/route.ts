@@ -206,7 +206,9 @@ tr:nth-child(even) td { background: #f7f9ff; }
    (page: <ident> tem suporte limitado/inconsistente no Chromium headless) */
 @page :first {
   size: A4 portrait;
-  margin: 0;
+  /* superior=0 | direita=20mm | inferior=0 | esquerda=25mm — igual ao restante
+     do documento nas laterais; zero em cima/baixo para as faixas azuis */
+  margin: 0 20mm 0 25mm;
   @top-left-corner    { content: none; }
   @top-left           { content: none; }
   @top-center         { content: none; }

@@ -1,13 +1,16 @@
 // src/lib/gerarCapa.ts
 // Componente gerador de capa — laudos 41-44, 45-48 e planos 51-58
 //
-// TÉCNICA: full-bleed via @page :first { margin: 0 } (ver gerar-laudo/route.ts CSS).
+// MARGENS DA CAPA (@page :first no gerar-laudo/route.ts):
+//   superior = 0 | inferior = 0 | esquerda = 25mm | direita = 20mm
+// As faixas azuis (topo/rodapé) usam margem negativa lateral para
+// alcançar as bordas físicas esquerda/direita (full-bleed só nesse eixo).
+// O restante do conteúdo (texto, título, dados do inspetor) respeita a
+// área útil normal (165mm de largura), igual ao resto do documento.
 // Motor de renderização: Puppeteer/Chromium (NÃO WeasyPrint).
-// A página de capa usa margem zero real — a div .pg-capa ocupa os 210x297mm
-// completos da folha física, sem necessidade de margens negativas.
-// IMPORTANTE: o Puppeteer só respeita essa margem se page.pdf({margin}) também
-// estiver zerado — caso contrário ele sobrepõe QUALQUER @page CSS com seu
-// próprio valor fixo (ver gerar-laudo-pdf/route.ts).
+// IMPORTANTE: o Puppeteer só respeita as margens do @page se page.pdf({margin})
+// também estiver zerado — caso contrário ele sobrepõe QUALQUER @page CSS com
+// seu próprio valor fixo (ver gerar-laudo-pdf/route.ts).
 
 export interface CapaParams {
   titulo: string
@@ -45,13 +48,13 @@ export function gerarCapa(p: CapaParams): string {
 
   const subtitulo = p.subtitulo ?? 'LAUDO TÉCNICO'
 
-  return `<div class="pg-capa" style="${F};display:flex;flex-direction:column;width:210mm;height:297mm;box-sizing:border-box;background:#fff;position:relative;z-index:100;overflow:hidden">
+  return `<div class="pg-capa" style="${F};display:flex;flex-direction:column;height:297mm;box-sizing:border-box;background:#fff;position:relative;z-index:100">
 
-  <div style="height:8mm;background:#1E3A8A;flex:0 0 8mm"></div>
+  <div style="height:8mm;background:#1E3A8A;flex:0 0 8mm;margin:0 -20mm 0 -25mm"></div>
 
-  ${cabHtml ? `<div style="flex:0 0 auto;text-align:center;padding:10mm 20mm 0">${cabHtml}</div>` : ''}
+  ${cabHtml ? `<div style="flex:0 0 auto;text-align:center;padding:10mm 0 0">${cabHtml}</div>` : ''}
 
-  <div style="flex:1 1 auto;display:flex;align-items:center;justify-content:center;padding:0 20mm;min-height:0">
+  <div style="flex:1 1 auto;display:flex;align-items:center;justify-content:center;padding:0;min-height:0">
     <div style="text-align:center">
       <div style="${F};font-size:8pt;color:#6B7280;letter-spacing:3px;text-transform:uppercase;margin-bottom:8pt">${xe(subtitulo)}</div>
       <div style="${F};font-size:20pt;font-weight:900;color:#1E3A8A;line-height:1.2;margin-bottom:8pt">${xe(p.titulo)}</div>
@@ -61,8 +64,8 @@ export function gerarCapa(p: CapaParams): string {
   </div>
 
   <div style="flex:0 0 auto">
-    <div style="border-top:2px solid #1E3A8A;margin:0 20mm"></div>
-    <div style="${F};padding:7mm 20mm;font-size:9.5pt;color:#222;line-height:1.9">
+    <div style="border-top:2px solid #1E3A8A;margin:0"></div>
+    <div style="${F};padding:7mm 0;font-size:9.5pt;color:#222;line-height:1.9">
       <b style="color:#1E3A8A">Inspetor Respons&aacute;vel:</b> ${xe(p.nomeInspetor)}<br>
       ${p.tituloInspetor ? `<b style="color:#1E3A8A">T&iacute;tulo Profissional:</b> ${xe(p.tituloInspetor)}${p.registroInspetor ? ' &mdash; ' + xe(p.registroInspetor) : ''}<br>` : ''}
       ${p.especializacao ? `<b style="color:#1E3A8A">Especialidade:</b> Especialista ${xe(p.especializacao)}<br>` : ''}
@@ -70,7 +73,7 @@ export function gerarCapa(p: CapaParams): string {
     </div>
   </div>
 
-  <div style="height:8mm;background:#1E3A8A;flex:0 0 8mm"></div>
+  <div style="height:8mm;background:#1E3A8A;flex:0 0 8mm;margin:0 -20mm 0 -25mm"></div>
 
 </div>`
 }
