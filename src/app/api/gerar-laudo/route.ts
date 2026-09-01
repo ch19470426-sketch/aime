@@ -1279,6 +1279,7 @@ export async function POST(request: NextRequest) {
       const tituloInsNR = (inspetor?.titulo_profissional||'').replace(/(CREA|CAU|CRECI)[\s-]*/gi,'').trim()
       const numInsNR    = (inspetor?.inscricao_crea_cau||'').replace(/^(CREA|CAU|CRECI)[\s-]*/gi,'').trim()
       const cabNR       = xe(inspetor?.cabecalho_documentos||'')
+      const rodNR       = xe(inspetor?.rodape_documentos) || `${xe(inspetor?.nome_inspetor||'')} — ${xe(inspetor?.titulo_profissional||'')} — ${xe(inspetor?.sigla_conselho||'')} ${xe(inspetor?.numero_registro||'')}`
       const logoB64NR   = inspetor?.logo_base64 || ''
       const logoTagNR   = logoB64NR
         ? '<img src="' + logoB64NR + '" style="max-height:33mm;max-width:95mm">'
@@ -1325,32 +1326,82 @@ export async function POST(request: NextRequest) {
 
       // ── HTML FINAL ─────────────────────────────────────────────────────────
       const partsNR: string[] = []
-      partsNR.push('<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>' + titulo + '</title><style>' + CSS + '</style></head><body>')
+      const CSS_HEADER_FOOTER_NR = `
+@page {
+  @top-center {
+    content: ${JSON.stringify(cabNR)};
+    font-family: Arial, sans-serif; font-size: 13pt; font-weight: bold; color: #1E3A8A;
+    border-bottom: 1.5px solid #1E3A8A; padding-bottom: 4pt; width: 100%; text-align: center;
+  }
+  @bottom-left {
+    content: ${JSON.stringify(rodNR)};
+    font-family: Arial, sans-serif; font-size: 7.5pt; color: #374151;
+    border-top: 1px solid #ccc; padding-top: 3pt;
+  }
+  @bottom-center { content: ''; border-top: 1px solid #ccc; padding-top: 3pt; }
+  @bottom-right {
+    content: "Pág. " counter(page);
+    font-family: Arial, sans-serif; font-size: 7.5pt; color: #374151;
+    border-top: 1px solid #ccc; padding-top: 3pt;
+  }
+}
+@page :first {
+  margin: 8mm 20mm 8mm 25mm;
+  counter-reset: page 0;
+  @top-left-corner  { content: ''; background: #1E3A8A; }
+  @top-left         { content: ''; background: #1E3A8A; }
+  @top-center       { content: ''; background: #1E3A8A; }
+  @top-right        { content: ''; background: #1E3A8A; }
+  @top-right-corner { content: ''; background: #1E3A8A; }
+  @bottom-left-corner  { content: ''; background: #1E3A8A; }
+  @bottom-left         { content: ''; background: #1E3A8A; }
+  @bottom-center       { content: ''; background: #1E3A8A; }
+  @bottom-right        { content: ''; background: #1E3A8A; }
+  @bottom-right-corner { content: ''; background: #1E3A8A; }
+}
+`
 
-      // CAPA NR DESLIGADA — se (false) nunca executa, mantém código para o futuro
-      if (false) partsNR.push(gerarCapa({
-        titulo: TITULO_DOC[tipoServico] ?? 'Laudo Técnico',
-        subtitulo: 'LAUDO TÉCNICO',
-        razaoSocial: xe(estab?.razao_social_nome||estab?.razao_social||''),
-        logradouro: xe(estab?.logradouro||'') + (estab?.numero_imovel ? ', ' + xe(estab.numero_imovel) : ''),
-        cidade: xe(estab?.cidade||''),
-        uf: xe(estab?.uf||''),
-        logo: logoB64NR || '',
-        cabecalhoTexto: xe(inspetor?.cabecalho_documentos || ''),
-        nomeInspetor: xe(inspetor?.nome_inspetor||''),
-        tituloInspetor: tituloInsNR,
-        registroInspetor: siglaInsNR + ' ' + numInsNR,
-        especializacao: inspetor?.especializacao || '',
-        data: dataHojeNR,
-      }))
+      const capaEnderecoNR = [
+        xe(estab?.logradouro||'') + (estab?.numero_imovel ? ', ' + xe(estab.numero_imovel) : ''),
+        estab?.cidade && estab?.uf ? `${xe(estab.cidade)}/${xe(estab.uf)}` : xe(estab?.cidade||estab?.uf||''),
+      ].filter(Boolean).join(' — ')
+
+      const capaLogoTagNR = logoB64NR
+        ? `<img src="${logoB64NR}" style="max-height:28mm;max-width:95mm">`
+        : (cabNR ? `<div style="font-family:Arial,sans-serif;font-size:18pt;font-weight:900;color:#1E3A8A;line-height:1.3">${xe(cabNR)}</div>` : '')
+
+      const tituloCapaNR = TITULO_DOC[tipoServico] ?? 'Laudo Técnico'
+
+      const CAPA_HTML_NR = `
+<div class="pg-capa" style="page-break-after:always;counter-reset:page 0;position:relative;height:281mm;font-family:Arial,sans-serif">
+  ${capaLogoTagNR ? `<div style="position:absolute;top:16mm;left:0;right:0;text-align:center">${capaLogoTagNR}</div>` : ''}
+  <div style="position:absolute;top:140mm;left:0;right:0;text-align:center">
+    <div style="font-size:8pt;color:#6B7280;letter-spacing:3px;text-transform:uppercase;margin-bottom:8pt">LAUDO TÉCNICO</div>
+    <div style="font-size:20pt;font-weight:900;color:#1E3A8A;line-height:1.2;margin-bottom:8pt">${xe(tituloCapaNR)}</div>
+    <div style="font-size:13pt;font-weight:700;color:#374151;margin-bottom:4pt">${xe(estab?.razao_social_nome||estab?.razao_social||'')}</div>
+    ${capaEnderecoNR ? `<div style="font-size:9pt;color:#374151">${capaEnderecoNR}</div>` : ''}
+  </div>
+  <div style="position:absolute;top:262mm;left:0;right:0">
+    <div style="border-top:2px solid #1E3A8A;margin:0"></div>
+    <div style="padding:3mm 0 1mm;font-size:9.5pt;color:#222;line-height:1.9">
+      <b style="color:#1E3A8A">Inspetor Respons&aacute;vel:</b> ${xe(inspetor?.nome_inspetor||'')}<br>
+      ${tituloInsNR ? `<b style="color:#1E3A8A">T&iacute;tulo Profissional:</b> ${xe(tituloInsNR)}${siglaInsNR||numInsNR ? ' &mdash; ' + xe(siglaInsNR + ' ' + numInsNR) : ''}<br>` : ''}
+      ${inspetor?.especializacao ? `<b style="color:#1E3A8A">Especialidade:</b> Especialista ${xe(inspetor.especializacao)}<br>` : ''}
+      <b style="color:#1E3A8A">Data:</b> ${xe(dataHojeNR)}
+    </div>
+  </div>
+</div>
+`
+
+      partsNR.push('<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>' + titulo + '</title><style>' + CSS + '</style><style>' + CSS_HEADER_FOOTER_NR + '</style></head><body>')
+      partsNR.push(CAPA_HTML_NR)
 
       // ÍNDICE
       partsNR.push('<div class="section"><div class="pg-indice"><div class="indice-titulo">ÍNDICE</div>' + indiceHtmlNR + '</div></div>')
 
       // CORPO
       partsNR.push('<div>')
-      if (cabNR) partsNR.push('<div class="cab">' + cabNR + '</div>')
-      partsNR.push('<br><br><br><br><br>')
+      partsNR.push('<div style="height:80pt"></div>')
 
       // 1. Considerações Preliminares
       partsNR.push('<div class="titulo">1.- Considerações Preliminares.</div>')
@@ -1455,8 +1506,6 @@ export async function POST(request: NextRequest) {
           : '<div style="border:2px dashed #1E3A8A;min-height:260mm;margin:10mm 0;display:flex;align-items:center;justify-content:center"><p style="color:#6b7280;font-size:8.5pt;text-align:center">ART / RRT não anexada.<br>Inserir a ART ou RRT na tela de coleta de dados.</p></div>'
         ) +
         '</div>')
-      const rodNR = xe(inspetor?.rodape_documentos) || `${xe(inspetor?.nome_inspetor||'')} — ${xe(inspetor?.titulo_profissional||'')} — ${xe(inspetor?.sigla_conselho||'')} ${xe(inspetor?.numero_registro||'')}`
-      if (rodNR) partsNR.push('<div class="rod">' + rodNR + '</div>')
       partsNR.push('</body></html>')
 
       const htmlNR = partsNR.join('\n')
