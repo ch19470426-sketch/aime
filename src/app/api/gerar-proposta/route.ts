@@ -305,13 +305,16 @@ export async function POST(request: NextRequest) {
 <head>
 <meta charset="UTF-8">
 <style>
+@page {
+  size: A4;
+  margin: 25mm 20mm 20mm 25mm;
+}
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body {
   font-family: Arial, sans-serif;
   font-size: 10pt;
   line-height: 1.6;
   color: #000;
-  padding: 1cm 2cm 1cm 2.5cm;
 }
 .cab {
   text-align: center;
