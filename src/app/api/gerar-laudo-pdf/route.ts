@@ -13,18 +13,23 @@ const supabase = createClient(
 
 export async function POST(request: NextRequest) {
   try {
-    const { nomeArquivo } = await request.json()
+    const { nomeArquivo, html: htmlDireto } = await request.json()
     if (!nomeArquivo)
       return NextResponse.json({ erro: 'nomeArquivo obrigatório.' }, { status: 400 })
 
-    // Baixar HTML do storage
-    const { data: blob, error } = await supabase.storage
-      .from('aime')
-      .download(`documentos_inspetor/${nomeArquivo}`)
-    if (error || !blob)
-      return NextResponse.json({ erro: 'HTML não encontrado.' }, { status: 404 })
-
-    const html = await blob.text()
+    let html: string
+    if (htmlDireto) {
+      // HTML enviado diretamente (ex: com edições do usuário na tela) — usa sem buscar do Storage
+      html = htmlDireto
+    } else {
+      // Baixar HTML do storage
+      const { data: blob, error } = await supabase.storage
+        .from('aime')
+        .download(`documentos_inspetor/${nomeArquivo}`)
+      if (error || !blob)
+        return NextResponse.json({ erro: 'HTML não encontrado.' }, { status: 404 })
+      html = await blob.text()
+    }
 
     // Garantir CSS A4 com margens corretas
     const htmlFinal = html.includes('@page')

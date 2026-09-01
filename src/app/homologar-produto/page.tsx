@@ -212,7 +212,7 @@ function HomologarProdutoInner() {
   }
 
   // PDF do laudo — padrao sincrono identico ao do plano de manutencao (aprovado)
-  function salvarPDFLaudo() {
+  async function salvarPDFLaudo() {
     if (!html) { informa('Aviso', 'Documento ainda nao carregado. Aguarde.'); return }
 
     const doc = iframeRef.current?.contentDocument ?? null
@@ -221,67 +221,32 @@ function HomologarProdutoInner() {
       ? html.replace(/(<body[^>]*>)[\s\S]*(<\/body>)/i, (_m, ab, fb) => ab + inner + fb)
       : html
 
-    // Extrair cab/rod via regex no HTML string (mais confiável que querySelector no iframe)
-    const { cabecalho: cabTxt, rodape: rodTxt } = extrairCabRod(htmlAtual)
-
-    const printCss = `
-      @page {
-        size: A4;
-        margin: 25mm 20mm 20mm 25mm;
-        @top-center {
-          content: ${JSON.stringify(cabTxt)};
-          font-family: Arial, sans-serif; font-size: 10pt; font-weight: bold; color: #1E3A8A;
-          border-bottom: 1.5px solid #1E3A8A; padding-bottom: 3pt; width: 100%; text-align: center;
-        }
-        @bottom-left {
-          content: ${JSON.stringify(rodTxt)};
-          font-family: Arial, sans-serif; font-size: 7.5pt; color: #374151;
-          border-top: 1px solid #ccc; padding-top: 3pt;
-        }
-        @bottom-right {
-          content: 'Pag. ' counter(page);
-          font-family: Arial, sans-serif; font-size: 7.5pt; color: #374151;
-          border-top: 1px solid #ccc; padding-top: 3pt;
-        }
-      }
-      /* Capa (página 1): superior=0, inferior=0, esquerda=25mm, direita=20mm.
-         Sem cabeçalho/rodapé de página — a própria capa já tem suas faixas azuis. */
-      @page :first {
-        margin: 0 20mm 0 25mm;
-        @top-center    { content: none; }
-        @bottom-left   { content: none; }
-        @bottom-right  { content: none; }
-      }
-      body { -webkit-print-color-adjust: exact; print-color-adjust: exact; margin: 0 !important; padding: 0 !important; }
-      .cab, .rod { display: none !important; }
-      .pg-capa { page-break-after: always; }
-    `
-    // Nome do PDF baseado no arquivo HTML original (sem extensão)
     const nomeBase = nomeArquivo.replace(/\.html$/i, '.pdf')
-    const tagScript = '<scr' + 'ipt>document.title=' + JSON.stringify(nomeBase)
-      + ';window.addEventListener("load",function(){document.title=' + JSON.stringify(nomeBase)
-      + ';setTimeout(function(){window.print()},600)});</scr' + 'ipt>'
 
-    let htmlPrint = htmlAtual.replace(/<title>[^<]*<\/title>/i, () => '<title>' + nomeBase + '</title>')
-    htmlPrint = htmlPrint.includes('</head>')
-      ? htmlPrint.replace('</head>', () => '<style>' + printCss + '</style></head>')
-      : '<style>' + printCss + '</style>' + htmlPrint
-    htmlPrint = htmlPrint.includes('</body>')
-      ? htmlPrint.replace('</body>', () => tagScript + '</body>')
-      : htmlPrint + tagScript
-
-    const blob = new Blob([htmlPrint], { type: 'text/html;charset=utf-8' })
-    const url  = URL.createObjectURL(blob)
-
-    // Abrir em nova aba para impressão (mais compatível e não perturba o DOM React)
-    const win = window.open(url, '_blank', 'noopener')
-    if (!win) {
-      // Fallback se popup bloqueado
+    try {
+      // Gera o PDF no servidor via Puppeteer — controle total de margens,
+      // sem depender do driver de impressão do navegador/Windows (que ignora
+      // margens negativas e não permite full-bleed real).
+      const res = await fetch('/api/gerar-laudo-pdf', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nomeArquivo, html: htmlAtual })
+      })
+      if (!res.ok) {
+        let detalhe = ''
+        try { detalhe = (await res.json())?.erro ?? '' } catch {}
+        throw new Error(`Falha ao gerar o PDF (${res.status}). ${detalhe}`)
+      }
+      const blob = await res.blob()
+      const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
-      a.href = url; a.target = '_blank'; a.rel = 'noopener noreferrer'
+      a.href = url
+      a.download = nomeBase
       a.click()
+      URL.revokeObjectURL(url)
+    } catch (erro) {
+      informa('Erro', erro instanceof Error ? erro.message : 'Não foi possível gerar o PDF. Tente novamente.')
     }
-    setTimeout(() => URL.revokeObjectURL(url), 120000)
   }
 
   async function baixarEditavel() {
