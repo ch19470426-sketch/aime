@@ -2092,10 +2092,18 @@ export async function POST(request: NextRequest) {
     border-bottom: 1.5px solid #1E3A8A; padding-bottom: 4pt; width: 100%; text-align: center;
   }
   @bottom-left {
-    content: ${JSON.stringify(rodInspetor)} "   |   Pág. " counter(page);
+    content: ${JSON.stringify(rodInspetor)};
     font-family: Arial, sans-serif; font-size: 7.5pt; color: #374151;
     border-top: 1px solid #ccc; padding-top: 3pt;
-    width: 100%;
+  }
+  @bottom-center {
+    content: '';
+    border-top: 1px solid #ccc; padding-top: 3pt;
+  }
+  @bottom-right {
+    content: "Pág. " counter(page);
+    font-family: Arial, sans-serif; font-size: 7.5pt; color: #374151;
+    border-top: 1px solid #ccc; padding-top: 3pt;
   }
 }
 /* Capa: margem superior/inferior reduzida a 8mm, preenchida de azul —
