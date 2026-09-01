@@ -12,6 +12,10 @@ const nextConfig: NextConfig = {
       bodySizeLimit: '80mb',
     },
   },
+  // @sparticuz/chromium precisa ficar fora do bundle — seus binários (pasta bin/)
+  // são copiados como arquivos estáticos, não JS. Se o Next.js tentar empacotá-lo,
+  // o caminho para os binários quebra em runtime ("input directory does not exist").
+  serverExternalPackages: ['@sparticuz/chromium', 'puppeteer-core'],
   // Aumentar limite de body para route handlers (foto base64 pode ser grande)
   api: {
     bodyParser: {
