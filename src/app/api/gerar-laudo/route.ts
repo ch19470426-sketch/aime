@@ -2129,13 +2129,13 @@ const capaLogoTag = logoB64
 const CAPA_HTML = `
 <div class="pg-capa" style="page-break-after:always;counter-reset:page 0;position:relative;height:281mm;font-family:Arial,sans-serif">
   ${capaLogoTag ? `<div style="position:absolute;top:16mm;left:0;right:0;text-align:center">${capaLogoTag}</div>` : ''}
-  <div style="position:absolute;top:180mm;left:0;right:0;text-align:center">
+  <div style="position:absolute;top:140mm;left:0;right:0;text-align:center">
     <div style="font-size:8pt;color:#6B7280;letter-spacing:3px;text-transform:uppercase;margin-bottom:8pt">LAUDO TÉCNICO</div>
     <div style="font-size:20pt;font-weight:900;color:#1E3A8A;line-height:1.2;margin-bottom:8pt">${xe(titulo)}</div>
     <div style="font-size:13pt;font-weight:700;color:#374151;margin-bottom:4pt">${xe(estab?.razao_social_nome||estab?.razao_social||'')}</div>
     ${capaEndereco ? `<div style="font-size:9pt;color:#374151">${capaEndereco}</div>` : ''}
   </div>
-  <div style="position:absolute;bottom:0;left:0;right:0">
+  <div style="position:absolute;top:255mm;left:0;right:0">
     <div style="border-top:2px solid #1E3A8A;margin:0"></div>
     <div style="padding:3mm 0 1mm;font-size:9.5pt;color:#222;line-height:1.9">
       <b style="color:#1E3A8A">Inspetor Respons&aacute;vel:</b> ${xe(inspetor?.nome_inspetor||'')}<br>
