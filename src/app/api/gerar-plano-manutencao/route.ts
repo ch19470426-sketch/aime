@@ -223,7 +223,7 @@ export async function POST(request: NextRequest) {
   body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: Arial, sans-serif; color: #000; background: #fff; font-size: 9pt; line-height: 1.5; }
+body { font-family: Arial, sans-serif; color: #000; background: #fff; font-size: 11pt; line-height: 1.5; }
 p { margin: 4pt 0; text-align: justify; color: #000; }
 h1, h2, h3 { font-weight: bold; color: #000; margin: 10pt 0 4pt; }
 ul, ol { margin: 4pt 0 4pt 1cm; padding: 0; }
