@@ -555,6 +555,13 @@ function Tela40Inner() {
           nc_descricao: nc,
           cp_descricao: cp,
           finalidade_vistoria: form.finalidade || null,
+          // Ao marcar Conforme, os campos derivados de solução (usados no laudo/plano
+          // de manutenção) precisam ficar coerentes — senão o Anexo 1 mostra uma
+          // "Intervenção sugerida" de uma não conformidade que não existe mais.
+          ...(resultado === 'Conforme' ? {
+            descricao_solucao_nc: 'Não aplicável — item conforme.',
+            procedimento_corretivo: 'Não aplicável — item conforme.',
+          } : {}),
         })
       })
 
