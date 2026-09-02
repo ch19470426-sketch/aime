@@ -761,10 +761,17 @@ function Tela40Inner() {
                 </Field>
               </div>
               <Field label={isNR ? 'Requisito Normativo' : 'Anomalia / Falha'}>
-                <select style={S.input} value={anomalia} onChange={e => setAnomalia(e.target.value)} disabled={!subsistema}>
-                  <option value="">Selecione...</option>
-                  {anomaliasFiltradas.map(a => <option key={a} value={a}>{a}</option>)}
-                </select>
+                {isNR && resultado === 'Conforme' ? (
+                  // "Requisito atendido plenamente." não é uma opção real do banco —
+                  // um <select> não consegue exibir um valor que não está na lista de
+                  // opções. Mostra como texto fixo enquanto Conforme estiver marcado.
+                  <input style={S.input} value={anomalia} readOnly />
+                ) : (
+                  <select style={S.input} value={anomalia} onChange={e => setAnomalia(e.target.value)} disabled={!subsistema}>
+                    <option value="">Selecione...</option>
+                    {anomaliasFiltradas.map(a => <option key={a} value={a}>{a}</option>)}
+                  </select>
+                )}
               </Field>
               {isNR ? (
                 <div style={{ ...S.row, ...S.c3 }}>
@@ -775,9 +782,9 @@ function Tela40Inner() {
                       // CP mantém o texto original da vistoria — não é limpa ao marcar Conforme
                       const val = e.target.value
                       if (val === 'Conforme') { setNc('Requisito atendido plenamente.'); setCp('Instalação de acordo com o projeto e normas aplicáveis.'); setAnomalia('Requisito atendido plenamente.') }
-                      else if (val === 'Não aplicável') { setNc('Requisito não se aplica à instalação.'); setCp('') }
-                      else if (val === 'Não verificado') { setNc(''); setCp('') }
-                      else if (val === 'Não conforme') { setNc(''); setCp('') }
+                      else if (val === 'Não aplicável') { setNc('Requisito não se aplica à instalação.'); setCp(''); setAnomalia('') }
+                      else if (val === 'Não verificado') { setNc(''); setCp(''); setAnomalia('') }
+                      else if (val === 'Não conforme') { setNc(''); setCp(''); setAnomalia('') }
                     }}>
                       <option value="">Selecione...</option>
                       {['Conforme', 'Não conforme', 'Não aplicável', 'Não verificado'].map(r => <option key={r} value={r}>{r}</option>)}
