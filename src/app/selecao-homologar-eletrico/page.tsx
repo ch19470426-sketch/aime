@@ -29,9 +29,10 @@ function SelecaoInner() {
   const params        = useSearchParams()
   const cpfEletrico   = params.get('cpf_inspetor')   ?? ''
   const chaveEletrico = params.get('chave_inspetor') ?? ''
-  const cnpjoucpf     = params.get('cnpjoucpf')      ?? ''
+  const cnpjoucpfUrl  = params.get('cnpjoucpf')      ?? ''
 
   const [arts,       setArts]       = useState<any[]>([])
+  const [cnpjNR10,   setCnpjNR10]   = useState('')
   const [carregando, setCarregando] = useState(true)
   const [erro,       setErro]       = useState('')
 
@@ -64,8 +65,10 @@ function SelecaoInner() {
   }
 
   function irNR10() {
+    const cnpjFinal = (cnpjNR10 || cnpjoucpfUrl).replace(/\D/g, '')
+    if (!cnpjFinal) { alert('Informe o CNPJ ou CPF do estabelecimento.'); return }
     window.location.href =
-      `/homologar?cpf_inspetor=${cpfEletrico}&chave_inspetor=${chaveEletrico}&cnpjoucpf=${cnpjoucpf}`
+      `/homologar?cpf_inspetor=${cpfEletrico}&chave_inspetor=${chaveEletrico}&cnpjoucpf=${cnpjFinal}`
   }
 
   function voltar() {
@@ -108,9 +111,19 @@ function SelecaoInner() {
                   ))}
 
                   {/* NR-10 */}
-                  <button style={{ ...S.btn, ...S.btnSec }} onClick={irNR10}>
-                    Vistoria NR-10
-                  </button>
+                  <div style={{ ...S.btn, ...S.btnSec, cursor:'default' }}>
+                    <span>Vistoria NR-10</span>
+                    <span style={S.sub2}>Informe o CNPJ/CPF do estabelecimento</span>
+                    <input
+                      value={cnpjNR10}
+                      onChange={e => setCnpjNR10(e.target.value)}
+                      placeholder="00.000.000/0000-00"
+                      style={{ marginTop:'6px', padding:'8px 10px', borderRadius:'6px', border:'1px solid #c3d4f0', fontSize:'13px', fontFamily:'inherit' }}
+                    />
+                    <button style={{ ...S.btn, ...S.btnPri, marginTop:'8px' }} onClick={irNR10}>
+                      Continuar
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
