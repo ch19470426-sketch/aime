@@ -197,7 +197,7 @@ export async function POST(request: NextRequest) {
     font-family: Arial, sans-serif; font-size: 7.5pt; color: #374151;
     border-top: 1px solid #ccc; padding-top: 3pt; width: 130mm;
   }
-  @bottom-center { content: ''; border-top: 1px solid #ccc; padding-top: 3pt; }
+  @bottom-center { content: ''; border-top: 1px solid #ccc; padding-top: 3pt; width: 10mm; }
   @bottom-right {
     content: "Pág. " counter(page);
     font-family: Arial, sans-serif; font-size: 7.5pt; color: #374151;
@@ -212,11 +212,11 @@ export async function POST(request: NextRequest) {
   @top-center       { content: ''; background: #1E3A8A; }
   @top-right        { content: ''; background: #1E3A8A; }
   @top-right-corner { content: ''; background: #1E3A8A; }
-  @bottom-left-corner  { content: ''; background: #1E3A8A; }
-  @bottom-left         { content: ''; background: #1E3A8A; }
-  @bottom-center       { content: ''; background: #1E3A8A; }
-  @bottom-right        { content: ''; background: #1E3A8A; }
-  @bottom-right-corner { content: ''; background: #1E3A8A; }
+  @bottom-left-corner  { content: ''; background: #1E3A8A; width: auto; }
+  @bottom-left         { content: ''; background: #1E3A8A; width: auto; }
+  @bottom-center       { content: ''; background: #1E3A8A; width: auto; }
+  @bottom-right        { content: ''; background: #1E3A8A; width: auto; }
+  @bottom-right-corner { content: ''; background: #1E3A8A; width: auto; }
 }
 @media print {
   head, title { display: none; }
