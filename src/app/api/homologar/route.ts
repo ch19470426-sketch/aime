@@ -151,7 +151,7 @@ ${!isNR ? `<div class="f"><label>Causa provável (CP)</label><span style="white-
   chaveInspetor, cpfInspetor: dadosVistoria.cpfInspetor, cnpjoucpf, tipoServico: dadosVistoria.tipoServico,
   tipoAtivo, tagNrSerie,
   sistema: dadosVistoria.sistema, subsistema: dadosVistoria.subsistema, anomalia: dadosVistoria.anomalia,
-  origem: dadosVistoria.origem, local: dadosVistoria.local, complemento: dadosVistoria.complemento,
+  origem: dadosVistoria.origem, resultado: dadosVistoria.resultado, local: dadosVistoria.local, complemento: dadosVistoria.complemento,
   grauRisco: dadosVistoria.grauRisco, prioridade: dadosVistoria.prioridade,
   fotoNr: dadosVistoria.fotoNr, dataVistoria: dadosVistoria.dataVistoria,
   nc: dadosVistoria.nc, cp: dadosVistoria.cp,

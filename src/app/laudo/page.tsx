@@ -578,7 +578,17 @@ function LaudoComplemento() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           cpfInspetor, chaveInspetor, cnpjoucpf, tipoServico, semCapa,
-          estab: { ...estab, ...contato }, inspetor, ncs: ncsComSolucao.map(({fotoBase64: _f, ...rest}: any) => rest), nomeArquivo: nome,
+          estab: { ...estab, ...contato }, inspetor,
+          // Laudos NR (45-48): incluir no laudo apenas as NCs com resultado
+          // "Não conforme" — itens Conforme/Não aplicável não são não conformidades.
+          // Vistorias homologadas ANTES desta correção não têm o campo "resultado"
+          // salvo (bug anterior) — nesse caso, mantém o item (não filtra) para não
+          // esconder dados de vistorias antigas por engano.
+          ncs: (['45','46','47','48'].includes(String(tipoServico))
+            ? ncsComSolucao.filter((nc: any) => !nc.resultado || nc.resultado === 'Não conforme')
+            : ncsComSolucao
+          ).map(({fotoBase64: _f, ...rest}: any) => rest),
+          nomeArquivo: nome,
           complemento: {
             nomeConvencao, sinteseEdif,
             pathCroqui,
