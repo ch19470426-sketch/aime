@@ -774,7 +774,7 @@ function Tela40Inner() {
                       setResultado(novo)
                       // CP mantém o texto original da vistoria — não é limpa ao marcar Conforme
                       const val = e.target.value
-                      if (val === 'Conforme') { setNc('Requisito atendido plenamente.'); setCp('Instalação de acordo com o projeto e normas aplicáveis.') }
+                      if (val === 'Conforme') { setNc('Requisito atendido plenamente.'); setCp('Instalação de acordo com o projeto e normas aplicáveis.'); setAnomalia('Requisito atendido plenamente.') }
                       else if (val === 'Não aplicável') { setNc('Requisito não se aplica à instalação.'); setCp('') }
                       else if (val === 'Não verificado') { setNc(''); setCp('') }
                       else if (val === 'Não conforme') { setNc(''); setCp('') }
