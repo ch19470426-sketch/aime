@@ -623,13 +623,13 @@ export async function POST(request: NextRequest) {
   @bottom-left {
     content: ${JSON.stringify(rodIns)};
     font-family: Arial, sans-serif; font-size: 7.5pt; color: #374151;
-    border-top: 1px solid #ccc; padding-top: 3pt;
+    border-top: 1px solid #ccc; padding-top: 3pt; width: 130mm;
   }
   @bottom-center { content: ''; border-top: 1px solid #ccc; padding-top: 3pt; }
   @bottom-right {
     content: "Pág. " counter(page);
     font-family: Arial, sans-serif; font-size: 7.5pt; color: #374151;
-    border-top: 1px solid #ccc; padding-top: 3pt;
+    border-top: 1px solid #ccc; padding-top: 3pt; width: 25mm;
   }
 }
 `

@@ -1336,13 +1336,13 @@ export async function POST(request: NextRequest) {
   @bottom-left {
     content: ${JSON.stringify(rodNR)};
     font-family: Arial, sans-serif; font-size: 7.5pt; color: #374151;
-    border-top: 1px solid #ccc; padding-top: 3pt;
+    border-top: 1px solid #ccc; padding-top: 3pt; width: 130mm;
   }
   @bottom-center { content: ''; border-top: 1px solid #ccc; padding-top: 3pt; }
   @bottom-right {
     content: "Pág. " counter(page);
     font-family: Arial, sans-serif; font-size: 7.5pt; color: #374151;
-    border-top: 1px solid #ccc; padding-top: 3pt;
+    border-top: 1px solid #ccc; padding-top: 3pt; width: 25mm;
   }
 }
 @page :first {
@@ -2143,7 +2143,7 @@ export async function POST(request: NextRequest) {
   @bottom-left {
     content: ${JSON.stringify(rodInspetor)};
     font-family: Arial, sans-serif; font-size: 7.5pt; color: #374151;
-    border-top: 1px solid #ccc; padding-top: 3pt;
+    border-top: 1px solid #ccc; padding-top: 3pt; width: 130mm;
   }
   @bottom-center {
     content: '';
@@ -2152,7 +2152,7 @@ export async function POST(request: NextRequest) {
   @bottom-right {
     content: "Pág. " counter(page);
     font-family: Arial, sans-serif; font-size: 7.5pt; color: #374151;
-    border-top: 1px solid #ccc; padding-top: 3pt;
+    border-top: 1px solid #ccc; padding-top: 3pt; width: 25mm;
   }
 }
 /* Capa: margem superior/inferior reduzida a 8mm, preenchida de azul —
