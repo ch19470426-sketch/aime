@@ -306,7 +306,7 @@ function PlanoInner() {
         if (data.planoInfo) {
           setPlanoInfo(data.planoInfo)
           setDatas(data.planoInfo.atividades.map(() => ({ini:'', fim:''})))
-          setDocs(data.planoInfo.documentos.map((d: string) => ({doc:d, sit:'', res:''})))
+          setDocs(data.planoInfo.documentos.map((d: string) => ({doc:d, sit:'Solicitado', res:''})))
         }
         if (data.docInfo) setInfoDoc(data.docInfo)
         if (data.endereco) setEnderecoDoc(data.endereco)
@@ -847,8 +847,7 @@ function PlanoInner() {
                             <select style={{ ...S.input, fontSize: '7.5pt', padding: '6px 6px' }}
                               value={d.sit}
                               onChange={e => setDocs(prev => prev.map((x,j) => j===i ? {...x, sit:e.target.value} : x))}>
-                              <option value="">—</option>
-                              <option>Entregue</option><option>Pendente</option><option>Desnecessário</option>
+                              <option>Solicitado</option><option>Entregue</option><option>Pendente</option><option>Desnecessário</option>
                             </select>
                           </td>
                           <td style={{ padding: '6px 6px' }}>
@@ -871,7 +870,7 @@ function PlanoInner() {
                   <button onClick={() => setDocs(prev => {
                     // Inserir sempre ANTES do aviso (⚠️), mantendo-o na última posição
                     const avisoIdx = prev.findIndex(d => d.doc.startsWith('⚠️'))
-                    const novo = {doc:'', sit:'', res:''}
+                    const novo = {doc:'', sit:'Solicitado', res:''}
                     if (avisoIdx === -1) return [...prev, novo]
                     const copia = [...prev]
                     copia.splice(avisoIdx, 0, novo)
