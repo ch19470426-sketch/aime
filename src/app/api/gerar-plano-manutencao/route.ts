@@ -168,7 +168,7 @@ export async function POST(request: NextRequest) {
     const nomeIns   = xe(inspetor?.nome_inspetor||'')
     const espIns    = inspetor?.especializacao ? xe(inspetor.especializacao) : ''
     const cabIns    = xe(inspetor?.cabecalho_documentos||'')
-    const rodIns    = xe(inspetor?.rodape_documentos||`${xe(inspetor?.nome_inspetor||'')} — ${tituloIns} — ${siglaIns} ${numIns}`)
+    const rodIns    = xe(inspetor?.rodape_documentos||`${xe(inspetor?.nome_inspetor||'')} — ${tituloIns} — ${siglaIns} ${numIns}`).replace(/\r?\n/g, ' ').trim()
     const logoB64   = inspetor?.logo_base64 || ''
     const logoTag   = logoB64
       ? `<img src="${logoB64}" style="max-height:30mm;filter:brightness(0) invert(1)" alt="Logo">`

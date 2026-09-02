@@ -1569,7 +1569,7 @@ export async function POST(request: NextRequest) {
     const totT = totA+totM+totB
 
     const cabInspetor = xe(inspetor?.cabecalho_documentos) || titulo
-    const rodInspetor = xe(inspetor?.rodape_documentos) || `${xe(inspetor?.nome_inspetor)} — ${xe(inspetor?.titulo_profissional)} — CREA/CAU ${xe(inspetor?.inscricao_crea_cau)}`
+    const rodInspetor = (xe(inspetor?.rodape_documentos) || `${xe(inspetor?.nome_inspetor)} — ${xe(inspetor?.titulo_profissional)} — CREA/CAU ${xe(inspetor?.inscricao_crea_cau)}`).replace(/\r?\n/g, ' ').trim()
 
     // ── Buscar endereço por CEP se logradouro vazio ─────────────────────────
     if (estab?.cep_estabelecimento || estab?.cep) {
