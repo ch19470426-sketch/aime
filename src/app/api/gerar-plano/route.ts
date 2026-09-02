@@ -571,7 +571,7 @@ export async function POST(request: NextRequest) {
 
     // Linhas de documentos
     const stSel = 'width:100%;border:none;border-bottom:1px solid #1E3A8A;font-size:10pt;font-family:Arial'
-    const optSit = '<option value="">—</option><option>Entregue</option><option>Pendente</option><option>Desnecessário</option>'
+    const optSit = '<option value="">—</option><option>Solicitado</option><option>Entregue</option><option>Pendente</option><option>Desnecessário</option>'
     const optRes = '<option value="">—</option><option>Conforme</option><option>Não conforme</option><option>Não se aplica</option>'
     const listaFinal = docsLista.length > 0 ? docsLista : documentos.map(d => ({doc: d, sit: '', res: ''}))
     const linhasDocs = listaFinal.map((item) => {
@@ -585,7 +585,7 @@ export async function POST(request: NextRequest) {
       return [
       '<tr>',
       '<td style="font-size:10pt">' + doc + '</td>',
-      '<td><select style="' + stSel + '"><option value="">—</option><option' + (sit==="Entregue"?" selected":"") + '>Entregue</option><option' + (sit==="Pendente"?" selected":"") + '>Pendente</option><option' + (sit==="Desnecessário"?" selected":"") + '>Desnecessário</option></select></td>',
+      '<td><select style="' + stSel + '"><option value="">—</option><option' + (sit==="Solicitado"?" selected":"") + '>Solicitado</option><option' + (sit==="Entregue"?" selected":"") + '>Entregue</option><option' + (sit==="Pendente"?" selected":"") + '>Pendente</option><option' + (sit==="Desnecessário"?" selected":"") + '>Desnecessário</option></select></td>',
       '<td><select style="' + stSel + '"><option value="">—</option><option' + (res==="Conforme"?" selected":"") + '>Conforme</option><option' + (res==="Não conforme"?" selected":"") + '>Não conforme</option><option' + (res==="Não se aplica"?" selected":"") + '>Não se aplica</option></select></td>',
       '</tr>'
     ].join('')
