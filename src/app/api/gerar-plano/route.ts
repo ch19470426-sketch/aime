@@ -609,14 +609,38 @@ export async function POST(request: NextRequest) {
       'button.add { margin-top: 6pt; background: #1E3A8A; color: #fff; border: none; border-radius: 4px; padding: 4px 12px; cursor: pointer; font-size: 8pt; }',
     ].join('\n')
 
+    const cabIns = insp.cabecalho_documentos || plano.titulo
+    const rodIns = (insp.rodape_documentos || `${insp.nome_inspetor || ''} — ${tituloLimpo(insp.titulo_profissional)} — ${siglaConselho} ${numLimpo(insp.inscricao_crea_cau)}`).replace(/\r?\n/g, ' ').trim()
+    const cssPagina = `
+@page {
+  size: A4;
+  margin: 25mm 20mm 20mm 25mm;
+  @top-center {
+    content: ${JSON.stringify(cabIns)};
+    font-family: Arial, sans-serif; font-size: 13pt; font-weight: bold; color: #1E3A8A;
+    border-bottom: 1.5px solid #1E3A8A; padding-bottom: 4pt; width: 100%; text-align: center;
+  }
+  @bottom-left {
+    content: ${JSON.stringify(rodIns)};
+    font-family: Arial, sans-serif; font-size: 7.5pt; color: #374151;
+    border-top: 1px solid #ccc; padding-top: 3pt;
+  }
+  @bottom-center { content: ''; border-top: 1px solid #ccc; padding-top: 3pt; }
+  @bottom-right {
+    content: "Pág. " counter(page);
+    font-family: Arial, sans-serif; font-size: 7.5pt; color: #374151;
+    border-top: 1px solid #ccc; padding-top: 3pt;
+  }
+}
+`
+
     const partes: string[] = []
     partes.push('<!DOCTYPE html>')
     partes.push('<html lang="pt-BR"><head><meta charset="UTF-8">')
-    partes.push('<style>' + css + '</style>')
+    partes.push('<style>' + css + cssPagina + '</style>')
     partes.push(gerarScriptDatas(atividades.length))
     partes.push('</head><body>')
     partes.push('<div id="msgBanner" style="display:none;position:fixed;top:16px;left:50%;transform:translateX(-50%);background:#1E3A8A;color:#fff;padding:10px 24px;border-radius:8px;font-size:10pt;font-family:Arial;z-index:999;box-shadow:0 4px 12px rgba(0,0,0,0.3)"></div>')
-    partes.push('<div class="cab">' + (insp.cabecalho_documentos || plano.titulo) + '</div>')
     // 2 linhas antes do título
     partes.push('<p style="line-height:1;margin:0">&nbsp;</p>')
     partes.push('<p style="line-height:1;margin:0">&nbsp;</p>')
@@ -636,7 +660,14 @@ export async function POST(request: NextRequest) {
     partes.push('<p style="line-height:1;margin:0">&nbsp;</p>')
     partes.push('<p style="line-height:1;margin:0">&nbsp;</p>')
     // Estabelecimento
-    partes.push('<table style="width:100%;border-collapse:collapse"><tr><td style="border:none;padding:0"><strong>Estabelecimento:</strong> ' + est.razao_social_nome + '</td><td style="border:none;padding:0;text-align:right"><strong>CNPJ/CPF:</strong> ' + fmtCNPJ(cnpjoucpf) + '</td></tr><tr><td colspan="2" style="border:none;padding:0"><strong>Endereço:</strong> ' + endereco + '</td></tr></table>')
+    partes.push('<table style="width:100%;border-collapse:collapse;table-layout:fixed"><tr><td style="border:none;padding:0;width:65%"><strong>Estabelecimento:</strong> ' + est.razao_social_nome + '</td><td style="border:none;padding:0;width:35%;text-align:right;white-space:nowrap"><strong>CNPJ/CPF:</strong> ' + fmtCNPJ(cnpjoucpf) + '</td></tr><tr><td colspan="2" style="border:none;padding:0"><strong>Endereço:</strong> ' + endereco + '</td></tr></table>')
+    partes.push('<p style="line-height:1;margin:0">&nbsp;</p>')
+    partes.push('<p style="line-height:1;margin:0">&nbsp;</p>')
+    partes.push('<p style="line-height:1;margin:0">&nbsp;</p>')
+    partes.push('<p style="line-height:1;margin:0">&nbsp;</p>')
+    partes.push('<h2 style="font-size:10pt;font-weight:bold">1.- Introdução.</h2>')
+    partes.push('<p style="text-align:justify;margin:4pt 0">O Plano de Trabalho estabelece as diretrizes e a programação para a realização dos serviços de vistoria e inspeção. Nele estão identificados e relacionados os ativos a serem vistoriados, a agenda de trabalho e os documentos e informações a serem coletadas para análise.</p>')
+    partes.push('<p style="text-align:justify;margin:4pt 0">Este documento busca organizar previamente as atividades e recursos a utilizar, garantindo maior rastreabilidade, eficiência e qualidade na execução dos serviços.</p>')
     partes.push('<p style="line-height:1;margin:0">&nbsp;</p>')
     partes.push('<h2 style="font-size:10pt;font-weight:bold">1.1.- Ativos a Vistoriar</h2>')
     const thStyle = 'padding:3px 6px;font-size:10pt;text-align:left;background:#1E3A8A;color:#fff'
@@ -666,7 +697,6 @@ export async function POST(request: NextRequest) {
     partes.push('<p style="line-height:1;margin:0">&nbsp;</p>')
     partes.push('<p style="line-height:1;margin:0">De acordo: _____________________ CPF: _______________ Data: ___/___/______</p>')
     partes.push('<p style="line-height:1">' + (String(plano.parceiro ?? '')).replace('Inspetor e ','') + '</p>')
-    partes.push('<div class="rod">' + (insp.rodape_documentos || 'Mapeamento Inteligente de Edificações e Equipamentos') + '</div>')
     partes.push('</body></html>')
 
     const html = partes.join('\n')
