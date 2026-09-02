@@ -64,6 +64,23 @@ function SelecaoInner() {
       `/homologar?cpf_inspetor=${cpfEletrico}&chave_inspetor=${chaveEletrico}&cnpjoucpf=${art.cnpjoucpf}&sistema_fixo=${sistemaEnc}&cpf_eletrico=${cpfEletrico}&cpf_civil=${art.cpf_inspetor}`
   }
 
+  function fmtDoc(v: string) {
+    const d = v.replace(/\D/g,'')
+    if (d.length > 11) {
+      // CNPJ
+      const c = d.slice(0,14)
+      return c.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/,'$1.$2.$3/$4-$5')
+               .replace(/(\d{2})(\d{3})(\d{3})(\d{4})/,'$1.$2.$3/$4')
+               .replace(/(\d{2})(\d{3})(\d{3})/,'$1.$2.$3')
+               .replace(/(\d{2})(\d{3})/,'$1.$2')
+    }
+    // CPF
+    const c = d.slice(0,11)
+    return c.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/,'$1.$2.$3-$4')
+             .replace(/(\d{3})(\d{3})(\d{3})/,'$1.$2.$3')
+             .replace(/(\d{3})(\d{3})/,'$1.$2')
+  }
+
   function irNR10() {
     const cnpjFinal = (cnpjNR10 || cnpjoucpfUrl).replace(/\D/g, '')
     if (!cnpjFinal) { alert('Informe o CNPJ ou CPF do estabelecimento.'); return }
@@ -116,7 +133,7 @@ function SelecaoInner() {
                     <span style={S.sub2}>Informe o CNPJ/CPF do estabelecimento</span>
                     <input
                       value={cnpjNR10}
-                      onChange={e => setCnpjNR10(e.target.value)}
+                      onChange={e => setCnpjNR10(fmtDoc(e.target.value))}
                       placeholder="00.000.000/0000-00"
                       style={{ marginTop:'6px', padding:'8px 10px', borderRadius:'6px', border:'1px solid #c3d4f0', fontSize:'13px', fontFamily:'inherit' }}
                     />

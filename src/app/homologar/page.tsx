@@ -138,6 +138,7 @@ function Tela40Inner() {
 
   // Lista de formulários
   const [formularios,  setFormularios]  = useState<Formulario[]>([])
+  const [valorGutDinamico, setValorGutDinamico] = useState<Record<string,number>>({})
   const formulariosRef = useRef<Formulario[]>([])  // ref sempre atualizada para closures
   const [gateTotal,    setGateTotal]    = useState(0)
   const [indice,       setIndice]       = useState(0)
@@ -191,8 +192,9 @@ function Tela40Inner() {
   const isNR = ehNR(ts)
   const tipoServicoBanco = TIPO_SERVICO_BANCO[ts] ?? ''
 
-  // GR calculado
-  const VALOR_GUT = isNR ? VALOR_GUT_NR : VALOR_GUT_PREDIAL
+  // GR calculado — usa valorGut buscado do banco (criticidade_gut) quando disponível,
+  // com fallback para o mapa estático (pode estar desatualizado em relação ao banco)
+  const VALOR_GUT = Object.keys(valorGutDinamico).length > 0 ? valorGutDinamico : (isNR ? VALOR_GUT_NR : VALOR_GUT_PREDIAL)
   const gravNum = VALOR_GUT[`gravidade:${descGravidade}`] ?? 0
   const urgNum  = VALOR_GUT[`urgencia:${descUrgencia}`]   ?? 0
   const abrNum  = isNR
@@ -223,6 +225,14 @@ function Tela40Inner() {
   // Carregar listas quando tipo_servico mudar
   useEffect(() => {
     if (!tipoServicoBanco) return
+    // Buscar pesos GUT reais do banco (criticidade_gut) — o mapa estático
+    // VALOR_GUT_NR/PREDIAL pode ficar desatualizado em relação às opções
+    // realmente cadastradas na tabela_parametros
+    setValorGutDinamico({})
+    fetch(`/api/criticidade-gut?tipo_servico=${encodeURIComponent(tipoServicoBanco)}`)
+      .then(r => r.json())
+      .then(d => { if (d.valorGut) setValorGutDinamico(d.valorGut) })
+      .catch(() => {})
     async function carregarListas() {
       const sis = await query('sistemas_construtivos', `tipo_servico=eq.${encodeURIComponent(tipoServicoBanco)}&select=sistema&order=sistema`)
       if (Array.isArray(sis)) setSistemas([...new Map(sis.map((s: ItemSistema) => [s.sistema, s])).values()])
@@ -502,8 +512,8 @@ function Tela40Inner() {
       })
       const data = await res.json()
       if (data.nc) setNc(data.nc)
-      if (!isNR && data.cp) setCp(data.cp)
-      setFeedbackIA('✅ NC' + (isNR ? '' : ' e CP') + ' atualizadas!')
+      if (data.cp) setCp(data.cp)
+      setFeedbackIA('✅ NC e CP atualizadas!')
     } catch(e) {
       setFeedbackIA('⚠️ Erro ao gerar NC/CP')
     } finally {
