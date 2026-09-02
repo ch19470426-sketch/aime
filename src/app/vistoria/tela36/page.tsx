@@ -518,12 +518,12 @@ function Tela31Inner() {
                   <select style={S.input} value={resultado} onChange={e => {
                     const val = e.target.value
                     setResultado(val)
-                    if (val === 'Conforme') setNc('Requisito atendido plenamente.')
+                    if (val === 'Conforme') { setNc('Requisito atendido plenamente.'); setCp('Instalação de acordo com o projeto e normas aplicáveis.') }
                     else if (val === 'Não aplicável') setNc('Requisito não se aplica à instalação.')
                     else if (val === 'Não conforme') {
-                      setNc('')
+                      setNc(''); setCp('')
                       if (fotoBase64) gerarNcCp(fotoBase64)
-                    } else setNc('')
+                    } else { setNc(''); setCp('') }
                   }} disabled={!anomalia}>
                     <option value="">Sel...</option>
                     {['Conforme', 'Não conforme', 'Não aplicável', 'Não verificado'].map(r => (
