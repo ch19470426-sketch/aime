@@ -525,8 +525,14 @@ function LaudoComplemento() {
         } catch { /* segue sem recomendação */ }
       }))
 
+      // Excluir itens Conforme ANTES de gerar solução — não são não conformidades,
+      // não fazem sentido em laudos nem planos de manutenção. Vistorias homologadas
+      // antes da correção do campo "resultado" (ausente no AIME-NC-DATA) não têm
+      // esse campo — nesse caso mantém o item para não esconder dados antigos.
+      const ncsNaoConformes = (ncs ?? []).filter((nc: any) => !nc.resultado || nc.resultado === 'Não conforme')
+
       // SNC — solução para cada NC (paralelo)
-      const ncsComSolucao = await Promise.all((ncs ?? []).map(async (nc: any) => {
+      const ncsComSolucao = await Promise.all(ncsNaoConformes.map(async (nc: any) => {
         try {
           const r = await fetch('/api/ia-laudo', {
             method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -579,15 +585,8 @@ function LaudoComplemento() {
         body: JSON.stringify({
           cpfInspetor, chaveInspetor, cnpjoucpf, tipoServico, semCapa,
           estab: { ...estab, ...contato }, inspetor,
-          // Laudos NR (45-48): incluir no laudo apenas as NCs com resultado
-          // "Não conforme" — itens Conforme/Não aplicável não são não conformidades.
-          // Vistorias homologadas ANTES desta correção não têm o campo "resultado"
-          // salvo (bug anterior) — nesse caso, mantém o item (não filtra) para não
-          // esconder dados de vistorias antigas por engano.
-          ncs: (['45','46','47','48'].includes(String(tipoServico))
-            ? ncsComSolucao.filter((nc: any) => !nc.resultado || nc.resultado === 'Não conforme')
-            : ncsComSolucao
-          ).map(({fotoBase64: _f, ...rest}: any) => rest),
+          // Já filtrado (itens Conforme excluídos antes da geração de solução)
+          ncs: ncsComSolucao.map(({fotoBase64: _f, ...rest}: any) => rest),
           nomeArquivo: nome,
           complemento: {
             nomeConvencao, sinteseEdif,

@@ -123,7 +123,11 @@ export default function PlanoManutencaoInner() {
       const dadosNCs = await ncRes.json()
       setEstabNome(info.estabNome || cnpjoucpf)
       setCabInspetor(info.cabInspetor || '')
-      setNcs(dadosNCs.ncs ?? [])
+      // Excluir itens Conforme — não são não conformidades, não fazem sentido
+      // no plano de manutenção. Vistorias antigas sem o campo "resultado"
+      // (bug anterior no AIME-NC-DATA) são mantidas por segurança.
+      const ncsFiltradas = (dadosNCs.ncs ?? []).filter((nc: any) => !nc.resultado || nc.resultado === 'Não conforme')
+      setNcs(ncsFiltradas)
       setEtapa('banner')
     } catch (err) { setErro(String(err)); setEtapa('erro') }
   }
