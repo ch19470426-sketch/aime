@@ -525,16 +525,8 @@ function LaudoComplemento() {
         } catch { /* segue sem recomendação */ }
       }))
 
-      // Solução (IA) só faz sentido para itens Não conforme — para os Conforme,
-      // a lista completa (ncs) é preservada sem solução, pois o Anexo 2 precisa
-      // apresentar TODOS os resultados (Conforme e Não conforme), enquanto o
-      // item 4.1/Anexo 1 e o plano de manutenção filtram por resultado no servidor.
-      const ncsParaSolucao = (ncs ?? []).filter((nc: any) => !nc.resultado || nc.resultado === 'Não conforme')
-      const idsParaSolucao = new Set(ncsParaSolucao.map((nc: any) => nc._arquivo || nc.fotoNr))
-
-      // SNC — solução para cada NC Não conforme (paralelo); Conforme passa direto sem custo de IA
+      // SNC — solução para cada NC (paralelo), inclusive itens Conforme
       const ncsComSolucao = await Promise.all((ncs ?? []).map(async (nc: any) => {
-        if (!idsParaSolucao.has(nc._arquivo || nc.fotoNr)) return nc
         try {
           const r = await fetch('/api/ia-laudo', {
             method: 'POST', headers: { 'Content-Type': 'application/json' },
