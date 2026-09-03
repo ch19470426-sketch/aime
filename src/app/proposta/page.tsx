@@ -222,6 +222,10 @@ function PropostaInner() {
       informa('Atenção', 'Razão Social do estabelecimento é obrigatória.')
       return
     }
+    if (!usoEstab) {
+      informa('Atenção', 'Uso Edificação do estabelecimento é obrigatório.')
+      return
+    }
     setSalvando(true)
     try {
       const isUpdate = !!est
@@ -415,6 +419,17 @@ function PropostaInner() {
                     <input style={S.inputRO} value={endereco} readOnly />
                   </Field>
                 )}
+                <Field label="Uso Edificação">
+                  <select style={modoEdicao ? S.input : S.inputRO} value={usoEstab} disabled={!modoEdicao}
+                    onChange={e => setUsoEstab(e.target.value)}>
+                    <option value="">Selecione...</option>
+                    <option value="Residencial">Residencial</option>
+                    <option value="Comercial">Comercial</option>
+                    <option value="Industrial">Industrial</option>
+                    <option value="Institucional">Institucional</option>
+                    <option value="Misto">Misto</option>
+                  </select>
+                </Field>
 
                 {/* MODO VISUALIZAÇÃO */}
                 {!modoEdicao && (

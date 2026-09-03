@@ -108,6 +108,8 @@ function MeusEstabelecimentosInner() {
 
   async function salvar() {
     if (!editando) return
+    if (!editando.razao_social_nome) { setMsgSalvar('Razão Social é obrigatória.'); return }
+    if (!editando.uso_estabelecimento) { setMsgSalvar('Uso Edificação é obrigatório.'); return }
     setSalvando(true); setMsgSalvar('')
     try {
       const res = await fetch('/api/salvar-estabelecimento', {
@@ -219,7 +221,14 @@ function MeusEstabelecimentosInner() {
                     </div>
                     <div>
                       <label style={S.label}>Uso / Atividade</label>
-                      <input style={{...S.input, backgroundColor:'white'}} value={editando?.uso_estabelecimento ?? ''} onChange={e => setEditando(prev => prev ? {...prev, uso_estabelecimento: e.target.value} : prev)} />
+                      <select style={{...S.input, backgroundColor:'white'}} value={editando?.uso_estabelecimento ?? ''} onChange={e => setEditando(prev => prev ? {...prev, uso_estabelecimento: e.target.value} : prev)}>
+                        <option value="">Selecione...</option>
+                        <option value="Residencial">Residencial</option>
+                        <option value="Comercial">Comercial</option>
+                        <option value="Industrial">Industrial</option>
+                        <option value="Institucional">Institucional</option>
+                        <option value="Misto">Misto</option>
+                      </select>
                     </div>
                   </div>
                 </div>
