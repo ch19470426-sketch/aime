@@ -525,8 +525,11 @@ function Tela40Inner() {
     if (!form) return
     setSalvando(true)
     try {
-      // Salvar em dados_vistoria
-      await fetch(`${SUPA_URL}/rest/v1/dados_vistoria`, {
+      // Salvar em dados_vistoria — nomes de coluna precisam bater EXATAMENTE
+      // com o schema real (numero_foto, sistema_vistoria, subsistema_vistoria,
+      // descricao_nao_conformidade, descricao_causa_provavel — não existem
+      // colunas "gravidade"/"urgencia"/"abrangencia"/"exposicao" nesta tabela).
+      const resDadosVistoria = await fetch(`${SUPA_URL}/rest/v1/dados_vistoria`, {
         method: 'POST',
         headers: {
           'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}`,
@@ -536,34 +539,33 @@ function Tela40Inner() {
           cpf_inspetor: form.cpfInspetor,
           cnpjoucpf: form.cnpjoucpf,
           tipo_servico: form.tipoServico,
-          foto_nr: form.fotoNr,
+          numero_foto: form.fotoNr,
           data_vistoria: form.dataVistoria,
           data_homologacao: new Date().toLocaleDateString('pt-BR'),
           tipo_ativo: form.tipoAtivo,
           tag_ativo_nr_serie: form.tagNrSerie,
-          sistema, subsistema,
+          sistema_vistoria: sistema,
+          subsistema_vistoria: subsistema,
           anomalia_requisito_vistoria: anomalia,
           origem_resultado: isNR ? resultado : origem,
           local_ocorrencia: local,
           complemento_local: complemento,
-          gravidade: gravNum > 0 ? gravNum : form.gravidade,
-          urgencia: urgNum > 0 ? urgNum : form.urgencia,
-          abrangencia: abrNum > 0 ? abrNum : form.abrangencia,
-          exposicao: expNum > 0 ? expNum : form.exposicao,
           grau_risco: (gravNum > 0 && urgNum > 0) ? grauRisco : form.grauRisco,
           prioridade: prioridade || form.prioridade,
-          nc_descricao: nc,
-          cp_descricao: cp,
+          descricao_nao_conformidade: nc,
+          descricao_causa_provavel: cp,
           finalidade_vistoria: form.finalidade || null,
           // Ao marcar Conforme, os campos derivados de solução (usados no laudo/plano
           // de manutenção) precisam ficar coerentes — senão o Anexo 1 mostra uma
           // "Intervenção sugerida" de uma não conformidade que não existe mais.
           ...(resultado === 'Conforme' ? {
             descricao_solucao_nc: 'Não aplicável — item conforme.',
-            procedimento_corretivo: 'Não aplicável — item conforme.',
           } : {}),
         })
       })
+      if (!resDadosVistoria.ok) {
+        console.error('Falha ao salvar dados_vistoria:', await resDadosVistoria.text())
+      }
 
       // Homologar server-side: gera HTML com foto, salva em vistorias_homologadas/, exclui JSON
       const homologarRes = await fetch('/api/homologar', {
