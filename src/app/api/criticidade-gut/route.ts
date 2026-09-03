@@ -28,8 +28,9 @@ export async function GET(request: NextRequest) {
     const percentuais: Record<string, number> = {}
 
     for (const row of data) {
-      const tipo = row.tipo_parametro.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase()
-        .replace('abrangencia','abrangencia').replace('urgencia','urgencia').replace('exposicao','exposicao')
+      // Normaliza removendo acentos E espaços — "Exposição risco" deve virar
+      // "exposicaorisco" (sem espaço) para bater com a chave usada no homologar
+      const tipo = row.tipo_parametro.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/\s+/g,'')
       valorGut[`${tipo}:${row.descricao}`] = Number(row.peso)
       if (row.percentual_calculo != null) {
         percentuais[row.tipo_parametro] = Number(row.percentual_calculo)
