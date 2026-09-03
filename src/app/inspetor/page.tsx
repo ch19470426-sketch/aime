@@ -194,6 +194,8 @@ function CadastroInspetor() {
         const cpfLimpo = form.cpf.replace(/\D/g, '')
         if (ehNovo) {
           window.location.href = `/termo-aceite?cpf=${cpfLimpo}&chave=${encodeURIComponent(chaveGerada)}&proximo=/dashboard`
+        } else if (ehVisualizar) {
+          window.location.href = "/gestor"
         } else {
           window.location.href = "/dashboard"
         }
@@ -293,7 +295,7 @@ function CadastroInspetor() {
             </div>
           ) : (
             <>
-            {(abaInspetor === 'dados' || ehGestor) && <form onSubmit={ehVisualizar ? (e=>e.preventDefault()) : handleSubmit}>
+            {(abaInspetor === 'dados' || ehGestor) && <form onSubmit={handleSubmit}>
               
 
               <div style={blocoStyle}>
@@ -316,7 +318,7 @@ function CadastroInspetor() {
                   <div style={{...grid3, marginTop:"6px"}}>
                     <div>
                       <label style={labelStyle}>Titulo Profissional *</label>
-                      <select name="titulo" value={form.titulo} onChange={ehVisualizar ? undefined : handleChange} required disabled={ehVisualizar || ehConsulta} style={{...inputStyle,...((ehVisualizar || ehConsulta)?{backgroundColor:"#F3F4F6",color:"#6B7280"}:{})}}>
+                      <select name="titulo" value={form.titulo} onChange={ehConsulta ? undefined : handleChange} required disabled={ehConsulta} style={{...inputStyle,...(ehConsulta?{backgroundColor:"#F3F4F6",color:"#6B7280"}:{})}}>
                         <option value="">Selecione...</option>
                         <option value="Arquiteto">Arquiteto</option>
                         <option value="Eng Civil">Eng Civil</option>
