@@ -985,7 +985,7 @@ export async function POST(request: NextRequest) {
             '<tr>' +
             '<td style="' + TH_NC + ';width:4%">Foto</td>' +
             '<td style="' + TH_NC + ';width:30%;text-align:left">Não Conformidade</td>' +
-            '<td style="' + TH_NC + ';width:19%;text-align:left">Local</td>' +
+            '<td style="' + TH_NC + ';width:19%;text-align:left">Local / Complemento</td>' +
             '<td style="' + TH_NC + ';width:8%">Prioridade</td>' +
             '<td style="' + TH_NC + ';width:39%;text-align:left">Solução sugerida</td>' +
             '</tr>'
@@ -1000,7 +1000,7 @@ export async function POST(request: NextRequest) {
         htmlA3 += '<tr>' +
           '<td style="' + TD_NC + ';text-align:center">' + xe(nc.fotoNr||'') + '</td>' +
           '<td style="' + TD_NC + '">' + xe(nc.nc||nc.anomalia||'') + '</td>' +
-          '<td style="' + TD_NC + '">' + xe(nc.local||'') + '</td>' +
+          '<td style="' + TD_NC + '">' + xe(nc.local||'') + (nc.complemento ? ' — ' + xe(nc.complemento) : '') + '</td>' +
           '<td style="' + TD_NC + ';text-align:center;font-weight:700;color:'+corP+'">' + priP + '</td>' +
           '<td style="' + TD_NC + '">' + xe(nc.solucaoNC||nc.descricao_solucao_nc||nc.solucao||nc.sugestao||'') + '</td>' +
           '</tr>'
@@ -1792,7 +1792,7 @@ export async function POST(request: NextRequest) {
     <tr>
       <th style="width:4%">Foto</th>
       <th style="width:28%;text-align:left">Não Conformidade</th>
-      <th style="width:16%;text-align:left">Local</th>
+      <th style="width:16%;text-align:left">Local / Complemento</th>
       <th style="width:8%">Prioridade</th>
       <th style="width:38%;text-align:left">Solução</th>
     </tr>
