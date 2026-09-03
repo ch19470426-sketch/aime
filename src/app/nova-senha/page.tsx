@@ -52,7 +52,8 @@ function NovaSenhaForm() {
 
   async function salvar() {
     setErro('')
-    if (senha.length < 6) { setErro('A senha deve ter pelo menos 6 caracteres.'); return }
+    const senhaOk = senha.length >= 8 && /[A-Za-z]/.test(senha) && /[0-9]/.test(senha) && /[^A-Za-z0-9]/.test(senha)
+    if (!senhaOk) { setErro('A senha deve ter no mínimo 8 caracteres, incluindo pelo menos uma letra, um número e um caractere especial.'); return }
     if (senha !== confirma) { setErro('As senhas não conferem.'); return }
     setLoading(true)
     try {
@@ -60,7 +61,7 @@ function NovaSenhaForm() {
       if (error) {
         const msg = error.message
         if (msg.includes('different from the old password')) setErro('A nova senha deve ser diferente da senha atual.')
-        else if (msg.includes('Password should be')) setErro('A senha deve ter pelo menos 6 caracteres.')
+        else if (msg.includes('Password should be')) setErro('A senha deve ter no mínimo 8 caracteres, incluindo pelo menos uma letra, um número e um caractere especial.')
         else if (msg.includes('Auth session missing')) setErro('Sessão expirada. Solicite um novo link de recuperação.')
         else setErro('Erro ao salvar a senha. Tente novamente.')
         return
@@ -101,7 +102,7 @@ function NovaSenhaForm() {
           ) : (
             <>
               <p style={{fontSize:'13px', color:'#374151', marginBottom:'20px', lineHeight:1.6}}>
-                Digite sua nova senha. Ela deve ter pelo menos 6 caracteres.
+                Digite sua nova senha. Mínimo 8 caracteres, com letra, número e caractere especial.
               </p>
               <label style={S.label}>Nova senha</label>
               <input style={S.input} type="password" placeholder="••••••••"

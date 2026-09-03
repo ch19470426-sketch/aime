@@ -14,11 +14,19 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
 
+// Senha segura: mínimo 8 caracteres, pelo menos 1 letra, 1 número e 1 caractere especial
+function senhaForte(p: string): boolean {
+  return p.length >= 8 && /[A-Za-z]/.test(p) && /[0-9]/.test(p) && /[^A-Za-z0-9]/.test(p)
+}
+
 export async function POST(request: NextRequest) {
   try {
     const { email, password } = await request.json()
     if (!email || !password) {
       return NextResponse.json({ erro: 'E-mail e senha são obrigatórios' }, { status: 400 })
+    }
+    if (!senhaForte(password)) {
+      return NextResponse.json({ erro: 'A senha deve ter no mínimo 8 caracteres, incluindo pelo menos uma letra, um número e um caractere especial.' }, { status: 400 })
     }
 
     const { data, error } = await supabase.auth.admin.createUser({

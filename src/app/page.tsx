@@ -121,7 +121,7 @@ export default function LoginPage() {
         if (!criarRes.ok || criarData.erro) {
           setLoading(false)
           console.error("Erro ao criar conta:", criarData.erro)
-          setErro(String(criarData.erro ?? '').includes("Password") ? "A senha deve ter pelo menos 6 caracteres." : `Não foi possível criar sua conta: ${criarData.erro}`)
+          setErro(String(criarData.erro ?? '').includes("no mínimo 8 caracteres") ? String(criarData.erro) : `Não foi possível criar sua conta: ${criarData.erro}`)
           return
         }
         const { error } = await supabase.auth.signInWithPassword({ email: emailTecnico, password })
@@ -178,6 +178,9 @@ export default function LoginPage() {
               <label style={{ fontSize: "14px", fontWeight: "500", color: "#374151" }}>Senha</label>
               <input type="password" required value={password} onChange={(e) => setPassword(e.target.value)} placeholder="********"
                 style={{ border: "1px solid #D1D5DB", borderRadius: "8px", padding: "10px 12px", fontSize: "14px", outline: "none" }} />
+              <p style={{ fontSize: "11px", color: "#6B7280" }}>
+                Ao criar uma conta nova: mínimo 8 caracteres, com letra, número e caractere especial.
+              </p>
             </div>
             {erro && <p style={{ color: "#DC2626", fontSize: "13px", textAlign: "center" }}>{erro}</p>}
             <div style={{ backgroundColor: "#FFF7ED", border: "1px solid #FED7AA", borderRadius: "8px",
