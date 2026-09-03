@@ -595,6 +595,7 @@ function Tela40Inner() {
             dataVistoria: form.dataVistoria,
             dataHomologacao: new Date().toLocaleDateString('pt-BR'),
             nc, cp, isNR,
+            fotoBase64: form.fotoBase64 || fotoBase64 || '',
           }
         })
       })
