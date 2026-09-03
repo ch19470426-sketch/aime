@@ -419,10 +419,10 @@ function CadastroInspetor() {
                   style={{padding:"10px 24px",borderRadius:"50px",border:"1px solid #1E3A8A",backgroundColor:"white",color:"#1E3A8A",fontWeight:"600",fontSize:"13px",cursor:"pointer"}}>
                   Voltar
                 </button>
-                {!ehVisualizar && <button type="submit" disabled={salvando}
+                <button type="submit" disabled={salvando}
                   style={{padding:"10px 24px",borderRadius:"50px",border:"none",backgroundColor:"#1E3A8A",color:"white",fontWeight:"600",fontSize:"13px",cursor:"pointer",opacity:salvando?0.7:1}}>
                   {salvando ? "Salvando..." : "Salvar Cadastro"}
-                </button>}
+                </button>
               </div>
 
             </form>}
