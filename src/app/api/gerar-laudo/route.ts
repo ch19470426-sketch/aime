@@ -866,15 +866,11 @@ export async function POST(request: NextRequest) {
 
       const recsSis = complemento?.recsSistema ?? {}
       // ── Agrupar NCs por ativo+sistema para o Anexo 3 ─────────────────────────
-      // Item 4.1/Anexo 1: apresenta apenas os resultados "Não conforme" — itens
-      // Conforme não são não conformidades e não fazem sentido nesta tabela.
-      // Vistorias homologadas sem o campo "resultado" (antes da correção) são
-      // mantidas por segurança, para não esconder dados antigos.
-      const ncsNaoConformesNR = (ncs ?? []).filter((nc:any) => !nc.resultado || nc.resultado === 'Não conforme')
-
+      // Item 4.1/Anexo 1: apresenta TODOS os resultados (Conforme e Não conforme),
+      // igual ao Anexo 2 — sem filtro por resultado.
       // Agrupar NCs por sistema (tag vem dos ativos)
       // Ordenar NCs por tag_ativo_nr_serie → sistema → grauRisco DESC
-      const ncsOrdenadas = [...ncsNaoConformesNR].sort((a:any, b:any) => {
+      const ncsOrdenadas = [...(ncs ?? [])].sort((a:any, b:any) => {
         const tagA = String(a.tagNrSerie||a.tag_ativo_nr_serie||a.tag||'')
         const tagB = String(b.tagNrSerie||b.tag_ativo_nr_serie||b.tag||'')
         if (tagA !== tagB) return tagA.localeCompare(tagB)
