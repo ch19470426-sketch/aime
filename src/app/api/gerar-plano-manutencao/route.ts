@@ -205,18 +205,19 @@ export async function POST(request: NextRequest) {
   }
 }
 @page :first {
-  margin: 8mm 20mm 8mm 25mm;
+  /* Margem dobrada (8mm -> 16mm) para caber borda branca (8mm) + faixa azul (8mm) */
+  margin: 16mm 20mm 16mm 25mm;
   counter-reset: page 0;
-  @top-left-corner  { content: ''; background: #1E3A8A; }
-  @top-left         { content: ''; background: #1E3A8A; }
-  @top-center       { content: ''; background: #1E3A8A; }
-  @top-right        { content: ''; background: #1E3A8A; }
-  @top-right-corner { content: ''; background: #1E3A8A; }
-  @bottom-left-corner  { content: ''; background: #1E3A8A; width: auto; }
-  @bottom-left         { content: ''; background: #1E3A8A; width: auto; }
-  @bottom-center       { content: ''; background: #1E3A8A; width: auto; }
-  @bottom-right        { content: ''; background: #1E3A8A; width: auto; }
-  @bottom-right-corner { content: ''; background: #1E3A8A; width: auto; }
+  @top-left-corner  { content: ''; background: linear-gradient(to bottom, #fff 0mm, #fff 8mm, #1E3A8A 8mm, #1E3A8A 16mm); }
+  @top-left         { content: ''; background: linear-gradient(to bottom, #fff 0mm, #fff 8mm, #1E3A8A 8mm, #1E3A8A 16mm); }
+  @top-center       { content: ''; background: linear-gradient(to bottom, #fff 0mm, #fff 8mm, #1E3A8A 8mm, #1E3A8A 16mm); }
+  @top-right        { content: ''; background: linear-gradient(to bottom, #fff 0mm, #fff 8mm, #1E3A8A 8mm, #1E3A8A 16mm); }
+  @top-right-corner { content: ''; background: linear-gradient(to bottom, #fff 0mm, #fff 8mm, #1E3A8A 8mm, #1E3A8A 16mm); }
+  @bottom-left-corner  { content: ''; background: linear-gradient(to bottom, #1E3A8A 0mm, #1E3A8A 8mm, #fff 8mm, #fff 16mm); width: auto; }
+  @bottom-left         { content: ''; background: linear-gradient(to bottom, #1E3A8A 0mm, #1E3A8A 8mm, #fff 8mm, #fff 16mm); width: auto; }
+  @bottom-center       { content: ''; background: linear-gradient(to bottom, #1E3A8A 0mm, #1E3A8A 8mm, #fff 8mm, #fff 16mm); width: auto; }
+  @bottom-right        { content: ''; background: linear-gradient(to bottom, #1E3A8A 0mm, #1E3A8A 8mm, #fff 8mm, #fff 16mm); width: auto; }
+  @bottom-right-corner { content: ''; background: linear-gradient(to bottom, #1E3A8A 0mm, #1E3A8A 8mm, #fff 8mm, #fff 16mm); width: auto; }
 }
 @media print {
   head, title { display: none; }
@@ -420,15 +421,15 @@ ${(() => {
     ? `<img src="${logoB64}" style="max-height:28mm;max-width:95mm">`
     : (cabIns ? `<div style="font-family:Arial,sans-serif;font-size:18pt;font-weight:900;color:#1E3A8A;line-height:1.3">${cabIns}</div>` : '')
   return `
-<div class="pg-capa" style="page-break-after:always;position:relative;height:281mm;font-family:Arial,sans-serif">
+<div class="pg-capa" style="page-break-after:always;position:relative;height:265mm;font-family:Arial,sans-serif">
   ${capaLogoTagPM ? `<div style="position:absolute;top:16mm;left:0;right:0;text-align:center">${capaLogoTagPM}</div>` : ''}
-  <div style="position:absolute;top:120mm;left:0;right:0;text-align:center">
+  <div style="position:absolute;top:104mm;left:0;right:0;text-align:center">
     <div style="font-size:8pt;color:#6B7280;letter-spacing:3px;text-transform:uppercase;margin-bottom:8pt">PLANO DE MANUTENÇÃO</div>
     <div style="font-size:20pt;font-weight:900;color:#1E3A8A;line-height:1.2;margin-bottom:8pt">${xe(titulo)}</div>
     <div style="font-size:13pt;font-weight:700;color:#374151;margin-bottom:4pt">${xe(estab?.razao_social_nome||estab?.razao_social||'')}</div>
     ${capaEnderecoPM ? `<div style="font-size:9pt;color:#374151">${capaEnderecoPM}</div>` : ''}
   </div>
-  <div style="position:absolute;top:238mm;left:0;right:0">
+  <div style="position:absolute;top:222mm;left:0;right:0">
     <div style="border-top:2px solid #1E3A8A;margin:0"></div>
     <div style="padding:3mm 0 1mm;font-size:9.5pt;color:#222;line-height:1.9">
       <b style="color:#1E3A8A">Inspetor Respons&aacute;vel:</b> ${nomeIns}<br>

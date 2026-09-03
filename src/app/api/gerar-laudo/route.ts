@@ -1348,18 +1348,19 @@ export async function POST(request: NextRequest) {
   }
 }
 @page :first {
-  margin: 8mm 20mm 8mm 25mm;
+  /* Margem dobrada (8mm -> 16mm) para caber borda branca (8mm) + faixa azul (8mm) */
+  margin: 16mm 20mm 16mm 25mm;
   counter-reset: page 0;
-  @top-left-corner  { content: ''; background: #1E3A8A; }
-  @top-left         { content: ''; background: #1E3A8A; }
-  @top-center       { content: ''; background: #1E3A8A; }
-  @top-right        { content: ''; background: #1E3A8A; }
-  @top-right-corner { content: ''; background: #1E3A8A; }
-  @bottom-left-corner  { content: ''; background: #1E3A8A; width: auto; }
-  @bottom-left         { content: ''; background: #1E3A8A; width: auto; }
-  @bottom-center       { content: ''; background: #1E3A8A; width: auto; }
-  @bottom-right        { content: ''; background: #1E3A8A; width: auto; }
-  @bottom-right-corner { content: ''; background: #1E3A8A; width: auto; }
+  @top-left-corner  { content: ''; background: linear-gradient(to bottom, #fff 0mm, #fff 8mm, #1E3A8A 8mm, #1E3A8A 16mm); }
+  @top-left         { content: ''; background: linear-gradient(to bottom, #fff 0mm, #fff 8mm, #1E3A8A 8mm, #1E3A8A 16mm); }
+  @top-center       { content: ''; background: linear-gradient(to bottom, #fff 0mm, #fff 8mm, #1E3A8A 8mm, #1E3A8A 16mm); }
+  @top-right        { content: ''; background: linear-gradient(to bottom, #fff 0mm, #fff 8mm, #1E3A8A 8mm, #1E3A8A 16mm); }
+  @top-right-corner { content: ''; background: linear-gradient(to bottom, #fff 0mm, #fff 8mm, #1E3A8A 8mm, #1E3A8A 16mm); }
+  @bottom-left-corner  { content: ''; background: linear-gradient(to bottom, #1E3A8A 0mm, #1E3A8A 8mm, #fff 8mm, #fff 16mm); width: auto; }
+  @bottom-left         { content: ''; background: linear-gradient(to bottom, #1E3A8A 0mm, #1E3A8A 8mm, #fff 8mm, #fff 16mm); width: auto; }
+  @bottom-center       { content: ''; background: linear-gradient(to bottom, #1E3A8A 0mm, #1E3A8A 8mm, #fff 8mm, #fff 16mm); width: auto; }
+  @bottom-right        { content: ''; background: linear-gradient(to bottom, #1E3A8A 0mm, #1E3A8A 8mm, #fff 8mm, #fff 16mm); width: auto; }
+  @bottom-right-corner { content: ''; background: linear-gradient(to bottom, #1E3A8A 0mm, #1E3A8A 8mm, #fff 8mm, #fff 16mm); width: auto; }
 }
 `
 
@@ -1375,15 +1376,15 @@ export async function POST(request: NextRequest) {
       const tituloCapaNR = TITULO_DOC[tipoServico] ?? 'Laudo Técnico'
 
       const CAPA_HTML_NR = `
-<div class="pg-capa" style="page-break-after:always;counter-reset:page 0;position:relative;height:281mm;font-family:Arial,sans-serif">
+<div class="pg-capa" style="page-break-after:always;counter-reset:page 0;position:relative;height:265mm;font-family:Arial,sans-serif">
   ${capaLogoTagNR ? `<div style="position:absolute;top:16mm;left:0;right:0;text-align:center">${capaLogoTagNR}</div>` : ''}
-  <div style="position:absolute;top:140mm;left:0;right:0;text-align:center">
+  <div style="position:absolute;top:124mm;left:0;right:0;text-align:center">
     <div style="font-size:8pt;color:#6B7280;letter-spacing:3px;text-transform:uppercase;margin-bottom:8pt">LAUDO TÉCNICO</div>
     <div style="font-size:20pt;font-weight:900;color:#1E3A8A;line-height:1.2;margin-bottom:8pt">${xe(tituloCapaNR)}</div>
     <div style="font-size:13pt;font-weight:700;color:#374151;margin-bottom:4pt">${xe(estab?.razao_social_nome||estab?.razao_social||'')}</div>
     ${capaEnderecoNR ? `<div style="font-size:9pt;color:#374151">${capaEnderecoNR}</div>` : ''}
   </div>
-  <div style="position:absolute;top:262mm;left:0;right:0">
+  <div style="position:absolute;top:246mm;left:0;right:0">
     <div style="border-top:2px solid #1E3A8A;margin:0"></div>
     <div style="padding:3mm 0 1mm;font-size:9.5pt;color:#222;line-height:1.9">
       <b style="color:#1E3A8A">Inspetor Respons&aacute;vel:</b> ${xe(inspetor?.nome_inspetor||'')}<br>
@@ -2161,19 +2162,20 @@ export async function POST(request: NextRequest) {
    usa a própria área de margem para as faixas, sem depender de posicionamento
    manual no corpo do documento (mais confiável que negative-margin). */
 @page :first {
-  margin: 8mm 20mm 8mm 25mm;
+  /* Margem dobrada (8mm -> 16mm) para caber borda branca (8mm) + faixa azul (8mm) */
+  margin: 16mm 20mm 16mm 25mm;
   /* Reseta a numeração — a capa não conta, índice começa como página 1 */
   counter-reset: page 0;
-  @top-left-corner  { content: ''; background: #1E3A8A; }
-  @top-left         { content: ''; background: #1E3A8A; }
-  @top-center       { content: ''; background: #1E3A8A; }
-  @top-right        { content: ''; background: #1E3A8A; }
-  @top-right-corner { content: ''; background: #1E3A8A; }
-  @bottom-left-corner  { content: ''; background: #1E3A8A; width: auto; }
-  @bottom-left         { content: ''; background: #1E3A8A; width: auto; }
-  @bottom-center       { content: ''; background: #1E3A8A; width: auto; }
-  @bottom-right        { content: ''; background: #1E3A8A; width: auto; }
-  @bottom-right-corner { content: ''; background: #1E3A8A; width: auto; }
+  @top-left-corner  { content: ''; background: linear-gradient(to bottom, #fff 0mm, #fff 8mm, #1E3A8A 8mm, #1E3A8A 16mm); }
+  @top-left         { content: ''; background: linear-gradient(to bottom, #fff 0mm, #fff 8mm, #1E3A8A 8mm, #1E3A8A 16mm); }
+  @top-center       { content: ''; background: linear-gradient(to bottom, #fff 0mm, #fff 8mm, #1E3A8A 8mm, #1E3A8A 16mm); }
+  @top-right        { content: ''; background: linear-gradient(to bottom, #fff 0mm, #fff 8mm, #1E3A8A 8mm, #1E3A8A 16mm); }
+  @top-right-corner { content: ''; background: linear-gradient(to bottom, #fff 0mm, #fff 8mm, #1E3A8A 8mm, #1E3A8A 16mm); }
+  @bottom-left-corner  { content: ''; background: linear-gradient(to bottom, #1E3A8A 0mm, #1E3A8A 8mm, #fff 8mm, #fff 16mm); width: auto; }
+  @bottom-left         { content: ''; background: linear-gradient(to bottom, #1E3A8A 0mm, #1E3A8A 8mm, #fff 8mm, #fff 16mm); width: auto; }
+  @bottom-center       { content: ''; background: linear-gradient(to bottom, #1E3A8A 0mm, #1E3A8A 8mm, #fff 8mm, #fff 16mm); width: auto; }
+  @bottom-right        { content: ''; background: linear-gradient(to bottom, #1E3A8A 0mm, #1E3A8A 8mm, #fff 8mm, #fff 16mm); width: auto; }
+  @bottom-right-corner { content: ''; background: linear-gradient(to bottom, #1E3A8A 0mm, #1E3A8A 8mm, #fff 8mm, #fff 16mm); width: auto; }
 }
 `
 
@@ -2188,15 +2190,15 @@ const capaLogoTag = logoB64
   : (cabInspetor ? `<div style="font-family:Arial,sans-serif;font-size:18pt;font-weight:900;color:#1E3A8A;line-height:1.3">${xe(cabInspetor)}</div>` : '')
 
 const CAPA_HTML = `
-<div class="pg-capa" style="page-break-after:always;counter-reset:page 0;position:relative;height:281mm;font-family:Arial,sans-serif">
+<div class="pg-capa" style="page-break-after:always;counter-reset:page 0;position:relative;height:265mm;font-family:Arial,sans-serif">
   ${capaLogoTag ? `<div style="position:absolute;top:16mm;left:0;right:0;text-align:center">${capaLogoTag}</div>` : ''}
-  <div style="position:absolute;top:140mm;left:0;right:0;text-align:center">
+  <div style="position:absolute;top:124mm;left:0;right:0;text-align:center">
     <div style="font-size:8pt;color:#6B7280;letter-spacing:3px;text-transform:uppercase;margin-bottom:8pt">LAUDO TÉCNICO</div>
     <div style="font-size:20pt;font-weight:900;color:#1E3A8A;line-height:1.2;margin-bottom:8pt">${xe(titulo)}</div>
     <div style="font-size:13pt;font-weight:700;color:#374151;margin-bottom:4pt">${xe(estab?.razao_social_nome||estab?.razao_social||'')}</div>
     ${capaEndereco ? `<div style="font-size:9pt;color:#374151">${capaEndereco}</div>` : ''}
   </div>
-  <div style="position:absolute;top:262mm;left:0;right:0">
+  <div style="position:absolute;top:246mm;left:0;right:0">
     <div style="border-top:2px solid #1E3A8A;margin:0"></div>
     <div style="padding:3mm 0 1mm;font-size:9.5pt;color:#222;line-height:1.9">
       <b style="color:#1E3A8A">Inspetor Respons&aacute;vel:</b> ${xe(inspetor?.nome_inspetor||'')}<br>
