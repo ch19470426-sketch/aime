@@ -899,7 +899,7 @@ function Tela40Inner() {
                 {(resultado === 'Não conforme' || !isNR) && (
                   <button onClick={gerarNcCpIA} disabled={gerandoIA || !anomalia}
                     style={{ background: '#E8EEF7', border: '1px solid #c3d4f0', borderRadius: '4px', padding: '1px 8px', fontSize: '6.5pt', color: '#1E3A8A', cursor: 'pointer', fontFamily: 'inherit' }}>
-                    {gerandoIA ? '⏳' : '✨ Regerar NC via IA'}
+                    {gerandoIA ? '⏳' : '✨ Regerar NC e CP via IA'}
                   </button>
                 )}
               </div>

@@ -316,7 +316,7 @@ export default function PlanoManutencaoInner() {
             {ncs.length === 0 && (
               <div style={{ background: '#fef3c7', borderRadius: 6, padding: '8px 12px',
                 fontSize: '8.5pt', color: '#92400e' }}>
-                ⚠️ Nenhuma não conformidade encontrada. Verifique se existe vistoria homologada.
+                ⚠️ Nenhuma não conformidade encontrada para este CNPJ/CPF. Verifique se o CNPJ/CPF informado está correto ou se existe vistoria homologada para ele.
               </div>
             )}
 
