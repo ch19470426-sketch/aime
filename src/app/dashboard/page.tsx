@@ -288,6 +288,23 @@ export default function Dashboard() {
         }
         const cpf = session.user.email.split("@")[0]
         const accessToken = session.access_token
+
+        // Verificação de prazo de acesso (30/09/2026) — só quando online;
+        // offline mantém acesso normal (não há como verificar, e não bloqueamos
+        // por incerteza). Qualquer falha na verificação também libera o acesso.
+        if (navigator.onLine) {
+          try {
+            const resAcesso = await fetch(`/api/verificar-acesso?cpf_inspetor=${cpf}`)
+            if (resAcesso.ok) {
+              const dadosAcesso = await resAcesso.json()
+              if (dadosAcesso.liberado === false) {
+                window.location.href = '/beta-encerrado'
+                return
+              }
+            }
+          } catch { /* falha na verificação — libera acesso normalmente */ }
+        }
+
         try {
           let dados: any[] = []
           try {
