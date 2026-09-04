@@ -638,7 +638,7 @@ function Tela31Inner() {
                 setErroValidacao('')
                 fileInputRef.current?.click()
               }}>
-                {fotoBase64 && <img src={fotoBase64} alt="" style={{ display: 'block', width: '100%', maxHeight: '420px', objectFit: 'contain', margin: '0 auto', padding: '4px' }} />}
+                {fotoBase64 && <img src={fotoBase64} alt="" style={{ display: 'block', width: '100%', maxHeight: '600px', objectFit: 'contain', margin: '0 auto', padding: '4px' }} />}
                 {!fotoBase64 && <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#8aa3c4', fontSize: '8pt' }}>Clique para adicionar a foto da anomalia</div>}
               </div>
               {erroValidacao && <div style={{ color: '#DC2626', fontSize: '8pt', textAlign: 'center', marginTop: '4px', padding: '4px 8px', background: '#FEF2F2', borderRadius: '4px' }}>⚠️ {erroValidacao}</div>}
