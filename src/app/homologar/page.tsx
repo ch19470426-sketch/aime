@@ -882,7 +882,7 @@ function Tela40Inner() {
                 <div style={{ fontSize: '7.5pt', fontWeight: 600, color: '#374151', lineHeight: 1 }}>{form.dataVistoria}</div>
               </div>
             </div>
-            <div style={{ height: '90mm', position: 'relative', overflow: 'hidden', background: '#E8EEF7', border: '1.5px dashed #c3d4f0', ...(!isNR ? { margin: '0 40px' } : {}) }}>
+            <div style={{ height: '90mm', position: 'relative', overflow: 'hidden', background: '#E8EEF7', border: '1.5px dashed #c3d4f0', ...(!isNR ? { margin: '0 90px' } : {}) }}>
               {fotoBase64
                 ? <img src={fotoBase64} alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
                 : <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#8aa3c4', fontSize: '8pt' }}>Sem foto registrada</div>
