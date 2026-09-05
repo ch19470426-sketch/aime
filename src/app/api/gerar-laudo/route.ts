@@ -2248,8 +2248,8 @@ ${S13}
   <li>O responsável técnico não assume responsabilidade sobre matéria alheia ao exercício profissional, estabelecido em leis, códigos e regulamentos.</li>
 </ul>
 
-<div class="titulo">2.- Metodologia adotada para o Trabalho de Autovistoria.</div>
-<p>A metodologia adotada para este trabalho segue as normas da ABNT, IBAPE e legislação estadual e municipal que regulamentam a autovistoria.</p>
+<div class="titulo">2.- Metodologia adotada para o Trabalho de ${tipoServico === '42' ? 'Inspeção Predial' : 'Autovistoria'}.</div>
+<p>A metodologia adotada para este trabalho segue as normas da ABNT, IBAPE e legislação estadual e municipal que regulamentam a ${tipoServico === '42' ? 'inspeção predial' : 'autovistoria'}.</p>
 
 <div class="titulo">2.1.- Norma Brasileira para Inspeção Predial — NBR-16.747/2020.</div>
 <p>A metodologia básica para execução do presente trabalho foi pautada nos requisitos constantes da NBR-16.747/2020 (Inspeção Predial — Diretrizes, Conceitos, Terminologia e Procedimentos) da Associação Brasileira de Normas Técnicas — ABNT.</p>
@@ -2276,7 +2276,7 @@ ${S13}
 <p>O planejamento da vistoria inclui uma entrevista com o responsável pela edificação, abordando características técnicas e aspectos cotidianos da manutenção do prédio, de forma a antecipar as dificuldades do trabalho.</p>
 <p><b>2.3.3.- Classificação das Inspeções Prediais (NBR 16.747) e Edificações.</b></p>
 <p>A classificação das inspeções prediais e edificações devem ser efetuadas segundo critérios definidos em normas técnicas, conforme segue:</p>
-<p>Quanto ao NÍVEL de inspeção predial as edificações são classificadas quanto a sua complexidade e elaboração de laudo:</p>
+<p><b>Quanto ao NÍVEL</b> de inspeção predial as edificações são classificadas quanto a sua complexidade e elaboração de laudo:</p>
 <ul>
   <li><b>NÍVEL 1:</b> Edificações mais simples, sem necessidade de equipe multidisciplinar, necessário somente um profissional: Engenheiro Civil ou Arquiteto;</li>
   <li><b>NÍVEL 2:</b> Edifícios multifamiliares ou comerciais sem sistemas construtivos mais complexos como climatização, automação, etc, somente com elevadores. Requer Engenheiro Civil ou Arquiteto e Engenheiro Elétrico;</li>
@@ -2290,13 +2290,13 @@ ${S13}
 </ul>
 <p>As Prioridades para efetuar as manutenções das não conformidades são apuradas por metodologias técnicas como a GUT adaptado (Gravidade, Urgência e Tendência):</p>
 <ul>
-  <li><b>Prioridade 1 (Alta):</b> ações necessárias de imediato — prazo inferior a 8 meses;</li>
-  <li><b>Prioridade 2 (Média):</b> ações corretivas a médio prazo — prazo inferior a 15 meses;</li>
-  <li><b>Prioridade 3 (Baixa):</b> ações planejadas a longo prazo — prazo não superior a 30 meses.</li>
+  <li><b>Prioridade 1 (Alta):</b> ações necessárias de imediato — prazo inferior a 3 meses;</li>
+  <li><b>Prioridade 2 (Média):</b> ações corretivas a médio prazo — prazo inferior a 8 meses;</li>
+  <li><b>Prioridade 3 (Baixa):</b> ações planejadas a longo prazo — prazo não superior a 18 meses.</li>
 </ul>
 <p><b>2.3.4.- Critérios para avaliação da manutenção, uso da edificação e do desempenho.</b></p>
 <p>As recomendações quanto a manutenção, uso da edificação e sustentabilidade serão efetuadas segundo os critérios que seguem.</p>
-<p><b>Quanto a MANUTENÇÃO</b> da edificação será avaliada a coerência entre o plano de manutenção apresentado e o recomendado, classificando como: Totalmente atende; Parcialmente atende; Não atende.</p>
+<p><b>Quanto a MANUTENÇÃO</b> da edificação será avaliada a coerência entre o plano de manutenção apresentado e o recomendado, classificando como: Atende totalmente, Atende parcialmente, Não atende.</p>
 <p><b>Quanto as CONDIÇÕES DE USO</b> a análise de cada um dos sistemas construtivos será efetuada em relação ao tipo de uso previsto em projeto:</p>
 <ul>
   <li><b>USO REGULAR</b> é aquele onde a edificação é ocupada e utilizada dentro dos parâmetros previstos no projeto;</li>
