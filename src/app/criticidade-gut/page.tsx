@@ -18,7 +18,14 @@ const TIPOS_SERVICO = [
   '34 Vistoria fachada','35 Vistoria elevador',
   '36 Vistoria nr-10','37 Vistoria nr-12','38 Vistoria nr-13',
 ]
-const TIPOS_PARAM = ['Gravidade','Urgência','Abrangência','Probabilidade','Exposição','Exposição risco']
+// Lista de parâmetros GUT depende do tipo de serviço: prediais (31-34) usam
+// Abrangência/Exposição; NR (35-38) usam Probabilidade/Exposição risco.
+function tiposParamPara(tipoServico: string): string[] {
+  const ehNR = ['35','36','37','38'].some(n => tipoServico.startsWith(n))
+  return ehNR
+    ? ['Gravidade','Urgência','Probabilidade','Exposição risco']
+    : ['Gravidade','Urgência','Abrangência','Exposição']
+}
 const formInicial: Item = { tipo_servico:'31 Autovistoria', tipo_parametro:'Gravidade', descricao:'', peso:1, percentual_calculo:null, ativo:true }
 
 const inputStyle  = { width:'100%', padding:'8px 12px', border:'1.5px solid #D1D5DB', borderRadius:'8px', fontSize:'13px', boxSizing:'border-box' as const }
@@ -38,7 +45,10 @@ export default function CriticidadeGutPage() {
   const [erro, setErro] = useState('')
   const supabase = createClient()
 
-  useEffect(() => { carregar() }, [tipoSvc])
+  useEffect(() => {
+    if (!tiposParamPara(tipoSvc).includes(tipoParam)) setTipoParam('Gravidade')
+    carregar()
+  }, [tipoSvc])
 
   async function carregar() {
     const { data } = await supabase
@@ -112,7 +122,7 @@ export default function CriticidadeGutPage() {
           {/* Lista por parâmetro */}
           <div style={{ width:'260px', minWidth:'180px', maxWidth:'100%', borderRight:'2px solid #1E3A8A', flexShrink:0 }}>
             <div style={{ display:'flex', flexWrap:'wrap' as const, borderBottom:'2px solid #1E3A8A' }}>
-              {TIPOS_PARAM.map(t => (
+              {tiposParamPara(tipoSvc).map(t => (
                 <button key={t} onClick={() => { setTipoParam(t); novo() }}
                   style={{ flex:'1 1 auto', padding:'6px 4px', border:'none', cursor:'pointer', fontSize:'10px', fontWeight:700,
                     backgroundColor: tipoParam===t ? '#1E3A8A' : 'white',
@@ -178,7 +188,7 @@ export default function CriticidadeGutPage() {
                       <select value={form.tipo_parametro}
                         onChange={e => setForm(f => ({...f, tipo_parametro: e.target.value}))}
                         style={inputStyle}>
-                        {TIPOS_PARAM.map(t => <option key={t} value={t}>{t}</option>)}
+                        {tiposParamPara(tipoSvc).map(t => <option key={t} value={t}>{t}</option>)}
                       </select>
                     </div>
                     <div>
