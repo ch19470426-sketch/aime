@@ -203,13 +203,16 @@ export default function CriticidadeGutPage() {
                       <label style={labelStyle}>Tipo de Parâmetro</label>
                       <input value={form.tipo_parametro} disabled style={{...inputStyle, backgroundColor:'#F3F4F6', color:'#6B7280'}} />
                     </div>
-                    <div>
+                  </div>
+
+                  <div style={{ display:'flex', gap:'12px', marginTop:'12px' }}>
+                    <div style={{ width:'90px', flexShrink:0 }}>
                       <label style={labelStyle}>Peso (1–9) *</label>
                       <input type="number" value={form.peso} min={1} max={9} step={0.5}
                         onChange={e => setForm(f => ({...f, peso: Number(e.target.value)}))}
                         required style={inputStyle} />
                     </div>
-                    <div style={{ gridColumn:'span 2' }}>
+                    <div style={{ flex:1 }}>
                       <label style={labelStyle}>Descrição *</label>
                       {modoEdicao ? (
                         // Renomear aqui quebraria a busca de peso na vistoria (a lista de
@@ -225,13 +228,16 @@ export default function CriticidadeGutPage() {
                         </select>
                       )}
                     </div>
-                    <div>
-                      <label style={labelStyle}>% no Cálculo GR <span style={{ fontWeight:400, color:'#6B7280' }}>(1° do tipo)</span></label>
+                  </div>
+
+                  <div style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:'8px', marginTop:'16px' }}>
+                    <div style={{ width:'200px' }}>
+                      <label style={{...labelStyle, textAlign:'center', display:'block'}}>% no Cálculo GR <span style={{ fontWeight:400, color:'#6B7280' }}>(1° do tipo)</span></label>
                       <input type="number" value={form.percentual_calculo ?? ''}
                         onChange={e => setForm(f => ({...f, percentual_calculo: e.target.value ? Number(e.target.value) : null}))}
-                        placeholder="Ex: 40" min={0} max={100} style={inputStyle} />
+                        placeholder="Ex: 40" min={0} max={100} style={{...inputStyle, textAlign:'center'}} />
                     </div>
-                    <div style={{ display:'flex', alignItems:'center', gap:'8px', paddingTop:'20px' }}>
+                    <div style={{ display:'flex', alignItems:'center', gap:'8px' }}>
                       <input type="checkbox" checked={form.ativo}
                         onChange={e => setForm(f => ({...f, ativo: e.target.checked}))}
                         style={{ width:'16px', height:'16px', cursor:'pointer' }} />
@@ -242,7 +248,7 @@ export default function CriticidadeGutPage() {
                   {erro && <div style={{ marginTop:'10px', padding:'8px 12px', backgroundColor:'#FEE2E2', color:'#DC2626', borderRadius:'6px', fontSize:'12px' }}>{erro}</div>}
                   {msg  && <div style={{ marginTop:'10px', padding:'8px 12px', backgroundColor:'#D1FAE5', color:'#059669', borderRadius:'6px', fontSize:'12px' }}>{msg}</div>}
 
-                  <div style={{ marginTop:'16px' }}>
+                  <div style={{ marginTop:'16px', display:'flex', justifyContent:'center' }}>
                     <button type="submit" disabled={salvando}
                       style={{ backgroundColor:'#1E3A8A', color:'white', border:'none', borderRadius:'9999px',
                         padding:'8px 24px', fontSize:'12px', fontWeight:700, cursor:'pointer', opacity:salvando?0.7:1 }}>
