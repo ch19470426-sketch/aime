@@ -18,7 +18,7 @@ const TIPOS_SERVICO = [
   '34 Vistoria fachada','35 Vistoria elevador',
   '36 Vistoria nr-10','37 Vistoria nr-12','38 Vistoria nr-13',
 ]
-const TIPOS_PARAM = ['Gravidade','Urgência','Abrangência','Exposição']
+const TIPOS_PARAM = ['Gravidade','Urgência','Abrangência','Probabilidade','Exposição','Exposição risco']
 const formInicial: Item = { tipo_servico:'31 Autovistoria', tipo_parametro:'Gravidade', descricao:'', peso:1, percentual_calculo:null, ativo:true }
 
 const inputStyle  = { width:'100%', padding:'8px 12px', border:'1.5px solid #D1D5DB', borderRadius:'8px', fontSize:'13px', boxSizing:'border-box' as const }
