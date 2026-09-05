@@ -25,8 +25,10 @@ const GUT_FALLBACK: Record<string, number> = {
 }
 const PCT_FALLBACK = { Gravidade: 40, Urgência: 30, Abrangência: 20, Exposição: 10 }
 
-function calcularGR(gra: number, urg: number, abr: number, exp: number): number {
-  return Math.round((0.4 * gra + 0.3 * urg + 0.2 * abr + 0.1 * exp) * 20)
+function calcularGR(gra: number, urg: number, abr: number, exp: number, pct: Record<string,number> = PCT_FALLBACK): number {
+  const pG = (pct.Gravidade ?? 40) / 100, pU = (pct['Urgência'] ?? 30) / 100
+  const pA = (pct['Abrangência'] ?? pct['Probabilidade'] ?? 20) / 100, pE = (pct['Exposição'] ?? pct['Exposição risco'] ?? 10) / 100
+  return Math.round((pG * gra + pU * urg + pA * abr + pE * exp) * 20)
 }
 
 function fmtDoc(v: string) {
@@ -130,7 +132,7 @@ function Tela31Inner() {
   const urgNum  = valorGut[`urgencia:${descUrgencia}`]     ?? 0
   const abrNum  = valorGut[`abrangencia:${descAbrangencia}`] ?? 0
   const expNum  = valorGut[`exposicao:${descExposicao}`]   ?? 0
-  const grauRisco = (gravNum && urgNum && abrNum && expNum) ? calcularGR(gravNum, urgNum, abrNum, expNum) : 0
+  const grauRisco = (gravNum && urgNum && abrNum && expNum) ? calcularGR(gravNum, urgNum, abrNum, expNum, pctGut) : 0
   const prioridade = grauRisco >= 59 ? 'Alta' : grauRisco >= 30 ? 'Média' : grauRisco > 0 ? 'Baixa' : '—'
   const corGR = grauRisco >= 59 ? '#E24B4A' : grauRisco >= 30 ? '#E8A000' : '#1A7A3C'
 

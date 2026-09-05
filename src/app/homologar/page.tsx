@@ -102,8 +102,11 @@ const GR_NR_REVERSO: Record<number, Record<string, string>> = {
   exposicao:     { 1: 'Máximo 2 pessoas', 3: 'Até 6 pessoas', 5: 'Muitas pessoas' },
 }
 
-function calcularGR(gra: number, urg: number, abr: number, exp: number): number {
-  return Math.round((0.4 * gra + 0.3 * urg + 0.2 * abr + 0.1 * exp) * 20)
+const PCT_FALLBACK = { Gravidade: 40, Urgência: 30, Abrangência: 20, Exposição: 10 }
+function calcularGR(gra: number, urg: number, abr: number, exp: number, pct: Record<string,number> = PCT_FALLBACK): number {
+  const pG = (pct.Gravidade ?? 40) / 100, pU = (pct['Urgência'] ?? 30) / 100
+  const pA = (pct['Abrangência'] ?? pct['Probabilidade'] ?? 20) / 100, pE = (pct['Exposição'] ?? pct['Exposição risco'] ?? 10) / 100
+  return Math.round((pG * gra + pU * urg + pA * abr + pE * exp) * 20)
 }
 
 function ehNR(ts: string): boolean {
@@ -139,6 +142,7 @@ function Tela40Inner() {
   // Lista de formulários
   const [formularios,  setFormularios]  = useState<Formulario[]>([])
   const [valorGutDinamico, setValorGutDinamico] = useState<Record<string,number>>({})
+  const [pctGut, setPctGut] = useState<Record<string,number>>(PCT_FALLBACK)
   const formulariosRef = useRef<Formulario[]>([])  // ref sempre atualizada para closures
   const [gateTotal,    setGateTotal]    = useState(0)
   const [indice,       setIndice]       = useState(0)
@@ -203,7 +207,7 @@ function Tela40Inner() {
   const expNum  = isNR
     ? (VALOR_GUT[`exposicaorisco:${descExposicao}`]  ?? 0)
     : (VALOR_GUT[`exposicao:${descExposicao}`]       ?? 0)
-  const grauRisco = (gravNum && urgNum && abrNum && expNum) ? calcularGR(gravNum, urgNum, abrNum, expNum) : (form?.grauRisco ?? 0)
+  const grauRisco = (gravNum && urgNum && abrNum && expNum) ? calcularGR(gravNum, urgNum, abrNum, expNum, pctGut) : (form?.grauRisco ?? 0)
   const prioridade = isNR
     ? (grauRisco >= 75 ? 'Muito alta' : grauRisco >= 50 ? 'Alta' : grauRisco >= 30 ? 'Média' : 'Baixa')
     : (grauRisco >= 64 ? 'Alta' : grauRisco >= 35 ? 'Média' : 'Baixa')
@@ -231,7 +235,10 @@ function Tela40Inner() {
     setValorGutDinamico({})
     fetch(`/api/criticidade-gut?tipo_servico=${encodeURIComponent(tipoServicoBanco)}`)
       .then(r => r.json())
-      .then(d => { if (d.valorGut) setValorGutDinamico(d.valorGut) })
+      .then(d => {
+        if (d.valorGut) setValorGutDinamico(d.valorGut)
+        if (d.percentuais) setPctGut(d.percentuais)
+      })
       .catch(() => {})
     async function carregarListas() {
       const sis = await query('sistemas_construtivos', `tipo_servico=eq.${encodeURIComponent(tipoServicoBanco)}&select=sistema&order=sistema`)
