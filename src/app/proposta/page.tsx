@@ -305,58 +305,54 @@ function PropostaInner() {
         })
       })
       const data = await res.json()
-      if (data.html) {
-        setHtmlProposta(data.html)
-        setEtapa('preview')
-      } else {
+      if (!data.html) {
         informa('Erro', data.erro ?? 'Não foi possível gerar a proposta.')
+        return
       }
-    } catch(e) {
-      informa('Erro', String(e))
-    } finally {
-      setSalvando(false)
-    }
-  }
 
-  async function salvarProposta() {
-    setSalvando(true)
-    try {
+      // Salvar e navegar direto para a tela editável — a etapa "preview"
+      // (só leitura) foi removida por ser redundante com a tela seguinte,
+      // que já mostra o mesmo documento de forma editável.
       const slug = SLUG_TIPO[String(tipoServico)] ?? `tipo_${tipoServico}`
-    const nomeArq = `${chaveInspetor}_${cnpjoucpf}_${slug}.html`
-      const res = await fetch('/api/salvar-vistoria', {
+      const nomeArq = `${chaveInspetor}_${cnpjoucpf}_${slug}.html`
+      const resSalvar = await fetch('/api/salvar-vistoria', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           nomeArquivo: nomeArq,
           pasta: 'documentos_inspetor',
-          payload: htmlProposta,
+          payload: data.html,
           contentType: 'text/html',
         })
       })
-      const data = await res.json()
-      if (data.sucesso) {
-        // Registrar no histórico de valores
-        try {
-          const uf = municipioUF.includes('/') ? municipioUF.split('/').pop()?.trim().slice(0,2) : ''
-          const valorNum = parseFloat((valor||'0').replace(/\./g,'').replace(',','.')) || 0
-          const prazoNum = parseInt(prazo||'0') || 0
-          await fetch('/api/registrar-historico', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              data_hora: new Date().toISOString(),
-              tipo_servico: String(tipoServico),
-              cnpjoucpf: cnpjoucpf.replace(/[.\-\/]/g,'').slice(0,14),
-              valor_servico: valorNum,
-              prazo_execucao: prazoNum,
-              uf_estabelecimento: uf,
-            })
-          })
-        } catch { /* histórico não crítico */ }
-        window.location.href = `/homologar-produto?cpf_inspetor=${cpfInspetor}&chave_inspetor=${chaveInspetor}&cnpjoucpf=${cnpjoucpf}&tipo_servico=${tipoServico}&nome_arquivo=${encodeURIComponent(nomeArq)}&titulo=${encodeURIComponent(titulo)}`
-      } else {
-        informa('Erro', data.erro ?? 'Não foi possível salvar.')
+      const dataSalvar = await resSalvar.json()
+      if (!dataSalvar.sucesso) {
+        informa('Erro', dataSalvar.erro ?? 'Não foi possível salvar.')
+        return
       }
+
+      // Registrar no histórico de valores (não crítico — não bloqueia navegação)
+      try {
+        const uf = municipioUF.includes('/') ? municipioUF.split('/').pop()?.trim().slice(0,2) : ''
+        const valorNum = parseFloat((valor||'0').replace(/\./g,'').replace(',','.')) || 0
+        const prazoNum = parseInt(prazo||'0') || 0
+        await fetch('/api/registrar-historico', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            data_hora: new Date().toISOString(),
+            tipo_servico: String(tipoServico),
+            cnpjoucpf: cnpjoucpf.replace(/[.\-\/]/g,'').slice(0,14),
+            valor_servico: valorNum,
+            prazo_execucao: prazoNum,
+            uf_estabelecimento: uf,
+          })
+        })
+      } catch { /* histórico não crítico */ }
+
+      window.location.href = `/homologar-produto?cpf_inspetor=${cpfInspetor}&chave_inspetor=${chaveInspetor}&cnpjoucpf=${cnpjoucpf}&tipo_servico=${tipoServico}&nome_arquivo=${encodeURIComponent(nomeArq)}&titulo=${encodeURIComponent(titulo)}`
+    } catch(e) {
+      informa('Erro', String(e))
     } finally {
       setSalvando(false)
     }
@@ -513,30 +509,6 @@ function PropostaInner() {
                 </button>
                 <button style={{ ...S.btn, ...S.btnPri, opacity: salvando ? 0.6 : 1 }} onClick={gerarProposta} disabled={salvando}>
                   {salvando ? 'Gerando...' : 'Gerar proposta ▶'}
-                </button>
-              </div>
-            </>
-          )}
-
-          {/* ETAPA 3: PREVIEW */}
-          {etapa === 'preview' && (
-            <>
-              <div style={S.block}>
-                <div style={S.blockTitle}>Preview da Proposta</div>
-                <div style={{ padding: '8px 10px' }}>
-                  <iframe
-                    srcDoc={htmlProposta}
-                    style={{ width: '100%', height: '600px', border: '1px solid #c3d4f0', borderRadius: '4px' }}
-                    title="Proposta"
-                  />
-                </div>
-              </div>
-              <div style={S.footer}>
-                <button style={{ ...S.btn, ...S.btnSec }} onClick={() => setEtapa('valor')}>
-                  ← Ajustar valor/prazo
-                </button>
-                <button style={{ ...S.btn, ...S.btnPri, opacity: salvando ? 0.6 : 1 }} onClick={salvarProposta} disabled={salvando}>
-                  {salvando ? 'Salvando...' : 'Continuar'}
                 </button>
               </div>
             </>
