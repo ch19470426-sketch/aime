@@ -40,6 +40,7 @@ export default function CriticidadeGutPage() {
   const [tipoParam, setTipoParam]   = useState('Gravidade')
   const [form, setForm]             = useState<Item>(formInicial)
   const [modoEdicao, setModoEdicao] = useState(false)
+  const [opcoesDescricao, setOpcoesDescricao] = useState<string[]>([])
   const [salvando, setSalvando]     = useState(false)
   const [msg, setMsg]   = useState('')
   const [erro, setErro] = useState('')
@@ -58,6 +59,22 @@ export default function CriticidadeGutPage() {
       .order('tipo_parametro').order('peso')
     setItens(data ?? [])
   }
+
+  // Opções reais de descrição — as mesmas que o inspetor vê e seleciona na
+  // vistoria (tabela_parametros), para não digitar um texto que não bate
+  // com o que existe de verdade e quebrar a busca de peso silenciosamente.
+  useEffect(() => {
+    async function carregarOpcoes() {
+      const { data } = await supabase
+        .from('tabela_parametros')
+        .select('descricao_parametros')
+        .eq('tipo_servico', tipoSvc)
+        .eq('tipo_parametro', tipoParam)
+        .order('descricao_parametros')
+      setOpcoesDescricao((data ?? []).map((d: any) => d.descricao_parametros))
+    }
+    carregarOpcoes()
+  }, [tipoSvc, tipoParam])
 
   function selecionar(item: Item) {
     setForm({...item}); setModoEdicao(true); setMsg(''); setErro('')
@@ -199,9 +216,19 @@ export default function CriticidadeGutPage() {
                     </div>
                     <div style={{ gridColumn:'span 2' }}>
                       <label style={labelStyle}>Descrição *</label>
-                      <input value={form.descricao}
-                        onChange={e => setForm(f => ({...f, descricao: e.target.value}))}
-                        placeholder="Ex: Moderada" required style={inputStyle} />
+                      {modoEdicao ? (
+                        // Renomear aqui quebraria a busca de peso na vistoria (a lista de
+                        // opções vem de outra tabela — tabela_parametros). Renomear exige
+                        // atualizar as duas tabelas juntas, com o mesmo texto.
+                        <input value={form.descricao} disabled style={{...inputStyle, backgroundColor:'#F3F4F6', color:'#6B7280'}} />
+                      ) : (
+                        <select value={form.descricao}
+                          onChange={e => setForm(f => ({...f, descricao: e.target.value}))}
+                          required style={inputStyle}>
+                          <option value="">Selecione...</option>
+                          {opcoesDescricao.map(d => <option key={d} value={d}>{d}</option>)}
+                        </select>
+                      )}
                     </div>
                     <div>
                       <label style={labelStyle}>% no Cálculo GR <span style={{ fontWeight:400, color:'#6B7280' }}>(1° do tipo)</span></label>
