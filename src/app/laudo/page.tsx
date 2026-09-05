@@ -427,6 +427,20 @@ function LaudoComplemento() {
     if (!sinteseEdif) { setErro('Gere ou preencha a síntese da edificação (item 1.1).'); return }
     if (!dadosVistoria) { setErro('Preencha a descrição da vistoria (item 3.1).'); return }
     // validação 3.3 temporariamente desativada
+
+    // Exigir que TODAS as vistorias de TODOS os ativos já tenham sido
+    // homologadas antes de gerar o laudo — evita laudo incompleto/desatualizado
+    // com ativos ainda pendentes de revisão.
+    try {
+      const resPend = await fetch(`/api/vistorias?chave_inspetor=${chaveInspetor}&cnpjoucpf=${cnpjoucpf}`)
+      const dataPend = await resPend.json()
+      const pendentes = Array.isArray(dataPend?.formularios) ? dataPend.formularios.length : 0
+      if (pendentes > 0) {
+        setErro(`Existem ${pendentes} vistoria(s) ainda não homologada(s) para este estabelecimento. Homologue todas antes de gerar o laudo.`)
+        return
+      }
+    } catch { /* falha na checagem não deve travar geração — segue normalmente */ }
+
     setEtapa('gerando')
     try {
       const slug = SLUG[tipoServico] ?? `laudo_${tipoServico}`

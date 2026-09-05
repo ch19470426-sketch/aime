@@ -636,8 +636,8 @@ export async function POST(request: NextRequest) {
         '<tr><td colspan="3" style="' + TH11 + '">' + (is45 ? 'Características da Edificação:' : 'Características do Estabelecimento:') + '</td></tr>' +
         '<tr>' +
           '<td style="' + TD11 + ';width:40%"><b>' + labelInst + ':</b><br>' + xe(estab?.razao_social_nome) + '</td>' +
-          '<td style="' + TD11 + ';width:30%"><b>' + labelDoc + ':</b><br>' + xe(cnpjoucpf) + '</td>' +
-          '<td style="' + TD11 + ';width:30%"><b>CEP:</b><br>' + xe(estab?.cep_estabelecimento||estab?.cep) + '</td>' +
+          '<td style="' + TD11 + ';width:30%"><b>' + labelDoc + ':</b><br>' + xe(fmtDoc(cnpjoucpf)) + '</td>' +
+          '<td style="' + TD11 + ';width:30%"><b>CEP:</b><br>' + xe(fmtCep(estab?.cep_estabelecimento||estab?.cep||'')) + '</td>' +
         '</tr>' +
         '<tr>' +
           '<td style="' + TD11 + '"><b>Endereço:</b><br>' + xe(estab?.logradouro) + (estab?.numero_imovel?', '+xe(estab.numero_imovel):'') + '</td>' +
@@ -645,12 +645,12 @@ export async function POST(request: NextRequest) {
           '<td style="' + TD11 + '"><b>Cidade e UF:</b><br>' + xe(estab?.cidade) + '/' + xe(estab?.uf) + '</td>' +
         '</tr>' +
         '<tr>' +
-          '<td style="' + TD11 + '"><b>CPF responsável:</b><br>' + xe(estab?.cpf_responsavel) + '</td>' +
+          '<td style="' + TD11 + '"><b>CPF responsável:</b><br>' + xe(fmtDoc(estab?.cpf_responsavel||'')) + '</td>' +
           '<td style="' + TD11 + '"><b>Nome do responsável:</b><br>' + xe(estab?.nome_responsavel) + '</td>' +
           '<td style="' + TD11 + '"><b>Função do responsável:</b><br>' + xe(estab?.funcao_responsavel) + '</td>' +
         '</tr>' +
         '<tr>' +
-          '<td style="' + TD11 + '"><b>' + labelTelW + ':</b><br>' + xe(estab?.whatsapp_responsavel||estab?.whatsapp||'') + '</td>' +
+          '<td style="' + TD11 + '"><b>' + labelTelW + ':</b><br>' + xe(fmtTel(estab?.whatsapp_responsavel||estab?.whatsapp||'')) + '</td>' +
           '<td style="' + TD11 + '"><b>eMail contato:</b><br>' + xe(estab?.email_responsavel||estab?.email||'') + '</td>' +
           '<td style="' + TD11 + '"><b>' + labelFinal + ':</b><br>' + xe(estab?.finalidade_vistoria||'') + '</td>' +
         '</tr>' +
@@ -792,12 +792,39 @@ export async function POST(request: NextRequest) {
       }
 
       // ── BLOCO 4.2 Estatística ──────────────────────────────────────────────
-      const SISTEMAS_NR = [
-        '01_Documentação Técnica','02_Capacitação','03_Quadros Elétricos',
-        '04_Cabos e Condutores','05_Proteção Elétrica','06_Sistema de Aterramento',
-        '07_EPIs e EPCs','08_Tomadas/Pontos Energia','09_Iluminação',
-        '10_SPDA','11_Procedimentos Segurança','12_Manutenção'
-      ]
+      // Sistemas reais por tipo de laudo NR — cada tipo tem sua própria lista
+      // (antes usava sempre a lista do NR-10 para todos, causando estatística
+      // e descrição erradas para elevador/NR-12/NR-13)
+      const SISTEMAS_POR_TIPO_NR: Record<string, string[]> = {
+        '45': [ // Elevador
+          '01_Casa de Máquinas','02_Máquina de Tração e Freio','03_Quadro de Comando e Elétrica',
+          '04_Caixa / Poço do Elevador','05_Cabina','06_Portas de Cabina','07_Portas de Pavimento',
+          '08_Sistemas de Segurança','09_Sinalização e Acessibilidade','10_Documentação e Conformidade',
+        ],
+        '46': [ // NR-10
+          '01_Documentação e Conformidade NR-10','02_Ramal de Entrada e Medição','03_Transformadores e Subestações',
+          '04_Quadros Elétricos e Painéis de Comando','05_Condutores, Cabos e Eletrodutos','06_Sistemas de Aterramento',
+          '07_SPDA — Proteção contra Descargas Atmosféricas','08_Dispositivos de Proteção e Manobra',
+          '09_Instalações em Áreas Classificadas','10_Iluminação e Tomadas','11_Sistemas de Emergência e No-Break',
+        ],
+        '47': [ // NR-12
+          '01_Documentação e Conformidade NR-12','02_Sistemas de Segurança e Proteções Físicas',
+          '03_Dispositivos de Parada de Emergência','04_Sistemas de Comando e Controle',
+          '05_Prensas e Similares (Anexo VIII)','06_Injetoras de Materiais Plásticos (Anexo IX)',
+          '07_Máquinas para Calçados (Anexo X)','08_Máquinas Agrícolas e Florestais (Anexo XI)',
+          '09_Equipamentos de Guindar e Plataformas (Anexo XII)','10_Serras','11_Tornos, Fresadoras e Usinagem',
+          '12_Transportadores e Elevadores de Carga','13_Empilhadeiras e Veículos Industriais',
+          '14_Instalação Elétrica das Máquinas','15_Ergonomia e Espaços de Trabalho',
+        ],
+        '48': [ // NR-13 — falta o sistema "01" no banco (pendente cadastro); lista reflete o que existe hoje
+          '02_Caldeiras a Vapor — Categoria A','03_Caldeiras a Vapor — Categoria B',
+          '04_Vasos de Pressão — Processo e Armazenamento','05_Vasos de Pressão — Compressores e Receptores',
+          '06_Autoclaves e Reatores de Pressão','07_Tubulações de Processo','08_Tanques Metálicos de Armazenamento',
+          '09_Sistemas de Alívio e Segurança','10_Sistemas de Instrumentação e Controle',
+          '11_Sistemas de Combustão e Queimadores','12_Sistemas de Fluidos Auxiliares','13_Inspeção, Ensaios e Integridade',
+        ],
+      }
+      const SISTEMAS_NR = SISTEMAS_POR_TIPO_NR[tipoServico] ?? SISTEMAS_POR_TIPO_NR['46']
       const stat42 = SISTEMAS_NR.map(s => {
         const prefix = s.slice(0,2)
         const arrnr = (ncs ?? []).filter((n:any) => (n.sistema||'').startsWith(prefix))
