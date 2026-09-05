@@ -464,7 +464,7 @@ function HomologarProdutoInner() {
           </button>
         </div>
 
-        {html && numServico >= 41 && (
+        {html && (
           <div style={{ border: '1px solid #c3d4f0', borderRadius: '6px', overflow: 'hidden', marginBottom: '8px' }}>
             <div style={{ background: '#1E3A8A', color: '#fff', fontSize: '7.5pt', fontWeight: 700, padding: '4px 10px' }}>
               Preview do documento — clique para editar
