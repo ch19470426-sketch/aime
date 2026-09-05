@@ -193,20 +193,15 @@ export default function CriticidadeGutPage() {
                 <div style={blocoBody}>
                   <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(180px, 1fr))', gap:'12px' }}>
                     <div>
-                      <label style={labelStyle}>Tipo de Serviço *</label>
-                      <select value={form.tipo_servico}
-                        onChange={e => setForm(f => ({...f, tipo_servico: e.target.value}))}
-                        style={inputStyle}>
-                        {TIPOS_SERVICO.map(t => <option key={t} value={t}>{t}</option>)}
-                      </select>
+                      <label style={labelStyle}>Tipo de Serviço</label>
+                      {/* Só leitura — já escolhido no painel à esquerda. Ter um segundo
+                          seletor aqui, independente, permitia salvar num tipo diferente
+                          do que estava sendo visualizado, gerando confusão. */}
+                      <input value={form.tipo_servico} disabled style={{...inputStyle, backgroundColor:'#F3F4F6', color:'#6B7280'}} />
                     </div>
                     <div>
-                      <label style={labelStyle}>Tipo de Parâmetro *</label>
-                      <select value={form.tipo_parametro}
-                        onChange={e => setForm(f => ({...f, tipo_parametro: e.target.value}))}
-                        style={inputStyle}>
-                        {tiposParamPara(tipoSvc).map(t => <option key={t} value={t}>{t}</option>)}
-                      </select>
+                      <label style={labelStyle}>Tipo de Parâmetro</label>
+                      <input value={form.tipo_parametro} disabled style={{...inputStyle, backgroundColor:'#F3F4F6', color:'#6B7280'}} />
                     </div>
                     <div>
                       <label style={labelStyle}>Peso (1–9) *</label>
