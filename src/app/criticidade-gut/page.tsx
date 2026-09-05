@@ -140,7 +140,7 @@ export default function CriticidadeGutPage() {
           <div style={{ width:'260px', minWidth:'180px', maxWidth:'100%', borderRight:'2px solid #1E3A8A', flexShrink:0 }}>
             <div style={{ display:'flex', flexWrap:'wrap' as const, borderBottom:'2px solid #1E3A8A' }}>
               {tiposParamPara(tipoSvc).map(t => (
-                <button key={t} onClick={() => { setTipoParam(t); novo() }}
+                <button key={t} onClick={() => { setTipoParam(t); setForm({...formInicial, tipo_servico: tipoSvc, tipo_parametro: t}); setModoEdicao(false); setMsg(''); setErro('') }}
                   style={{ flex:'1 1 auto', padding:'6px 4px', border:'none', cursor:'pointer', fontSize:'10px', fontWeight:700,
                     backgroundColor: tipoParam===t ? '#1E3A8A' : 'white',
                     color: tipoParam===t ? 'white' : '#1E3A8A' }}>
