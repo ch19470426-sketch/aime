@@ -218,6 +218,22 @@ f) Revisar: preencher datas no bloco 1.2 e documentos no bloco 1.3
 g) "Salvar": redireciona para o Módulo Homologar Documento
 h) Módulo Homologar Documento: baixa o PDF, assina e faz upload do assinado
 ℹ  O plano de trabalho deve existir antes de iniciar as vistorias.`,
+  '1x': `a) Selecione o tipo de proposta e informe o CNPJ ou CPF
+b) Preencha o valor do serviço e o prazo de execução
+c) Gere a proposta: o documento é montado automaticamente com os dados do estabelecimento
+d) Revise e ajuste o documento diretamente na tela
+e) Baixe o PDF para enviar ao cliente
+ℹ  Pré-requisito: estabelecimento deve estar cadastrado com Razão Social, endereço e Uso Edificação preenchidos.`,
+  '2x': `a) Selecione o tipo de plano de trabalho e informe o CNPJ ou CPF
+b) Preencha os dados de contato do responsável e os documentos a solicitar
+c) Gere o plano: o documento é montado automaticamente
+d) Revise e ajuste o documento diretamente na tela
+e) Baixe o PDF para enviar ao cliente
+ℹ  Pré-requisito: estabelecimento deve estar cadastrado.`,
+  '61': `a) Informe o CNPJ ou CPF do estabelecimento
+b) A tela lista todos os documentos já gerados/assinados para esse CNPJ/CPF
+c) Clique no documento desejado para baixar
+ℹ  Só aparecem documentos que já foram gerados anteriormente — esta tela não cria documentos novos.`,
   '31-34': `a) Abra o formulário digital no dispositivo
 b) Para cada não conformidade: selecione Sistema → Subsistema → NC; informe local e complemento; fotografe
 c) Salve cada registro antes de prosseguir
@@ -255,6 +271,7 @@ function getProcedimento(codigo: string): string {
   if (n === 40)            return PROC_MAP['40']
   if (n >= 41 && n <= 48) return PROC_MAP['4x']
   if (n >= 51 && n <= 58) return PROC_MAP['5x']
+  if (n === 61)             return PROC_MAP['61']
   return ''
 }
 
@@ -394,7 +411,7 @@ export default function Dashboard() {
   const ehVistoria = tipoServico !== null && CODIGOS_VISTORIA.includes(Number(tipoServico))
   const coletaCpf  = tipoServico !== null && CODIGOS_CPF.includes(Number(tipoServico))
   // Código 40 (Homologar) não sabe de antemão se a vistoria é de CPF ou CNPJ: aceita os dois formatos
-  const aceitaAmbos = tipoServico === 40 || (Number(tipoServico) >= 51 && Number(tipoServico) <= 58)
+  const aceitaAmbos = tipoServico === 40 || tipoServico === 61 || (Number(tipoServico) >= 51 && Number(tipoServico) <= 58)
 
   // Formata CNPJ (00.000.000/0000-00) ou CPF (000.000.000-00) conforme o tipo de serviço
   function formatarDocumento(valor: string): string {
