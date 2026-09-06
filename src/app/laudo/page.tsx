@@ -428,15 +428,28 @@ function LaudoComplemento() {
     if (!dadosVistoria) { setErro('Preencha a descrição da vistoria (item 3.1).'); return }
     // validação 3.3 temporariamente desativada
 
-    // Exigir que TODAS as vistorias de TODOS os ativos já tenham sido
-    // homologadas antes de gerar o laudo — evita laudo incompleto/desatualizado
-    // com ativos ainda pendentes de revisão.
+    // Exigir que TODOS os ativos tenham sido vistoriados E homologados antes
+    // de gerar o laudo — dois problemas possíveis: (a) existem vistorias
+    // pendentes de homologação, ou (b) algum ativo nunca teve vistoria alguma
+    // registrada (nem pendente, nem homologada).
     try {
       const resPend = await fetch(`/api/vistorias?chave_inspetor=${chaveInspetor}&cnpjoucpf=${cnpjoucpf}`)
       const dataPend = await resPend.json()
-      const pendentes = Array.isArray(dataPend?.formularios) ? dataPend.formularios.length : 0
-      if (pendentes > 0) {
-        setErro(`Existem ${pendentes} vistoria(s) ainda não homologada(s) para este estabelecimento. Homologue todas antes de gerar o laudo.`)
+      const pendentes = Array.isArray(dataPend?.formularios) ? dataPend.formularios : []
+      if (pendentes.length > 0) {
+        setErro(`Existem ${pendentes.length} vistoria(s) ainda não homologada(s) para este estabelecimento. Homologue todas antes de gerar o laudo.`)
+        return
+      }
+
+      // Ativos sem NENHUMA vistoria (nem pendente, nem já homologada em ncs)
+      const tagsComVistoria = new Set([
+        ...pendentes.map((f: any) => String(f.tagNrSerie ?? f.tag ?? '')),
+        ...(ncs ?? []).map((n: any) => String(n.tagNrSerie ?? n.tag ?? '')),
+      ])
+      const ativosSemVistoria = listaAtivos.filter((a: any) => !tagsComVistoria.has(String(a.tag_ativo_nr_serie ?? '')))
+      if (ativosSemVistoria.length > 0) {
+        const nomes = ativosSemVistoria.map((a: any) => `${a.tipo_ativo || ''} (tag ${a.tag_ativo_nr_serie || '?'})`).join(', ')
+        setErro(`Ativo(s) sem nenhuma vistoria registrada: ${nomes}. Realize a vistoria antes de gerar o laudo.`)
         return
       }
     } catch { /* falha na checagem não deve travar geração — segue normalmente */ }
