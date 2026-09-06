@@ -92,6 +92,20 @@ const SLUG_TIPO: Record<string, string> = {
   '27': 'plano_nr12',            '28': 'plano_nr13',
   '29': 'plano_manutencao',
 }
+
+function fmtCPF(v: string): string {
+  const n = (v||'').replace(/\D/g,'').slice(0,11)
+  return n.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/,'$1.$2.$3-$4')
+           .replace(/(\d{3})(\d{3})(\d{3})/,'$1.$2.$3')
+           .replace(/(\d{3})(\d{3})/,'$1.$2')
+}
+function fmtTel(v: string): string {
+  const n = (v||'').replace(/\D/g,'').slice(0,11)
+  if (n.length === 11) return '(' + n.slice(0,2) + ') ' + n.slice(2,7) + '-' + n.slice(7)
+  if (n.length === 10) return '(' + n.slice(0,2) + ') ' + n.slice(2,6) + '-' + n.slice(6)
+  return n
+}
+
 export default function PlanoPage() {
   return (
     <Suspense fallback={<div style={{ backgroundColor: "#E8EEF7", minHeight: "100vh" }} />}>
@@ -421,16 +435,16 @@ function PlanoInner() {
                         </select>
                       </Field>
                       <Field label="CPF do responsável">
-                        <input style={S.input} value={cpfResp} maxLength={11}
-                          onChange={e => setCpfResp(e.target.value.replace(/\D/g,''))}
-                          placeholder="00000000000" />
+                        <input style={S.input} value={fmtCPF(cpfResp)} maxLength={14}
+                          onChange={e => setCpfResp(e.target.value.replace(/\D/g,'').slice(0,11))}
+                          placeholder="000.000.000-00" />
                       </Field>
                     </div>
                     <div style={{ ...S.row, ...S.c3 }}>
                       <Field label="WhatsApp">
-                        <input style={S.input} value={whatsResp} maxLength={11}
-                          onChange={e => setWhatsResp(e.target.value.replace(/\D/g,''))}
-                          placeholder="27999999999" />
+                        <input style={S.input} value={fmtTel(whatsResp)} maxLength={15}
+                          onChange={e => setWhatsResp(e.target.value.replace(/\D/g,'').slice(0,11))}
+                          placeholder="(27) 99999-9999" />
                       </Field>
                       <Field label="E-mail">
                         <input style={S.input} value={emailResp}

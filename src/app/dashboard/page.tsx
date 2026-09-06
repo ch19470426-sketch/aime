@@ -394,7 +394,7 @@ export default function Dashboard() {
   const ehVistoria = tipoServico !== null && CODIGOS_VISTORIA.includes(Number(tipoServico))
   const coletaCpf  = tipoServico !== null && CODIGOS_CPF.includes(Number(tipoServico))
   // Código 40 (Homologar) não sabe de antemão se a vistoria é de CPF ou CNPJ: aceita os dois formatos
-  const aceitaAmbos = tipoServico === 40
+  const aceitaAmbos = tipoServico === 40 || (Number(tipoServico) >= 51 && Number(tipoServico) <= 58)
 
   // Formata CNPJ (00.000.000/0000-00) ou CPF (000.000.000-00) conforme o tipo de serviço
   function formatarDocumento(valor: string): string {
@@ -468,8 +468,8 @@ export default function Dashboard() {
     }
     // Códigos 51-58: Planos de Manutenção — redirecionar antes da validação de tamanho
     if (Number(tipoServico) >= 51 && Number(tipoServico) <= 58) {
-      if (docLimpo.length < 11) {
-        setMsgErro(`CNPJ incompleto (${docLimpo.length} dígitos)`)
+      if (docLimpo.length !== 11 && docLimpo.length !== 14) {
+        setMsgErro(`CNPJ ou CPF incompleto (${docLimpo.length} dígitos — informe 11 para CPF ou 14 para CNPJ)`)
         return
       }
       window.location.href = `/plano-manutencao?cpf_inspetor=${cpfInspetor}&chave_inspetor=${chaveInspetor}&cnpjoucpf=${docLimpo}&tipo_servico=${tipoServico}`

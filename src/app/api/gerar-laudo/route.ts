@@ -2317,9 +2317,9 @@ ${S13}
 </ul>
 <p>As Prioridades para efetuar as manutenções das não conformidades são apuradas por metodologias técnicas como a GUT adaptado (Gravidade, Urgência e Tendência):</p>
 <ul>
-  <li><b>Prioridade 1 (Alta):</b> ações necessárias de imediato — prazo inferior a 3 meses;</li>
-  <li><b>Prioridade 2 (Média):</b> ações corretivas a médio prazo — prazo inferior a 8 meses;</li>
-  <li><b>Prioridade 3 (Baixa):</b> ações planejadas a longo prazo — prazo não superior a 18 meses.</li>
+  <li><b>Prioridade 1 (Alta):</b> ações necessárias de imediato — prazo inferior a ${tipoServico === '43' ? '15 dias' : '3 meses'};</li>
+  <li><b>Prioridade 2 (Média):</b> ações corretivas a médio prazo — prazo inferior a ${tipoServico === '43' ? '1 mês' : '8 meses'};</li>
+  <li><b>Prioridade 3 (Baixa):</b> ações planejadas a longo prazo — prazo não superior a ${tipoServico === '43' ? '3 meses' : '18 meses'}.</li>
 </ul>
 <p><b>2.3.4.- Critérios para avaliação da manutenção, uso da edificação e do desempenho.</b></p>
 <p>As recomendações quanto a manutenção, uso da edificação e sustentabilidade serão efetuadas segundo os critérios que seguem.</p>
@@ -2361,7 +2361,7 @@ ${S33}
 
 <div class="titulo">4.1.- Relação de Não Conformidades e Soluções.</div>
 <p>Neste item é apresentado, de forma clara e concisa, o conjunto de manifestações patológicas identificadas na vistoria, suas localizações e o número da foto no respectivo formulário de vistoria.</p>
-<p>Salientamos, também, a importância do condomínio documentar as manutenções corretivas realizadas no pós inspeção, indicando a solução aplicada, local, data e responsável técnico pela execução.</p>
+<p>Salientamos, também, a importância d${tipoServico === '43' ? "o proprietário" : "o condomínio"} documentar as manutenções corretivas realizadas no pós inspeção, indicando a solução aplicada, local, data e responsável técnico pela execução.</p>
 <p>A prioridade para manutenção de cada uma das não conformidades foi obtida pelo grau de risco (0 a 100), calculado com base nos parâmetros: gravidade, urgência, tendência e exposição ao risco.</p>
 <p>Quanto a definição das prioridades foi adotado o critério: grau de risco superior a 59 pontos, prioridade ALTA; grau de risco menor que 60 pontos e maior que 29 pontos, prioridade MÉDIA; grau de risco menor que 30 pontos, prioridade BAIXA.</p>
 ${S41||'<p><i>Nenhuma não conformidade registrada.</i></p>'}
