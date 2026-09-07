@@ -594,7 +594,7 @@ export async function POST(request: NextRequest) {
 
       // ── Item 6 — Conclusão ─────────────────────────────────────────────────
       const CONCLUSAO: Record<string,string> = {
-        '45': 'Diante do exposto neste documento, e após analisados todos os fatos observados que interferem ou possam vir a interferir com o assunto objeto deste laudo, concluímos:\n\nA inspeção proporcionou a constatação de que, considerando a situação encontrada, os elevadores encontram-se <b>&lt;aptos para uso / aptos com restrições para uso / inaptos para uso&gt;</b>.',
+        '45': 'Diante do exposto neste documento, e após analisados todos os fatos observados que interferem ou possam vir a interferir com o assunto objeto deste laudo, as medidas corretivas descritas deverão ser adotadas, priorizando os itens com prioridade Muito Alta e Alta, que representam risco imediato à segurança das pessoas e à integridade das instalações.',
         '46': 'Diante do exposto neste documento, e após analisados todos os fatos observados que interferem ou possam vir a interferir com o assunto objeto deste laudo, as medidas corretivas descritas deverão ser adotadas, priorizando os itens com prioridade Muito Alta e Alta, que representam risco imediato à segurança dos trabalhadores e à integridade das instalações.',
         '47': 'Diante do exposto neste documento, e após analisados todos os fatos observados que interferem ou possam vir a interferir com o assunto objeto deste laudo, as medidas corretivas descritas deverão ser adotadas, priorizando os itens com prioridade Muito Alta e Alta, que representam risco imediato à segurança dos trabalhadores e à integridade dos equipamentos.',
         '48': 'Diante do exposto neste documento, e após analisados todos os fatos observados que interferem ou possam vir a interferir com o assunto objeto deste laudo, as medidas corretivas descritas deverão ser adotadas, priorizando os itens com prioridade Muito Alta e Alta, que representam risco imediato à segurança dos trabalhadores e à integridade dos equipamentos.',
@@ -662,21 +662,23 @@ export async function POST(request: NextRequest) {
           '</td></tr>' +
         '</table>'
 
-      // Tabela localização (croqui + fotonr)
+      // Tabela localização (croqui + fotonr) — altura reduzida para o 45 caber
+      // tudo (item 1 completo) na primeira página
+      const alturaLocal = is45 ? '48mm' : '70mm'
       const tabelaLocal =
         '<div style="display:flex;justify-content:center;margin-top:6pt">' +
         '<table style="width:100%;border-collapse:collapse;border:2px solid #1E3A8A">' +
         '<tr><td colspan="2" style="' + TH11 + '">Localização do Estabelecimento</td></tr>' +
         '<tr>' +
-          '<td style="' + TD11 + ';width:50%;height:70mm;padding:4px">' +
+          '<td style="' + TD11 + ';width:50%;height:' + alturaLocal + ';padding:4px">' +
             (srcCroqui.startsWith('data:image')
-              ? '<img src="' + srcCroqui + '" style="width:100%;height:70mm;max-height:70mm;object-fit:contain">'
-              : '<div style="height:70mm;display:flex;align-items:center;justify-content:center;color:#94a3b8;font-size:8pt;border:1px dashed #c3d4f0">[Croqui de localização Maps]</div>') +
+              ? '<img src="' + srcCroqui + '" style="width:100%;height:' + alturaLocal + ';max-height:' + alturaLocal + ';object-fit:contain">'
+              : '<div style="height:' + alturaLocal + ';display:flex;align-items:center;justify-content:center;color:#94a3b8;font-size:8pt;border:1px dashed #c3d4f0">[Croqui de localização Maps]</div>') +
           '</td>' +
-          '<td style="' + TD11 + ';width:50%;height:70mm;padding:4px">' +
+          '<td style="' + TD11 + ';width:50%;height:' + alturaLocal + ';padding:4px">' +
             (srcFachada.startsWith('data:image')
-              ? '<img src="' + srcFachada + '" style="width:100%;height:70mm;max-height:70mm;object-fit:contain">'
-              : '<div style="height:70mm;display:flex;align-items:center;justify-content:center;color:#94a3b8;font-size:8pt;border:1px dashed #c3d4f0">[Foto da fachada principal]</div>') +
+              ? '<img src="' + srcFachada + '" style="width:100%;height:' + alturaLocal + ';max-height:' + alturaLocal + ';object-fit:contain">'
+              : '<div style="height:' + alturaLocal + ';display:flex;align-items:center;justify-content:center;color:#94a3b8;font-size:8pt;border:1px dashed #c3d4f0">[Foto da fachada principal]</div>') +
           '</td>' +
         '</tr>' +
         '</table>' +
@@ -1415,7 +1417,7 @@ export async function POST(request: NextRequest) {
 
       // CORPO
       partsNR.push('<div>')
-      partsNR.push('<div style="height:' + (tipoServico === '45' ? '160pt' : '80pt') + '"></div>')
+      partsNR.push('<div style="height:' + (tipoServico === '45' ? '30pt' : '80pt') + '"></div>')
 
       // 1. Considerações Preliminares
       partsNR.push('<div class="titulo">1.- Considerações Preliminares.</div>')
