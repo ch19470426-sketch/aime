@@ -661,23 +661,6 @@ export async function POST(request: NextRequest) {
             (complemento?.sinteseEdif||'').replace(/^[\d]+[^\n]*\n/,'').replace(/^SÍ?NTESE TÉ?CNICA[^\n]*\n+/i,'').replace(/^SÍ?NTESE[^\n]*\n+/i,'') +
           '</div>' +
           '</td></tr>' +
-        (is45
-          ? '<tr><td colspan="3" style="' + TH11 + '">Identificação dos Elevadores</td></tr>' +
-            '<tr>' +
-              '<td style="' + TH11.replace('background:#1E3A8A;color:#fff', 'background:#e8eef7;color:#1E3A8A') + '">TAG/Número:</td>' +
-              '<td style="' + TH11.replace('background:#1E3A8A;color:#fff', 'background:#e8eef7;color:#1E3A8A') + '">Fabricante/Marca:</td>' +
-              '<td style="' + TH11.replace('background:#1E3A8A;color:#fff', 'background:#e8eef7;color:#1E3A8A') + '">Capacidade kg: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Nr paradas:</td>' +
-            '</tr>' +
-            (Array.isArray(estab?.ativos) && estab.ativos.length > 0
-              ? estab.ativos.map((a:any) =>
-                  '<tr>' +
-                  '<td style="' + TD11 + '">' + xe(a.tag||a.tag_ativo_nr_serie||'') + '</td>' +
-                  '<td style="' + TD11 + '">' + xe(a.fabricante||a.fabricante_marca||'') + '</td>' +
-                  '<td style="' + TD11 + '">' + xe(a.capacidade||a.capacidade_potencia||'') + '</td>' +
-                  '</tr>'
-                ).join('')
-              : '<tr><td colspan="3" style="' + TD11 + '"><i>Cadastrar ativos (elevadores) no plano de trabalho.</i></td></tr>')
-          : '') +
         '</table>'
 
       // Tabela localização (croqui + fotonr)
@@ -702,7 +685,9 @@ export async function POST(request: NextRequest) {
 
       // Tabela ativos para 46/47/48 (campos plano de trabalho)
       // Colunas por tipo de serviço — só exibir colunas com dados
-      const colsAtivos = is46
+      const colsAtivos = is45
+        ? [{h:'Tipo ativo',f:'tipo_ativo'},{h:'Tag/Nº Série',f:'tag_ativo_nr_serie'},{h:'Dt. Início Op.',f:'data_inicio_operacao'},{h:'Subtipo',f:'subtipo'},{h:'Fabricante',f:'fabricante_marca'},{h:'Capacidade kg',f:'capacidade_potencia'}]
+        : is46
         ? [{h:'Tipo ativo',f:'tipo_ativo'},{h:'Tag/Nº Série',f:'tag_ativo_nr_serie'},{h:'Dt. Início Op.',f:'data_inicio_operacao'},{h:'Subtipo',f:'subtipo'},{h:'Tensão kV',f:'tensao_pressao_kv_kpa'},{h:'Fabricante',f:'fabricante_marca'}]
         : is47
         ? [{h:'Tipo ativo',f:'tipo_ativo'},{h:'Tag/Nº Série',f:'tag_ativo_nr_serie'},{h:'Dt. Início Op.',f:'data_inicio_operacao'},{h:'Subtipo',f:'subtipo'},{h:'Fabricante',f:'fabricante_marca'},{h:'Capacidade/Potência',f:'capacidade_potencia'}]
@@ -710,8 +695,8 @@ export async function POST(request: NextRequest) {
         ? [{h:'Tipo ativo',f:'tipo_ativo'},{h:'Tag/Nº Série',f:'tag_ativo_nr_serie'},{h:'Dt. Início Op.',f:'data_inicio_operacao'},{h:'Subtipo',f:'subtipo'},{h:'Pressão kPa',f:'tensao_pressao_kv_kpa'},{h:'Fluido/Classe',f:'fluido_classe_fluido'},{h:'Vol. Interno m³',f:'volume_interno_m3'}]
         : [{h:'Tipo ativo',f:'tipo_ativo'},{h:'Tag/Nº Série',f:'tag_ativo_nr_serie'},{h:'Dt. Início Op.',f:'data_inicio_operacao'}]
       const ativos = Array.isArray(estab?.ativos) ? estab.ativos : []
-      const tabelaAtivos4648 = !is45
-        ? '<p style="margin:8pt 0 4pt;font-weight:700;color:#1E3A8A;font-size:8.5pt">Relação de Ativos Vistoriados</p>' +
+      const tabelaAtivos4648 =
+          '<p style="margin:8pt 0 4pt;font-weight:700;color:#1E3A8A;font-size:8.5pt">Relação de Ativos Vistoriados</p>' +
           '<table style="width:100%;border-collapse:collapse">' +
           '<tr>' + colsAtivos.map(col => '<td style="' + TH11 + '">' + col.h + '</td>').join('') + '</tr>' +
           (ativos.length > 0
@@ -720,7 +705,6 @@ export async function POST(request: NextRequest) {
               ).join('')
             : '<tr><td colspan="' + colsAtivos.length + '" style="' + TDS + ';color:#9a3412;font-style:italic">Cadastrar ativos na tela de Plano de Trabalho.</td></tr>') +
           '</table>'
-        : ''
 
       const S11nr =
         '<div class="titulo">' + titulo11 + '</div>' +
@@ -1431,7 +1415,7 @@ export async function POST(request: NextRequest) {
 
       // CORPO
       partsNR.push('<div>')
-      partsNR.push('<div style="height:80pt"></div>')
+      partsNR.push('<div style="height:' + (tipoServico === '45' ? '160pt' : '80pt') + '"></div>')
 
       // 1. Considerações Preliminares
       partsNR.push('<div class="titulo">1.- Considerações Preliminares.</div>')
@@ -1506,7 +1490,7 @@ export async function POST(request: NextRequest) {
 
       // 6. Conclusão
       partsNR.push('<div class="titulo">6.- Conclusão.</div>')
-      partsNR.push('<p style="text-align:justify">' + CONCLUSAO[tipoServico] + '</p>')
+      partsNR.push('<p style="text-align:justify">' + (CONCLUSAO[tipoServico]||'').replace(/\n\n/g,'</p><p style="text-align:justify">') + '</p>')
 
       // 7. Encerramento
       partsNR.push('<div class="titulo">7.- Encerramento.</div>')
