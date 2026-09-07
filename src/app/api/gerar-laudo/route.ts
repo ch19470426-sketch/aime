@@ -710,6 +710,7 @@ export async function POST(request: NextRequest) {
         '<div>' +
         tabelaCaract +
         tabelaLocal +
+        '<div style="page-break-before:always"></div>' +
         tabelaAtivos4648 +
         '<p style="text-align:justify;font-size:8.5pt;margin:6pt 0">A documentação solicitada foi analisada e avaliada e o resultado encontra-se registrado no documento apresentado no Anexo 1 deste laudo.</p>' +
         '</div>'
