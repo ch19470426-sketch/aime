@@ -103,6 +103,18 @@ export async function POST(request: NextRequest) {
         // preferCSSPageSize está ativado).
       })
       console.log('[gerar-laudo-pdf] pdf gerado, tamanho:', pdf.length)
+
+      // Verificação de sanidade: o Chromium pode falhar internamente (crash do
+      // processo de renderização) sem lançar uma exceção JS, retornando um
+      // buffer parcial/corrompido que "parece" bem-sucedido. Confirma a
+      // assinatura real de um PDF (%PDF-) e um tamanho mínimo plausível antes
+      // de enviar — evita entregar um arquivo .pdf com conteúdo inválido.
+      const assinaturaValida = pdf.length > 1000 && pdf.subarray(0, 5).toString('latin1') === '%PDF-'
+      if (!assinaturaValida) {
+        console.error('[gerar-laudo-pdf] PDF gerado é inválido — tamanho:', pdf.length, 'início:', pdf.subarray(0, 20).toString('latin1'))
+        return NextResponse.json({ erro: 'A geração do PDF falhou internamente (documento inválido/corrompido). Tente novamente — se persistir, o documento pode estar grande ou complexo demais.' }, { status: 500 })
+      }
+
       return new NextResponse(pdf, {
         headers: {
           'Content-Type': 'application/pdf',
