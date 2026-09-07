@@ -624,9 +624,9 @@ export async function POST(request: NextRequest) {
 
       const linhaExtra45 = is45
         ? '<tr>' +
-            '<td style="' + TD11 + '"><b>Uso Edificação:</b> ' + xe(estab?.uso_estabelecimento||'') + '</td>' +
-            '<td style="' + TD11 + '"><b>Tipo imóvel:</b> ' + xe(estab?.tipo_imovel||'') + '</td>' +
-            '<td style="' + TD11 + '"><b>Nr pavimentos:</b> ' + xe(estab?.numero_pavimentos||'') + ' &nbsp;&nbsp; <b>Nr elevadores:</b> ' + xe(estab?.nr_elevadores||estab?.numero_unidades_salas||'') + '</td>' +
+            '<td style="' + TD11 + '"><b>Uso Edificação:</b><br>' + xe(estab?.uso_estabelecimento||'') + '</td>' +
+            '<td style="' + TD11 + '"><b>Nr pavimentos:</b><br>' + xe(estab?.numero_pavimentos||'') + '</td>' +
+            '<td style="' + TD11 + '"><b>Nr elevadores:</b><br>' + xe(estab?.nr_elevadores||estab?.numero_unidades_salas||'') + '</td>' +
           '</tr>'
         : ''
 
