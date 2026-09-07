@@ -664,7 +664,7 @@ export async function POST(request: NextRequest) {
 
       // Tabela localização (croqui + fotonr) — altura reduzida para o 45 caber
       // tudo (item 1 completo) na primeira página
-      const alturaLocal = is45 ? '48mm' : '70mm'
+      const alturaLocal = is45 ? '58mm' : '70mm'
       const tabelaLocal =
         '<div style="display:flex;justify-content:center;margin-top:6pt">' +
         '<table style="width:100%;border-collapse:collapse;border:2px solid #1E3A8A">' +
@@ -1417,7 +1417,7 @@ export async function POST(request: NextRequest) {
 
       // CORPO
       partsNR.push('<div>')
-      partsNR.push('<div style="height:' + (tipoServico === '45' ? '30pt' : '80pt') + '"></div>')
+      partsNR.push('<div style="height:' + (tipoServico === '45' ? '60pt' : '80pt') + '"></div>')
 
       // 1. Considerações Preliminares
       partsNR.push('<div class="titulo">1.- Considerações Preliminares.</div>')
