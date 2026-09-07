@@ -109,9 +109,14 @@ export async function POST(request: NextRequest) {
       // buffer parcial/corrompido que "parece" bem-sucedido. Confirma a
       // assinatura real de um PDF (%PDF-) e um tamanho mínimo plausível antes
       // de enviar — evita entregar um arquivo .pdf com conteúdo inválido.
-      const assinaturaValida = pdf.length > 1000 && pdf.subarray(0, 5).toString('latin1') === '%PDF-'
+      // page.pdf() pode retornar Uint8Array (não Buffer) — Uint8Array.toString()
+      // ignora o argumento de encoding e produz números separados por vírgula,
+      // fazendo a comparação de string falhar mesmo com PDF válido. Comparar
+      // os bytes diretamente evita esse problema.
+      const assinaturaValida = pdf.length > 1000 &&
+        pdf[0] === 0x25 && pdf[1] === 0x50 && pdf[2] === 0x44 && pdf[3] === 0x46 && pdf[4] === 0x2D // %PDF-
       if (!assinaturaValida) {
-        const inicio = pdf.subarray(0, 200).toString('latin1').replace(/[^\x20-\x7E]/g, '·')
+        const inicio = Buffer.from(pdf.subarray(0, 200)).toString('latin1').replace(/[^\x20-\x7E]/g, '·')
         console.error('[gerar-laudo-pdf] PDF gerado é inválido — tamanho:', pdf.length, 'início:', inicio)
         return NextResponse.json({
           erro: 'A geração do PDF falhou internamente (documento inválido/corrompido).',
