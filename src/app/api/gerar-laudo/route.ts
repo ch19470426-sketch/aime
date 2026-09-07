@@ -1038,7 +1038,7 @@ export async function POST(request: NextRequest) {
         '<div>' +
         '<p style="text-align:justify">Neste item é apresentado, de forma clara e concisa, o conjunto de requisitos normativos identificados na vistoria, suas localizações e o número da foto no respectivo formulário de vistoria. Na tabela constam as prioridades para retificação dos problemas de cada um dos componentes, visando mitigar os riscos e garantir a conformidade e eficiência dos equipamentos, segundo normas técnicas vigentes.</p>' +
         '<p style="text-align:justify">A prioridade para manutenção de cada uma das não conformidades foi obtida pelo grau de risco (0 a 100), calculado com base nos parâmetros: gravidade (40%); abrangência (30%); urgência (20%); e exposição (10%); observado no requisito normativo.</p>' +
-        '<p style="text-align:justify">Quanto à definição das prioridades foi adotado o critério: grau de risco superior a 59 pontos, prioridade ALTA; grau de risco menor que 60 pontos e maior que 29 pontos, prioridade MÉDIA; grau de risco menor que 30 pontos, prioridade BAIXA.</p>' +
+        '<p style="text-align:justify">Quanto a definição das prioridades foi adotado o critério: grau de risco superior a 80 pontos, prioridade Muito Alta; grau de risco menor que 80 pontos e maior que 49 pontos, prioridade Alta; grau de risco menor que 50 pontos e maior que 29 pontos, prioridade Média; grau de risco inferior a 30 pontos, prioridade Baixa.</p>' +
         '<p style="text-align:justify">A Relação de Não Conformidades com o resultado da análise e da classificação é apresentada a seguir.</p>' +
         A3nr +
         '</div>'
@@ -1505,7 +1505,7 @@ export async function POST(request: NextRequest) {
       partsNR.push('<p style="text-align:justify">O responsável técnico pela execução deste trabalho coloca-se ao inteiro dispor para esclarecimentos adicionais, caso necessários. O documento é entregue em mídia magnética, acompanhado dos arquivos pertinentes.</p>')
       partsNR.push('<p style="font-size:8pt;font-style:italic;text-align:justify">Atenção: O titular do direito autoral deste trabalho somente autoriza sua reprodução nos casos legais cabíveis, vedando sua cópia ou qualquer forma de reprodução que caracterize plágio.</p>')
       partsNR.push('<p style="text-align:right;font-size:9pt;font-weight:bold;margin-top:20px">' + cidadeNR + dataHojeNR + '</p>')
-      partsNR.push('<p style="line-height:1;margin:0">&nbsp;</p><p style="line-height:1;margin:0">&nbsp;</p>')
+      partsNR.push('<p style="line-height:1;margin:0">&nbsp;</p><p style="line-height:1;margin:0">&nbsp;</p><p style="line-height:1;margin:0">&nbsp;</p><p style="line-height:1;margin:0">&nbsp;</p><p style="line-height:1;margin:0">&nbsp;</p>')
       partsNR.push('<p style="font-size:8pt;line-height:1;margin:0">[Assinatura digital]</p>')
       partsNR.push('<p style="line-height:1;margin:0">&nbsp;</p>')
       partsNR.push('<p style="line-height:1;margin:0"><strong>' + xe(inspetor?.nome_inspetor) + '</strong> – Responsável Técnico</p>')
