@@ -107,6 +107,10 @@ export async function POST(request: NextRequest) {
         headers: {
           'Content-Type': 'application/pdf',
           'Content-Disposition': `attachment; filename="${nomeArquivo.replace(/\.html$/i, '.pdf')}"`,
+          // Sem Content-Length explícito, o navegador pode não reconhecer o fim
+          // da transferência mesmo com o servidor tendo terminado com sucesso —
+          // o download fica preso em .crdownload indefinidamente.
+          'Content-Length': String(pdf.length),
         },
       })
     } finally {

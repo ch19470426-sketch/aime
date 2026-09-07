@@ -456,7 +456,7 @@ function HomologarProdutoInner() {
             Voltar
           </button>
           <button style={{ ...S.btn, ...S.btnSec, opacity: gerandoPdf ? 0.6 : 1 }} onClick={salvarPDFLaudo} disabled={gerandoPdf}>
-            {gerandoPdf ? '⏳ Gerando PDF... (até 40s)' : '↓ Salvar como PDF'}
+            {gerandoPdf ? '⏳ Gerando PDF... (até 2 min)' : '↓ Salvar como PDF'}
           </button>
           <button style={{ ...S.btn, ...S.btnPri, opacity: enviando ? 0.6 : 1 }}
             onClick={() => { setEnviando(false); inputPdfRef.current?.click() }} disabled={enviando}>
