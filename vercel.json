@@ -1,0 +1,12 @@
+{
+  "functions": {
+    "src/app/api/gerar-laudo-pdf/route.ts": {
+      "memory": 3009,
+      "maxDuration": 120
+    },
+    "src/app/api/gerar-laudo/route.ts": {
+      "memory": 1536,
+      "maxDuration": 60
+    }
+  }
+}
