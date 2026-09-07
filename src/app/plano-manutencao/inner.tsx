@@ -91,7 +91,7 @@ export default function PlanoManutencaoInner() {
   const [gerandoPdf, setGerandoPdf] = useState(false)
   const [htmlGerado, setHtmlGerado] = useState('')
   const inputPdfRef = useRef<HTMLInputElement>(null)
-  const editRef = useRef<HTMLDivElement>(null)
+  const iframeRef = useRef<HTMLIFrameElement>(null)
 
   const titulo      = TITULO[tipoServico] ?? 'Plano de Manutenção'
   const tsApoioNum  = TIPO_APOIO_NUM[tipoServico] ?? ''
@@ -197,7 +197,7 @@ export default function PlanoManutencaoInner() {
       // Se foi editado na tela, usar o conteúdo editado — plano de manutenção
       // não embute fotos em base64, então o HTML fica bem abaixo do limite
       // de tamanho da requisição (diferente dos laudos, que têm várias fotos).
-      const innerEditado = editRef.current?.innerHTML
+      const innerEditado = iframeRef.current?.contentDocument?.body?.innerHTML
       const htmlParaPdf = innerEditado
         ? htmlGerado.replace(/<body>([\s\S]*)<\/body>/, `<body>${innerEditado}</body>`)
         : htmlGerado
@@ -364,18 +364,21 @@ export default function PlanoManutencaoInner() {
               </button>
             </div>
 
-            <div
-              ref={editRef}
-              contentEditable
-              suppressContentEditableWarning
-              dangerouslySetInnerHTML={{ __html: htmlGerado }}
-              style={{
-                border: '1px solid #c3d4f0', borderRadius: 6,
-                height: 520, overflowY: 'auto', padding: '12px 20px',
-                background: '#fff', fontSize: '9pt', lineHeight: 1.5,
-                fontFamily: 'Arial, sans-serif', marginTop: 8,
-                outline: 'none'
+            <iframe
+              ref={iframeRef}
+              srcDoc={htmlGerado}
+              onLoad={() => {
+                const d = iframeRef.current?.contentDocument
+                if (d?.body) {
+                  d.body.setAttribute('contenteditable', 'true')
+                  d.body.style.outline = 'none'
+                }
               }}
+              style={{
+                width: '100%', height: '800px', border: '1px solid #c3d4f0',
+                borderRadius: 6, display: 'block', background: '#fff', marginTop: 8,
+              }}
+              title="Preview editável do documento"
             />
           </div>
         )}
