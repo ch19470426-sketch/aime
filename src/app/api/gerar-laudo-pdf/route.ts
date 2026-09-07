@@ -111,8 +111,12 @@ export async function POST(request: NextRequest) {
       // de enviar — evita entregar um arquivo .pdf com conteúdo inválido.
       const assinaturaValida = pdf.length > 1000 && pdf.subarray(0, 5).toString('latin1') === '%PDF-'
       if (!assinaturaValida) {
-        console.error('[gerar-laudo-pdf] PDF gerado é inválido — tamanho:', pdf.length, 'início:', pdf.subarray(0, 20).toString('latin1'))
-        return NextResponse.json({ erro: 'A geração do PDF falhou internamente (documento inválido/corrompido). Tente novamente — se persistir, o documento pode estar grande ou complexo demais.' }, { status: 500 })
+        const inicio = pdf.subarray(0, 200).toString('latin1').replace(/[^\x20-\x7E]/g, '·')
+        console.error('[gerar-laudo-pdf] PDF gerado é inválido — tamanho:', pdf.length, 'início:', inicio)
+        return NextResponse.json({
+          erro: 'A geração do PDF falhou internamente (documento inválido/corrompido).',
+          diagnostico: { tamanhoBytes: pdf.length, primeirosCaracteres: inicio, tamanhoHtmlEntrada: htmlFinal.length },
+        }, { status: 500 })
       }
 
       return new NextResponse(pdf, {

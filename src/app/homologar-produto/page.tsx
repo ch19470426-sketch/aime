@@ -244,8 +244,13 @@ function HomologarProdutoInner() {
       })
       if (!res.ok) {
         let detalhe = ''
-        try { detalhe = (await res.json())?.erro ?? '' } catch {}
-        throw new Error(`Falha ao gerar o PDF (${res.status}). ${detalhe}`)
+        let diag = ''
+        try {
+          const j = await res.json()
+          detalhe = j?.erro ?? ''
+          if (j?.diagnostico) diag = ` [diag: ${JSON.stringify(j.diagnostico)}]`
+        } catch {}
+        throw new Error(`Falha ao gerar o PDF (${res.status}). ${detalhe}${diag}`)
       }
       const blob = await res.blob()
       const url = URL.createObjectURL(blob)
