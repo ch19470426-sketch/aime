@@ -1,5 +1,9 @@
 // src/app/api/listar-vistorias/route.ts
-// Lista NCs — suporta AIME-NC-DATA (novo) e parsing HTML (arquivos antigos)
+// Lista NCs — abordagem híbrida: prioriza a tabela dados_vistoria (fonte
+// robusta, com nomes de coluna e tipos corretos), e cai para os métodos
+// antigos (AIME-NC-DATA embutido no HTML, ou parsing de HTML puro) apenas
+// para itens homologados ANTES da correção de dados_vistoria (nomes de
+// coluna, tamanho de campo e RLS) — evitando ter que re-homologar tudo.
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
@@ -17,7 +21,6 @@ const LAUDO_PARA_VISTORIA: Record<string,string> = {
   '45':'35','46':'36','47':'37','48':'38',
 }
 
-// Extrai campo de <div class="f"><label>X</label><span>VALOR</span></div>
 function campo(html: string, label: string): string {
   const re = new RegExp(
     `<div class="f">\\s*<label[^>]*>[^<]*${label}[^<]*</label>\\s*<span[^>]*>([\\s\\S]*?)</span>`,
@@ -26,10 +29,7 @@ function campo(html: string, label: string): string {
   return html.match(re)?.[1]?.trim().replace(/<[^>]+>/g,'') ?? ''
 }
 
-// Extrai Grau de Risco e Prioridade — estão em <div class="m"> com estrutura diferente
 function campoM(html: string, label: string): string {
-  // <span>Grau de Risco</span><span style="font-size:13pt...">76</span>
-  // <span>Prioridade</span><span class="badge"...>Alta</span>
   const re = new RegExp(
     `<span[^>]*>[^<]*${label}[^<]*</span>\\s*<span[^>]*>([^<]*)</span>`,
     'i'
@@ -37,7 +37,14 @@ function campoM(html: string, label: string): string {
   return html.match(re)?.[1]?.trim() ?? ''
 }
 
-// Parseia HTML do formulário homologado (sem AIME-NC-DATA)
+function extrairFoto(html: string): string {
+  const mJson = html.match(/<!--\s*AIME-NC-DATA:([\s\S]*?)\s*-->/)
+  if (mJson) {
+    try { return JSON.parse(mJson[1])?.fotoBase64 ?? '' } catch {}
+  }
+  return html.match(/<img[^>]+src="(data:image[^"]+)"/)?.[1] ?? ''
+}
+
 function parsearHtml(html: string, nome: string): any {
   return {
     sistema:     campo(html, 'Sistema'),
@@ -72,19 +79,44 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ erro: 'Parâmetros obrigatórios ausentes' }, { status: 400 })
 
   const tipoVistoria = LAUDO_PARA_VISTORIA[tipoServico] ?? tipoServico
+  const ehNR = ['35','36','37','38'].includes(tipoVistoria)
   const ncs: any[] = []
 
+  // ── 0. dados_vistoria — fonte preferencial (mais robusta) ──────────────
+  const porFoto = new Map<string, any>()
   try {
-    // ── 1. vistorias_homologadas/ ────────────────────────────────────────────
+    const { data: linhas } = await supabase
+      .from('dados_vistoria')
+      .select('*')
+      .eq('cnpjoucpf', cnpjoucpf)
+      .eq('tipo_servico', tipoVistoria)
+
+    for (const d of (linhas ?? [])) {
+      const nc: any = {
+        chaveInspetor, cnpjoucpf, tipoServico: tipoVistoria,
+        tipoAtivo: d.tipo_ativo, tagNrSerie: d.tag_ativo_nr_serie,
+        sistema: d.sistema_vistoria, subsistema: d.subsistema_vistoria,
+        anomalia: d.anomalia_requisito_vistoria,
+        local: d.local_ocorrencia, complemento: d.complemento_local,
+        grauRisco: d.grau_risco, prioridade: d.prioridade,
+        fotoNr: String(d.numero_foto ?? ''), dataVistoria: d.data_vistoria,
+        nc: d.descricao_nao_conformidade, cp: d.descricao_causa_provavel,
+        fotoBase64: '', _fonte: 'dados_vistoria',
+      }
+      if (ehNR) nc.resultado = d.origem_resultado
+      else nc.origem = d.origem_resultado
+      porFoto.set(String(d.numero_foto ?? ''), nc)
+      ncs.push(nc)
+    }
+  } catch { /* segue para o método antigo se a consulta falhar */ }
+
+  try {
     const { data: homologados } = await supabase.storage
       .from('aime').list('vistorias_homologadas', { limit: 1000 })
 
     for (const arq of (homologados ?? [])) {
       if (!arq.name.endsWith('.html')) continue
 
-      // Filtrar por padrão do nome:
-      // Novo:   INS-001_12345678000190_31_001.html → chave_cnpj_tipo_nr
-      // Antigo: INS-001003.html                   → chaveNr
       const isNovo   = arq.name.startsWith(`${chaveInspetor}_${cnpjoucpf}_${tipoVistoria}_`) ||
                        arq.name.startsWith(`${chaveInspetor}_${cnpjoucpf}_${tipoServico}_`)
       const isAntigo = !isNovo && arq.name.startsWith(chaveInspetor) &&
@@ -92,13 +124,24 @@ export async function GET(request: NextRequest) {
 
       if (!isNovo && !isAntigo) continue
 
+      const fotoDoNome = arq.name.match(/_(\d+)\.html$/)?.[1] ?? ''
+      const jaTemDados = fotoDoNome && porFoto.has(fotoDoNome)
+
       try {
+        if (jaTemDados && !comFoto) continue
+        if (jaTemDados && comFoto) {
+          if (porFoto.get(fotoDoNome)!.fotoBase64) continue
+          const { data: blob } = await supabase.storage
+            .from('aime').download(`vistorias_homologadas/${arq.name}`)
+          if (blob) porFoto.get(fotoDoNome)!.fotoBase64 = extrairFoto(await blob.text())
+          continue
+        }
+
         const { data: blob } = await supabase.storage
           .from('aime').download(`vistorias_homologadas/${arq.name}`)
         if (!blob) continue
         const html = await blob.text()
 
-        // Tentar AIME-NC-DATA (arquivos homologados após 24/07)
         const mJson = html.match(/<!--\s*AIME-NC-DATA:([\s\S]*?)\s*-->/)
         if (mJson) {
           try {
@@ -107,16 +150,13 @@ export async function GET(request: NextRequest) {
             const tipoOk = String(dados.tipoServico) === String(tipoServico) ||
                            String(dados.tipoServico) === String(tipoVistoria)
             if (!tipoOk) continue
-            const nc: any = { ...dados, _arquivo: arq.name }
+            const nc: any = { ...dados, _arquivo: arq.name, _fonte: 'aime_nc_data' }
             if (!comFoto) delete nc.fotoBase64
             ncs.push(nc)
           } catch { /* fallthrough para parsing HTML */ }
         } else {
-          // Arquivos antigos: parsear HTML diretamente
           if (isAntigo) {
-            // Verificar se o CNPJ do arquivo corresponde
             if (!html.includes(cnpjoucpf)) continue
-            // Verificar tipo de serviço
             const tipoHtml = campo(html, 'Tipo de serviço')
             if (tipoHtml && tipoHtml !== tipoVistoria && tipoHtml !== tipoServico) continue
           }
@@ -130,7 +170,6 @@ export async function GET(request: NextRequest) {
       } catch { continue }
     }
 
-    // ── 2. vistorias/ (JSONs pendentes) ─────────────────────────────────────
     const { data: pendentes } = await supabase.storage
       .from('aime').list('vistorias', { limit: 1000 })
 
@@ -154,13 +193,12 @@ export async function GET(request: NextRequest) {
           if (String(dados.tipoServico) !== String(tipoServico) &&
               String(dados.tipoServico) !== String(tipoVistoria)) continue
         }
-        const nc: any = { ...dados, _arquivo: arq.name }
+        const nc: any = { ...dados, _arquivo: arq.name, _fonte: 'pendente' }
         if (!comFoto) delete nc.fotoBase64
         ncs.push(nc)
       } catch { continue }
     }
 
-    // Ordenar por fotoNr
     ncs.sort((a, b) =>
       String(a.fotoNr ?? '').localeCompare(String(b.fotoNr ?? ''), undefined, { numeric: true })
     )
