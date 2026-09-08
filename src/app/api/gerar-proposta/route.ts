@@ -21,7 +21,6 @@ const TITULO_TIPO: Record<string, string> = {
   '16': 'Proposta — Inspeção NR-10',
   '17': 'Proposta — Inspeção NR-12',
   '18': 'Proposta — Inspeção NR-13',
-  '19': 'Proposta — Plano de Manutenção',
 }
 
 const C: Record<string, Record<string, string>> = {
