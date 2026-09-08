@@ -571,7 +571,10 @@ function Tela40Inner() {
         })
       })
       if (!resDadosVistoria.ok) {
-        console.error('Falha ao salvar dados_vistoria:', await resDadosVistoria.text())
+        const erroTexto = await resDadosVistoria.text()
+        console.error('Falha ao salvar dados_vistoria:', erroTexto)
+        // Alerta visível — não depender do console do navegador para diagnosticar
+        alert('⚠️ FALHA AO SALVAR dados_vistoria (status ' + resDadosVistoria.status + '):\n\n' + erroTexto)
       }
 
       // Homologar server-side: gera HTML com foto, salva em vistorias_homologadas/, exclui JSON
