@@ -883,12 +883,18 @@ export async function POST(request: NextRequest) {
       // igual ao Anexo 2 — sem filtro por resultado.
       // Agrupar NCs por sistema (tag vem dos ativos)
       // Ordenar NCs por tag_ativo_nr_serie → sistema → grauRisco DESC
+      // Normaliza o texto do sistema para agrupamento/ordenação consistente —
+      // registros diferentes podem ter salvo "02-X"/"02_X"/" 02_X " (hífen vs
+      // underline, espaços), o que fazia o MESMO sistema ser tratado como
+      // grupos diferentes e não-contíguos na tabela.
+      const normSis = (s: any) => String(s||'').trim().replace(/^(\d+)[-_]/, '$1_')
+
       const ncsOrdenadas = [...(ncs ?? [])].sort((a:any, b:any) => {
         const tagA = String(a.tagNrSerie||a.tag_ativo_nr_serie||a.tag||'')
         const tagB = String(b.tagNrSerie||b.tag_ativo_nr_serie||b.tag||'')
         if (tagA !== tagB) return tagA.localeCompare(tagB)
-        const sisA = String(a.sistema||'')
-        const sisB = String(b.sistema||'')
+        const sisA = normSis(a.sistema)
+        const sisB = normSis(b.sistema)
         if (sisA !== sisB) return sisA.localeCompare(sisB)
         return (Number(b.grauRisco)||0) - (Number(a.grauRisco)||0)
       })
@@ -949,7 +955,7 @@ export async function POST(request: NextRequest) {
       let primeiroA3 = true
 
       ncsOrdenadas.forEach((nc:any) => {
-        const ncSis  = String(nc.sistema||'Geral').trim()
+        const ncSis  = normSis(nc.sistema) || 'Geral'
         // Quando muda o sistema, avança para o próximo ativo
         if (ncSis !== curSisA3 && curSisA3 !== '') {
           if (ativoIdxA3 < ativosA3.length - 1) ativoIdxA3++
@@ -957,7 +963,7 @@ export async function POST(request: NextRequest) {
         const ativo  = ativosA3[ativoIdxA3] ?? {}
         const ncTag  = ativo.tag_ativo_nr_serie || ativo.tag || '—'
         const ncTipo = ativo.tipo_ativo || ativo.tipo || '—'
-        const sisKey  = ncSis.replace(/^(\d+)-/, '$1_')
+        const sisKey  = ncSis
         const sisNome = sisKey.replace(/^\d+_/, '').replace(/_/g, ' ').trim()
         const mudou = ncSis !== curSisA3
 
