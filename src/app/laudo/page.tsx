@@ -774,7 +774,7 @@ function LaudoComplemento() {
               
               <div style={{ display: "flex", justifyContent: "flex-end", gap: "6px", marginTop: "6px" }}>
                 <button style={{ ...S.btnIA, opacity: gerandoDesc ? 0.7 : 1 }}
-                  onClick={gerarDescricao} disabled={gerandoDesc || !dadosVistoria}>
+                  onClick={gerarDescricao} disabled={gerandoDesc || !dadosVistoria || carregando}>
                   {gerandoDesc ? 'Gerando...' : '✦ Gerar'}
                 </button>
 
