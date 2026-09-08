@@ -533,7 +533,7 @@ function Tela31Inner() {
                   </select>
                 </Field>
                 <Field label="Complemento do local">
-                  <input style={S.input} value={complemento} onChange={e => setComplemento(e.target.value)} placeholder="Ex: Pavimento 3" />
+                  <input style={S.input} value={complemento} onChange={e => setComplemento(e.target.value)} maxLength={150} placeholder="Ex: Pavimento 3" />
                 </Field>
               </div>
             </div>

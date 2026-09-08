@@ -804,10 +804,10 @@ function Tela40Inner() {
                     </select>
                   </Field>
                   <Field label="Local/Instalação/Setor/Área *">
-                    <input style={S.input} value={local} onChange={e => { setLocal(e.target.value) }} placeholder="Ex: Quadro 2º pavimento..." />
+                    <input style={S.input} value={local} onChange={e => { setLocal(e.target.value) }} maxLength={150} placeholder="Ex: Quadro 2º pavimento..." />
                   </Field>
                   <Field label="Complemento">
-                    <input style={S.input} value={complemento} onChange={e => setComplemento(e.target.value)} />
+                    <input style={S.input} value={complemento} onChange={e => setComplemento(e.target.value)} maxLength={150} />
                   </Field>
                 </div>
               ) : (
@@ -825,7 +825,7 @@ function Tela40Inner() {
                     </select>
                   </Field>
                   <Field label="Complemento do local">
-                    <input style={S.input} value={complemento} onChange={e => setComplemento(e.target.value)} placeholder="Detalhe opcional..." />
+                    <input style={S.input} value={complemento} onChange={e => setComplemento(e.target.value)} maxLength={150} placeholder="Detalhe opcional..." />
                   </Field>
                 </div>
               )}

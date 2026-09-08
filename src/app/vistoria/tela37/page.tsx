@@ -546,11 +546,11 @@ function Tela31Inner() {
                         <option value="">Selecione...</option>
                         {locais.map(l => <option key={l} value={l}>{l}</option>)}
                       </select>
-                    : <input style={{ ...S.input, borderColor: !local ? '#E24B4A' : undefined }} value={local} onChange={e => setLocal(e.target.value)} placeholder="Ex: Quadro 2º pavimento..." />
+                    : <input style={{ ...S.input, borderColor: !local ? '#E24B4A' : undefined }} value={local} onChange={e => setLocal(e.target.value)} maxLength={150} placeholder="Ex: Quadro 2º pavimento..." />
                   }
                 </Field>
                 <Field label="Complemento">
-                  <input style={S.input} value={complemento} onChange={e => setComplemento(e.target.value)} placeholder="Detalhe adicional..." />
+                  <input style={S.input} value={complemento} onChange={e => setComplemento(e.target.value)} maxLength={150} placeholder="Detalhe adicional..." />
                 </Field>
               </div>
             </div>
