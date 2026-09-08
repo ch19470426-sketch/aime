@@ -509,6 +509,23 @@ export async function POST(request: NextRequest) {
         if (s.sistema && s.descricao_sistema)
           DESC_SIS[s.sistema] = s.descricao_sistema
       })
+      // Normaliza removendo prefixo numérico (01_/02-/etc) e underscores, para
+      // agrupar/comparar/buscar sistemas de forma robusta — o mesmo sistema
+      // pode ter sido salvo com prefixos diferentes em momentos diferentes
+      // (ex: "03_X" numa vistoria, "3_X" ou renumerado em outra), o que fazia
+      // o agrupamento tratar o MESMO sistema como diferente mesmo com o texto
+      // exibido idêntico.
+      const normSis = (s: any) => String(s||'').trim().replace(/^\d+[-_]\s*/, '').replace(/_/g, ' ').trim()
+      // Busca num mapa (DESC_SIS, recsSis) tentando a chave exata primeiro e,
+      // se não achar, comparando a versão normalizada contra todas as chaves.
+      function buscarPorSistema(mapa: Record<string,string>, chave: string): string {
+        if (mapa[chave]) return mapa[chave]
+        const chaveNorm = normSis(chave)
+        for (const k of Object.keys(mapa)) {
+          if (normSis(k) === chaveNorm) return mapa[k]
+        }
+        return ''
+      }
       const is45 = tipoServico === '45'
       const is46 = tipoServico === '46'
       const is47 = tipoServico === '47'
@@ -887,9 +904,7 @@ export async function POST(request: NextRequest) {
       // registros diferentes podem ter salvo "02-X"/"02_X"/" 02_X " (hífen vs
       // underline, espaços), o que fazia o MESMO sistema ser tratado como
       // grupos diferentes e não-contíguos na tabela.
-      const normSis = (s: any) => String(s||'').trim().replace(/^(\d+)[-_]/, '$1_')
-
-      const ncsOrdenadas = [...(ncs ?? [])].sort((a:any, b:any) => {
+            const ncsOrdenadas = [...(ncs ?? [])].sort((a:any, b:any) => {
         const tagA = String(a.tagNrSerie||a.tag_ativo_nr_serie||a.tag||'')
         const tagB = String(b.tagNrSerie||b.tag_ativo_nr_serie||b.tag||'')
         if (tagA !== tagB) return tagA.localeCompare(tagB)
@@ -979,7 +994,7 @@ export async function POST(request: NextRequest) {
             '</tr></table>'
 
           // d. Descrição
-          const descSis = DESC_SIS[sisKey] ?? DESC_SIS[ncSis] ?? ''
+          const descSis = buscarPorSistema(DESC_SIS, sisKey)
           htmlA3 += '<table style="width:100%;border-collapse:collapse;margin-bottom:2px"><tr>' +
             '<td style="' + CELL + ';width:100%">' +
             '<div style="' + ROT + '">Descrição do sistema:</div>' +
@@ -987,7 +1002,7 @@ export async function POST(request: NextRequest) {
             '</td></tr></table>'
 
           // e. Recomendação
-          const recBruto = recsSis[sisKey] ?? recsSis[ncSis] ?? ''
+          const recBruto = buscarPorSistema(recsSis, sisKey)
           const recSis = recBruto
             .replace(/^(RECOMENDA[ÇC][ÃA]O T[EÉ]CNICA[^\n]*\n+)/i,'')
             .replace(/^(Recomenda[çc][ãa]o T[eé]cnica[^\n]*\n+)/i,'')
