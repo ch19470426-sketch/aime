@@ -433,7 +433,15 @@ function LaudoComplemento() {
     // pendentes de homologação, ou (b) algum ativo nunca teve vistoria alguma
     // registrada (nem pendente, nem homologada).
     try {
-      const resPend = await fetch(`/api/vistorias?chave_inspetor=${chaveInspetor}&cnpjoucpf=${cnpjoucpf}`)
+      // Mapeia o tipo do laudo para o tipo de vistoria correspondente — sem
+      // isso, o filtro pegaria pendências de QUALQUER serviço já testado
+      // para esse CNPJ, não só o deste laudo.
+      const LAUDO_PARA_VISTORIA: Record<string,string> = {
+        '41':'31','42':'32','43':'33','44':'34',
+        '45':'35','46':'36','47':'37','48':'38',
+      }
+      const tipoVistoriaFiltro = LAUDO_PARA_VISTORIA[tipoServico] ?? tipoServico
+      const resPend = await fetch(`/api/vistorias?chave_inspetor=${chaveInspetor}&cnpjoucpf=${cnpjoucpf}&tipo_servico=${tipoVistoriaFiltro}`)
       const dataPend = await resPend.json()
       const pendentes = Array.isArray(dataPend?.formularios) ? dataPend.formularios : []
       if (pendentes.length > 0) {

@@ -20,6 +20,7 @@ export async function GET(request: NextRequest) {
   const pasta         = searchParams.get('pasta') ?? 'vistorias'
   const chaveInspetor = searchParams.get('chave_inspetor')
   const cnpjoucpf     = searchParams.get('cnpjoucpf')
+  const tipoServico   = searchParams.get('tipo_servico') // opcional — filtra por tipo quando informado
 
   // Ler formulário específico
   if (nome) {
@@ -82,7 +83,10 @@ export async function GET(request: NextRequest) {
         }
       })
     )
-    const formularios = resultados.filter(Boolean)
+    let formularios = resultados.filter(Boolean)
+    if (tipoServico) {
+      formularios = formularios.filter((f: any) => String(f.tipoServico) === String(tipoServico))
+    }
 
     return NextResponse.json({ formularios })
   } catch (e) {
