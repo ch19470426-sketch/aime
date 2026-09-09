@@ -72,7 +72,7 @@ function TermoAceite() {
           </div>
           <div style={S.divider} />
           <div style={{ padding: "20px 24px" }}>
-            <p style={{ fontSize: "10pt", color: "#374151", marginBottom: "16pt", textAlign: "center" }}>
+            <p style={{ fontSize: "10pt", fontWeight: "700", color: "#374151", marginBottom: "16pt", textAlign: "center" }}>
               Conheça o macro fluxo do processo — da contratação à entrega dos documentos.
             </p>
             <img src="/fluxo-aime.png" alt="Macro Fluxo no AIMÊ" style={{ width: "100%", borderRadius: "8px" }} />

@@ -275,6 +275,45 @@ function getProcedimento(codigo: string): string {
   return ''
 }
 
+
+// Validação de CPF/CNPJ pelas regras da Receita Federal (dígitos verificadores).
+// Exceção: os valores de teste usados no ambiente de homologação ficam isentos.
+const EXCECAO_DOC = ['12345678900', '12345678000190']
+
+function cpfValido(v: string): boolean {
+  const n = (v||'').replace(/\D/g,'')
+  if (n.length !== 11 || /^(\d)\1{10}$/.test(n)) return false
+  const calc = (base: string, pesos: number[]) => {
+    const soma = base.split('').reduce((acc,d,i)=>acc+Number(d)*pesos[i],0)
+    const resto = (soma*10) % 11
+    return resto === 10 ? 0 : resto
+  }
+  const d1 = calc(n.slice(0,9), [10,9,8,7,6,5,4,3,2])
+  const d2 = calc(n.slice(0,10), [11,10,9,8,7,6,5,4,3,2])
+  return n === n.slice(0,9) + String(d1) + String(d2)
+}
+
+function cnpjValido(v: string): boolean {
+  const n = (v||'').replace(/\D/g,'')
+  if (n.length !== 14 || /^(\d)\1{13}$/.test(n)) return false
+  const calc = (base: string, pesos: number[]) => {
+    const soma = base.split('').reduce((acc,d,i)=>acc+Number(d)*pesos[i],0)
+    const resto = soma % 11
+    return resto < 2 ? 0 : 11 - resto
+  }
+  const d1 = calc(n.slice(0,12), [5,4,3,2,9,8,7,6,5,4,3,2])
+  const d2 = calc(n.slice(0,12) + d1, [6,5,4,3,2,9,8,7,6,5,4,3,2])
+  return n === n.slice(0,12) + String(d1) + String(d2)
+}
+
+function docValido(v: string): boolean {
+  const n = (v||'').replace(/\D/g,'')
+  if (EXCECAO_DOC.includes(n)) return true
+  if (n.length === 11) return cpfValido(n)
+  if (n.length === 14) return cnpjValido(n)
+  return false
+}
+
 export default function Dashboard() {
   const router = useRouter()
 
@@ -481,6 +520,14 @@ export default function Dashboard() {
     // Código 39: Vistoria Elétrica — navega direto sem coletar CNPJ aqui
     if (Number(tipoServico) === 39) {
       window.location.href = `/vistoria-eletrica?cpf_inspetor=${cpfInspetor}&chave_inspetor=${chaveInspetor}`
+      return
+    }
+    // Validação de CPF/CNPJ pelas regras da Receita Federal — cobre todos os
+    // caminhos abaixo de uma vez só. Só valida quando o tamanho já está
+    // completo (11 ou 14); tamanho incompleto continua tratado nos blocos
+    // específicos abaixo, com sua própria mensagem.
+    if ((docLimpo.length === 11 || docLimpo.length === 14) && !docValido(docLimpo)) {
+      setMsgErro('CNPJ/CPF inválido — confira os dígitos verificadores. Pode ter sido digitado errado.')
       return
     }
     // Códigos 51-58: Planos de Manutenção — redirecionar antes da validação de tamanho

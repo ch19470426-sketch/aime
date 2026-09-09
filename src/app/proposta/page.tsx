@@ -104,6 +104,21 @@ const SLUG_TIPO: Record<string, string> = {
   "27": "plano_nr12",             "28": "plano_nr13",
   "29": "plano_manutencao",
 }
+
+// Validação de CNPJ pelas regras da Receita Federal (dígitos verificadores)
+function cnpjValido(v: string): boolean {
+  const n = (v||'').replace(/\D/g,'')
+  if (n.length !== 14 || /^(\d)\1{13}$/.test(n)) return false
+  const calcDigito = (base: string, pesos: number[]) => {
+    const soma = base.split('').reduce((acc, d, i) => acc + Number(d) * pesos[i], 0)
+    const resto = soma % 11
+    return resto < 2 ? 0 : 11 - resto
+  }
+  const d1 = calcDigito(n.slice(0,12), [5,4,3,2,9,8,7,6,5,4,3,2])
+  const d2 = calcDigito(n.slice(0,12) + d1, [6,5,4,3,2,9,8,7,6,5,4,3,2])
+  return n === n.slice(0,12) + String(d1) + String(d2)
+}
+
 export default function PropostaPage() {
   return (
     <Suspense fallback={<div style={{ backgroundColor: "#E8EEF7", minHeight: "100vh" }} />}>
@@ -176,7 +191,7 @@ function PropostaInner() {
       if (Array.isArray(inspData) && inspData[0]) setInsp(inspData[0])
 
       // Buscar estabelecimento
-      const estData = await query('estabelecimento', `cnpjoucpf=eq.${cnpjoucpf}&select=cnpjoucpf,razao_social_nome,cep_estabelecimento,numero_imovel,complemento`)
+      const estData = await query('estabelecimento', `cnpjoucpf=eq.${cnpjoucpf}&select=cnpjoucpf,razao_social_nome,cep_estabelecimento,numero_imovel,complemento,uso_estabelecimento`)
       if (Array.isArray(estData) && estData[0]) {
         const e = estData[0]
         setEst(e)
@@ -184,6 +199,7 @@ function PropostaInner() {
         setCep((e.cep_estabelecimento ?? '').replace(/\D/g,'').trim())
         setNumero(e.numero_imovel ?? '')
         setComplemento(e.complemento ?? '')
+        setUsoEstab(e.uso_estabelecimento ?? '')
         await buscarCep(e.cep_estabelecimento?.replace('-','') ?? '', e.numero_imovel ?? '', e.complemento ?? '')
         setModoEdicao(false)
         setEtapa('cadastro')
