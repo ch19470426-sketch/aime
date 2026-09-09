@@ -99,6 +99,10 @@ function xe(v: unknown): string {
     .replace(/"/g,'&quot;').replace(/@/g,'&#64;')
     .replace(/[\x00-\x08\x0b\x0c\x0e-\x1f]/g,'')
 }
+function fmtDataBR(v: string): string {
+  const m = String(v||'').trim().match(/^(\d{4})-(\d{2})-(\d{2})/)
+  return m ? `${m[3]}/${m[2]}/${m[1]}` : (v || '')
+}
 function fmtDoc(v: string): string {
   const n=(v||'').replace(/\D/g,'')
   if(n.length===14) return n.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/,'$1.$2.$3/$4-$5')
@@ -719,7 +723,7 @@ export async function POST(request: NextRequest) {
           '<tr>' + colsAtivos.map(col => '<td style="' + TH11 + '">' + col.h + '</td>').join('') + '</tr>' +
           (ativos.length > 0
             ? ativos.map((a:any) =>
-                '<tr>' + colsAtivos.map(col => '<td style="' + TDS + '">' + xe(String(a[col.f]||'')) + '</td>').join('') + '</tr>'
+                '<tr>' + colsAtivos.map(col => '<td style="' + TDS + '">' + xe(col.f === 'data_inicio_operacao' ? fmtDataBR(a[col.f]) : String(a[col.f]||'')) + '</td>').join('') + '</tr>'
               ).join('')
             : '<tr><td colspan="' + colsAtivos.length + '" style="' + TDS + ';color:#9a3412;font-style:italic">Cadastrar ativos na tela de Plano de Trabalho.</td></tr>') +
           '</table>'

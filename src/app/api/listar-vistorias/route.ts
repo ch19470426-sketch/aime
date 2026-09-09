@@ -101,6 +101,7 @@ export async function GET(request: NextRequest) {
       .eq('tipo_servico', tipoVistoria)
 
     for (const d of (linhas ?? [])) {
+      const fotoNrFmt = normFotoNr(d.numero_foto).padStart(3, '0')
       const nc: any = {
         chaveInspetor, cnpjoucpf, tipoServico: tipoVistoria,
         tipoAtivo: d.tipo_ativo, tagNrSerie: d.tag_ativo_nr_serie,
@@ -108,9 +109,13 @@ export async function GET(request: NextRequest) {
         anomalia: d.anomalia_requisito_vistoria,
         local: d.local_ocorrencia, complemento: d.complemento_local,
         grauRisco: d.grau_risco, prioridade: d.prioridade,
-        fotoNr: normFotoNr(d.numero_foto).padStart(3, '0'), dataVistoria: d.data_vistoria,
+        fotoNr: fotoNrFmt, dataVistoria: d.data_vistoria,
         nc: d.descricao_nao_conformidade, cp: d.descricao_causa_provavel,
         fotoBase64: '', _fonte: 'dados_vistoria',
+        // Nome de arquivo previsível — permite que o mecanismo de fallback em
+        // gerar-laudo (que só busca a foto se _arquivo estiver preenchido)
+        // também funcione para itens vindos desta tabela, não só do HTML.
+        _arquivo: `${chaveInspetor}_${cnpjoucpf}_${tipoVistoria}_${fotoNrFmt}.html`,
       }
       if (ehNR) nc.resultado = d.origem_resultado
       else nc.origem = d.origem_resultado
