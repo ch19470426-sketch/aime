@@ -221,6 +221,10 @@ function LaudoComplemento() {
               }
             } catch { /* segue sem endereço */ }
           }
+        } else {
+          setErro(`Estabelecimento não cadastrado — o CNPJ/CPF "${cnpjoucpf}" não foi encontrado no cadastro. Verifique se foi digitado corretamente antes de prosseguir.`)
+          setCarregando(false)
+          return
         }
         // Buscar dados de ativos_a_vistoriar (responsável, tipo, características)
         // Buscar dados de ativos_a_vistoriar (responsável, tipo, características)
