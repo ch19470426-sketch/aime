@@ -128,7 +128,7 @@ function PlanoInner() {
   const tsVistoria = TIPO_VISTORIA[tipoServico] ?? '31 Autovistoria'
   const tsNum      = tsVistoria.split(' ')[0]
   // Tipos de serviço com vistoria única: aceitam apenas 1 ativo cadastrado por chave.
-  const TIPOS_UM_ATIVO = ['31', '32', '33', '34', '36']
+  const TIPOS_UM_ATIVO = ['31', '32', '33', '34']
   const titulo     = TITULO_TIPO[tipoServico] ?? 'Plano de Trabalho'
 
   const isPredial  = ['31','32','33'].includes(tsNum)
