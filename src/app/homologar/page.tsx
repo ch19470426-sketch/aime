@@ -295,10 +295,26 @@ function Tela40Inner() {
             () => window.location.href = '/dashboard'
           )
         } else {
-          informa('Nenhuma vistoria encontrada',
-            'Para que seja efetuada a homologação é necessário que exista uma vistoria concluída para a edificação/instituição. Nada encontrado, o processo será suspenso.',
-            () => window.location.href = '/dashboard'
-          )
+          // Antes de dizer "nenhuma vistoria encontrada", verificar se o
+          // CNPJ/CPF sequer existe cadastrado — evita mensagem ambígua quando
+          // o problema real é a chave ter sido digitada errada.
+          let estabExiste = true
+          try {
+            const est = await query('estabelecimento', `cnpjoucpf=eq.${cnpjoucpf}&select=cnpjoucpf&limit=1`)
+            estabExiste = Array.isArray(est) && est.length > 0
+          } catch { /* na dúvida, segue com a mensagem padrão */ }
+
+          if (!estabExiste) {
+            informa('CNPJ/CPF não cadastrado',
+              `O CNPJ/CPF "${cnpjoucpf}" não foi encontrado no cadastro de estabelecimentos. Verifique se foi digitado corretamente.`,
+              () => window.location.href = '/dashboard'
+            )
+          } else {
+            informa('Nenhuma vistoria encontrada',
+              'Para que seja efetuada a homologação é necessário que exista uma vistoria concluída para a edificação/instituição. Nada encontrado, o processo será suspenso.',
+              () => window.location.href = '/dashboard'
+            )
+          }
         }
         setCarregando(false)
         return
