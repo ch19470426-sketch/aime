@@ -16,6 +16,15 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
 
+// Normaliza o número da foto para comparação — dados_vistoria guarda como
+// número puro ("1"), mas nomes de arquivo/HTML usam zero à esquerda ("001").
+// Sem isso, o mesmo item nunca era reconhecido como já coberto, e acabava
+// sendo processado duas vezes (uma de cada fonte) — gerando NCs duplicadas.
+function normFotoNr(v: any): string {
+  const n = parseInt(String(v ?? '').replace(/\D/g, ''), 10)
+  return isNaN(n) ? String(v ?? '').trim() : String(n)
+}
+
 const LAUDO_PARA_VISTORIA: Record<string,string> = {
   '41':'31','42':'32','43':'33','44':'34',
   '45':'35','46':'36','47':'37','48':'38',
@@ -99,13 +108,13 @@ export async function GET(request: NextRequest) {
         anomalia: d.anomalia_requisito_vistoria,
         local: d.local_ocorrencia, complemento: d.complemento_local,
         grauRisco: d.grau_risco, prioridade: d.prioridade,
-        fotoNr: String(d.numero_foto ?? ''), dataVistoria: d.data_vistoria,
+        fotoNr: normFotoNr(d.numero_foto).padStart(3, '0'), dataVistoria: d.data_vistoria,
         nc: d.descricao_nao_conformidade, cp: d.descricao_causa_provavel,
         fotoBase64: '', _fonte: 'dados_vistoria',
       }
       if (ehNR) nc.resultado = d.origem_resultado
       else nc.origem = d.origem_resultado
-      porFoto.set(String(d.numero_foto ?? ''), nc)
+      porFoto.set(normFotoNr(d.numero_foto), nc)
       ncs.push(nc)
     }
   } catch { /* segue para o método antigo se a consulta falhar */ }
@@ -124,7 +133,7 @@ export async function GET(request: NextRequest) {
 
       if (!isNovo && !isAntigo) continue
 
-      const fotoDoNome = arq.name.match(/_(\d+)\.html$/)?.[1] ?? ''
+      const fotoDoNome = normFotoNr(arq.name.match(/_(\d+)\.html$/)?.[1] ?? '')
       const jaTemDados = fotoDoNome && porFoto.has(fotoDoNome)
 
       try {
