@@ -907,7 +907,7 @@ export async function POST(request: NextRequest) {
             const ncsOrdenadas = [...(ncs ?? [])].sort((a:any, b:any) => {
         const tagA = String(a.tagNrSerie||a.tag_ativo_nr_serie||a.tag||'')
         const tagB = String(b.tagNrSerie||b.tag_ativo_nr_serie||b.tag||'')
-        if (tagA !== tagB) return tagA.localeCompare(tagB)
+        if (tagA !== tagB) return tagA.localeCompare(tagB, undefined, { numeric: true })
         const sisA = normSis(a.sistema)
         const sisB = normSis(b.sistema)
         if (sisA !== sisB) return sisA.localeCompare(sisB)
