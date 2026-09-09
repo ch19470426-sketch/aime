@@ -79,6 +79,14 @@ Responda APENAS com JSON válido, sem markdown, sem texto adicional:
     try { cp = JSON.parse(extrairTexto(resCP.content)).causa_provavel ?? '' }
     catch { cp = extrairTexto(resCP.content) }
 
+    // Rede de segurança — o prompt já pede até 200 caracteres, mas modelos de
+    // linguagem não contam caracteres com precisão perfeita. Corta em 300
+    // (200 + 50% de margem) para nunca estourar o limite da coluna no banco,
+    // independente de quão bem a IA seguiu a instrução.
+    const LIMITE = 300
+    if (nc.length > LIMITE) nc = nc.slice(0, LIMITE - 1).trim() + '…'
+    if (cp.length > LIMITE) cp = cp.slice(0, LIMITE - 1).trim() + '…'
+
     return NextResponse.json({ nc, cp } as GerarNcCpResponse)
 
   } catch (error) {
