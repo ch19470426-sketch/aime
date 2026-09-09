@@ -305,7 +305,7 @@ function Tela40Inner() {
       }
       // Modo elétrico: filtrar NCs do sistema 07
       const lista = data.formularios
-      const filtrados = sistemaFixo
+      let filtrados = sistemaFixo
         ? lista.filter((f: any) => {
             // Modo elétrico: filtrar por tipoServico=32 (arquivo baixado terá sistema=07)
             // A listagem rápida não inclui campo sistema — usar tipoServico como proxy
@@ -315,6 +315,15 @@ function Tela40Inner() {
                    sis.includes('instalações') || sis.includes('instalacoes')
           })
         : lista
+
+      // Filtro por tipo de serviço (completo: cpf_inspetor + cnpjoucpf + tipo_servico) —
+      // pendências de tipos diferentes para o mesmo CNPJ (ex: testes antigos do tipo 32
+      // ainda pendentes, junto com um teste novo de outro tipo) não devem se misturar.
+      // Usa o tipo do primeiro item como referência e descarta os demais tipos.
+      if (!sistemaFixo && filtrados.length > 0) {
+        const tipoRef = filtrados[0].tipoServico
+        filtrados = filtrados.filter((f: any) => f.tipoServico === tipoRef)
+      }
       if (sistemaFixo && filtrados.length === 0) {
         // Usar lista completa se filtro não encontrar nada — permite homologar visualmente
         setFormularios(lista); formulariosRef.current = lista
