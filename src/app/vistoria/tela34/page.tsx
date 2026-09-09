@@ -447,7 +447,7 @@ function Tela31Inner() {
       <div style={{ padding: '40px', textAlign: 'center' }}>
         <div style={{ fontSize: '48px', marginBottom: '12px' }}>✅</div>
         <h2 style={{ color: '#1E3A8A', fontSize: '14pt', marginBottom: '8px' }}>Registro salvo!</h2>
-        <p style={{ color: '#4a6480', fontSize: '9pt', marginBottom: '20px' }}>Arquivo: {arquivoSalvo}</p>
+        <p style={{ color: '#4a6480', fontSize: '9pt', marginBottom: '20px' }}>Você pode registrar uma nova manifestação ou encerrar a vistoria.</p>
         <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
           <button onClick={() => { blurAll(); setTimeout(() => setSalvoOk(false), 50) }} style={{ ...S.btn, ...S.btnPri }}>➕ Nova Manifestação</button>
           <button onClick={encerrar} style={{ ...S.btn, ...S.btnSec }}>Encerrar</button>
