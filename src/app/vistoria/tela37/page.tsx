@@ -446,7 +446,7 @@ function Tela31Inner() {
         <p style={{ color: '#4a6480', fontSize: '9pt', marginBottom: '20px' }}>Arquivo: {arquivoSalvo}</p>
         <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
           <button onClick={() => { blurAll(); setTimeout(() => setSalvoOk(false), 50) }} style={{ ...S.btn, ...S.btnPri }}>➕ Nova Manifestação</button>
-          <button onClick={encerrar} style={{ ...S.btn, ...S.btnSec }}>Encerrar</button>
+          <button onClick={encerrar} style={{ ...S.btn, ...S.btnSec, minWidth: '140px' }}>Encerrar</button>
         </div>
       </div>
     </div></div>
