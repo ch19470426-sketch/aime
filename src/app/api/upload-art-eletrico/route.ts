@@ -33,6 +33,7 @@ export async function POST(request: NextRequest) {
         cnpjoucpf:     cnpjoucpf,
         tipo_servico:  tipoServico || '32 Vistoria inspeção',
         cpf_eletrico:  cpfEletrico,
+        arquivo_art:   '', // coluna tem NOT NULL, sem valor default — nao usada mais
         data_cadastro: new Date().toISOString().split('T')[0],
       })
 
