@@ -127,7 +127,7 @@ function VistoriaEletricaInner() {
               </button>
               <button style={{ ...S.btn, ...S.btnPri, opacity: salvando ? 0.6 : 1 }}
                 onClick={credenciar} disabled={salvando}>
-                {salvando ? 'Registrando...' : 'Registrar ART'}
+                {salvando ? 'Registrando...' : 'Vistoriar'}
               </button>
             </div>
           </>
