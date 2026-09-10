@@ -39,9 +39,12 @@ export async function GET(request: NextRequest) {
     }
   }
 
-  // Listar e filtrar formulários por cnpjoucpf
-  if (!chaveInspetor || !cnpjoucpf) {
-    return NextResponse.json({ erro: 'chave_inspetor e cnpjoucpf são obrigatórios' }, { status: 400 })
+  // Listar e filtrar formulários por cnpjoucpf. cnpjoucpf pode vir vazio de
+  // proposito (fluxo "homologar tudo" do inspetor, ex: Eng Eletrico sem ARTs
+  // pendentes) - so chaveInspetor e realmente obrigatorio. Essa validacao
+  // bloqueava a chamada inteira antes mesmo de chegar no filtro corrigido.
+  if (!chaveInspetor) {
+    return NextResponse.json({ erro: 'chave_inspetor é obrigatório' }, { status: 400 })
   }
 
   try {
@@ -65,7 +68,10 @@ export async function GET(request: NextRequest) {
       (cnpjoucpf ? f.name.includes(`_${cnpjoucpf}_`) : f.name.startsWith(`${chaveInspetor}_`))
       && f.name.endsWith('.json') && !f.name.includes('pendente')
     )
-    if (filtradosPorNome.length === 0) return NextResponse.json({ formularios: [] })
+    if (filtradosPorNome.length === 0) return NextResponse.json({
+      formularios: [],
+      _diag: { totalArquivosEncontrados: files.length, primeirosNomes: files.slice(0, 10).map(f => f.name), chaveInspetorUsada: chaveInspetor, cnpjoucpfUsado: cnpjoucpf }
+    })
 
     // Download em paralelo com timeout individual por arquivo (5s cada)
     const resultados = await Promise.all(
