@@ -2190,7 +2190,7 @@ export async function POST(request: NextRequest) {
   @bottom-left {
     content: ${JSON.stringify(rodInspetor)};
     font-family: Arial, sans-serif; font-size: 6.5pt; color: #374151;
-    border-top: 1px solid #ccc; padding-top: 3pt; width: 148mm;
+    border-top: 1px solid #ccc; padding-top: 3pt; width: 138mm;
   }
   @bottom-center {
     content: '';
