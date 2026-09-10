@@ -266,7 +266,12 @@ function Tela40Inner() {
 
   // Carregar formulários
   useEffect(() => {
-    if (!cnpjoucpf || !chaveInspetor) return
+    // cnpjoucpf pode vir vazio de propósito (fluxo "homologar tudo" do
+    // inspetor, ex: Eng Elétrico sem ARTs pendentes) — só chaveInspetor é
+    // realmente obrigatório. Bloquear nesse caso deixava a tela presa no
+    // estado inicial padrão ("0 vistoria(s)") para sempre, sem nunca
+    // tentar carregar nada.
+    if (!chaveInspetor) return
     setCarregando(true)
     carregarFormularios()
   }, [cnpjoucpf, chaveInspetor])
@@ -315,8 +320,12 @@ function Tela40Inner() {
               () => window.location.href = '/dashboard'
             )
           } else {
+            const diag = data._diag
+            const diagTexto = diag
+              ? ` [diagnóstico: ${diag.totalArquivosEncontrados} arquivo(s) na busca por "${diag.chaveInspetorUsada}"; primeiros nomes: ${JSON.stringify(diag.primeirosNomes)}]`
+              : ''
             informa('Nenhuma vistoria encontrada',
-              'Para que seja efetuada a homologação é necessário que exista uma vistoria concluída para a edificação/instituição. Nada encontrado, o processo será suspenso.',
+              'Para que seja efetuada a homologação é necessário que exista uma vistoria concluída para a edificação/instituição. Nada encontrado, o processo será suspenso.' + diagTexto,
               () => window.location.href = '/dashboard'
             )
           }
