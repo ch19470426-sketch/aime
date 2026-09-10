@@ -33,7 +33,6 @@ function VistoriaEletricaInner() {
 
   const [cnpj,      setCnpj]      = useState('')
   const [cpfCivil,  setCpfCivil]  = useState('')
-  const [artFile,   setArtFile]   = useState<File|null>(null)
   const [salvando,  setSalvando]  = useState(false)
   const [erro,      setErro]      = useState('')
   const [credencial,setCredencial]= useState<any>(null)
@@ -58,23 +57,14 @@ function VistoriaEletricaInner() {
     const cpfLimpo  = cpfCivil.replace(/\D/g,'')
     if (cnpjLimpo.length < 14) { setErro('CNPJ inválido'); return }
     if (cpfLimpo.length < 11)  { setErro('CPF inválido'); return }
-    if (!artFile)               { setErro('Selecione o arquivo da ART/RRT'); return }
     setSalvando(true)
     try {
-      const ext  = artFile.name.split('.').pop() ?? 'pdf'
-      const nome = `${cpfEletrico}_${cnpjLimpo}_art_eletrico.${ext}`
-      const b64 = await new Promise<string>((resolve, reject) => {
-        const reader = new FileReader()
-        reader.onload = () => resolve((reader.result as string).split(',')[1])
-        reader.onerror = reject
-        reader.readAsDataURL(artFile)
-      })
+      // ART nao e mais anexada aqui — passou a ser inserida direto no laudo
+      // 42 pelo civil/arquiteto. So o vinculo (CNPJ + CPF do civil) e criado.
       const res  = await fetch('/api/upload-art-eletrico', {
         method:'POST',
         headers:{'Content-Type':'application/json'},
         body: JSON.stringify({
-          nomeArquivo: nome, base64: b64,
-          contentType: artFile.type || 'application/pdf',
           cpfEletrico, cnpjoucpf: cnpjLimpo,
           cpfInspetor: cpfLimpo, tipoServico: '32 Vistoria inspeção',
         })
@@ -123,14 +113,6 @@ function VistoriaEletricaInner() {
                     <input style={S.input} value={cpfCivil}
                       onChange={e => setCpfCivil(fmtCPF(e.target.value))}
                       placeholder="000.000.000-00" inputMode="numeric" />
-                  </div>
-
-                  <div style={S.field}>
-                    <label style={S.fieldLabel}>ART/RRT DO ENG. ELÉTRICO *</label>
-                    <input type="file" accept=".pdf,.jpg,.jpeg,.png"
-                      style={{ ...S.input, padding:'3px 6px' }}
-                      onChange={e => setArtFile(e.target.files?.[0] ?? null)} />
-                    <span style={{ fontSize:'10px', color:'#6B7280' }}>PDF ou imagem da ART/RRT</span>
                   </div>
 
                   {erro && <span style={S.erro}>{erro}</span>}

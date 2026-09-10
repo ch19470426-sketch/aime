@@ -11,22 +11,14 @@ const supabase = createClient(
 
 export async function POST(request: NextRequest) {
   try {
-    const { nomeArquivo, base64, contentType, cpfEletrico, cnpjoucpf, cpfInspetor, tipoServico } = await request.json()
-    if (!nomeArquivo || !base64) {
+    const { cpfEletrico, cnpjoucpf, cpfInspetor, tipoServico } = await request.json()
+    if (!cpfEletrico || !cnpjoucpf || !cpfInspetor) {
       return NextResponse.json({ erro: 'Dados obrigatórios ausentes' }, { status: 400 })
     }
 
-    // Upload do arquivo no Storage
-    const buffer = Buffer.from(base64, 'base64')
-    const { error: errUp } = await supabase.storage
-      .from('aime')
-      .upload(`arts/${nomeArquivo}`, buffer, {
-        contentType: contentType || 'application/pdf',
-        upsert: true,
-      })
-    if (errUp) return NextResponse.json({ erro: errUp.message }, { status: 500 })
-
-    // Salvar referência em art_profissional
+    // ART nao e mais anexada aqui — passou a ser inserida direto no laudo 42
+    // pelo civil/arquiteto (Anexo 3). Esse registro serve so como vinculo
+    // ("o que precisa de revisao eletrica"), sem arquivo.
     // Remover registro anterior se existir (mesmo cpf_eletrico+cnpjoucpf+cpf_inspetor)
     await supabase.from('art_profissional')
       .delete()
@@ -41,13 +33,12 @@ export async function POST(request: NextRequest) {
         cnpjoucpf:     cnpjoucpf,
         tipo_servico:  tipoServico || '32 Vistoria inspeção',
         cpf_eletrico:  cpfEletrico,
-        arquivo_art:   `arts/${nomeArquivo}`,
         data_cadastro: new Date().toISOString().split('T')[0],
       })
 
     if (errDb) return NextResponse.json({ erro: errDb.message }, { status: 500 })
 
-    return NextResponse.json({ ok: true, arquivo: `arts/${nomeArquivo}` })
+    return NextResponse.json({ ok: true })
   } catch (err) {
     return NextResponse.json({ erro: String(err) }, { status: 500 })
   }
