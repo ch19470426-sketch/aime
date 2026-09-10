@@ -331,6 +331,15 @@ export default function Dashboard() {
   const [chaveInspetor, setChaveInspetor] = useState("")
   const [titulo, setTitulo] = useState("")
 
+  // Em telas pequenas, ao selecionar um item do menu, a subtela de coleta
+  // de CNPJ/CPF pode ficar abaixo da dobra (usuário fica com o scroll na
+  // mesma posição de quando estava navegando o menu). Rola para o topo
+  // assim que um serviço é selecionado, garantindo que a subtela apareça
+  // visível de imediato.
+  useEffect(() => {
+    if (tipoServico) window.scrollTo({ top: 0, behavior: 'smooth' })
+  }, [tipoServico])
+
   useEffect(() => {
     async function carregarSessao() {
       let deveRedirecionar = false
