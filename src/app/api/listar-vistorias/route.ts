@@ -100,8 +100,26 @@ export async function GET(request: NextRequest) {
       .eq('cnpjoucpf', cnpjoucpf)
       .eq('tipo_servico', tipoVistoria)
 
+    // A chave usada para montar o nome do arquivo salvo precisa ser a de QUEM
+    // REALMENTE fez aquele item específico — não a de quem está pedindo a
+    // lista agora. Isso importa quando profissionais diferentes contribuem
+    // para a mesma vistoria (ex: Eng Elétrico complementando vistoria 32 de
+    // um civil/arquiteto) — usar sempre a chave de quem pede fazia o nome do
+    // arquivo ficar errado para os itens de outro profissional, e a foto
+    // nunca era encontrada.
+    const cpfsUnicos = [...new Set((linhas ?? []).map((d:any) => d.cpf_inspetor).filter(Boolean))]
+    const chavePorCpf = new Map<string, string>()
+    if (cpfsUnicos.length > 0) {
+      const { data: insps } = await supabase
+        .from('inspetor')
+        .select('cpf_inspetor,chave_inspetor')
+        .in('cpf_inspetor', cpfsUnicos)
+      for (const i of (insps ?? [])) chavePorCpf.set(i.cpf_inspetor, i.chave_inspetor)
+    }
+
     for (const d of (linhas ?? [])) {
       const fotoNrFmt = normFotoNr(d.numero_foto).padStart(3, '0')
+      const chaveDoItem = chavePorCpf.get(d.cpf_inspetor) || chaveInspetor
       const nc: any = {
         chaveInspetor, cnpjoucpf, tipoServico: tipoVistoria,
         tipoAtivo: d.tipo_ativo, tagNrSerie: d.tag_ativo_nr_serie,
@@ -112,10 +130,9 @@ export async function GET(request: NextRequest) {
         fotoNr: fotoNrFmt, dataVistoria: d.data_vistoria,
         nc: d.descricao_nao_conformidade, cp: d.descricao_causa_provavel,
         fotoBase64: '', _fonte: 'dados_vistoria',
-        // Nome de arquivo previsível — permite que o mecanismo de fallback em
-        // gerar-laudo (que só busca a foto se _arquivo estiver preenchido)
-        // também funcione para itens vindos desta tabela, não só do HTML.
-        _arquivo: `${chaveInspetor}_${cnpjoucpf}_${tipoVistoria}_${fotoNrFmt}.html`,
+        // Nome de arquivo previsível — usa a chave de quem realmente fez o
+        // item (chaveDoItem), nao a chave de quem esta gerando o laudo agora.
+        _arquivo: `${chaveDoItem}_${cnpjoucpf}_${tipoVistoria}_${fotoNrFmt}.html`,
       }
       if (ehNR) nc.resultado = d.origem_resultado
       else nc.origem = d.origem_resultado
