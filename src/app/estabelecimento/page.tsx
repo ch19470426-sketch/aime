@@ -130,8 +130,15 @@ export default function CadastroEstabelecimento() {
                       <input name="razao_social_nome" value={form.razao_social_nome} onChange={handleChange} placeholder="Nome ou Razão Social completo" required style={inputStyle} />
                     </div>
                     <div>
-                      <label style={labelStyle}>Uso / Atividade</label>
-                      <input name="uso_estabelecimento" value={(form as any).uso_estabelecimento ?? ""} onChange={handleChange} placeholder="Ex: Residencial, Comercial..." required style={inputStyle} />
+                      <label style={labelStyle}>Uso Edificação *</label>
+                      <select name="uso_estabelecimento" value={(form as any).uso_estabelecimento ?? ""} onChange={handleChange} required style={inputStyle}>
+                        <option value="">Selecione...</option>
+                        <option value="Residencial">Residencial</option>
+                        <option value="Comercial">Comercial</option>
+                        <option value="Industrial">Industrial</option>
+                        <option value="Institucional">Institucional</option>
+                        <option value="Misto">Misto</option>
+                      </select>
                     </div>
                   </div>
                 </div>
