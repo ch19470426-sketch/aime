@@ -495,21 +495,14 @@ export default function Dashboard() {
       window.location.href = `/vistoria-eletrica?cpf_inspetor=${cpfInspetor}&chave_inspetor=${chaveInspetor}`
       return
     }
-    // Item 40 para Eng Elétrico: verificar ARTs elétricas pendentes (fluxo
-    // próprio, mantido). Sem ARTs pendentes, cai no fluxo padrão abaixo
-    // (pede CNPJ normalmente, igual a qualquer outro título) — decisão de
-    // 10/09/2026: o sistema deve ter comportamento padrão, sem tratar a
-    // homologação de NR-10 de forma diferente das demais.
+    // Item 40 para Eng Elétrico: sempre vai para a tela de seleção, que tem
+    // dois caminhos independentes lado a lado — ARTs elétricas pendentes
+    // (complemento de vistoria 32 feita por civil/arquiteto) e NR-10 (campo
+    // próprio de CNPJ/CPF, não depende de nada relacionado a ART). Decisão de
+    // 10/09/2026.
     if (codigo === 40 && titulo === 'Eng Elétrico') {
-      try {
-        const resArt = await fetch(`/api/arts-eletrico?cpf_eletrico=${cpfInspetor}`)
-        const artData = await resArt.json()
-        const arts = artData.arts ?? []
-        if (Array.isArray(arts) && arts.length > 0) {
-          window.location.href = `/selecao-homologar-eletrico?cpf_inspetor=${cpfInspetor}&chave_inspetor=${chaveInspetor}`
-          return
-        }
-      } catch {}
+      window.location.href = `/selecao-homologar-eletrico?cpf_inspetor=${cpfInspetor}&chave_inspetor=${chaveInspetor}`
+      return
     }
     setTipoServico(codigo)
     setDocumento("")
