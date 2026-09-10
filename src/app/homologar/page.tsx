@@ -299,10 +299,15 @@ function Tela40Inner() {
           // CNPJ/CPF sequer existe cadastrado — evita mensagem ambígua quando
           // o problema real é a chave ter sido digitada errada.
           let estabExiste = true
-          try {
-            const est = await query('estabelecimento', `cnpjoucpf=eq.${cnpjoucpf}&select=cnpjoucpf&limit=1`)
-            estabExiste = Array.isArray(est) && est.length > 0
-          } catch { /* na dúvida, segue com a mensagem padrão */ }
+          // Sem cnpjoucpf especifico (fluxo "homologar tudo" do inspetor, ex:
+          // Eng Eletrico sem ARTs pendentes) nao ha um estabelecimento unico
+          // para checar - pula essa verificacao nesse caso.
+          if (cnpjoucpf) {
+            try {
+              const est = await query('estabelecimento', `cnpjoucpf=eq.${cnpjoucpf}&select=cnpjoucpf&limit=1`)
+              estabExiste = Array.isArray(est) && est.length > 0
+            } catch { /* na dúvida, segue com a mensagem padrão */ }
+          }
 
           if (!estabExiste) {
             informa('CNPJ/CPF não cadastrado',

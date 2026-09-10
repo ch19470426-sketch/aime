@@ -56,9 +56,14 @@ export async function GET(request: NextRequest) {
     if (error) return NextResponse.json({ erro: error.message }, { status: 500 })
     if (!files || files.length === 0) return NextResponse.json({ formularios: [] })
 
-    // Filtrar por nome antes de baixar — evita abrir arquivos de outros CNPJs
+    // Filtrar por nome antes de baixar — evita abrir arquivos de outros CNPJs.
+    // Quando cnpjoucpf vem vazio (fluxo "homologar tudo" do inspetor, sem CNPJ
+    // especifico), o filtro '_' + '' + '_' vira '__' e nunca bate com o padrao
+    // real dos nomes de arquivo — retornava sempre vazio, mesmo com vistorias
+    // existentes. Nesse caso, filtra so pela chave do inspetor (todos os CNPJs).
     const filtradosPorNome = files.filter(f =>
-      f.name.includes(`_${cnpjoucpf}_`) && f.name.endsWith('.json') && !f.name.includes('pendente')
+      (cnpjoucpf ? f.name.includes(`_${cnpjoucpf}_`) : f.name.startsWith(`${chaveInspetor}_`))
+      && f.name.endsWith('.json') && !f.name.includes('pendente')
     )
     if (filtradosPorNome.length === 0) return NextResponse.json({ formularios: [] })
 
