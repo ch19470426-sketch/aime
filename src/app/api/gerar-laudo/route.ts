@@ -369,15 +369,21 @@ export async function POST(request: NextRequest) {
     }
     const pathArt   = String(complemento?.pathArt ?? '')
     const artEhPdf  = pathArt.toLowerCase().endsWith('.pdf')
+    const pathArtEletrico = String(complemento?.pathArtEletrico ?? '')
+    const pathArtMecanico = String(complemento?.pathArtMecanico ?? '')
 
-    const [croquiSt, fachadaSt, artSt] = await Promise.all([
+    const [croquiSt, fachadaSt, artSt, artEletricoSt, artMecanicoSt] = await Promise.all([
       imgSrc(complemento?.pathCroqui ?? ''),
       imgSrc(complemento?.pathFoto   ?? ''),
       artEhPdf ? Promise.resolve('') : imgSrc(pathArt),
+      imgSrc(pathArtEletrico),
+      imgSrc(pathArtMecanico),
     ])
     const srcCroqui  = croquiSt
     const srcFachada = fachadaSt
     const srcArt     = artSt
+    const srcArtEletrico = artEletricoSt
+    const srcArtMecanico = artMecanicoSt
 
     // PDF nao pode ir em data: URL — o Chrome bloqueia plugin nesse esquema.
     // Usa URL assinada do Storage, que o navegador aceita.
@@ -2441,6 +2447,10 @@ ${A2}
 ${srcArt
   ?`<div style="page-break-inside:avoid;text-align:center">${artTag(srcArt)}</div>`
   :`<div class="foto-box" style="height:560px;margin-top:8px">[ ART / RRT — inserir pelo responsável técnico ]</div>`}
+
+${srcArtEletrico ? `<div style="page-break-before:always;page-break-inside:avoid;text-align:center"><p style="font-weight:700;color:#1E3A8A;font-size:9pt;margin-bottom:6pt">ART do Engenheiro Eletricista</p>${artTag(srcArtEletrico)}</div>` : ''}
+
+${srcArtMecanico ? `<div style="page-break-before:always;page-break-inside:avoid;text-align:center"><p style="font-weight:700;color:#1E3A8A;font-size:9pt;margin-bottom:6pt">ART do Engenheiro Mecânico</p>${artTag(srcArtMecanico)}</div>` : ''}
 </div>
 
 </body>

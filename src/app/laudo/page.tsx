@@ -160,6 +160,8 @@ function LaudoComplemento() {
   const [croquiBase64, setCroquiBase64]     = useState('')
   const [fotoCapa, setFotoCapa]             = useState('')  // foto fachada
   const [artRrt, setArtRrt]                 = useState('')  // ART/RRT base64
+  const [artEletrico, setArtEletrico]       = useState('')  // ART Eng. Elétrico (opcional, só laudo 42)
+  const [artMecanico, setArtMecanico]       = useState('')  // ART Eng. Mecânico (opcional, só laudo 42)
 
   // Documentos Anexo 1 — situação e resultado por documento
   const DOCS_LISTA_POR_TIPO: Record<string,string[]> = {
@@ -541,10 +543,12 @@ function LaudoComplemento() {
         }
       }
 
-      const [pathCroqui, pathFoto, pathArt] = await Promise.all([
+      const [pathCroqui, pathFoto, pathArt, pathArtEletrico, pathArtMecanico] = await Promise.all([
         salvarImagem(croquiBase64, 'croqui'),
         salvarImagem(fotoCapa, 'fachada'),
         salvarImagem(artRrt, 'art_rrt'),
+        salvarImagem(artEletrico, 'art_eletrico'),
+        salvarImagem(artMecanico, 'art_mecanico'),
       ])
 
       // ── Gerar recomendações por sistema + SNC para cada NC via IA ──
@@ -625,7 +629,7 @@ function LaudoComplemento() {
             nomeConvencao, sinteseEdif,
             pathCroqui,
             // Classificação NR (45-48)
-            nrManut, nrOp, nrFisico, nrSeg, nrDoc, pathFoto, pathArt, docsAnexo1,
+            nrManut, nrOp, nrFisico, nrSeg, nrDoc, pathFoto, pathArt, pathArtEletrico, pathArtMecanico, docsAnexo1,
             descVistoria: descVistoria || dadosVistoria,
             nivelInspecao,
             classificacao: { nivel: nivelInspecao, risco, desempenho, manut, uso, desempGeral, nrManut, nrOp, nrFisico, nrSeg, nrDoc },
@@ -992,6 +996,42 @@ function LaudoComplemento() {
               </p>
             </div>
           </div>
+
+          {/* ── ART Eng. Elétrico e Eng. Mecânico (opcional, só laudo 42) ── */}
+          {tipoServico === '42' && [
+            { label: 'ART Eng. Elétrico', val: artEletrico, set: setArtEletrico },
+            { label: 'ART Eng. Mecânico', val: artMecanico, set: setArtMecanico },
+          ].map(({ label, val, set }) => (
+            <div style={S.bloco} key={label}>
+              <div style={S.bHead}><span style={S.bTitle}>Anexo 3 — {label} (opcional)</span></div>
+              <div style={S.bBody}>
+                {val
+                  ? <div style={{ position:'relative' }}>
+                      <img src={val} style={{ width:'100%', maxHeight:'200px', objectFit:'contain', border:'1px solid #D1D5DB', borderRadius:'4px' }} alt={label} />
+                      <button onClick={() => set('')}
+                        style={{ position:'absolute', top:4, right:4, background:'#DC2626', color:'white', border:'none', borderRadius:'4px', padding:'2px 8px', fontSize:'12px', cursor:'pointer' }}>✕</button>
+                    </div>
+                  : <label style={{ border:'1px dashed #D1D5DB', borderRadius:'6px', padding:'16px', textAlign:'center' as const, display:'block', cursor:'pointer', fontSize:'13px', color:'#6B7280' }}>
+                      📋 Clique para inserir — somente JPG ou PNG (opcional)
+                      <input type="file" accept="image/jpeg,image/png" style={{ display:'none' }}
+                        onChange={async e => {
+                          const f = e.target.files?.[0]
+                          if (!f) return
+                          if (!['image/jpeg','image/png'].includes(f.type)) {
+                            setErro('Anexe somente imagem JPG ou PNG — PDF não é impresso junto com o laudo.')
+                            e.target.value = ''
+                            return
+                          }
+                          set(await lerArquivoBase64(f))
+                        }} />
+                    </label>
+                }
+                <p style={{ fontSize:'10px', color:'#9CA3AF', marginTop:'6px' }}>
+                  Quando anexada, aparece no Anexo 3, logo após a ART/RRT do responsável técnico acima. Campo opcional — deixe em branco se não se aplicar a este serviço.
+                </p>
+              </div>
+            </div>
+          ))}
 
           {/* ── Documentos Anexo 1 ── */}
           <div style={S.bloco}>
