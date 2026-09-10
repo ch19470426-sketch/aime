@@ -158,6 +158,14 @@ function CadastroInspetor() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setErro("")
+    if (form.whatsapp.replace(/\D/g,'').length < 10) {
+      setErro('WhatsApp incompleto — informe DDD + número (10 ou 11 dígitos).')
+      return
+    }
+    if (form.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
+      setErro('E-mail inválido — confira o formato digitado.')
+      return
+    }
     setSalvando(true)
     try {
       const controller = new AbortController()

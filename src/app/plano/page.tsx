@@ -447,7 +447,7 @@ function PlanoInner() {
                           placeholder="(27) 99999-9999" />
                       </Field>
                       <Field label="E-mail">
-                        <input style={S.input} value={emailResp}
+                        <input type="email" style={S.input} value={emailResp}
                           onChange={e => setEmailResp(e.target.value)}
                           placeholder="email@exemplo.com" />
                       </Field>
@@ -461,6 +461,12 @@ function PlanoInner() {
                       <button style={{ ...S.btn, ...S.btnPri, padding:'8px 28px', fontSize:'12px', fontWeight:700 }}
                         onClick={async () => {
                           if (!nomeResp) { informa('Atenção', 'Informe o nome do responsável.'); return }
+                          if (emailResp && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailResp)) {
+                            informa('Atenção', 'E-mail inválido — confira o formato digitado.'); return
+                          }
+                          if (whatsResp && whatsResp.replace(/\D/g,'').length < 10) {
+                            informa('Atenção', 'WhatsApp incompleto — informe DDD + número (10 ou 11 dígitos).'); return
+                          }
                           try {
                             const resCC = await fetch('/api/contato-cliente', {
                               method: 'POST',
