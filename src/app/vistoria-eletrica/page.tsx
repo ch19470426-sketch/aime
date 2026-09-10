@@ -71,7 +71,11 @@ function VistoriaEletricaInner() {
       })
       const data = await res.json()
       if (!res.ok || data.erro) throw new Error(data.erro || 'Erro no upload')
-      setCredencial({ cnpj: cnpjLimpo, cpfCivil: cpfLimpo })
+      // Vai direto para a vistoria — o comando já foi dado ao clicar em
+      // "Vistoriar", não precisa de uma tela intermediária com outro botão.
+      router.push(
+        `/vistoria/tela32?cpf_inspetor=${cpfLimpo}&chave_inspetor=${chaveEletrico}&cnpjoucpf=${cnpjLimpo}&tipo_servico=32&sistema_fixo=07-Instalações elétricas&cpf_eletrico=${cpfEletrico}`
+      )
     } catch(e: any) {
       setErro(e.message ?? 'Erro inesperado')
     } finally {
