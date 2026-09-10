@@ -332,14 +332,12 @@ function Tela40Inner() {
           })
         : lista
 
-      // Filtro por tipo de serviço (completo: cpf_inspetor + cnpjoucpf + tipo_servico) —
-      // pendências de tipos diferentes para o mesmo CNPJ (ex: testes antigos do tipo 32
-      // ainda pendentes, junto com um teste novo de outro tipo) não devem se misturar.
-      // Usa o tipo do primeiro item como referência e descarta os demais tipos.
-      if (!sistemaFixo && filtrados.length > 0) {
-        const tipoRef = filtrados[0].tipoServico
-        filtrados = filtrados.filter((f: any) => f.tipoServico === tipoRef)
-      }
+      // NOTA: um filtro por tipo de serviço baseado no "primeiro item" foi tentado
+      // aqui e revertido em 09/09/2026 — se um item pendente de OUTRO tipo (ex:
+      // teste antigo) viesse primeiro na lista, o filtro descartava TODOS os itens
+      // do tipo certo, reduzindo a zero silenciosamente (tela ficava vazia sem
+      // nenhuma mensagem de erro). Mixagem ocasional de tipos é menos grave que
+      // bloquear a homologação por completo.
       if (sistemaFixo && filtrados.length === 0) {
         // Usar lista completa se filtro não encontrar nada — permite homologar visualmente
         setFormularios(lista); formulariosRef.current = lista
