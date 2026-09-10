@@ -321,11 +321,14 @@ function Tela40Inner() {
             )
           } else {
             const diag = data._diag
-            const diagTexto = diag
-              ? ` [diagnóstico: ${diag.totalArquivosEncontrados} arquivo(s) na busca por "${diag.chaveInspetorUsada}"; primeiros nomes: ${JSON.stringify(diag.primeirosNomes)}]`
-              : ''
+            if (diag) {
+              alert('DIAGNÓSTICO:\n\nArquivos encontrados na busca: ' + diag.totalArquivosEncontrados +
+                '\nChave usada: ' + diag.chaveInspetorUsada +
+                '\nCNPJ usado: "' + diag.cnpjoucpfUsado + '"' +
+                '\n\nPrimeiros nomes:\n' + diag.primeirosNomes.join('\n'))
+            }
             informa('Nenhuma vistoria encontrada',
-              'Para que seja efetuada a homologação é necessário que exista uma vistoria concluída para a edificação/instituição. Nada encontrado, o processo será suspenso.' + diagTexto,
+              'Para que seja efetuada a homologação é necessário que exista uma vistoria concluída para a edificação/instituição. Nada encontrado, o processo será suspenso.',
               () => window.location.href = '/dashboard'
             )
           }
