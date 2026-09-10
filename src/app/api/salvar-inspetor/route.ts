@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
       inspetor_email: email,
       cep_inspetor: (cep ?? '').replace(/\D/g, ''),
       nr_imovel: nr_imovel,
-      nr_ap_sala: complemento || null,
+      nr_ap_sala: complemento || '',  // coluna tem NOT NULL, sem valor default — string vazia, nao null
       cabecalho_documentos: cabecalho || null,
       rodape_documentos: rodape || null,
     }
