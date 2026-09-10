@@ -195,9 +195,8 @@ export async function POST(request: NextRequest) {
   @bottom-left {
     content: ${JSON.stringify(rodIns)};
     font-family: Arial, sans-serif; font-size: 6.5pt; color: #374151;
-    border-top: 1px solid #ccc; padding-top: 3pt; width: 138mm;
+    border-top: 1px solid #ccc; padding-top: 3pt; width: 140mm;
   }
-  @bottom-center { content: ''; border-top: 1px solid #ccc; padding-top: 3pt; width: 2mm; }
   @bottom-right {
     content: "Pág. " counter(page);
     font-family: Arial, sans-serif; font-size: 7.5pt; color: #374151;
@@ -429,7 +428,7 @@ ${(() => {
     <div style="font-size:13pt;font-weight:700;color:#374151;margin-bottom:4pt">${xe(estab?.razao_social_nome||estab?.razao_social||'')}</div>
     ${capaEnderecoPM ? `<div style="font-size:9pt;color:#374151">${capaEnderecoPM}</div>` : ''}
   </div>
-  <div style="position:absolute;top:195mm;left:0;right:0">
+  <div style="position:absolute;top:204mm;left:0;right:0">
     <div style="border-top:2px solid #1E3A8A;margin:0"></div>
     <div style="padding:3mm 0 1mm;font-size:9.5pt;color:#222;line-height:1.9">
       <b style="color:#1E3A8A">Inspetor Respons&aacute;vel:</b> ${nomeIns}<br>

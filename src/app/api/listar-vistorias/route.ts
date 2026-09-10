@@ -104,22 +104,50 @@ export async function GET(request: NextRequest) {
     // REALMENTE fez aquele item específico — não a de quem está pedindo a
     // lista agora. Isso importa quando profissionais diferentes contribuem
     // para a mesma vistoria (ex: Eng Elétrico complementando vistoria 32 de
-    // um civil/arquiteto) — usar sempre a chave de quem pede fazia o nome do
-    // arquivo ficar errado para os itens de outro profissional, e a foto
-    // nunca era encontrada.
+    // um civil/arquiteto). MAS para itens elétricos, o campo cpf_inspetor
+    // salvo é o do CIVIL (não do elétrico que realmente coletou o dado) —
+    // então, para esses itens especificamente, é preciso descobrir o CPF do
+    // elétrico via art_profissional (que vincula civil+eletrico+CNPJ) antes
+    // de buscar a chave certa.
     const cpfsUnicos = [...new Set((linhas ?? []).map((d:any) => d.cpf_inspetor).filter(Boolean))]
+
+    // Detecta itens elétricos (sistema com prefixo 07 ou contendo "elétric")
+    // e busca o cpf_eletrico vinculado a cada civil, para essa combinação de CNPJ.
+    const civisComEletrico = new Set(
+      (linhas ?? [])
+        .filter((d:any) => /^0?7[-_]|el[ée]tric/i.test(String(d.sistema_vistoria||'')))
+        .map((d:any) => d.cpf_inspetor)
+        .filter(Boolean)
+    )
+    const cpfEletricoPorCivil = new Map<string, string>()
+    if (civisComEletrico.size > 0) {
+      const { data: arts } = await supabase
+        .from('art_profissional')
+        .select('cpf_inspetor,cpf_eletrico')
+        .eq('cnpjoucpf', cnpjoucpf)
+        .in('cpf_inspetor', [...civisComEletrico])
+      for (const a of (arts ?? [])) {
+        cpfEletricoPorCivil.set(a.cpf_inspetor, a.cpf_eletrico)
+        cpfsUnicos.push(a.cpf_eletrico) // também precisa da chave deste CPF
+      }
+    }
+
     const chavePorCpf = new Map<string, string>()
     if (cpfsUnicos.length > 0) {
       const { data: insps } = await supabase
         .from('inspetor')
         .select('cpf_inspetor,chave_inspetor')
-        .in('cpf_inspetor', cpfsUnicos)
+        .in('cpf_inspetor', [...new Set(cpfsUnicos)])
       for (const i of (insps ?? [])) chavePorCpf.set(i.cpf_inspetor, i.chave_inspetor)
     }
 
     for (const d of (linhas ?? [])) {
       const fotoNrFmt = normFotoNr(d.numero_foto).padStart(3, '0')
-      const chaveDoItem = chavePorCpf.get(d.cpf_inspetor) || chaveInspetor
+      const ehEletrico = /^0?7[-_]|el[ée]tric/i.test(String(d.sistema_vistoria||''))
+      const cpfEletricoDoItem = ehEletrico ? cpfEletricoPorCivil.get(d.cpf_inspetor) : undefined
+      const chaveDoItem = (cpfEletricoDoItem && chavePorCpf.get(cpfEletricoDoItem))
+        || chavePorCpf.get(d.cpf_inspetor)
+        || chaveInspetor
       const nc: any = {
         chaveInspetor, cnpjoucpf, tipoServico: tipoVistoria,
         tipoAtivo: d.tipo_ativo, tagNrSerie: d.tag_ativo_nr_serie,

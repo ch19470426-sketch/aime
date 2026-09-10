@@ -1428,7 +1428,7 @@ export async function POST(request: NextRequest) {
     <div style="font-size:13pt;font-weight:700;color:#374151;margin-bottom:4pt">${xe(estab?.razao_social_nome||estab?.razao_social||'')}</div>
     ${capaEnderecoNR ? `<div style="font-size:9pt;color:#374151">${capaEnderecoNR}</div>` : ''}
   </div>
-  <div style="position:absolute;top:219mm;left:0;right:0">
+  <div style="position:absolute;top:228mm;left:0;right:0">
     <div style="border-top:2px solid #1E3A8A;margin:0"></div>
     <div style="padding:3mm 0 1mm;font-size:9.5pt;color:#222;line-height:1.9">
       <b style="color:#1E3A8A">Inspetor Respons&aacute;vel:</b> ${xe(inspetor?.nome_inspetor||'')}<br>
@@ -2190,11 +2190,7 @@ export async function POST(request: NextRequest) {
   @bottom-left {
     content: ${JSON.stringify(rodInspetor)};
     font-family: Arial, sans-serif; font-size: 6.5pt; color: #374151;
-    border-top: 1px solid #ccc; padding-top: 3pt; width: 138mm;
-  }
-  @bottom-center {
-    content: '';
-    border-top: 1px solid #ccc; padding-top: 3pt; width: 2mm;
+    border-top: 1px solid #ccc; padding-top: 3pt; width: 140mm;
   }
   @bottom-right {
     content: "Pág. " counter(page);
@@ -2242,7 +2238,7 @@ const CAPA_HTML = `
     <div style="font-size:13pt;font-weight:700;color:#374151;margin-bottom:4pt">${xe(estab?.razao_social_nome||estab?.razao_social||'')}</div>
     ${capaEndereco ? `<div style="font-size:9pt;color:#374151">${capaEndereco}</div>` : ''}
   </div>
-  <div style="position:absolute;top:219mm;left:0;right:0">
+  <div style="position:absolute;top:228mm;left:0;right:0">
     <div style="border-top:2px solid #1E3A8A;margin:0"></div>
     <div style="padding:3mm 0 1mm;font-size:9.5pt;color:#222;line-height:1.9">
       <b style="color:#1E3A8A">Inspetor Respons&aacute;vel:</b> ${xe(inspetor?.nome_inspetor||'')}<br>
