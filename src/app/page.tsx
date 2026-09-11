@@ -177,6 +177,7 @@ export default function LoginPage() {
             <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
               <label style={{ fontSize: "14px", fontWeight: "500", color: "#374151" }}>Senha</label>
               <input type="password" required value={password} onChange={(e) => setPassword(e.target.value)} placeholder="********"
+                autoComplete="new-password" name="senha-inspetor"
                 style={{ border: "1px solid #D1D5DB", borderRadius: "8px", padding: "10px 12px", fontSize: "14px", outline: "none" }} />
               <p style={{ fontSize: "11px", color: "#6B7280" }}>
                 Ao criar uma conta nova: mínimo 8 caracteres, com letra, número e caractere especial.
