@@ -618,6 +618,11 @@ export default function Dashboard() {
 
   return (
     <>
+    <style>{`
+      @media (max-width: 700px) {
+        .menu-lateral-dashboard.oculta-com-servico { display: none; }
+      }
+    `}</style>
     <div style={{ backgroundColor: "#E8EEF7", minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", padding: "16px" }}>
       <div style={{ backgroundColor: "white", borderRadius: "16px", boxShadow: "0 4px 24px rgba(0,0,0,0.12)", width: "100%", maxWidth: "1100px", overflow: "hidden", minWidth: 0 }}>
 
@@ -633,7 +638,14 @@ export default function Dashboard() {
         <div style={{ display: "flex", minHeight: "500px", overflow: "hidden", flexWrap: "wrap" }}>
 
           {/* ── Menu lateral ── */}
-          <div style={{ width: "220px", minWidth: "180px", borderRight: "2px solid #1E3A8A", backgroundColor: "white", flexShrink: 0 }}>
+          {/* Em telas pequenas (flexWrap faz o menu empilhar acima do
+              conteudo), oculta o menu assim que um servico e selecionado,
+              deixando a subtela de coleta de CNPJ/CPF visivel de imediato
+              — sem isso, o usuario precisava rolar a tela passando por
+              todo o menu para chegar la. Em telas largas (menu ao lado do
+              conteudo, sem quebra de linha) isso nao faz diferenca visual. */}
+          <div className={tipoServico ? "menu-lateral-dashboard oculta-com-servico" : "menu-lateral-dashboard"}
+            style={{ width: "220px", minWidth: "180px", borderRight: "2px solid #1E3A8A", backgroundColor: "white", flexShrink: 0 }}>
             <div style={{ backgroundColor: "#1E3A8A", padding: "8px 16px" }}>
               <span style={{ color: "white", fontWeight: "bold", fontSize: "11px" }}>Selecionar Serviço</span>
             </div>
