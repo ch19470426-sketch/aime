@@ -225,7 +225,8 @@ function PropostaInner() {
         setLogradouro(data.logradouro)
         const nrFinal = nr ?? numero
         const compFinal = comp ?? complemento
-        const partes = [data.logradouro, nrFinal || null, compFinal || null, data.bairro].filter(Boolean)
+        const nrComComp = compFinal ? `${nrFinal}/${compFinal}` : nrFinal
+        const partes = [data.logradouro, nrComComp || null, data.bairro].filter(Boolean)
         const end = partes.join(', ') + `, ${data.localidade}/${data.uf}`
         setEndereco(end)
       }
@@ -278,7 +279,8 @@ function PropostaInner() {
             const vr = await fetch(`https://viacep.com.br/ws/${cepLocal}/json/`)
             const vd = await vr.json()
             if (!vd.erro) {
-              const partes = [vd.logradouro, nrLocal||null, compLocal||null, vd.bairro].filter(Boolean)
+              const nrComCompLocal = compLocal ? `${nrLocal}/${compLocal}` : nrLocal
+              const partes = [vd.logradouro, nrComCompLocal||null, vd.bairro].filter(Boolean)
               setEndereco(partes.join(', ') + `, ${vd.localidade}/${vd.uf}`)
               setLogradouro(vd.logradouro)
               setMunicipioUF(`${vd.localidade}/${vd.uf}`)

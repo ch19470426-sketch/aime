@@ -505,7 +505,8 @@ export async function POST(request: NextRequest) {
         const vr = await fetch('https://viacep.com.br/ws/' + cep + '/json/')
         const vd = await vr.json()
         if (!vd.erro) {
-          const partes = [vd.logradouro, est.numero_imovel||null, est.complemento||null, vd.bairro].filter(Boolean)
+          const nrComComp = est.complemento ? (est.numero_imovel + '/' + est.complemento) : est.numero_imovel
+          const partes = [vd.logradouro, nrComComp||null, vd.bairro].filter(Boolean)
           endereco = partes.join(', ') + ', ' + vd.localidade + '/' + vd.uf
           municipioUF = vd.localidade + '/' + vd.uf
         }
