@@ -1579,26 +1579,21 @@ export async function POST(request: NextRequest) {
     })
     const ncsPorSistema: Record<string, any[]> = {}
     sistemas.forEach(s => { ncsPorSistema[s] = [] })
+    // Normaliza removendo o prefixo numérico por completo (não só trocando
+    // hífen/underscore) — variações de formatação no dado salvo (ex: "2-Pisos"
+    // vs "02-Pisos", vinda de sessões de teste diferentes) faziam o item cair
+    // no sistema errado (o primeiro da lista) via o fallback antigo de prefixo,
+    // que só comparava dígitos exatos sem considerar zeros à esquerda.
+    const normSisPredial = (s: string) => String(s||'').trim().replace(/^\d+[-_]\s*/, '').replace(/_/g, ' ').trim().toLowerCase()
+    const chaveNormalizadaParaReal = new Map<string, string>()
+    sistemas.forEach(s => chaveNormalizadaParaReal.set(normSisPredial(s), s))
     ncsOrd41.forEach((nc: any) => {
       const sistNC = String(nc.sistema||'').trim()
       if (ncsPorSistema[sistNC] !== undefined) {
-        // Chave exata
         ncsPorSistema[sistNC].push(nc)
       } else {
-        // Normalizar: tentar com hífen ou underscore trocado
-        const sistAlt = sistNC.includes('-') ? sistNC.replace(/-/g, '_') : sistNC.replace(/_/g, '-')
-        if (ncsPorSistema[sistAlt] !== undefined) {
-          ncsPorSistema[sistAlt].push(nc)
-        } else {
-          // Buscar por prefixo numérico (ex: '04' encontra '04-Revestimentos')
-          const numPart = (sistNC.match(/^(\d+)/) || [])[1] || ''
-          if (numPart) {
-            const chave = Object.keys(ncsPorSistema).find(k =>
-              k.startsWith(numPart + '-') || k.startsWith(numPart + '_')
-            )
-            if (chave) ncsPorSistema[chave].push(nc)
-          }
-        }
+        const chaveReal = chaveNormalizadaParaReal.get(normSisPredial(sistNC))
+        if (chaveReal) ncsPorSistema[chaveReal].push(nc)
       }
     })
 
