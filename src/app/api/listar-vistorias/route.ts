@@ -32,7 +32,7 @@ const LAUDO_PARA_VISTORIA: Record<string,string> = {
 
 function campo(html: string, label: string): string {
   const re = new RegExp(
-    `<div class="f">\\s*<label[^>]*>[^<]*${label}[^<]*</label>\\s*<span[^>]*>([\\s\\S]*?)</span>`,
+    `<div class="field">\\s*<label[^>]*>[^<]*${label}[^<]*</label>\\s*<span[^>]*>([\\s\\S]*?)</span>`,
     'i'
   )
   return html.match(re)?.[1]?.trim().replace(/<[^>]+>/g,'') ?? ''
