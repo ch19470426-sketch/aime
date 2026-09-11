@@ -57,12 +57,31 @@ async function extrairTextoPorPagina(pdfBuffer: Uint8Array): Promise<string[]> {
   return paginas
 }
 
-// Índice espelhado do usado em gerar-plano-manutencao/route.ts — precisa
-// ficar em sincronia manualmente (lista pequena e estável, risco baixo).
-const INDICE_NUMEROS = [
-  '1.', '1.1.-', '1.2.-', '2.', '3.', '4.', '5.', '5.1.-', '5.2.-', '5.3.-',
-  '5.4.-', '6.', '7.', '8.', '9.', '10.', 'Anexo 1',
+// Índice espelhado do usado em gerar-plano-manutencao/route.ts — número e um
+// trecho do título (mínimo de palavras suficiente para ser específico, sem
+// depender de bater exatamente maiúsculas/pontuação com o corpo do
+// documento). Precisa ficar em sincronia manualmente (lista pequena e
+// estável, risco baixo).
+const INDICE_ITENS = [
+  { n: '1.',      t: 'Considerações Preliminares' },
+  { n: '1.1.-',   t: 'Identificação da Edificação' },
+  { n: '1.2.-',   t: 'Ativos para Manutenção' },
+  { n: '2.',      t: 'Objetivos' },
+  { n: '3.',      t: 'Base normativa' },
+  { n: '4.',      t: 'Responsabilidade da Contratada' },
+  { n: '5.',      t: 'Exigências Mínimas' },
+  { n: '5.1.-',   t: 'Planejamento' },
+  { n: '5.2.-',   t: 'Segurança' },
+  { n: '5.3.-',   t: 'Recursos' },
+  { n: '5.4.-',   t: 'Execução' },
+  { n: '6.',      t: 'Recebimento dos Serviços' },
+  { n: '7.',      t: 'Apresentação da Proposta' },
+  { n: '8.',      t: 'Critérios para Priorização' },
+  { n: '9.',      t: 'Controle da Execução' },
+  { n: '10.',     t: 'Considerações Finais' },
+  { n: 'Anexo 1', t: 'Plano Executivo' },
 ]
+const INDICE_NUMEROS = INDICE_ITENS.map(it => it.n)
 
 function descobrirPaginasReais(paginas: string[]): Record<string, string> {
   const pagsReais: Record<string, string> = {}
@@ -71,13 +90,16 @@ function descobrirPaginasReais(paginas: string[]): Record<string, string> {
   // ocorrência encontrada era sempre essa listagem do índice, não a seção de
   // verdade. Pula a primeira página (onde fica o índice) antes de buscar.
   const primeiraPaginaDeConteudo = 1
-  for (const num of INDICE_NUMEROS) {
-    // Escapa caracteres especiais de regex (o número tem ponto e hífen)
-    const numEscapado = num.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-    const re = new RegExp(numEscapado + '\\s*[-–]?\\s*\\S')
+  for (const { n: numero, t: titulo } of INDICE_ITENS) {
+    const numEscapado = numero.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+    // Escapa o início do título e usa só as primeiras ~15 letras — específico
+    // o bastante para não bater em texto aleatório, tolerante a diferenças de
+    // pontuação/maiúsculas depois desse trecho.
+    const tituloEscapado = titulo.slice(0, 15).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+    const re = new RegExp(numEscapado + '\\s*[-–]?\\s*' + tituloEscapado, 'i')
     for (let i = primeiraPaginaDeConteudo; i < paginas.length; i++) {
       if (re.test(paginas[i])) {
-        pagsReais[num] = String(i + 1)
+        pagsReais[numero] = String(i + 1)
         break
       }
     }
