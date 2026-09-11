@@ -204,7 +204,14 @@ export default function PlanoManutencaoInner() {
 
       // Gera o PDF no servidor via Puppeteer — mesma técnica confiável usada
       // nos laudos (window.print() não respeita margens/paginação corretamente).
-      const res = await fetch('/api/gerar-laudo-pdf', {
+      //
+      // INDICE_PAGINACAO_REAL: quando true, usa a rota de duas passagens que
+      // corrige o número de página do índice para o valor real (em vez do
+      // número fixo estimado). Teste em 11/09/2026 — para reverter ao
+      // comportamento anterior (número estimado, uma passagem só), basta
+      // trocar para false — nenhuma outra mudança é necessária.
+      const INDICE_PAGINACAO_REAL = true
+      const res = await fetch(INDICE_PAGINACAO_REAL ? '/api/gerar-plano-manutencao-pdf' : '/api/gerar-laudo-pdf', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ nomeArquivo: nomeArq, html: htmlParaPdf })

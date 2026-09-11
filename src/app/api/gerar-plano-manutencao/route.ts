@@ -97,7 +97,7 @@ const MESES = ['janeiro','fevereiro','março','abril','maio','junho','julho','ag
 
 export async function POST(request: NextRequest) {
   try {
-    const { cpfInspetor, chaveInspetor, cnpjoucpf, tipoServico, nomeArquivo, ncs } = await request.json()
+    const { cpfInspetor, chaveInspetor, cnpjoucpf, tipoServico, nomeArquivo, ncs, pagsReais } = await request.json()
     if (!cpfInspetor || !tipoServico || !nomeArquivo)
       return NextResponse.json({ erro: 'Parâmetros obrigatórios ausentes.' }, { status: 400 })
 
@@ -334,13 +334,19 @@ tr:nth-child(even) td { background: #f7f9ff; }
       {n:'Anexo 1', t:'Plano Executivo dos Serviços de Manutenção', n1:true},
 
     ]
-    const pags: Record<string,string> = {
+    // Numeros estimados (chute historico) — usados na primeira passagem e
+    // como fallback se a segunda passagem (paginacao real) nao for solicitada
+    // ou falhar por algum motivo. `pagsReais`, se vier no corpo da
+    // requisicao, sobrepõe esses valores (usado pela rota de PDF de duas
+    // passagens, gerar-plano-manutencao-pdf).
+    const pagsEstimado: Record<string,string> = {
       '1.':      '3', '1.1.-': '3', '1.2.-': '3',
       '2.':      '4', '3.':    '4', '4.':    '4',
       '5.':      '5', '5.1.-': '5', '5.2.-': '5', '5.3.-': '5', '5.4.-': '5',
       '6.':      '6', '7.':    '6', '8.':    '6', '9.':    '6', '10.':   '6',
       'Anexo 1': '7',
     }
+    const pags: Record<string,string> = { ...pagsEstimado, ...(pagsReais ?? {}) }
         const indiceHtml = indiceItens.map(it =>
       `<div style="display:flex;align-items:baseline;padding:3pt 0;font-family:Arial,sans-serif;font-size:9pt;color:#000">` +
       `<span style="min-width:40pt;flex-shrink:0;color:#000">${it.n}</span>` +
