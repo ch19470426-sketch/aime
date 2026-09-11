@@ -33,14 +33,27 @@ export const maxDuration = 120
 import { NextRequest, NextResponse } from 'next/server'
 
 async function extrairTextoPorPagina(pdfBuffer: Uint8Array): Promise<string[]> {
-  const pdfjsLib = await import('pdfjs-dist/legacy/build/pdf.mjs')
-  const doc = await pdfjsLib.getDocument({ data: pdfBuffer }).promise
+  // pdf-parse@1.1.1 (versão fixa, testada) — versões mais novas mudaram a API
+  // por completo, e pdfjs-dist puro exige um "worker" que não fica acessível
+  // no bundle serverless da Vercel ("Cannot find module .../pdf.worker.mjs").
+  // Essa versão usa pdfjs-dist internamente em modo compatível com Node.js
+  // puro, sem essa dependência.
+  // Importar do arquivo interno diretamente (não do índice do pacote) —
+  // pdf-parse@1.1.1 tem um código de debug no index.js que roda incorretamente
+  // ao ser importado em certos contextos, tentando ler um arquivo de teste
+  // que não existe ("./test/data/05-versions-space.pdf"). Testado e
+  // confirmado isoladamente antes de aplicar aqui.
+  const pdfParseMod = await import('pdf-parse/lib/pdf-parse.js')
+  const pdfParse = (pdfParseMod as any).default ?? pdfParseMod
   const paginas: string[] = []
-  for (let i = 1; i <= doc.numPages; i++) {
-    const page = await doc.getPage(i)
-    const content = await page.getTextContent()
-    paginas.push(content.items.map((it: any) => it.str).join(' '))
-  }
+  await (pdfParse as any)(Buffer.from(pdfBuffer), {
+    pagerender: async (pageData: any) => {
+      const content = await pageData.getTextContent()
+      const texto = content.items.map((it: any) => it.str).join(' ')
+      paginas.push(texto)
+      return texto
+    }
+  })
   return paginas
 }
 
