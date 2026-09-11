@@ -53,11 +53,16 @@ const INDICE_NUMEROS = [
 
 function descobrirPaginasReais(paginas: string[]): Record<string, string> {
   const pagsReais: Record<string, string> = {}
+  // A própria página do índice lista todos os números das seções (ex: "1.
+  // Considerações Preliminares 3") — buscando desde a página 1, a primeira
+  // ocorrência encontrada era sempre essa listagem do índice, não a seção de
+  // verdade. Pula a primeira página (onde fica o índice) antes de buscar.
+  const primeiraPaginaDeConteudo = 1
   for (const num of INDICE_NUMEROS) {
     // Escapa caracteres especiais de regex (o número tem ponto e hífen)
     const numEscapado = num.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
     const re = new RegExp(numEscapado + '\\s*[-–]?\\s*\\S')
-    for (let i = 0; i < paginas.length; i++) {
+    for (let i = primeiraPaginaDeConteudo; i < paginas.length; i++) {
       if (re.test(paginas[i])) {
         pagsReais[num] = String(i + 1)
         break
