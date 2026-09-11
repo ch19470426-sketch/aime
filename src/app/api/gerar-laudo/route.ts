@@ -1566,7 +1566,28 @@ export async function POST(request: NextRequest) {
     // ── FIM GERADOR NR (45-48) ────────────────────────────────────────────────
 
 
-    const sistemas = SISTEMAS[tipoServico] ?? []
+    // Busca dinamica no banco (sistemas_construtivos) em vez da lista fixa no
+    // codigo — a lista fixa (SISTEMAS[tipoServico]) ficou desatualizada em
+    // relacao ao que a tela de vistoria realmente usa (ex: "Sistema de Pisos"
+    // nao existia na lista fixa, causando itens perdidos/mal classificados no
+    // item 4.1). Mesmo padrao ja usado nos laudos NR (45-48).
+    const tsPredMap: Record<string,string> = {
+      '41':'31 Autovistoria','42':'32 Vistoria inspeção',
+      '43':'33 Vistoria imóvel novo','44':'34 Vistoria fachada',
+    }
+    let sistemas: string[] = SISTEMAS[tipoServico] ?? []
+    if (tsPredMap[tipoServico]) {
+      try {
+        const { data: sisDB } = await supabase
+          .from('sistemas_construtivos')
+          .select('sistema')
+          .eq('tipo_servico', tsPredMap[tipoServico])
+          .eq('ativo', true)
+          .order('sistema')
+        const sisUnicos = [...new Set((sisDB ?? []).map((s:any) => s.sistema).filter(Boolean))]
+        if (sisUnicos.length > 0) sistemas = sisUnicos
+      } catch { /* mantém a lista fixa como fallback se a consulta falhar */ }
+    }
     const dataHoje = fmtData()
     // cl já declarado acima
     const labelEst = tipoServico === '43' ? 'Proprietário' : 'Condomínio / Empresa'
