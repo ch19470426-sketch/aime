@@ -210,7 +210,7 @@ export default function PlanoManutencaoInner() {
       // número fixo estimado). Teste em 11/09/2026 — para reverter ao
       // comportamento anterior (número estimado, uma passagem só), basta
       // trocar para false — nenhuma outra mudança é necessária.
-      const INDICE_PAGINACAO_REAL = true
+      const INDICE_PAGINACAO_REAL = false
       const res = await fetch(INDICE_PAGINACAO_REAL ? '/api/gerar-plano-manutencao-pdf' : '/api/gerar-laudo-pdf', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
