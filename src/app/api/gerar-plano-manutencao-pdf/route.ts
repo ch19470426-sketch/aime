@@ -117,13 +117,16 @@ export async function POST(request: NextRequest) {
     //    HTML recebido (preserva qualquer edição feita na tela) ────────────
     let pdfFinal = pdfPass1
     let indiceCorrigido = false
+    let diagnostico = ''
     try {
       const paginas = await extrairTextoPorPagina(new Uint8Array(pdfPass1))
       const pagsReais = descobrirPaginasReais(paginas)
+      const naoEncontrados = INDICE_NUMEROS.filter(n => !pagsReais[n])
+      diagnostico = `total_paginas=${paginas.length}; encontrados=${JSON.stringify(pagsReais)}; nao_encontrados=${JSON.stringify(naoEncontrados)}`
       // Só prossegue para a 2ª passagem se TODAS as seções foram localizadas
       // — parcial poderia deixar o índice pior (mistura de números reais e
       // estimados de forma inconsistente) do que ficar só com o estimado.
-      if (Object.keys(pagsReais).length === INDICE_NUMEROS.length) {
+      if (naoEncontrados.length === 0) {
         const htmlPass2 = corrigirIndiceNoHtml(htmlPass1, pagsReais)
         await page.setContent(htmlPass2, { waitUntil: 'load', timeout: 90000 })
         const pdfPass2 = await page.pdf({ preferCSSPageSize: true, format: 'A4', printBackground: true })
@@ -131,9 +134,10 @@ export async function POST(request: NextRequest) {
         indiceCorrigido = true
         console.log('[gerar-plano-manutencao-pdf] 2ª passagem ok (índice corrigido), tamanho:', pdfPass2.length)
       } else {
-        console.log('[gerar-plano-manutencao-pdf] nem todas as seções localizadas, mantendo estimativa. Encontradas:', Object.keys(pagsReais).length, 'de', INDICE_NUMEROS.length)
+        console.log('[gerar-plano-manutencao-pdf] nem todas as seções localizadas:', diagnostico)
       }
     } catch (e) {
+      diagnostico = 'ERRO: ' + String(e)
       console.error('[gerar-plano-manutencao-pdf] falha ao tentar corrigir índice, mantendo estimativa:', e)
     }
 
@@ -149,6 +153,7 @@ export async function POST(request: NextRequest) {
         'Content-Disposition': `attachment; filename="${nomeArquivo.replace(/\.html$/i, '.pdf')}"`,
         'Content-Length': String(pdfFinal.length),
         'X-Indice-Corrigido': String(indiceCorrigido),
+        'X-Indice-Diagnostico': encodeURIComponent(diagnostico),
       },
     })
   } catch (err: any) {

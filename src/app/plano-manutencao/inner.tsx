@@ -221,6 +221,13 @@ export default function PlanoManutencaoInner() {
         try { detalhe = (await res.json())?.erro ?? '' } catch {}
         throw new Error(`Falha ao gerar o PDF (${res.status}). ${detalhe}`)
       }
+      // Diagnóstico temporário do teste do índice com paginação real —
+      // remover quando confirmado funcionando.
+      if (INDICE_PAGINACAO_REAL) {
+        const corrigido = res.headers.get('X-Indice-Corrigido')
+        const diag = res.headers.get('X-Indice-Diagnostico')
+        alert('DIAGNÓSTICO ÍNDICE:\n\nCorrigido: ' + corrigido + '\n\n' + (diag ? decodeURIComponent(diag) : '(sem diagnóstico)'))
+      }
       const blob = await res.blob()
       const url = URL.createObjectURL(blob)
       const nomeBase = nomeArq.replace('.html','') + '.pdf'
