@@ -14,8 +14,25 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false)
   const [mostrarCapa, setMostrarCapa] = useState(false)
   const [verificandoSessao, setVerificandoSessao] = useState(true)
+
+  // Navegadores as vezes preenchem os campos automaticamente ao carregar a
+  // pagina (autofill) de forma que nao passa pelo onChange do React — o
+  // estado (cpf/password) fica vazio mas o campo aparece visualmente
+  // preenchido. Limpa explicitamente pouco depois do carregamento, sem
+  // impedir a selecao manual do usuario nas senhas salvas do navegador
+  // (que continua funcionando normalmente a partir dai).
+  useEffect(() => {
+    const t = setTimeout(() => {
+      if (cpfRef.current) cpfRef.current.value = ''
+      if (senhaRef.current) senhaRef.current.value = ''
+      setCpf('')
+      setPassword('')
+    }, 150)
+    return () => clearTimeout(t)
+  }, [])
   const supabase = createClient()
   const cpfRef = useRef<HTMLInputElement>(null)
+  const senhaRef = useRef<HTMLInputElement>(null)
   const router = useRouter()
 
   useEffect(() => {
@@ -176,7 +193,7 @@ export default function LoginPage() {
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
               <label style={{ fontSize: "14px", fontWeight: "500", color: "#374151" }}>Senha</label>
-              <input type="password" required value={password} onChange={(e) => setPassword(e.target.value)} placeholder="********"
+              <input ref={senhaRef} type="password" required value={password} onChange={(e) => setPassword(e.target.value)} placeholder="********"
                 style={{ border: "1px solid #D1D5DB", borderRadius: "8px", padding: "10px 12px", fontSize: "14px", outline: "none" }} />
               <p style={{ fontSize: "11px", color: "#6B7280" }}>
                 Ao criar uma conta nova: mínimo 8 caracteres, com letra, número e caractere especial.
