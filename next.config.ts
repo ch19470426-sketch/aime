@@ -21,6 +21,7 @@ const nextConfig: NextConfig = {
   // serverless na Vercel — isso é necessário além do external.
   outputFileTracingIncludes: {
     '/api/gerar-laudo-pdf/**': ['./node_modules/@sparticuz/chromium/bin/**'],
+    '/api/gerar-plano-manutencao-pdf/**': ['./node_modules/@sparticuz/chromium/bin/**'],
   },
   // Aumentar limite de body para route handlers (foto base64 pode ser grande)
   api: {
