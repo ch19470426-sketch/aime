@@ -237,7 +237,11 @@ function HomologarProdutoInner() {
         return `src="PLACEHOLDER_FOTO_${fotoIdx++}"`
       })
 
-      const res = await fetch('/api/gerar-laudo-pdf', {
+      // INDICE_PAGINACAO_REAL_LAUDO: teste do índice com número de página
+      // real, só para laudos (grupo4x) — mesma técnica já validada e em uso
+      // no plano de manutenção. Para reverter, basta trocar para false.
+      const INDICE_PAGINACAO_REAL_LAUDO = true
+      const res = await fetch((grupo4x && INDICE_PAGINACAO_REAL_LAUDO) ? '/api/gerar-laudo-pdf-indice-real' : '/api/gerar-laudo-pdf', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ nomeArquivo, htmlSemFotos })

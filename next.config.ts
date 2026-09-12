@@ -22,6 +22,7 @@ const nextConfig: NextConfig = {
   outputFileTracingIncludes: {
     '/api/gerar-laudo-pdf/**': ['./node_modules/@sparticuz/chromium/bin/**'],
     '/api/gerar-plano-manutencao-pdf/**': ['./node_modules/@sparticuz/chromium/bin/**'],
+    '/api/gerar-laudo-pdf-indice-real/**': ['./node_modules/@sparticuz/chromium/bin/**'],
   },
   // Aumentar limite de body para route handlers (foto base64 pode ser grande)
   api: {
