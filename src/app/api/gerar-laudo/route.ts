@@ -1655,7 +1655,7 @@ export async function POST(request: NextRequest) {
 
     // ── §3.3 Grade de campos — seção 1.1 ─────────────────────────────────────
     const S11 = `
-<div class="titulo">1.1 – Características e Localização ${tipoServico==='43'?'do Imóvel':'da Edificação'}</div>
+<div class="titulo">1.1.- Características e Localização ${tipoServico==='43'?'do Imóvel':'da Edificação'}</div>
 <div class="bloco">
   <div class="bloco-header">Características da Edificação</div>
 
@@ -2409,7 +2409,7 @@ ${S5}
 </ul>
 
 <div class="titulo">7.- Encerramento.</div>
-<p><b>7.1. Anexos:</b></p>
+<p><b>7.1.- Anexos:</b></p>
 <ul>
   <li>Anexo 1 – Relação de documentos solicitados e analisados;</li>
   <li>Anexo 2 – Resultado da Vistoria;</li>
