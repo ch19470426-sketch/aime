@@ -222,19 +222,17 @@ export default function PlanoManutencaoInner() {
         throw new Error(`Falha ao gerar o PDF (${res.status}). ${detalhe}`)
       }
       // Diagnóstico temporário do teste do índice com paginação real —
-      // remover quando confirmado funcionando. Baixa um .txt separado (mais
-      // fácil de copiar o conteúdo completo do que um alerta na tela).
+      // remover quando confirmado funcionando. Um alerta por página, para
+      // não depender de download (que conflitou com o download do PDF).
       if (INDICE_PAGINACAO_REAL) {
         const corrigido = res.headers.get('X-Indice-Corrigido')
         const diag = res.headers.get('X-Indice-Diagnostico')
-        const textoDiag = 'Corrigido: ' + corrigido + '\n\n' + (diag ? decodeURIComponent(diag) : '(sem diagnóstico)')
-        const blobDiag = new Blob([textoDiag], { type: 'text/plain' })
-        const urlDiag = URL.createObjectURL(blobDiag)
-        const aDiag = document.createElement('a')
-        aDiag.href = urlDiag
-        aDiag.download = 'diagnostico-indice.txt'
-        aDiag.click()
-        URL.revokeObjectURL(urlDiag)
+        const textoCompleto = 'Corrigido: ' + corrigido + '\n\n' + (diag ? decodeURIComponent(diag) : '(sem diagnóstico)')
+        const blocos = textoCompleto.split('\n\n[pág')
+        alert('RESUMO:\n\n' + blocos[0])
+        for (let i = 1; i < blocos.length; i++) {
+          alert('[pág' + blocos[i])
+        }
       }
       const blob = await res.blob()
       const url = URL.createObjectURL(blob)
