@@ -2169,7 +2169,7 @@ export async function POST(request: NextRequest) {
       {n:'2.3.-', pg:'6', t:'Critérios e Metodologia da Inspeção',                          nivel:2},
       {n:'3.', pg:'7',    t:'Resultado da Vistoria Técnica e Classificação da Edificação',  nivel:1},
       {n:'3.1.-', pg:'7', t:'Descrição da Vistoria Técnica',                                nivel:2},
-      {n:'3.2.-', pg:'8', t:'Resultado da Vistoria',                                        nivel:2},
+      {n:'3.2.-', pg:'8', t:'Resultado da Vistoria Realizada',                               nivel:2},
       {n:'3.3.-', pg:'9', t:'Resultado da Classificação da Edificação',                     nivel:2},
       {n:'4.', pg:'10',    t:'Relação de Não Conformidades e Soluções',                      nivel:1},
       {n:'4.1.-', pg:'10', t:'Relação de Não Conformidades e Soluções por Sistema',          nivel:2},
@@ -2377,7 +2377,7 @@ ${S13}
   </div>
 </div>
 
-<div class="titulo">3.2.- Resultado da Vistoria.</div>
+<div class="titulo">3.2.- Resultado da Vistoria Realizada.</div>
 <p>O resultado da vistoria, com imagens dos formulários de coleta de dados, é apresentado no Anexo 2 deste documento.</p>
 
 <div class="titulo">3.3.- Resultado da Classificação da Edificação.</div>
