@@ -237,26 +237,16 @@ function HomologarProdutoInner() {
         return `src="PLACEHOLDER_FOTO_${fotoIdx++}"`
       })
 
-      // INDICE_PAGINACAO_REAL_LAUDO: teste do índice com número de página
-      // real, só para laudos (grupo4x) — mesma técnica já validada e em uso
-      // no plano de manutenção. Para reverter, basta trocar para false.
+      // INDICE_PAGINACAO_REAL_LAUDO: índice com número de página real,
+      // confirmado funcionando em 12/09/2026 (inclusive itens Anexo N, que
+      // exigiram ajuste extra por serem citados antes do cabeçalho real).
+      // Para reverter, basta trocar para false.
       const INDICE_PAGINACAO_REAL_LAUDO = true
       const res = await fetch((grupo4x && INDICE_PAGINACAO_REAL_LAUDO) ? '/api/gerar-laudo-pdf-indice-real' : '/api/gerar-laudo-pdf', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ nomeArquivo, htmlSemFotos })
       })
-      // Diagnóstico temporário — remover quando confirmado funcionando
-      if (grupo4x && INDICE_PAGINACAO_REAL_LAUDO && res.ok) {
-        const corrigido = res.headers.get('X-Indice-Corrigido')
-        const diag = res.headers.get('X-Indice-Diagnostico')
-        const textoCompleto = 'Corrigido: ' + corrigido + '\n\n' + (diag ? decodeURIComponent(diag) : '(sem diagnóstico)')
-        const blocos = textoCompleto.split('\n\n[pág')
-        alert('RESUMO:\n\n' + blocos[0])
-        for (let i = 1; i < blocos.length; i++) {
-          alert('[pág' + blocos[i])
-        }
-      }
       if (!res.ok) {
         let detalhe = ''
         let diag = ''

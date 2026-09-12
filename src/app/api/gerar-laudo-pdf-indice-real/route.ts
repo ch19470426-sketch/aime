@@ -182,8 +182,7 @@ export async function POST(request: NextRequest) {
         const paginas = await extrairTextoPorPagina(new Uint8Array(pdfPass1))
         const pagsReais = descobrirPaginasReais(paginas, itens)
         const naoEncontrados = itens.filter(it => !pagsReais[it.numero]).map(it => it.numero)
-        const amostraPaginas = paginas.slice(0, 10).map((p, i) => `[pág${i+1}]: ${p.slice(0, 400)}`).join('\n\n')
-        diagnostico = `total_paginas=${paginas.length}\nencontrados=${JSON.stringify(pagsReais)}\nnao_encontrados=${JSON.stringify(naoEncontrados)}\n\n${amostraPaginas}`
+        diagnostico = `total_paginas=${paginas.length}; nao_encontrados=${JSON.stringify(naoEncontrados)}`
         // Só prossegue se TODAS as seções foram localizadas — parcial seria
         // pior (mistura inconsistente) do que manter só o estimado.
         if (naoEncontrados.length === 0) {
