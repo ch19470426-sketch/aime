@@ -78,13 +78,23 @@ function descobrirPaginasReais(paginas: string[], itens: ItemIndice[]): Record<s
     const numEscapado = numero.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
     const tituloEscapado = titulo.slice(0, 15).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
     const re = new RegExp(numEscapado + '\\s*[-–]?\\s*' + tituloEscapado, 'i')
+    // Itens "Anexo N" costumam ser citados antes, numa lista dentro da seção
+    // 7.1 (ex: "Anexo 2 – Resultado da Vistoria;"), e só têm seu título real
+    // (a seção em si) bem mais adiante — usar a ÚLTIMA ocorrência evita
+    // pegar essa citação em vez do cabeçalho de verdade. Para as demais
+    // seções numeradas (1., 2.1.-, etc.) a primeira ocorrência já é a certa.
+    const usarUltimaOcorrencia = /^anexo\s/i.test(numero)
+    let paginaEncontrada: number | null = null
     for (let i = primeiraPaginaDeConteudo; i < paginas.length; i++) {
       if (re.test(paginas[i])) {
-        // Deslocamento -1 confirmado com dados reais no plano de manutenção
-        // — o rodapé do documento numera a partir da 2ª página do array.
-        pagsReais[numero] = String(i)
-        break
+        paginaEncontrada = i
+        if (!usarUltimaOcorrencia) break
       }
+    }
+    if (paginaEncontrada !== null) {
+      // Deslocamento -1 confirmado com dados reais no plano de manutenção
+      // — o rodapé do documento numera a partir da 2ª página do array.
+      pagsReais[numero] = String(paginaEncontrada)
     }
   }
   return pagsReais
