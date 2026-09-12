@@ -85,11 +85,11 @@ const INDICE_NUMEROS = INDICE_ITENS.map(it => it.n)
 
 function descobrirPaginasReais(paginas: string[]): Record<string, string> {
   const pagsReais: Record<string, string> = {}
-  // A própria página do índice lista todos os números das seções (ex: "1.
-  // Considerações Preliminares 3") — buscando desde a página 1, a primeira
-  // ocorrência encontrada era sempre essa listagem do índice, não a seção de
-  // verdade. Pula a primeira página (onde fica o índice) antes de buscar.
-  const primeiraPaginaDeConteudo = 1
+  // Página 1 (índice 0 do array) = capa. Página 2 (índice 1) = o ÍNDICE em
+  // si, que lista TODOS os números de seção (ex: "1. Considerações
+  // Preliminares 3") — buscando a partir dali, a primeira ocorrência batia
+  // sempre nessa listagem, não na seção de verdade. Pula as duas.
+  const primeiraPaginaDeConteudo = 2
   for (const { n: numero, t: titulo } of INDICE_ITENS) {
     const numEscapado = numero.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
     // Escapa o início do título e usa só as primeiras ~15 letras — específico
@@ -99,7 +99,11 @@ function descobrirPaginasReais(paginas: string[]): Record<string, string> {
     const re = new RegExp(numEscapado + '\\s*[-–]?\\s*' + tituloEscapado, 'i')
     for (let i = primeiraPaginaDeConteudo; i < paginas.length; i++) {
       if (re.test(paginas[i])) {
-        pagsReais[numero] = String(i + 1)
+        // O rodapé do documento numera com deslocamento -1 em relação à
+        // posição no array (confirmado com dados reais: array[2] tem rodapé
+        // "Pág. 2" e contém a seção 1; array[3] tem rodapé "Pág. 3" e contém
+        // a seção 3). Usar "i" (não "i+1") bate com o que o rodapé mostra.
+        pagsReais[numero] = String(i)
         break
       }
     }
