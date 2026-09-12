@@ -166,11 +166,14 @@ export async function POST(request: NextRequest) {
 
     let pdfFinal = pdfPass1
     let indiceCorrigido = false
+    let diagnostico = ''
     try {
       if (itens.length > 0) {
         const paginas = await extrairTextoPorPagina(new Uint8Array(pdfPass1))
         const pagsReais = descobrirPaginasReais(paginas, itens)
         const naoEncontrados = itens.filter(it => !pagsReais[it.numero]).map(it => it.numero)
+        const amostraPaginas = paginas.slice(0, 10).map((p, i) => `[pág${i+1}]: ${p.slice(0, 400)}`).join('\n\n')
+        diagnostico = `total_paginas=${paginas.length}\nencontrados=${JSON.stringify(pagsReais)}\nnao_encontrados=${JSON.stringify(naoEncontrados)}\n\n${amostraPaginas}`
         // Só prossegue se TODAS as seções foram localizadas — parcial seria
         // pior (mistura inconsistente) do que manter só o estimado.
         if (naoEncontrados.length === 0) {
@@ -202,6 +205,7 @@ export async function POST(request: NextRequest) {
         'Content-Disposition': `attachment; filename="${nomeArquivo.replace(/\.html$/i, '.pdf')}"`,
         'Content-Length': String(pdfFinal.length),
         'X-Indice-Corrigido': String(indiceCorrigido),
+        'X-Indice-Diagnostico': encodeURIComponent(diagnostico),
       },
     })
   } catch (err: any) {

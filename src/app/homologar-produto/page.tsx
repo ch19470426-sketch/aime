@@ -246,6 +246,17 @@ function HomologarProdutoInner() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ nomeArquivo, htmlSemFotos })
       })
+      // Diagnóstico temporário — remover quando confirmado funcionando
+      if (grupo4x && INDICE_PAGINACAO_REAL_LAUDO && res.ok) {
+        const corrigido = res.headers.get('X-Indice-Corrigido')
+        const diag = res.headers.get('X-Indice-Diagnostico')
+        const textoCompleto = 'Corrigido: ' + corrigido + '\n\n' + (diag ? decodeURIComponent(diag) : '(sem diagnóstico)')
+        const blocos = textoCompleto.split('\n\n[pág')
+        alert('RESUMO:\n\n' + blocos[0])
+        for (let i = 1; i < blocos.length; i++) {
+          alert('[pág' + blocos[i])
+        }
+      }
       if (!res.ok) {
         let detalhe = ''
         let diag = ''
