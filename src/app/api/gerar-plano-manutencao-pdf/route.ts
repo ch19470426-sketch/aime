@@ -28,7 +28,7 @@
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
-export const maxDuration = 120
+export const maxDuration = 300  // margem para documentos maiores (duas passagens) — ver comentario equivalente em gerar-laudo-pdf-indice-real
 
 import { NextRequest, NextResponse } from 'next/server'
 

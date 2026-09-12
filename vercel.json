@@ -10,7 +10,11 @@
     },
     "src/app/api/gerar-laudo-pdf-indice-real/route.ts": {
       "memory": 3009,
-      "maxDuration": 120
+      "maxDuration": 300
+    },
+    "src/app/api/gerar-plano-manutencao-pdf/route.ts": {
+      "memory": 3009,
+      "maxDuration": 300
     }
   }
 }

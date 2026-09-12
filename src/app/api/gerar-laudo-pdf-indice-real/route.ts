@@ -28,7 +28,13 @@
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
-export const maxDuration = 120
+// 300s (5min), acima dos 120s da rota original de passagem unica — laudos
+// grandes (ate ~200 fotos) processados em DUAS passagens (renderiza duas
+// vezes) precisam de mais margem. O botao na tela continua mostrando "ate 2
+// min" para o usuario (mensagem separada, nao ligada a este valor) — a
+// maioria dos laudos deve terminar bem dentro disso; este e so o teto de
+// seguranca para os casos maiores.
+export const maxDuration = 300
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
