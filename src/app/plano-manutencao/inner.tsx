@@ -210,6 +210,10 @@ export default function PlanoManutencaoInner() {
       // número fixo estimado). Teste em 11/09/2026 — para reverter ao
       // comportamento anterior (número estimado, uma passagem só), basta
       // trocar para false — nenhuma outra mudança é necessária.
+      // INDICE_PAGINACAO_REAL: índice com número de página real (não mais
+      // estimado), confirmado funcionando em 12/09/2026 com dados reais.
+      // Para reverter ao comportamento estimado, se algum dia necessário,
+      // basta trocar para false — nenhuma outra mudança é necessária.
       const INDICE_PAGINACAO_REAL = true
       const res = await fetch(INDICE_PAGINACAO_REAL ? '/api/gerar-plano-manutencao-pdf' : '/api/gerar-laudo-pdf', {
         method: 'POST',
@@ -220,19 +224,6 @@ export default function PlanoManutencaoInner() {
         let detalhe = ''
         try { detalhe = (await res.json())?.erro ?? '' } catch {}
         throw new Error(`Falha ao gerar o PDF (${res.status}). ${detalhe}`)
-      }
-      // Diagnóstico temporário do teste do índice com paginação real —
-      // remover quando confirmado funcionando. Um alerta por página, para
-      // não depender de download (que conflitou com o download do PDF).
-      if (INDICE_PAGINACAO_REAL) {
-        const corrigido = res.headers.get('X-Indice-Corrigido')
-        const diag = res.headers.get('X-Indice-Diagnostico')
-        const textoCompleto = 'Corrigido: ' + corrigido + '\n\n' + (diag ? decodeURIComponent(diag) : '(sem diagnóstico)')
-        const blocos = textoCompleto.split('\n\n[pág')
-        alert('RESUMO:\n\n' + blocos[0])
-        for (let i = 1; i < blocos.length; i++) {
-          alert('[pág' + blocos[i])
-        }
       }
       const blob = await res.blob()
       const url = URL.createObjectURL(blob)
