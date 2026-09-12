@@ -157,8 +157,8 @@ export async function POST(request: NextRequest) {
       const paginas = await extrairTextoPorPagina(new Uint8Array(pdfPass1))
       const pagsReais = descobrirPaginasReais(paginas)
       const naoEncontrados = INDICE_NUMEROS.filter(n => !pagsReais[n])
-      const amostraPaginas = paginas.slice(0, 4).map((p, i) => `[pág${i+1}]: ${p.slice(0, 200)}`).join(' || ')
-      diagnostico = `total_paginas=${paginas.length}; encontrados=${JSON.stringify(pagsReais)}; nao_encontrados=${JSON.stringify(naoEncontrados)}; AMOSTRA: ${amostraPaginas}`
+      const amostraPaginas = paginas.map((p, i) => `[pág${i+1}]: ${p.slice(0, 500)}`).join('\n\n')
+      diagnostico = `total_paginas=${paginas.length}\nencontrados=${JSON.stringify(pagsReais)}\nnao_encontrados=${JSON.stringify(naoEncontrados)}\n\n${amostraPaginas}`
       // Só prossegue para a 2ª passagem se TODAS as seções foram localizadas
       // — parcial poderia deixar o índice pior (mistura de números reais e
       // estimados de forma inconsistente) do que ficar só com o estimado.

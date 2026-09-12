@@ -210,7 +210,7 @@ export default function PlanoManutencaoInner() {
       // número fixo estimado). Teste em 11/09/2026 — para reverter ao
       // comportamento anterior (número estimado, uma passagem só), basta
       // trocar para false — nenhuma outra mudança é necessária.
-      const INDICE_PAGINACAO_REAL = false
+      const INDICE_PAGINACAO_REAL = true
       const res = await fetch(INDICE_PAGINACAO_REAL ? '/api/gerar-plano-manutencao-pdf' : '/api/gerar-laudo-pdf', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -222,11 +222,19 @@ export default function PlanoManutencaoInner() {
         throw new Error(`Falha ao gerar o PDF (${res.status}). ${detalhe}`)
       }
       // Diagnóstico temporário do teste do índice com paginação real —
-      // remover quando confirmado funcionando.
+      // remover quando confirmado funcionando. Baixa um .txt separado (mais
+      // fácil de copiar o conteúdo completo do que um alerta na tela).
       if (INDICE_PAGINACAO_REAL) {
         const corrigido = res.headers.get('X-Indice-Corrigido')
         const diag = res.headers.get('X-Indice-Diagnostico')
-        alert('DIAGNÓSTICO ÍNDICE:\n\nCorrigido: ' + corrigido + '\n\n' + (diag ? decodeURIComponent(diag) : '(sem diagnóstico)'))
+        const textoDiag = 'Corrigido: ' + corrigido + '\n\n' + (diag ? decodeURIComponent(diag) : '(sem diagnóstico)')
+        const blobDiag = new Blob([textoDiag], { type: 'text/plain' })
+        const urlDiag = URL.createObjectURL(blobDiag)
+        const aDiag = document.createElement('a')
+        aDiag.href = urlDiag
+        aDiag.download = 'diagnostico-indice.txt'
+        aDiag.click()
+        URL.revokeObjectURL(urlDiag)
       }
       const blob = await res.blob()
       const url = URL.createObjectURL(blob)
