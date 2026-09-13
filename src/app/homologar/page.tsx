@@ -103,6 +103,19 @@ const GR_NR_REVERSO: Record<number, Record<string, string>> = {
 }
 
 const PCT_FALLBACK = { Gravidade: 40, Urgência: 30, Abrangência: 20, Exposição: 10 }
+// Converte data no formato brasileiro (DD/MM/AAAA) para ISO (AAAA-MM-DD),
+// exigido pelo Postgres. Sem essa conversão, datas com dia > 12 causavam erro
+// "date/time field value out of range" ao salvar (Postgres rejeitava por
+// interpretar como mês/dia americano); com dia <= 12, o pior — salvava
+// SILENCIOSAMENTE com dia e mês trocados, sem erro nenhum.
+function paraISO(data: string): string {
+  if (!data) return data
+  const m = data.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/)
+  if (!m) return data // já está em outro formato (ex: ISO) — mantém como está
+  const [, dia, mes, ano] = m
+  return `${ano}-${mes.padStart(2,'0')}-${dia.padStart(2,'0')}`
+}
+
 function calcularGR(gra: number, urg: number, abr: number, exp: number, pct: Record<string,number> = PCT_FALLBACK): number {
   const pG = (pct.Gravidade ?? 40) / 100, pU = (pct['Urgência'] ?? 30) / 100
   const pA = (pct['Abrangência'] ?? pct['Probabilidade'] ?? 20) / 100, pE = (pct['Exposição'] ?? pct['Exposição risco'] ?? 10) / 100
@@ -587,8 +600,8 @@ function Tela40Inner() {
           cnpjoucpf: form.cnpjoucpf,
           tipo_servico: form.tipoServico,
           numero_foto: form.fotoNr,
-          data_vistoria: form.dataVistoria,
-          data_homologacao: new Date().toLocaleDateString('pt-BR'),
+          data_vistoria: paraISO(form.dataVistoria),
+          data_homologacao: new Date().toISOString().slice(0, 10),
           tipo_ativo: form.tipoAtivo,
           tag_ativo_nr_serie: form.tagNrSerie,
           sistema_vistoria: sistema,
