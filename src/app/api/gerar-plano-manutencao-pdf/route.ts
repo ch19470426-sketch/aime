@@ -103,7 +103,11 @@ function descobrirPaginasReais(paginas: string[]): Record<string, string> {
         // posição no array (confirmado com dados reais: array[2] tem rodapé
         // "Pág. 2" e contém a seção 1; array[3] tem rodapé "Pág. 3" e contém
         // a seção 3). Usar "i" (não "i+1") bate com o que o rodapé mostra.
-        pagsReais[numero] = String(i)
+        // +1: contador do rodape agora inclui a capa como pagina 1 (antes
+        // comecava no indice) — ajustado em conjunto com counter-reset em
+        // gerar-plano-manutencao/route.ts, para o indice continuar batendo
+        // com o rodape.
+        pagsReais[numero] = String(i + 1)
         break
       }
     }

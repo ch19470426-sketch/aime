@@ -100,7 +100,10 @@ function descobrirPaginasReais(paginas: string[], itens: ItemIndice[]): Record<s
     if (paginaEncontrada !== null) {
       // Deslocamento -1 confirmado com dados reais no plano de manutenção
       // — o rodapé do documento numera a partir da 2ª página do array.
-      pagsReais[numero] = String(paginaEncontrada)
+      // +1: contador do rodape agora inclui a capa como pagina 1 (antes
+      // comecava no indice) — ajustado em conjunto com counter-reset em
+      // gerar-laudo/route.ts, para o indice continuar batendo com o rodape.
+      pagsReais[numero] = String(paginaEncontrada + 1)
     }
   }
   return pagsReais
