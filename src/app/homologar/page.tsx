@@ -587,7 +587,7 @@ function Tela40Inner() {
     // sem essa checagem, clicar em "Regerar NC/CP" e em seguida em Salvar
     // (botoes diferentes) antes da IA retornar podia gravar dados antigos.
     if (gerandoIA) {
-      alert('Aguarde a IA terminar de gerar a Não Conformidade e a Causa Provável antes de salvar.')
+      setFeedbackIA('⚠️ Aguarde a IA terminar de gerar a NC e a CP antes de salvar.')
       return
     }
     setSalvando(true)

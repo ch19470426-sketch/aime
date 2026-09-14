@@ -328,7 +328,7 @@ function Tela31Inner() {
     // NC/CP — sem essa checagem, clicar em Salvar antes da IA retornar podia
     // gravar a vistoria com NC/CP vazios ou incompletos, silenciosamente.
     if (resultado === 'Não conforme' && /^(⏳|📵|🔄)/.test(feedbackIA)) {
-      alert('Aguarde a IA terminar de gerar a Não Conformidade e a Causa Provável antes de salvar.')
+      setFeedbackIA('⚠️ Aguarde a IA terminar de gerar a NC e a CP antes de salvar.')
       return
     }
     if (!fotoBase64) { alert('Adicione a foto antes de salvar.'); return }
