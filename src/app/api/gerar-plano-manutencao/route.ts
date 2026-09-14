@@ -210,7 +210,7 @@ export async function POST(request: NextRequest) {
 @page :first {
   /* Margem dobrada (8mm -> 16mm) para caber borda branca (8mm) + faixa azul (8mm) */
   margin: 16mm 20mm 16mm 25mm;
-  counter-reset: page 1;
+  counter-reset: page 0;
   @top-left-corner  { content: ''; background: linear-gradient(to bottom, #fff 0mm, #fff 8mm, #1E3A8A 8mm, #1E3A8A 16mm); }
   @top-left         { content: ''; background: linear-gradient(to bottom, #fff 0mm, #fff 8mm, #1E3A8A 8mm, #1E3A8A 16mm); }
   @top-center       { content: ''; background: linear-gradient(to bottom, #fff 0mm, #fff 8mm, #1E3A8A 8mm, #1E3A8A 16mm); }

@@ -208,7 +208,7 @@ tr:nth-child(even) td { background: #f7f9ff; }
 /* @page :first removido — capa agora usa a MESMA margem do resto do documento
    (25/20/20/25mm), sem tentar full-bleed. As faixas azuis ficam dentro da área
    útil normal (165mm de largura), não tocando as bordas físicas do papel. */
-.pg-capa { page-break-after: always; counter-reset: page 1; }
+.pg-capa { page-break-after: always; counter-reset: page 0; }
 .capa-barra { background: #1E3A8A; height: 8mm; width: 100%; margin-bottom: 0; }
 .capa-logo  { text-align: center; padding: 20mm 0 10mm; }
 .capa-logo img { max-height: 30mm; }
@@ -1398,7 +1398,7 @@ export async function POST(request: NextRequest) {
 @page :first {
   /* Margem dobrada (8mm -> 16mm) para caber borda branca (8mm) + faixa azul (8mm) */
   margin: 16mm 20mm 16mm 25mm;
-  counter-reset: page 1;
+  counter-reset: page 0;
   @top-left-corner  { content: ''; background: linear-gradient(to bottom, #fff 0mm, #fff 8mm, #1E3A8A 8mm, #1E3A8A 16mm); }
   @top-left         { content: ''; background: linear-gradient(to bottom, #fff 0mm, #fff 8mm, #1E3A8A 8mm, #1E3A8A 16mm); }
   @top-center       { content: ''; background: linear-gradient(to bottom, #fff 0mm, #fff 8mm, #1E3A8A 8mm, #1E3A8A 16mm); }
@@ -1424,7 +1424,7 @@ export async function POST(request: NextRequest) {
       const tituloCapaNR = TITULO_DOC[tipoServico] ?? 'Laudo Técnico'
 
       const CAPA_HTML_NR = `
-<div class="pg-capa" style="page-break-after:always;counter-reset:page 1;position:relative;height:265mm;font-family:Arial,sans-serif">
+<div class="pg-capa" style="page-break-after:always;counter-reset:page 0;position:relative;height:265mm;font-family:Arial,sans-serif">
   ${capaLogoTagNR ? `<div style="position:absolute;top:16mm;left:0;right:0;text-align:center">${capaLogoTagNR}</div>` : ''}
   <div style="position:absolute;top:124mm;left:0;right:0;text-align:center">
     <div style="font-size:8pt;color:#6B7280;letter-spacing:3px;text-transform:uppercase;margin-bottom:8pt">LAUDO TÉCNICO</div>
@@ -2225,7 +2225,7 @@ export async function POST(request: NextRequest) {
   /* Margem dobrada (8mm -> 16mm) para caber borda branca (8mm) + faixa azul (8mm) */
   margin: 16mm 20mm 16mm 25mm;
   /* Reseta a numeração — a capa não conta, índice começa como página 1 */
-  counter-reset: page 1;
+  counter-reset: page 0;
   @top-left-corner  { content: ''; background: linear-gradient(to bottom, #fff 0mm, #fff 8mm, #1E3A8A 8mm, #1E3A8A 16mm); }
   @top-left         { content: ''; background: linear-gradient(to bottom, #fff 0mm, #fff 8mm, #1E3A8A 8mm, #1E3A8A 16mm); }
   @top-center       { content: ''; background: linear-gradient(to bottom, #fff 0mm, #fff 8mm, #1E3A8A 8mm, #1E3A8A 16mm); }
@@ -2250,7 +2250,7 @@ const capaLogoTag = logoB64
   : (cabInspetor ? `<div style="font-family:Arial,sans-serif;font-size:18pt;font-weight:900;color:#1E3A8A;line-height:1.3">${xe(cabInspetor)}</div>` : '')
 
 const CAPA_HTML = `
-<div class="pg-capa" style="page-break-after:always;counter-reset:page 1;position:relative;height:265mm;font-family:Arial,sans-serif">
+<div class="pg-capa" style="page-break-after:always;counter-reset:page 0;position:relative;height:265mm;font-family:Arial,sans-serif">
   ${capaLogoTag ? `<div style="position:absolute;top:16mm;left:0;right:0;text-align:center">${capaLogoTag}</div>` : ''}
   <div style="position:absolute;top:124mm;left:0;right:0;text-align:center">
     <div style="font-size:8pt;color:#6B7280;letter-spacing:3px;text-transform:uppercase;margin-bottom:8pt">LAUDO TÉCNICO</div>
