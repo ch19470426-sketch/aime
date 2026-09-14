@@ -157,7 +157,7 @@ function PropostaInner() {
 
   // Campos da proposta
   const [valor,  setValor]  = useState('')
-  const [prazo,  setPrazo]  = useState('15')
+  const [prazo,  setPrazo]  = useState('5')
 
   // Conteúdo HTML da proposta
   const [htmlProposta, setHtmlProposta] = useState('')
