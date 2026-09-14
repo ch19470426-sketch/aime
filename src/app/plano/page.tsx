@@ -138,7 +138,7 @@ function PlanoInner() {
   const isNR12     = tsNum === '37'
   const isNR13     = tsNum === '38'
   const isNR       = isElevador || isNR10 || isNR12 || isNR13
-  const needsTag   = isElevador || isNR12 || isNR13
+  const needsTag   = isElevador || isNR10 || isNR12 || isNR13
 
   const [etapa,      setEtapa]      = useState<'ativo' | 'lista' | 'plano'>('ativo')
   const [showForm,   setShowForm]   = useState(false)
