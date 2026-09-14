@@ -583,6 +583,13 @@ function Tela40Inner() {
 
   async function avancarProximo() {
     if (!form) return
+    // Bloqueia o avanço/salvamento enquanto a IA ainda esta gerando NC/CP —
+    // sem essa checagem, clicar em "Regerar NC/CP" e em seguida em Salvar
+    // (botoes diferentes) antes da IA retornar podia gravar dados antigos.
+    if (gerandoIA) {
+      alert('Aguarde a IA terminar de gerar a Não Conformidade e a Causa Provável antes de salvar.')
+      return
+    }
     setSalvando(true)
     try {
       // Salvar em dados_vistoria — nomes de coluna precisam bater EXATAMENTE
