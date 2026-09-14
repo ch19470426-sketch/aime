@@ -342,7 +342,7 @@ function PlanoInner() {
         body: JSON.stringify({ tipoServico, cpfInspetor, cnpjoucpf, ativos, datas, docs: docs.filter(d => d.doc.trim() !== '') })
       })
       const htmlData = await resHtml.json()
-      if (!htmlData.html) { informa('Erro', 'Não foi possível gerar o plano.'); return }
+      if (!htmlData.html) { informa('Erro', htmlData.erro ? `Não foi possível gerar o plano: ${htmlData.erro}` : 'Não foi possível gerar o plano.'); return }
       const slug = SLUG_TIPO[String(tipoServico)] ?? `tipo_${tipoServico}`
     const nomeArq = `${chaveInspetor}_${cnpjoucpf}_${slug}.html`
       const res = await fetch('/api/salvar-vistoria', {
