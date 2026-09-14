@@ -67,6 +67,13 @@ export async function GET(request: NextRequest) {
 
 // ─── POST — incrementa e retorna o número a ser usado ────────────────────────
 // Body: { cpf_inspetor, cnpjoucpf, tipo_servico }
+//
+// Usa a função atômica proximo_numero_foto (PostgreSQL) em vez de ler-depois-
+// escrever separadamente — elimina a janela onde dois salvamentos próximos
+// no tempo (ex: o mesmo inspetor trocando de ativo e salvando rápido em
+// seguida) poderiam calcular o MESMO próximo número e um sobrescrever o
+// arquivo do outro silenciosamente. Adicionado como precaução em 14/09/2026
+// após um caso de item de vistoria que sumiu sem deixar rastro.
 
 export async function POST(request: NextRequest) {
   const body = await request.json()
@@ -79,26 +86,12 @@ export async function POST(request: NextRequest) {
     )
   }
 
-  // Lê o valor atual (pode não existir ainda)
-  const { data: atual } = await supabase
-    .from('foto_contador')
-    .select('ultimo_nr,updated_at')
-    .eq('cpf_inspetor', cpf_inspetor)
-    .eq('cnpjoucpf',    cnpjoucpf)
-    .eq('tipo_servico', tipo_servico)
-    .single()
-
-  const reiniciar = deveReiniciar(atual?.updated_at)
-  const novoNr = reiniciar ? 1 : (atual?.ultimo_nr ?? 0) + 1
-
-  // Upsert: cria se não existir, atualiza se já existir. updated_at sempre
-  // avança para agora, marcando esta como a atividade mais recente.
-  const { error } = await supabase
-    .from('foto_contador')
-    .upsert(
-      { cpf_inspetor, cnpjoucpf, tipo_servico, ultimo_nr: novoNr, updated_at: new Date().toISOString() },
-      { onConflict: 'cpf_inspetor,cnpjoucpf,tipo_servico' }
-    )
+  const { data: novoNr, error } = await supabase.rpc('proximo_numero_foto', {
+    p_cpf_inspetor: cpf_inspetor,
+    p_cnpjoucpf: cnpjoucpf,
+    p_tipo_servico: tipo_servico,
+    p_limite_dias: LIMITE_DIAS_REINICIO,
+  })
 
   if (error) {
     return NextResponse.json({ erro: error.message }, { status: 500 })
@@ -107,6 +100,5 @@ export async function POST(request: NextRequest) {
   return NextResponse.json({
     nr:        novoNr,
     formatado: String(novoNr).padStart(3, '0'),
-    reiniciado: reiniciar,
   })
 }
