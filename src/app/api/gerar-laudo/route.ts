@@ -348,8 +348,12 @@ const DOCS_NR_MAP: Record<string,string[]> = {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { cpfInspetor, chaveInspetor, cnpjoucpf, tipoServico,
+    const { cpfInspetor, chaveInspetor, cnpjoucpf: cnpjoucpfBruto, tipoServico,
             estab: estabRaw, inspetor, ncs, nomeArquivo, complemento, semCapa } = body
+    // Limpa formatacao antes de usar em qualquer consulta — mesmo problema
+    // corrigido em gerar-plano/route.ts (comparacao exata falhava
+    // silenciosamente se o valor chegasse formatado)
+    const cnpjoucpf = String(cnpjoucpfBruto ?? '').replace(/\D/g, '')
     let estab = estabRaw
 
     if (!cpfInspetor || !tipoServico || !nomeArquivo)

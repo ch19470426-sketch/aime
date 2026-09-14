@@ -97,7 +97,11 @@ const MESES = ['janeiro','fevereiro','março','abril','maio','junho','julho','ag
 
 export async function POST(request: NextRequest) {
   try {
-    const { cpfInspetor, chaveInspetor, cnpjoucpf, tipoServico, nomeArquivo, ncs, pagsReais } = await request.json()
+    const { cpfInspetor, chaveInspetor, cnpjoucpf: cnpjoucpfBruto, tipoServico, nomeArquivo, ncs, pagsReais } = await request.json()
+    // Limpa formatacao antes de usar em qualquer consulta — mesmo problema
+    // corrigido em gerar-plano/route.ts (comparacao exata falhava
+    // silenciosamente se o valor chegasse formatado)
+    const cnpjoucpf = String(cnpjoucpfBruto ?? '').replace(/\D/g, '')
     if (!cpfInspetor || !tipoServico || !nomeArquivo)
       return NextResponse.json({ erro: 'Parâmetros obrigatórios ausentes.' }, { status: 400 })
 

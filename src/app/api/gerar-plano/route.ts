@@ -465,7 +465,13 @@ function gerarScriptDatas(_n: number): string {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { tipoServico, tipoVistoria, cpfInspetor, cnpjoucpf, ativos, datas, docs } = body
+    const { tipoServico, tipoVistoria, cpfInspetor, cnpjoucpf: cnpjoucpfBruto, ativos, datas, docs } = body
+    // Limpa formatacao (pontos/traco/barra) antes de usar em qualquer
+    // consulta — a tela envia o valor cru do parametro de URL, sem garantia
+    // de que esteja limpo, e o banco guarda so digitos. Sem essa limpeza,
+    // um CNPJ formatado causava "Estabelecimento nao encontrado" mesmo
+    // quando o registro existia (comparacao exata falhava silenciosamente).
+    const cnpjoucpf = String(cnpjoucpfBruto ?? '').replace(/\D/g, '')
     const datasAtiv = (datas ?? []) as {ini: string; fim: string}[]
     const docsLista = (docs ?? []) as {doc: string; sit: string; res: string}[]
 
