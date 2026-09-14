@@ -229,26 +229,30 @@ function LaudoComplemento() {
           return
         }
         // Buscar dados de ativos_a_vistoriar (responsável, tipo, características)
-        // Buscar dados de ativos_a_vistoriar (responsável, tipo, características)
         const cnpjLimpo = cnpjoucpf.replace(/\D/g, "")
-        // Tentar com cnpj, fallback sem cnpj
-        let resA = await fetch(`${SUPA_URL}/rest/v1/ativos_a_vistoriar?cpf_inspetor=eq.${cpfInspetor}&cnpjoucpf=eq.${cnpjLimpo}&select=*&limit=1`, {
-          headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` }
-        })
-        let dadosA = await resA.json()
-        // Fallback: buscar qualquer ativo do inspetor se não encontrou pelo cnpj
-        if (!Array.isArray(dadosA) || dadosA.length === 0) {
-          resA = await fetch(`${SUPA_URL}/rest/v1/ativos_a_vistoriar?cpf_inspetor=eq.${cpfInspetor}&select=*&limit=1`, {
-            headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` }
-          })
-          dadosA = await resA.json()
-        }
         // Lista de ativos do servico atual — mesmo filtro usado no item 1.1
         const tsLongo: Record<string,string> = {
           '31':'31 Autovistoria','32':'32 Vistoria inspeção','33':'33 Vistoria imóvel novo','34':'34 Vistoria fachada',
           '35':'35 Vistoria elevador','36':'36 Vistoria nr-10','37':'37 Vistoria nr-12','38':'38 Vistoria nr-13',
         }
         const tsV = tsLongo[cfg.tipoVistoria] ?? ''
+        // Busca as características do ativo já filtrando pelo tipo de serviço
+        // atual — sem esse filtro, um estabelecimento com ativos cadastrados
+        // para mais de um tipo de vistoria (ex: elevador E NR-10) podia trazer
+        // as características erradas (do outro tipo) para o cabeçalho do laudo.
+        let resA = await fetch(`${SUPA_URL}/rest/v1/ativos_a_vistoriar?cpf_inspetor=eq.${cpfInspetor}&cnpjoucpf=eq.${cnpjLimpo}&tipo_servico=eq.${encodeURIComponent(tsV)}&select=*&limit=1`, {
+          headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` }
+        })
+        let dadosA = await resA.json()
+        // Fallback: buscar sem filtro de tipo_servico só se não achou nada
+        // com o filtro completo (mantém alguma chance de preencher os dados,
+        // mas só como último recurso)
+        if (!Array.isArray(dadosA) || dadosA.length === 0) {
+          resA = await fetch(`${SUPA_URL}/rest/v1/ativos_a_vistoriar?cpf_inspetor=eq.${cpfInspetor}&cnpjoucpf=eq.${cnpjLimpo}&select=*&limit=1`, {
+            headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` }
+          })
+          dadosA = await resA.json()
+        }
         try {
           const resL = await fetch(
             `${SUPA_URL}/rest/v1/ativos_a_vistoriar?cpf_inspetor=eq.${cpfInspetor}&cnpjoucpf=eq.${cnpjLimpo}&tipo_servico=eq.${encodeURIComponent(tsV)}&select=*`,
