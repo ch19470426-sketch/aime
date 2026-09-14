@@ -324,6 +324,13 @@ function Tela31Inner() {
 
   async function salvarDados() {
     blurAll()
+    // Bloqueia o salvamento enquanto a IA ainda esta gerando a descricao de
+    // NC/CP — sem essa checagem, clicar em Salvar antes da IA retornar podia
+    // gravar a vistoria com NC/CP vazios ou incompletos, silenciosamente.
+    if (resultado === 'Não conforme' && /^(⏳|📵|🔄)/.test(feedbackIA)) {
+      alert('Aguarde a IA terminar de gerar a Não Conformidade e a Causa Provável antes de salvar.')
+      return
+    }
     if (!fotoBase64) { alert('Adicione a foto antes de salvar.'); return }
     if (!local) { alert('Informe o Local/Instalação/Setor/Área antes de salvar.'); return }
     if (!resultado) { alert('Selecione o Resultado antes de salvar.'); return }
