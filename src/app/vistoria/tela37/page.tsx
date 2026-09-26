@@ -138,7 +138,6 @@ function Tela31Inner() {
         if (d.descUrgencia)       setDescUrgencia(d.descUrgencia)
         if (d.descProbabilidade)  setDescProbabilidade(d.descProbabilidade)
         if (d.descExposicaoRisco) setDescExposicaoRisco(d.descExposicaoRisco)
-        if (d.fotoBase64)         setFotoBase64(d.fotoBase64)
         if (d.nc)                 setNc(d.nc)
         if (d.cp)                 setCp(d.cp)
         setRascunhoRecuperado(true)
@@ -148,13 +147,13 @@ function Tela31Inner() {
   }, [])
 
   useEffect(() => {
-    const temAlgo = tipoAtivo || tagNrSerie || subsistema || anomalia || fotoBase64
+    const temAlgo = tipoAtivo || tagNrSerie || subsistema || anomalia
     try {
       if (temAlgo) {
         localStorage.setItem(draftKey, JSON.stringify({
           tipoAtivo, tagNrSerie, finalidade, sistema, subsistema, anomalia, origem, local,
           complemento, resultado, descGravidade, descUrgencia, descProbabilidade, descExposicaoRisco,
-          fotoBase64, nc, cp,
+          nc, cp,
         }))
       } else {
         localStorage.removeItem(draftKey)
@@ -162,7 +161,7 @@ function Tela31Inner() {
     } catch {}
   }, [tipoAtivo, tagNrSerie, finalidade, sistema, subsistema, anomalia, origem, local,
       complemento, resultado, descGravidade, descUrgencia, descProbabilidade, descExposicaoRisco,
-      fotoBase64, nc, cp, draftKey])
+      nc, cp, draftKey])
 
   // ── Estado ──
   const [feedbackIA,  setFeedbackIA]  = useState('')

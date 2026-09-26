@@ -142,7 +142,6 @@ function Tela31Inner() {
         if (d.descUrgencia)    setDescUrgencia(d.descUrgencia)
         if (d.descAbrangencia) setDescAbrangencia(d.descAbrangencia)
         if (d.descExposicao)   setDescExposicao(d.descExposicao)
-        if (d.fotoBase64)      setFotoBase64(d.fotoBase64)
         if (d.nc)              setNc(d.nc)
         if (d.cp)              setCp(d.cp)
         setRascunhoRecuperado(true)
@@ -152,19 +151,19 @@ function Tela31Inner() {
   }, [])
 
   useEffect(() => {
-    const temAlgo = tipoAtivo || tagNrSerie || subsistema || anomalia || fotoBase64
+    const temAlgo = tipoAtivo || tagNrSerie || subsistema || anomalia
     try {
       if (temAlgo) {
         localStorage.setItem(draftKey, JSON.stringify({
           tipoAtivo, tagNrSerie, finalidade, sistema, subsistema, anomalia, origem, local,
-          complemento, descGravidade, descUrgencia, descAbrangencia, descExposicao, fotoBase64, nc, cp,
+          complemento, descGravidade, descUrgencia, descAbrangencia, descExposicao, nc, cp,
         }))
       } else {
         localStorage.removeItem(draftKey)
       }
     } catch {}
   }, [tipoAtivo, tagNrSerie, finalidade, sistema, subsistema, anomalia, origem, local,
-      complemento, descGravidade, descUrgencia, descAbrangencia, descExposicao, fotoBase64, nc, cp, draftKey])
+      complemento, descGravidade, descUrgencia, descAbrangencia, descExposicao, nc, cp, draftKey])
 
   // ── Estado ──
   const [feedbackIA,  setFeedbackIA]  = useState('')
