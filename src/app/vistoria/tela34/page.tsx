@@ -150,7 +150,7 @@ function Tela31Inner() {
   }, [])
 
   useEffect(() => {
-    const temAlgo = tipoAtivo || tagNrSerie || sistema || subsistema || anomalia || fotoBase64
+    const temAlgo = tipoAtivo || tagNrSerie || subsistema || anomalia || fotoBase64
     try {
       if (temAlgo) {
         localStorage.setItem(draftKey, JSON.stringify({
