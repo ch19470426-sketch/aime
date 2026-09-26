@@ -331,6 +331,8 @@ function Tela31Inner() {
       setFeedbackIA('⚠️ Aguarde a IA terminar de gerar a NC e a CP antes de salvar.')
       return
     }
+    if (!tipoAtivo) { alert('Selecione o Tipo de Ativo antes de salvar.'); return }
+    if (!tagNrSerie) { alert('Selecione o TAG / Nº Série antes de salvar.'); return }
     if (!fotoBase64) { alert('Adicione a foto antes de salvar.'); return }
     if (!local) { alert('Informe o Local/Instalação/Setor/Área antes de salvar.'); return }
     if (!resultado) { alert('Selecione o Resultado antes de salvar.'); return }
