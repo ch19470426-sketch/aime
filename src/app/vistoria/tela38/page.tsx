@@ -121,7 +121,7 @@ function Tela31Inner() {
 
   useEffect(() => {
     try {
-      const salvo = sessionStorage.getItem(draftKey)
+      const salvo = localStorage.getItem(draftKey)
       if (salvo) {
         const d = JSON.parse(salvo)
         if (d.tipoAtivo)          setTipoAtivo(d.tipoAtivo)
@@ -151,13 +151,13 @@ function Tela31Inner() {
     const temAlgo = tipoAtivo || tagNrSerie || sistema || subsistema || anomalia || fotoBase64
     try {
       if (temAlgo) {
-        sessionStorage.setItem(draftKey, JSON.stringify({
+        localStorage.setItem(draftKey, JSON.stringify({
           tipoAtivo, tagNrSerie, finalidade, sistema, subsistema, anomalia, origem, local,
           complemento, resultado, descGravidade, descUrgencia, descProbabilidade, descExposicaoRisco,
           fotoBase64, nc, cp,
         }))
       } else {
-        sessionStorage.removeItem(draftKey)
+        localStorage.removeItem(draftKey)
       }
     } catch {}
   }, [tipoAtivo, tagNrSerie, finalidade, sistema, subsistema, anomalia, origem, local,
@@ -301,7 +301,7 @@ function Tela31Inner() {
     const img = new window.Image()
     const url = URL.createObjectURL(file)
     img.onload = () => {
-      const MAX_W = 1024, MAX_H = 768
+      const MAX_W = 900, MAX_H = 675
       let w = img.width, h = img.height
       if (w > MAX_W) { h = Math.round(h * MAX_W / w); w = MAX_W }
       if (h > MAX_H) { w = Math.round(w * MAX_H / h); h = MAX_H }
@@ -309,7 +309,7 @@ function Tela31Inner() {
       canvas.width = w; canvas.height = h
       canvas.getContext('2d')?.drawImage(img, 0, 0, w, h)
       URL.revokeObjectURL(url)
-      const compressed = canvas.toDataURL('image/jpeg', 0.75)
+      const compressed = canvas.toDataURL('image/jpeg', 0.65)
       setFotoBase64(compressed)
       setDataVistoria(new Date().toLocaleDateString('pt-BR'))
       fetch('/api/foto-nr?cpf_inspetor=' + cpfInspetor + '&cnpjoucpf=' + cnpjoucpf + '&tipo_servico=' + tipoServico)
@@ -467,7 +467,7 @@ function Tela31Inner() {
       setTipoAtivo(''); setTagNrSerie(''); setFotoBase64(''); setNc(''); setCp('')
       setDescGravidade(''); setDescUrgencia(''); setDescProbabilidade(''); setDescExposicaoRisco('')
       if (fileInputRef.current) fileInputRef.current.value = ''
-      try { sessionStorage.removeItem(draftKey) } catch {}
+      try { localStorage.removeItem(draftKey) } catch {}
       return
     }
 
@@ -478,7 +478,7 @@ function Tela31Inner() {
     setFotoBase64(''); setNc(''); setCp(''); setFeedbackIA('')
     console.warn('Salvo online ✅')
     if (fileInputRef.current) fileInputRef.current.value = ''
-    try { sessionStorage.removeItem(draftKey) } catch {}
+    try { localStorage.removeItem(draftKey) } catch {}
     setSalvando(false); setSalvoOk(true); setArquivoSalvo(nomeArquivo)
   }
 
