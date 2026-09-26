@@ -398,6 +398,7 @@ function PlanoInner() {
                           <Field label="Data início operação"><input style={S.inputRO} value={a.data_inicio_operacao ? new Date(a.data_inicio_operacao+'T00:00:00').toLocaleDateString('pt-BR') : ''} readOnly /></Field>
                           {isPred && <Field label="Nº pavimentos"><input style={S.inputRO} value={a.numero_pavimentos ?? ''} readOnly /></Field>}
                           {isPred && tsN <= 33 && <Field label="Aptos/Salas"><input style={S.inputRO} value={a.numero_unidades_salas ?? ''} readOnly /></Field>}
+                          {isPred && tsN === 34 && <Field label="Per Fachada"><input style={S.inputRO} value={a.perimetro_fachadas ?? ''} readOnly /></Field>}
                           {isInd && <Field label="Tag/Nº Série"><input style={S.inputRO} value={a.tag_ativo_nr_serie ?? ''} readOnly /></Field>}
                           {isInd && <Field label="Subtipo"><input style={S.inputRO} value={a.subtipo ?? ''} readOnly /></Field>}
                         </div>
@@ -686,6 +687,7 @@ function PlanoInner() {
                         <Field label="Data início operação"><input style={S.inputRO} value={a.data_inicio_operacao ? new Date(a.data_inicio_operacao+'T00:00:00').toLocaleDateString('pt-BR') : ''} readOnly /></Field>
                         {isPred2 && <Field label="Nº pavimentos"><input style={S.inputRO} value={a.numero_pavimentos ?? ''} readOnly /></Field>}
                         {isPred2 && tsN2 <= 33 && <Field label="Aptos/Salas"><input style={S.inputRO} value={a.numero_unidades_salas ?? ''} readOnly /></Field>}
+                        {isPred2 && tsN2 === 34 && <Field label="Per Fachada"><input style={S.inputRO} value={a.perimetro_fachadas ?? ''} readOnly /></Field>}
                         {isInd2 && <Field label="Tag/Nº Série"><input style={S.inputRO} value={a.tag_ativo_nr_serie ?? ''} readOnly /></Field>}
                         {isInd2 && <Field label="Subtipo"><input style={S.inputRO} value={a.subtipo ?? ''} readOnly /></Field>}
                       </div>
