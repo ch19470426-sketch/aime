@@ -140,6 +140,7 @@ function Tela31Inner() {
   // Anomalia/Falha, nao presente na lista, valido so para esta vistoria.
   // Reversao: trocar para false.
   const ANOMALIA_TEXTO_LIVRE = true
+  const [mostrarSugAnomalia, setMostrarSugAnomalia] = useState(false)
   const anomaliasFiltradas   = anomalias
     .filter(a => a.sistema === sistema && a.subsistema === subsistema)
     .flatMap(a => a.anomalias.split(';').map(x => x.trim()).filter(Boolean))
@@ -524,17 +525,39 @@ function Tela31Inner() {
                   </select>
                 </Field>
                 <Field label="Anomalia / Falha">
-                  {/* ANOMALIA_TEXTO_LIVRE: permite digitar um valor novo, valido
-                      so para esta vistoria (nao entra na tabela sistemas_construtivos).
+                  {/* ANOMALIA_TEXTO_LIVRE: mostra os valores tabelados como
+                      sugestao clicavel, mas permite digitar um valor novo,
+                      valido so para esta vistoria (nao entra na tabela
+                      sistemas_construtivos). Combobox proprio, controlado via
+                      React — o <datalist> nativo do navegador se mostrou
+                      pouco confiavel (nao aparecia em alguns testes).
                       Para reverter ao select fechado de sempre, troque para false. */}
                   {ANOMALIA_TEXTO_LIVRE ? (
-                    <>
-                      <input style={S.input} value={anomalia} onChange={e => setAnomalia(e.target.value)}
-                        disabled={!subsistema} list="anomaliaOptions" placeholder="Selecione ou digite..." />
-                      <datalist id="anomaliaOptions">
-                        {anomaliasFiltradas.map(a => <option key={a} value={a} />)}
-                      </datalist>
-                    </>
+                    <div style={{ position: 'relative' }}>
+                      <input style={S.input} value={anomalia}
+                        onChange={e => setAnomalia(e.target.value)}
+                        onFocus={() => setMostrarSugAnomalia(true)}
+                        onBlur={() => setTimeout(() => setMostrarSugAnomalia(false), 150)}
+                        disabled={!subsistema} placeholder="Selecione ou digite..." />
+                      {mostrarSugAnomalia && subsistema && (
+                        <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 20,
+                          background: '#fff', border: '1px solid #c3d4f0', borderRadius: '6px',
+                          maxHeight: '160px', overflowY: 'auto', boxShadow: '0 2px 8px rgba(0,0,0,.12)' }}>
+                          {anomaliasFiltradas
+                            .filter(a => a.toLowerCase().includes(anomalia.toLowerCase()))
+                            .map(a => (
+                              <div key={a}
+                                onMouseDown={() => { setAnomalia(a); setMostrarSugAnomalia(false) }}
+                                style={{ padding: '6px 10px', fontSize: '8pt', cursor: 'pointer', borderBottom: '1px solid #eef2f7' }}>
+                                {a}
+                              </div>
+                            ))}
+                          {anomaliasFiltradas.filter(a => a.toLowerCase().includes(anomalia.toLowerCase())).length === 0 && (
+                            <div style={{ padding: '6px 10px', fontSize: '8pt', color: '#8aa3c4' }}>Nenhum valor tabelado encontrado — o texto digitado será usado.</div>
+                          )}
+                        </div>
+                      )}
+                    </div>
                   ) : (
                     <select style={S.input} value={anomalia} onChange={e => setAnomalia(e.target.value)} disabled={!subsistema}>
                       <option value="">Selecione...</option>
