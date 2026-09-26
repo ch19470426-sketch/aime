@@ -228,6 +228,10 @@ function Tela40Inner() {
 
   // Listas filtradas
   const subsistemasFiltrados = [...new Set(subsistemas.filter(s => s.sistema === sistema).map(s => s.subsistema))]
+  // Teste 15/09/2026 (servicos 31-34): permite digitar valor novo de
+  // Anomalia/Falha, nao presente na lista, valido so para esta vistoria.
+  // Reversao: trocar para false.
+  const ANOMALIA_TEXTO_LIVRE = true
   const anomaliasFiltradas   = anomalias
     .filter(a => a.sistema === sistema && a.subsistema === subsistema)
     .flatMap(a => a.anomalias.split(';').map(x => x.trim()).filter(Boolean))
@@ -839,6 +843,14 @@ function Tela40Inner() {
                   // um <select> não consegue exibir um valor que não está na lista de
                   // opções. Mostra como texto fixo enquanto Conforme estiver marcado.
                   <input style={S.input} value={anomalia} readOnly />
+                ) : ANOMALIA_TEXTO_LIVRE && !isNR ? (
+                  <>
+                    <input style={S.input} value={anomalia} onChange={e => setAnomalia(e.target.value)}
+                      disabled={!subsistema} list="anomaliaOptions" placeholder="Selecione ou digite..." />
+                    <datalist id="anomaliaOptions">
+                      {anomaliasFiltradas.map(a => <option key={a} value={a} />)}
+                    </datalist>
+                  </>
                 ) : (
                   <select style={S.input} value={anomalia} onChange={e => setAnomalia(e.target.value)} disabled={!subsistema}>
                     <option value="">Selecione...</option>

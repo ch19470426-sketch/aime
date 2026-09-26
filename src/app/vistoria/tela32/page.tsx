@@ -138,6 +138,10 @@ function Tela31Inner() {
 
   // Listas filtradas
   const subsistemasFiltrados = [...new Set(subsistemas.filter(s => s.sistema === sistema).map(s => s.subsistema))]
+  // Teste 15/09/2026 (servicos 31-34): permite digitar valor novo de
+  // Anomalia/Falha, nao presente na lista, valido so para esta vistoria.
+  // Reversao: trocar para false.
+  const ANOMALIA_TEXTO_LIVRE = true
   const anomaliasFiltradas   = anomalias
     .filter(a => a.sistema === sistema && a.subsistema === subsistema)
     .flatMap(a => a.anomalias.split(';').map(x => x.trim()).filter(Boolean))
@@ -536,10 +540,23 @@ function Tela31Inner() {
                   </select>
                 </Field>
                 <Field label="Anomalia / Falha">
-                  <select style={S.input} value={anomalia} onChange={e => setAnomalia(e.target.value)} disabled={!subsistema}>
-                    <option value="">Selecione...</option>
-                    {anomaliasFiltradas.map(a => <option key={a} value={a}>{a}</option>)}
-                  </select>
+                  {/* ANOMALIA_TEXTO_LIVRE: permite digitar um valor novo, valido
+                      so para esta vistoria (nao entra na tabela sistemas_construtivos).
+                      Para reverter ao select fechado de sempre, troque para false. */}
+                  {ANOMALIA_TEXTO_LIVRE ? (
+                    <>
+                      <input style={S.input} value={anomalia} onChange={e => setAnomalia(e.target.value)}
+                        disabled={!subsistema} list="anomaliaOptions" placeholder="Selecione ou digite..." />
+                      <datalist id="anomaliaOptions">
+                        {anomaliasFiltradas.map(a => <option key={a} value={a} />)}
+                      </datalist>
+                    </>
+                  ) : (
+                    <select style={S.input} value={anomalia} onChange={e => setAnomalia(e.target.value)} disabled={!subsistema}>
+                      <option value="">Selecione...</option>
+                      {anomaliasFiltradas.map(a => <option key={a} value={a}>{a}</option>)}
+                    </select>
+                  )}
                 </Field>
               </div>
               <div style={{ ...S.row, ...S.c3 }}>
