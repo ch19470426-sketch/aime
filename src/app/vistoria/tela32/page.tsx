@@ -488,6 +488,7 @@ function Tela31Inner() {
       setDataVistoria(''); setErroValidacao('')
       if (fileInputRef.current) fileInputRef.current.value = ''
       try { localStorage.removeItem(draftKey) } catch {}
+    setRascunhoRecuperado(false)
       return
     }
 
@@ -499,6 +500,7 @@ function Tela31Inner() {
     console.warn('Salvo online ✅')
     if (fileInputRef.current) fileInputRef.current.value = ''
     try { localStorage.removeItem(draftKey) } catch {}
+    setRascunhoRecuperado(false)
     setSalvando(false); setSalvoOk(true); setArquivoSalvo(nomeArquivo)
   }
 
