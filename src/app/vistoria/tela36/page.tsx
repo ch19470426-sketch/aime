@@ -113,6 +113,57 @@ function Tela31Inner() {
   const [nc,             setNc]              = useState('')
   const [cp,             setCp]              = useState('')
 
+  // ── Rascunho automático (proteção contra recarregamento inesperado da
+  // página — ex: navegador/tablet descartando a aba durante a captura de
+  // foto por limitação de memória, perdendo tudo que foi digitado) ──
+  const draftKey = `aime_rascunho_${chaveInspetor}_${cnpjoucpf}_${tipoServico}`
+  const [rascunhoRecuperado, setRascunhoRecuperado] = useState(false)
+
+  useEffect(() => {
+    try {
+      const salvo = sessionStorage.getItem(draftKey)
+      if (salvo) {
+        const d = JSON.parse(salvo)
+        if (d.tipoAtivo)          setTipoAtivo(d.tipoAtivo)
+        if (d.tagNrSerie)         setTagNrSerie(d.tagNrSerie)
+        if (d.finalidade)         setFinalidade(d.finalidade)
+        if (d.sistema)            setSistema(d.sistema)
+        if (d.subsistema)         setSubsistema(d.subsistema)
+        if (d.anomalia)           setAnomalia(d.anomalia)
+        if (d.origem)             setOrigem(d.origem)
+        if (d.local)              setLocal(d.local)
+        if (d.complemento)        setComplemento(d.complemento)
+        if (d.resultado)          setResultado(d.resultado)
+        if (d.descGravidade)      setDescGravidade(d.descGravidade)
+        if (d.descUrgencia)       setDescUrgencia(d.descUrgencia)
+        if (d.descProbabilidade)  setDescProbabilidade(d.descProbabilidade)
+        if (d.descExposicaoRisco) setDescExposicaoRisco(d.descExposicaoRisco)
+        if (d.fotoBase64)         setFotoBase64(d.fotoBase64)
+        if (d.nc)                 setNc(d.nc)
+        if (d.cp)                 setCp(d.cp)
+        setRascunhoRecuperado(true)
+      }
+    } catch {}
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  useEffect(() => {
+    const temAlgo = tipoAtivo || tagNrSerie || sistema || subsistema || anomalia || fotoBase64
+    try {
+      if (temAlgo) {
+        sessionStorage.setItem(draftKey, JSON.stringify({
+          tipoAtivo, tagNrSerie, finalidade, sistema, subsistema, anomalia, origem, local,
+          complemento, resultado, descGravidade, descUrgencia, descProbabilidade, descExposicaoRisco,
+          fotoBase64, nc, cp,
+        }))
+      } else {
+        sessionStorage.removeItem(draftKey)
+      }
+    } catch {}
+  }, [tipoAtivo, tagNrSerie, finalidade, sistema, subsistema, anomalia, origem, local,
+      complemento, resultado, descGravidade, descUrgencia, descProbabilidade, descExposicaoRisco,
+      fotoBase64, nc, cp, draftKey])
+
   // ── Estado ──
   const [feedbackIA,  setFeedbackIA]  = useState('')
   const [erroSave,    setErroSave]    = useState('')
@@ -416,6 +467,7 @@ function Tela31Inner() {
       setTipoAtivo(''); setTagNrSerie(''); setFotoBase64(''); setNc(''); setCp('')
       setDescGravidade(''); setDescUrgencia(''); setDescProbabilidade(''); setDescExposicaoRisco('')
       if (fileInputRef.current) fileInputRef.current.value = ''
+      try { sessionStorage.removeItem(draftKey) } catch {}
       return
     }
 
@@ -426,6 +478,7 @@ function Tela31Inner() {
     setFotoBase64(''); setNc(''); setCp(''); setFeedbackIA('')
     console.warn('Salvo online ✅')
     if (fileInputRef.current) fileInputRef.current.value = ''
+    try { sessionStorage.removeItem(draftKey) } catch {}
     setSalvando(false); setSalvoOk(true); setArquivoSalvo(nomeArquivo)
   }
 
@@ -468,6 +521,13 @@ function Tela31Inner() {
         <CabecalhoHTML tipoServico={tipoServico} />
         <div style={S.divider} />
         <div style={S.formBody}>
+
+          {rascunhoRecuperado && (
+            <div style={{ background: '#FFF7ED', border: '1px solid #FED7AA', borderRadius: '6px',
+              padding: '8px 12px', fontSize: '8pt', color: '#92400E', textAlign: 'center' }}>
+              ⚠️ Dados de um preenchimento anterior (interrompido) foram recuperados automaticamente. Revise antes de salvar.
+            </div>
+          )}
 
           {/* IDENTIFICAÇÃO */}
           <div style={S.block}>
