@@ -451,10 +451,23 @@ function Tela40Inner() {
     setPlanoTipoServico(tipoPlano)
 
     try {
-      const tipoServicoAtivos = TIPO_VISTORIA[tipoPlano] ?? ''
-      const ativosRes = await query('ativos_a_vistoriar',
-        `cpf_inspetor=eq.${cpfInspetor}&cnpjoucpf=eq.${cnpjoucpf}&tipo_servico=eq.${encodeURIComponent(tipoServicoAtivos)}&select=*`)
-      setPlanoAtivos(Array.isArray(ativosRes) ? ativosRes : [])
+      // Busca ativos para TODOS os tipos de serviço presentes na lista
+      // carregada, não só o do primeiro item — a homologação (código 40,
+      // genérico) pode trazer tipos diferentes juntos (ex: 32 do civil
+      // misturado com 36 do NR-10, ambos pendentes para o mesmo CNPJ).
+      // Validar tudo contra o tipo do primeiro item fazia itens de outro
+      // tipo nunca baterem, disparando "ativo não vistoriado" por engano.
+      // Consultas separadas por tipo (mais simples e seguro do que montar
+      // um filtro "in" com valores que têm espaço/acento).
+      const tiposPresentes = [...new Set(listaFormularios.map(f => f.tipoServico))]
+      const resultados = await Promise.all(tiposPresentes.map(async ts => {
+        const tipoServicoAtivos = TIPO_VISTORIA[String(Number(ts) - 10)] ?? ''
+        if (!tipoServicoAtivos) return []
+        const r = await query('ativos_a_vistoriar',
+          `cpf_inspetor=eq.${cpfInspetor}&cnpjoucpf=eq.${cnpjoucpf}&tipo_servico=eq.${encodeURIComponent(tipoServicoAtivos)}&select=*`)
+        return Array.isArray(r) ? r : []
+      }))
+      setPlanoAtivos(resultados.flat())
     } catch {
       setPlanoAtivos([])
     }
@@ -496,9 +509,13 @@ function Tela40Inner() {
     }
     // Só validar ativos se formulários têm dados completos (tipoAtivo preenchido)
     const temDadosCompletos = formularios.some(f => f.tipoAtivo)
-    const faltando = temDadosCompletos ? planoAtivos.filter(a =>
-      !formularios.some(f => f.tipoAtivo === a.tipo_ativo && f.tagNrSerie === a.tag_ativo_nr_serie)
-    ) : []
+    const faltando = temDadosCompletos ? planoAtivos.filter(a => {
+      // Mapeia o tipo_servico do ativo (ex: "32 Vistoria inspeção") de volta
+      // para o codigo numerico da vistoria (ex: "32"), para bater certo com
+      // formulario.tipoServico mesmo com varios tipos misturados na lista.
+      const tsAtivo = String(a.tipo_servico ?? '').match(/^\d+/)?.[0] ?? ''
+      return !formularios.some(f => f.tipoServico === tsAtivo && f.tipoAtivo === a.tipo_ativo && f.tagNrSerie === a.tag_ativo_nr_serie)
+    }) : []
     if (faltando.length > 0) {
       const nomes = faltando.map(a => `${a.tipo_ativo} (${a.tag_ativo_nr_serie})`).join(', ')
       informa('Vistoria incompleta',
