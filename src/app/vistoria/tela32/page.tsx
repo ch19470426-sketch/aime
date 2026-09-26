@@ -448,6 +448,7 @@ function Tela31Inner() {
     setDescGravidade(''); setDescUrgencia(''); setDescAbrangencia(''); setDescExposicao('')
     setFotoBase64(''); setNc(''); setCp(''); setFeedbackIA('')
     console.warn('Salvo online ✅')
+    if (fileInputRef.current) fileInputRef.current.value = ''
     setSalvando(false); setSalvoOk(true); setArquivoSalvo(nomeArquivo)
   }
 
