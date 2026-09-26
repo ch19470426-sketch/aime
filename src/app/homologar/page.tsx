@@ -1,6 +1,7 @@
 "use client"
 export const dynamic = 'force-dynamic'
 import React, { Suspense, useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { useSearchParams } from 'next/navigation'
 import Image from 'next/image'
 import Banner from '@/components/Banner'
@@ -233,6 +234,8 @@ function Tela40Inner() {
   // Reversao: trocar para false.
   const ANOMALIA_TEXTO_LIVRE = true
   const [mostrarSugAnomalia, setMostrarSugAnomalia] = useState(false)
+  const anomaliaInputRef = useRef<HTMLInputElement>(null)
+  const [posSugAnomalia, setPosSugAnomalia] = useState({ top: 0, left: 0, width: 0 })
   const anomaliasFiltradas   = anomalias
     .filter(a => a.sistema === sistema && a.subsistema === subsistema)
     .flatMap(a => a.anomalias.split(';').map(x => x.trim()).filter(Boolean))
@@ -846,13 +849,17 @@ function Tela40Inner() {
                   <input style={S.input} value={anomalia} readOnly />
                 ) : ANOMALIA_TEXTO_LIVRE && !isNR ? (
                   <div style={{ position: 'relative' }}>
-                    <input style={S.input} value={anomalia}
+                    <input ref={anomaliaInputRef} style={S.input} value={anomalia}
                       onChange={e => setAnomalia(e.target.value)}
-                      onFocus={() => setMostrarSugAnomalia(true)}
+                      onFocus={() => {
+                        const r = anomaliaInputRef.current?.getBoundingClientRect()
+                        if (r) setPosSugAnomalia({ top: r.bottom + window.scrollY, left: r.left + window.scrollX, width: r.width })
+                        setMostrarSugAnomalia(true)
+                      }}
                       onBlur={() => setTimeout(() => setMostrarSugAnomalia(false), 150)}
                       disabled={!subsistema} placeholder="Selecione ou digite..." />
-                    {mostrarSugAnomalia && subsistema && (
-                      <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 20,
+                    {mostrarSugAnomalia && subsistema && typeof document !== 'undefined' && createPortal(
+                      <div style={{ position: 'absolute', top: posSugAnomalia.top, left: posSugAnomalia.left, width: posSugAnomalia.width, zIndex: 9999,
                         background: '#fff', border: '1px solid #c3d4f0', borderRadius: '6px',
                         maxHeight: '160px', overflowY: 'auto', boxShadow: '0 2px 8px rgba(0,0,0,.12)' }}>
                         {anomaliasFiltradas
@@ -867,7 +874,8 @@ function Tela40Inner() {
                         {anomaliasFiltradas.filter(a => a.toLowerCase().includes(anomalia.toLowerCase())).length === 0 && (
                           <div style={{ padding: '6px 10px', fontSize: '8pt', color: '#8aa3c4' }}>Nenhum valor tabelado encontrado — o texto digitado será usado.</div>
                         )}
-                      </div>
+                      </div>,
+                      document.body
                     )}
                   </div>
                 ) : (
