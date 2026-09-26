@@ -349,6 +349,8 @@ function Tela31Inner() {
       setFeedbackIA('⚠️ Aguarde a IA terminar de gerar a NC e a CP antes de salvar.')
       return
     }
+    if (!tipoAtivo) { alert('Selecione o Tipo de Ativo antes de salvar.'); return }
+    if (!tagNrSerie) { alert('Selecione o TAG / Nº Série antes de salvar.'); return }
     if (!fotoBase64) { alert('Adicione a foto antes de salvar.'); return }
     setSalvando(true); setErroSave('')
 
@@ -678,6 +680,8 @@ function Tela31Inner() {
                   style={S.photoBtn}
                   onClick={() => {
                     const faltando = []
+                    if (!tipoAtivo) faltando.push('Tipo de Ativo')
+                    if (!tagNrSerie) faltando.push('TAG / Nº Série')
                     if (!sistema) faltando.push('Sistema')
                     if (!subsistema) faltando.push('Subsistema')
                     if (!anomalia) faltando.push('Anomalia')
@@ -698,6 +702,8 @@ function Tela31Inner() {
               </div>
               <div style={S.photoArea} onClick={() => {
                 const faltando = []
+                if (!tipoAtivo) faltando.push('Tipo de Ativo')
+                if (!tagNrSerie) faltando.push('TAG / Nº Série')
                 if (!sistema) faltando.push('Sistema')
                 if (!subsistema) faltando.push('Subsistema')
                 if (!anomalia) faltando.push('Anomalia')
