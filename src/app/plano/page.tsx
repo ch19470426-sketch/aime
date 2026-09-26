@@ -740,7 +740,14 @@ function PlanoInner() {
                   </div>
                   <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '8pt', marginBottom: '10px' }}>
                     <thead>
-                      {Number(tsNum) <= 34 ? (
+                      {Number(tsNum) === 34 ? (
+                        <tr style={{ background: '#1E3A8A', color: '#fff' }}>
+                          <th style={{ padding: '7px 8px', textAlign: 'left' }}>Tipo de ativo</th>
+                           <th style={{ padding: '7px 8px', textAlign: 'left' }}>Data Habite-se</th>
+                          <th style={{ padding: '7px 8px', textAlign: 'left' }}>Nº pavimentos</th>
+                          <th style={{ padding: '7px 8px', textAlign: 'left' }}>Per Fachada</th>
+                        </tr>
+                      ) : Number(tsNum) <= 33 ? (
                         <tr style={{ background: '#1E3A8A', color: '#fff' }}>
                           <th style={{ padding: '7px 8px', textAlign: 'left' }}>Tipo de ativo</th>
                            <th style={{ padding: '7px 8px', textAlign: 'left' }}>Data Habite-se</th>
@@ -757,7 +764,14 @@ function PlanoInner() {
                       )}
                     </thead>
                     <tbody>
-                      {ativos.map((a, i) => Number(tsNum) <= 34 ? (
+                      {ativos.map((a, i) => Number(tsNum) === 34 ? (
+                        <tr key={i} style={{ background: i%2===0?'#f8fafc':'#fff', borderBottom: '1px solid #e2e8f0' }}>
+                          <td style={{ padding: '7px 8px' }}>{a.tipo_ativo}</td>
+                          <td style={{ padding: '7px 8px' }}>{a.data_inicio_operacao ? new Date(a.data_inicio_operacao+'T00:00:00').toLocaleDateString('pt-BR') : ''}</td>
+                          <td style={{ padding: '7px 8px' }}>{a.numero_pavimentos}</td>
+                          <td style={{ padding: '7px 8px' }}>{a.perimetro_fachadas}</td>
+                        </tr>
+                      ) : Number(tsNum) <= 33 ? (
                         <tr key={i} style={{ background: i%2===0?'#f8fafc':'#fff', borderBottom: '1px solid #e2e8f0' }}>
                           <td style={{ padding: '7px 8px' }}>{a.tipo_ativo}</td>
                           <td style={{ padding: '7px 8px' }}>{a.data_inicio_operacao ? new Date(a.data_inicio_operacao+'T00:00:00').toLocaleDateString('pt-BR') : ''}</td>

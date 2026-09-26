@@ -538,6 +538,15 @@ export async function POST(request: NextRequest) {
     const fmtDt  = (d: string) => { const p=d?.split('-'); return p?.length===3?p[2]+'/'+p[1]+'/'+p[0]:d??'' }
 
     const linhasAtivos = ativosCompletos.map((a, i) => {
+      if (isPred && tsN === 24) return [
+        '<tr>',
+        '<td style="' + stTd + '">' + (i+1) + '</td>',
+        '<td style="' + stTd + '">' + (a.tipo_ativo ?? '') + '</td>',
+        '<td style="' + stTdC + '">' + fmtDt(a.data_inicio_operacao ?? '') + '</td>',
+        '<td style="' + stTdC + '">' + (a.numero_pavimentos ?? '') + '</td>',
+        '<td style="' + stTdC + '">' + (a.perimetro_fachadas ?? '') + '</td>',
+        '</tr>'
+      ].join('')
       if (isPred) return [
         '<tr>',
         '<td style="' + stTd + '">' + (i+1) + '</td>',
@@ -679,8 +688,9 @@ export async function POST(request: NextRequest) {
     const thStyle = 'padding:3px 6px;font-size:10pt;text-align:left;background:#1E3A8A;color:#fff'
     const thN = 'padding:3px 6px;font-size:10pt;text-align:center;background:#1E3A8A;color:#fff;width:24px'
     const thPred = '<thead><tr><th style="'+thN+'">#</th><th style="'+thStyle+'">Tipo de ativo</th><th style="'+thStyle+'">Data Habite-se</th><th style="'+thStyle+'">Nº pavimentos</th><th style="'+thStyle+'">Aptos/Salas</th></tr></thead>'
+    const thPredFachada = '<thead><tr><th style="'+thN+'">#</th><th style="'+thStyle+'">Tipo de ativo</th><th style="'+thStyle+'">Data Habite-se</th><th style="'+thStyle+'">Nº pavimentos</th><th style="'+thStyle+'">Per Fachada</th></tr></thead>'
     const thInd  = '<thead><tr><th style="'+thN+'">#</th><th style="'+thStyle+'">Tipo de ativo</th><th style="'+thStyle+'">Tag/Nº Série</th><th style="'+thStyle+'">Dt. início operação</th><th style="'+thStyle+'">Subtipo</th></tr></thead>'
-    partes.push('<table id="tbAtiv" style="width:100%;border-collapse:collapse;margin-bottom:6pt">' + (isPred ? thPred : thInd))
+    partes.push('<table id="tbAtiv" style="width:100%;border-collapse:collapse;margin-bottom:6pt">' + (tsN === 24 ? thPredFachada : isPred ? thPred : thInd))
     partes.push('<tbody>' + linhasAtivos + '</tbody></table>')
     partes.push('<h2 style="font-size:10pt;font-weight:bold">1.2.- Agenda de Trabalho — ' + plano.parceiro + '</h2>')
     partes.push('<table style="width:640px"><thead><tr><th style="width:370px;font-size:10pt">Atividades</th><th style="width:135px;text-align:center;font-size:10pt">Dt. Início</th><th style="width:135px;text-align:center;font-size:10pt">Dt. Fim</th></tr></thead>')
