@@ -393,7 +393,7 @@ function PlanoInner() {
                       const isInd  = tsN >= 35 && tsN <= 38
                       return (
                       <div key={i} style={{ borderBottom: '1px solid #e2e8f0', padding: '5px 0' }}>
-                        <div style={{ ...S.row, ...(isPred ? (tsN <= 33 ? S.c4 : S.c3) : S.c4) }}>
+                        <div style={{ ...S.row, ...S.c4 }}>
                           <Field label="Tipo de ativo"><input style={S.inputRO} value={a.tipo_ativo ?? ''} readOnly /></Field>
                           <Field label="Data início operação"><input style={S.inputRO} value={a.data_inicio_operacao ? new Date(a.data_inicio_operacao+'T00:00:00').toLocaleDateString('pt-BR') : ''} readOnly /></Field>
                           {isPred && <Field label="Nº pavimentos"><input style={S.inputRO} value={a.numero_pavimentos ?? ''} readOnly /></Field>}
@@ -682,7 +682,7 @@ function PlanoInner() {
                     const isInd2  = tsN2 >= 35 && tsN2 <= 38
                     return (
                     <div key={i} style={{ borderBottom: '1px solid #e2e8f0', padding: '6px 0' }}>
-                      <div style={{ ...S.row, ...(isPred2 ? (tsN2 <= 33 ? S.c4 : S.c3) : S.c4) }}>
+                      <div style={{ ...S.row, ...S.c4 }}>
                         <Field label="Tipo de ativo"><input style={S.inputRO} value={a.tipo_ativo ?? ''} readOnly /></Field>
                         <Field label="Data início operação"><input style={S.inputRO} value={a.data_inicio_operacao ? new Date(a.data_inicio_operacao+'T00:00:00').toLocaleDateString('pt-BR') : ''} readOnly /></Field>
                         {isPred2 && <Field label="Nº pavimentos"><input style={S.inputRO} value={a.numero_pavimentos ?? ''} readOnly /></Field>}
