@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { exigirGestor } from '@/lib/autorizacao'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -13,6 +14,9 @@ export async function GET(request: NextRequest) {
   const cpf = new URL(request.url).searchParams.get('cpf')
   if (!cpf) return NextResponse.json({ erro: 'CPF obrigatório' }, { status: 400 })
   try {
+    const acesso = await exigirGestor(request)
+    if (acesso.ok === false) return acesso.resposta
+
     const { data, error } = await supabase
       .from('contratos_inspetor')
       .select('*')

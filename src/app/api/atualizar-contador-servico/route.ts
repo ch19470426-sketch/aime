@@ -7,6 +7,7 @@ export const runtime = 'nodejs'
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { exigirProprio } from '@/lib/autorizacao'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -17,6 +18,9 @@ export async function POST(request: NextRequest) {
   try {
     const { cpfInspetor } = await request.json()
     if (!cpfInspetor) return NextResponse.json({ erro: 'cpfInspetor é obrigatório' }, { status: 400 })
+
+    const acesso = await exigirProprio(request, cpfInspetor)
+    if (acesso.ok === false) return acesso.resposta
 
     // 1. Ler e incrementar qtd_servicos_exec do inspetor
     const { data: insp, error: errInsp } = await supabase

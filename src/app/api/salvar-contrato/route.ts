@@ -6,6 +6,7 @@ export const runtime = 'nodejs'
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { exigirGestor } from '@/lib/autorizacao'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -14,6 +15,9 @@ const supabase = createClient(
 
 export async function POST(request: NextRequest) {
   try {
+    const acesso = await exigirGestor(request)
+    if (acesso.ok === false) return acesso.resposta
+
     const body = await request.json()
     const {
       cpf_inspetor, tipo_assinatura, data_inicio_contrato,

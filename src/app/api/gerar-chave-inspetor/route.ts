@@ -4,16 +4,19 @@ export const runtime = 'nodejs'
 // src/app/api/gerar-chave-inspetor/route.ts
 // AIMÊ — Gera a próxima chave sequencial de inspetor (ex: INS-001, INS-002...)
 
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { exigirSessao } from '@/lib/autorizacao'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
 
-export async function POST() {
+export async function POST(request: NextRequest) {
   try {
+    const acesso = await exigirSessao(request)
+    if (acesso.ok === false) return acesso.resposta
     const { data, error } = await supabase
       .from('inspetor')
       .select('chave_inspetor')

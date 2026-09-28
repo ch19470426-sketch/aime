@@ -1,5 +1,6 @@
 import type { Metadata } from "next"
 import "./globals.css"
+import AuthFetch from "@/components/AuthFetch"
 
 export const metadata: Metadata = {
   title: "AIMÊ",
@@ -57,6 +58,7 @@ export default function RootLayout({
         `}} />
       </head>
       <body className="min-h-full flex flex-col" style={{ fontFamily: "Arial, Helvetica, sans-serif" }}>
+        <AuthFetch />
         {children}
       </body>
     </html>

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { bloqueioMigracaoParaCortesia } from '@/lib/regrasPlano'
+import { exigirGestor } from '@/lib/autorizacao'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -17,6 +18,9 @@ const PLANO_CR: Record<string,number> = {
 
 export async function POST(request: NextRequest) {
   try {
+    const acesso = await exigirGestor(request)
+    if (acesso.ok === false) return acesso.resposta
+
     const { cpf, tipo } = await request.json()
     if (!cpf || !tipo) return NextResponse.json({ erro: 'Parâmetros obrigatórios ausentes.' }, { status: 400 })
 

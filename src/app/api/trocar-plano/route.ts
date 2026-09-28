@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { cobrancaAtiva } from '@/lib/creditos'
+import { exigirProprio } from '@/lib/autorizacao'
 import { bloqueioMigracaoParaCortesia } from '@/lib/regrasPlano'
 
 export const dynamic = 'force-dynamic'
@@ -19,6 +20,8 @@ const PLANO_CR: Record<string,number> = {
 export async function POST(request: NextRequest) {
   try {
     const { cpf, planoDesejado } = await request.json()
+    const acesso = await exigirProprio(request, cpf)
+    if (acesso.ok === false) return acesso.resposta
     if (!cpf || !planoDesejado) return NextResponse.json({ erro: 'Parâmetros obrigatórios ausentes.' }, { status: 400 })
 
     const qde = PLANO_CR[planoDesejado]

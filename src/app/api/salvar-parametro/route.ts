@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { exigirGestor } from '@/lib/autorizacao'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -11,6 +12,8 @@ const supabase = createClient(
 
 export async function POST(request: NextRequest) {
   try {
+    const acesso = await exigirGestor(request)
+    if (acesso.ok === false) return acesso.resposta
     const { tipo_servico, tipo_parametro, valores, modoEdicao } = await request.json()
 
     if (!tipo_servico || !valores?.length) {

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { exigirGestor } from '@/lib/autorizacao'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -11,6 +12,9 @@ const supabase = createClient(
 
 export async function POST(request: NextRequest) {
   try {
+    const acesso = await exigirGestor(request)
+    if (acesso.ok === false) return acesso.resposta
+
     const { cpf, qde } = await request.json()
     if (!cpf || !qde || qde % 600 !== 0) {
       return NextResponse.json({ erro: 'Quantidade deve ser múltiplo de 600.' }, { status: 400 })
