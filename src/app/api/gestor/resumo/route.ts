@@ -137,16 +137,16 @@ export async function GET(request: NextRequest) {
     }
 
     // ---------- Indicador: tempo medio (dias) do contrato ATUAL ate a 1a vistoria ----------
-    // So conta quando a 1a vistoria aconteceu DEPOIS do inicio do contrato atual
-    // (diferenca negativa nao faz sentido para esta metrica, e pode acontecer
-    // quando o inspetor trocou de plano depois de ja ter vistoriado).
+    // Nao exclui diferenca negativa (vistoria feita antes do inicio do
+    // contrato atual, comum quando o inspetor trocou de plano depois de ja
+    // ter vistoriado em testes) — entra na media do jeito que e, para sempre
+    // haver um valor no card, em vez de "—" quando ninguem se encaixar.
     const diferencasDias: number[] = []
     const diferencasDiasDesde: number[] = []
     for (const [cpf, contratoAtual] of contratoAtualPorCpf) {
       const primeira = primeiraVistoriaPorCpf.get(cpf)
       if (!primeira) continue
       const dias = (new Date(primeira).getTime() - new Date(contratoAtual.data_inicio_contrato).getTime()) / 86400000
-      if (dias < 0) continue
       diferencasDias.push(dias)
       if (desde && contratoAtual.data_inicio_contrato >= desde) diferencasDiasDesde.push(dias)
     }

@@ -715,7 +715,7 @@ export default function GestorPage() {
                 </div>
 
                 <div style={S.secaoTitulo}>Acompanhamento de uso</div>
-                <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(180px, 1fr))', gap:'12px', marginBottom:'24px' }}>
+                <div style={{ display:'flex', flexWrap:'nowrap', gap:'10px', marginBottom:'24px', overflowX:'auto', paddingBottom:'4px' }}>
                   {[
                     {
                       label: 'Inspetores cadastrados', cor:'#1E3A8A', icon:'👤',
@@ -748,14 +748,15 @@ export default function GestorPage() {
                       valor: resumo.creditos.disponiveis, desde: null,
                     },
                   ].map(({ label, valor, desde, cor, icon }) => (
-                    <div key={label} style={{ backgroundColor:'white', borderRadius:'10px', padding:'16px',
-                      border:`2px solid ${cor}20`, boxShadow:'0 1px 4px rgba(0,0,0,0.06)' }}>
-                      <div style={{ fontSize:'20px', marginBottom:'6px' }}>{icon}</div>
-                      <div style={{ fontSize:'22px', fontWeight:900, color: cor }}>
+                    <div key={label} style={{ backgroundColor:'white', borderRadius:'10px', padding:'14px 12px',
+                      border:`2px solid ${cor}20`, boxShadow:'0 1px 4px rgba(0,0,0,0.06)',
+                      flex:'1 1 140px', minWidth:'140px' }}>
+                      <div style={{ fontSize:'18px', marginBottom:'6px' }}>{icon}</div>
+                      <div style={{ fontSize:'19px', fontWeight:900, color: cor }}>
                         {typeof valor === 'number' ? valor.toLocaleString('pt-BR') : valor}
                       </div>
                       {dataReferencia && desde !== null && (
-                        <div style={{ fontSize:'12px', fontWeight:700, color: cor, opacity:0.7 }}>
+                        <div style={{ fontSize:'11px', fontWeight:700, color: cor, opacity:0.7 }}>
                           ({typeof desde === 'number' ? desde.toLocaleString('pt-BR') : desde} desde a data)
                         </div>
                       )}
