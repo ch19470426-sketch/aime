@@ -198,10 +198,29 @@ function Tela31Inner() {
     if (typeof window === 'undefined') return
 
     async function query(table: string, params: string) {
-      const res = await fetch(`${SUPA_URL}/rest/v1/${table}?${params}`, {
+      const res = await fetchTimeout(`${SUPA_URL}/rest/v1/${table}?${params}`, {
         headers: { 'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}` }
-      })
+      }, 6000)
       return res.json()
+    }
+
+    // Busca com cache-reserva: tenta sempre os dados ATUAIS primeiro (limite de
+    // 6s, para não travar em sinal fraco); só usa o que estava guardado no
+    // aparelho se a busca de agora falhar de verdade (sem internet). Sempre que
+    // a busca funciona, atualiza o que fica guardado. Sem isto, uma vez que o
+    // aparelho guardava a lista pela primeira vez, uma edição feita depois em
+    // Gestor/Parâmetros ou em Sistemas nunca aparecia nas telas de vistoria
+    // desse aparelho — reportado por Celso em 28/09/2026.
+    async function comCache(chave: string, table: string, params: string) {
+      const chaveCompleta = `aime_${chave}_${tipoServico}`
+      try {
+        const dados = await query(table, params)
+        if (Array.isArray(dados)) { try { localStorage.setItem(chaveCompleta, JSON.stringify(dados)) } catch {} }
+        return dados
+      } catch {
+        try { const r = localStorage.getItem(chaveCompleta); if (r) return JSON.parse(r) } catch {}
+        return []
+      }
     }
 
     async function carregar() {
@@ -210,15 +229,17 @@ function Tela31Inner() {
       setDataVistoria(new Date().toLocaleDateString('pt-BR'))
 
       try {
-        // Estabelecimento — com cache localStorage
+        // Estabelecimento — busca atual, cache so como reserva offline
         if (cnpjoucpf) {
           const cacheEstKey = `aime_est_${cnpjoucpf}`
-          let estCached: any = null
-          try { const r = localStorage.getItem(cacheEstKey); if (r) estCached = JSON.parse(r) } catch {}
-          const estFetch = estCached ? Promise.resolve([estCached]) : query('estabelecimento', `cnpjoucpf=eq.${cnpjoucpf}&select=cnpjoucpf,razao_social_nome`)
-          const estArr = await estFetch
+          let estArr: any = null
+          try {
+            estArr = await query('estabelecimento', `cnpjoucpf=eq.${cnpjoucpf}&select=cnpjoucpf,razao_social_nome`)
+            if (Array.isArray(estArr) && estArr[0]) { try { localStorage.setItem(cacheEstKey, JSON.stringify(estArr[0])) } catch {} }
+          } catch {
+            try { const r = localStorage.getItem(cacheEstKey); if (r) estArr = [JSON.parse(r)] } catch {}
+          }
           if (Array.isArray(estArr) && estArr[0]) {
-            if (!estCached) { try { localStorage.setItem(cacheEstKey, JSON.stringify(estArr[0])) } catch {} }
             const c = estArr[0].cnpjoucpf
             const fmt = c.length === 14
               ? c.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, '$1.$2.$3/$4-$5')
@@ -243,23 +264,17 @@ function Tela31Inner() {
         }
 
         // Sistemas
-        // Sistemas — com cache localStorage
-        const cacheSisKey = `aime_sis_${tipoServico}`
-        const sisCached = (() => { try { const r = localStorage.getItem(cacheSisKey); return r ? JSON.parse(r) : null } catch { return null } })()
-        const sis = sisCached ?? await query('sistemas_construtivos', `tipo_servico=eq.${encodeURIComponent(tipoServicoBanco)}&ativo=eq.true&select=sistema&order=sistema`)
-        if (Array.isArray(sis)) { if (!sisCached) { try { localStorage.setItem(cacheSisKey, JSON.stringify(sis)) } catch {} } setSistemas([...new Map(sis.map((s: ItemSistema) => [s.sistema, s])).values()]) }
+        // Sistemas — busca atual, cache so como reserva offline
+        const sis = await comCache('sis', 'sistemas_construtivos', `tipo_servico=eq.${encodeURIComponent(tipoServicoBanco)}&ativo=eq.true&select=sistema&order=sistema`)
+        if (Array.isArray(sis)) { setSistemas([...new Map(sis.map((s: ItemSistema) => [s.sistema, s])).values()]) }
 
-        // Subsistemas — com cache localStorage
-        const cacheSubKey = `aime_sub_${tipoServico}`
-        const subCached = (() => { try { const r = localStorage.getItem(cacheSubKey); return r ? JSON.parse(r) : null } catch { return null } })()
-        const sub = subCached ?? await query('sistemas_construtivos', `tipo_servico=eq.${encodeURIComponent(tipoServicoBanco)}&ativo=eq.true&subsistema=not.is.null&select=sistema,subsistema`)
-        if (Array.isArray(sub)) { if (!subCached) { try { localStorage.setItem(cacheSubKey, JSON.stringify(sub)) } catch {} } setSubsistemas(sub) }
+        // Subsistemas — busca atual, cache so como reserva offline
+        const sub = await comCache('sub', 'sistemas_construtivos', `tipo_servico=eq.${encodeURIComponent(tipoServicoBanco)}&ativo=eq.true&subsistema=not.is.null&select=sistema,subsistema`)
+        if (Array.isArray(sub)) setSubsistemas(sub)
 
-        // Anomalias — com cache localStorage
-        const cacheAnoKey = `aime_ano_${tipoServico}`
-        const anoCached = (() => { try { const r = localStorage.getItem(cacheAnoKey); return r ? JSON.parse(r) : null } catch { return null } })()
-        const ano = anoCached ?? await query('sistemas_construtivos', `tipo_servico=eq.${encodeURIComponent(tipoServicoBanco)}&ativo=eq.true&anomalias=not.is.null&select=sistema,subsistema,anomalias`)
-        if (Array.isArray(ano)) { if (!anoCached) { try { localStorage.setItem(cacheAnoKey, JSON.stringify(ano)) } catch {} } setAnomalias(ano) }
+        // Anomalias — busca atual, cache so como reserva offline
+        const ano = await comCache('ano', 'sistemas_construtivos', `tipo_servico=eq.${encodeURIComponent(tipoServicoBanco)}&ativo=eq.true&anomalias=not.is.null&select=sistema,subsistema,anomalias`)
+        if (Array.isArray(ano)) setAnomalias(ano)
 
         // Parâmetros
         // Buscar pesos GUT do banco com fallback
@@ -271,11 +286,9 @@ function Tela31Inner() {
           })
           .catch(() => {})
 
-        // Parâmetros — com cache localStorage
-        const cacheParKey = `aime_par_${tipoServico}`
-        const parCached = (() => { try { const r = localStorage.getItem(cacheParKey); return r ? JSON.parse(r) : null } catch { return null } })()
-        const par = parCached ?? await query('tabela_parametros', `tipo_servico=eq.${encodeURIComponent(tipoServicoBanco)}&select=tipo_parametro,descricao_parametros&order=tipo_parametro,descricao_parametros`)
-        if (Array.isArray(par)) { if (!parCached) { try { localStorage.setItem(cacheParKey, JSON.stringify(par)) } catch {} }
+        // Parâmetros — busca atual, cache so como reserva offline
+        const par = await comCache('par', 'tabela_parametros', `tipo_servico=eq.${encodeURIComponent(tipoServicoBanco)}&select=tipo_parametro,descricao_parametros&order=tipo_parametro,descricao_parametros`)
+        if (Array.isArray(par)) {
           const f = (tipo: string) => par.filter((p: {tipo_parametro: string, descricao_parametros: string}) => p.tipo_parametro === tipo).map((p: {descricao_parametros: string}) => p.descricao_parametros)
           setOrigens(f('Origem'))
           setLocais(f('Local ocorrência'))
