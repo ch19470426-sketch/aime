@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { cobrancaAtiva } from '@/lib/creditos'
+import { bloqueioMigracaoParaCortesia } from '@/lib/regrasPlano'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -35,6 +36,12 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Regra: não pode migrar de plano pago para Cortesia
+    if (planoDesejado === 'PLANO CORTESIA') {
+      const bloqueio = await bloqueioMigracaoParaCortesia(supabase, cpf)
+      if (bloqueio) return NextResponse.json({ erro: bloqueio }, { status: 422 })
+    }
+
     // Regra: não pode migrar para Cortesia se já teve
     if (planoDesejado === 'PLANO CORTESIA') {
       const { data: jaTemCortesia } = await supabase
@@ -43,7 +50,6 @@ export async function POST(request: NextRequest) {
       if (jaTemCortesia) return NextResponse.json({ erro: 'O Plano Cortesia já foi utilizado e não pode ser concedido novamente.' }, { status: 422 })
     }
 
-    // Regra: não pode migrar de planos pagos para Cortesia (já coberta acima)
     // Inserir novo contrato
     const { error } = await supabase.from('contratos_inspetor').insert({
       cpf_inspetor: cpf,

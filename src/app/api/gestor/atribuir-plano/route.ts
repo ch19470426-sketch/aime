@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { bloqueioMigracaoParaCortesia } from '@/lib/regrasPlano'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -24,6 +25,9 @@ export async function POST(request: NextRequest) {
 
     // Impedir migração para Cortesia (regra de negócio)
     if (tipo === 'PLANO CORTESIA') {
+      const bloqueio = await bloqueioMigracaoParaCortesia(supabase, cpf)
+      if (bloqueio) return NextResponse.json({ erro: bloqueio }, { status: 422 })
+
       const { data: jaTemCortesia } = await supabase
         .from('contratos_inspetor')
         .select('cpf_inspetor')

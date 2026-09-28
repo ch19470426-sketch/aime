@@ -536,7 +536,7 @@ function CadastroInspetor() {
                           <div style={{flex:1}}>
                             <label style={labelStyle}>Plano desejado</label>
                             <select value={planoDesejado} onChange={e=>setPlanoDesejado(e.target.value)} style={inputStyle}>
-                              {['PLANO CORTESIA','PLANO SERVIÇO','PLANO MENSAL','PLANO ESCRITÓRIO'].map(pl=>(<option key={pl} value={pl}>{pl}</option>))}
+                              {['PLANO CORTESIA','PLANO SERVIÇO','PLANO MENSAL','PLANO ESCRITÓRIO'].filter(pl => pl !== 'PLANO CORTESIA' || contratos.length === 0).map(pl=>(<option key={pl} value={pl}>{pl}</option>))}
                             </select>
                           </div>
                           <button onClick={trocarPlano} disabled={solicitandoTroca}
