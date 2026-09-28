@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { cobrancaAtiva } from '@/lib/creditos'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -21,6 +22,18 @@ export async function POST(request: NextRequest) {
 
     const qde = PLANO_CR[planoDesejado]
     if (!qde) return NextResponse.json({ erro: 'Tipo de plano inválido.' }, { status: 400 })
+
+    // Com a cobrança de créditos LIGADA (COBRANCA_CREDITOS_ATIVA=true), plano
+    // pago não pode mais ser obtido por troca direta — senão qualquer usuário
+    // ganharia os créditos sem pagar. A contratação passa a ser feita pelo
+    // pedido em /api/creditos/pedido (e concedida após o pagamento).
+    // Desligada (padrão), este endpoint se comporta exatamente como antes.
+    if (cobrancaAtiva() && planoDesejado !== 'PLANO CORTESIA') {
+      return NextResponse.json(
+        { erro: 'A contratação de planos pagos é feita em "Contratar créditos".' },
+        { status: 402 }
+      )
+    }
 
     // Regra: não pode migrar para Cortesia se já teve
     if (planoDesejado === 'PLANO CORTESIA') {

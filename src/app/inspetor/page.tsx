@@ -3,6 +3,7 @@ export const dynamic = 'force-dynamic'
 import { useState, useEffect, Suspense } from "react"
 import { useSearchParams } from "next/navigation"
 import Image from "next/image"
+import { createClient } from "@/utils/supabase/client"
 
 const SUPA_URL = 'https://asgorarunzhiojqioxzq.supabase.co'
 const SUPA_KEY = 'sb_publishable_dH85HYKGxv3X0te627VfOw_OGaPoNMF'
@@ -46,12 +47,19 @@ function CadastroInspetor() {
   const [salvando, setSalvando] = useState(false)
   const [carregando, setCarregando] = useState(true)
   const [buscandoCep, setBuscandoCep] = useState(false)
-  const [abaInspetor, setAbaInspetor] = useState<'dados'|'plano'>('dados')
+  const [abaInspetor, setAbaInspetor] = useState<'dados'|'plano'>(params.get('aba') === 'plano' ? 'plano' : 'dados')
   const [contratos, setContratos] = useState<any[]>([])
   const [carregandoPlano, setCarregandoPlano] = useState(false)
   const [msgPlano, setMsgPlano] = useState('')
   const [solicitandoTroca, setSolicitandoTroca] = useState(false)
   const [planoDesejado, setPlanoDesejado] = useState('PLANO MENSAL')
+  // Contratação de créditos / isenção de gestor
+  const [statusCred, setStatusCred] = useState<{isento:boolean; cobrancaAtiva:boolean} | null>(null)
+  const [pedidos, setPedidos] = useState<any[]>([])
+  const [tipoPedido, setTipoPedido] = useState('PLANO MENSAL')
+  const [qdeAvulso, setQdeAvulso] = useState(600)
+  const [enviandoPedido, setEnviandoPedido] = useState(false)
+  const [msgPedido, setMsgPedido] = useState('')
 
   const formatarCPF = (valor: string) => {
     return valor
@@ -104,6 +112,11 @@ function CadastroInspetor() {
     carregarInicial()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cpfUrl])
+
+  useEffect(() => {
+    if (ehConsulta && abaInspetor === 'plano') carregarContratos()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ehConsulta])
 
   const formatarWhatsApp = (valor: string) => {
     return valor
@@ -221,6 +234,7 @@ function CadastroInspetor() {
 
   async function carregarContratos() {
     setCarregandoPlano(true)
+    void carregarCreditos()
     try {
       const cli = createClient()
       const { data: { session } } = await cli.auth.getSession()
@@ -233,6 +247,46 @@ function CadastroInspetor() {
       setContratos(Array.isArray(data) ? data : [])
     } catch { setContratos([]) }
     finally { setCarregandoPlano(false) }
+  }
+
+  // Situação de créditos e pedidos do usuário logado. O CPF é validado no
+  // servidor pelo token da sessão (não vai no corpo da requisição).
+  async function carregarCreditos() {
+    try {
+      const { data: { session } } = await createClient().auth.getSession()
+      const token = session?.access_token
+      if (!token) return
+      const h = { Authorization: `Bearer ${token}` }
+      const [rs, rp] = await Promise.all([
+        fetch('/api/creditos/status', { headers: h }),
+        fetch('/api/creditos/pedido', { headers: h }),
+      ])
+      if (rs.ok) setStatusCred(await rs.json())
+      if (rp.ok) setPedidos((await rp.json()).pedidos ?? [])
+    } catch { /* sem status: a aba continua funcionando como antes */ }
+  }
+
+  async function criarPedido() {
+    setEnviandoPedido(true); setMsgPedido('')
+    try {
+      const { data: { session } } = await createClient().auth.getSession()
+      const res = await fetch('/api/creditos/pedido', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session?.access_token ?? ''}` },
+        body: JSON.stringify({ tipo: tipoPedido, qdeAvulso: tipoPedido === 'AVULSO' ? qdeAvulso : undefined }),
+      })
+      const d = await res.json()
+      if (res.ok) {
+        const base = d.reaproveitado
+          ? `Você já tem o pedido #${d.pedido.id} aguardando pagamento.`
+          : `Pedido #${d.pedido.id} registrado (aguardando pagamento).`
+        setMsgPedido(d.pagamento === 'indisponivel' ? `${base} O pagamento online ainda não está habilitado neste ambiente.` : base)
+        await carregarCreditos()
+      } else {
+        setMsgPedido(`Erro: ${d.erro ?? 'Não foi possível registrar o pedido.'}`)
+      }
+    } catch { setMsgPedido('Erro de conexão.') }
+    finally { setEnviandoPedido(false) }
   }
 
   async function trocarPlano() {
@@ -440,6 +494,14 @@ function CadastroInspetor() {
                   <div style={{textAlign:'center',padding:'32px',color:'#6B7280',fontSize:'13px'}}>Carregando...</div>
                 ) : (
                   <>
+                  {statusCred?.isento && (
+                    <div style={{border:'1.5px solid #7C3AED',borderRadius:'8px',padding:'14px',backgroundColor:'#F5F3FF'}}>
+                      <div style={{fontWeight:700,color:'#5B21B6',fontSize:'13px',marginBottom:'4px'}}>Perfil de gestor</div>
+                      <p style={{fontSize:'12px',color:'#4C1D95',lineHeight:1.5,margin:0}}>Usuários gestores não precisam contratar plano nem créditos, e a execução de serviços não consome créditos do seu perfil.</p>
+                    </div>
+                  )}
+                  {!statusCred?.isento && (
+                  <>
                     <div style={{marginBottom:'12px'}}>
                       <div style={{...blocoHeaderStyle,borderRadius:'6px 6px 0 0'}}><span style={blocoTituloStyle}>Contratos e Saldo de Créditos</span></div>
                       <div style={{border:'1px solid #E2E8F0',borderTop:'none',borderRadius:'0 0 6px 6px',padding:'12px'}}>
@@ -465,6 +527,7 @@ function CadastroInspetor() {
                         })}
                       </div>
                     </div>
+                    {!statusCred?.cobrancaAtiva && (
                     <div>
                       <div style={{...blocoHeaderStyle,borderRadius:'6px 6px 0 0'}}><span style={blocoTituloStyle}>Trocar Plano</span></div>
                       <div style={{border:'1px solid #E2E8F0',borderTop:'none',borderRadius:'0 0 6px 6px',padding:'12px'}}>
@@ -484,6 +547,50 @@ function CadastroInspetor() {
                         {msgPlano&&(<div style={{marginTop:'10px',padding:'8px 12px',borderRadius:'6px',fontSize:'12px',backgroundColor:msgPlano.startsWith('Erro')?'#FEE2E2':'#D1FAE5',color:msgPlano.startsWith('Erro')?'#DC2626':'#059669'}}>{msgPlano}</div>)}
                       </div>
                     </div>
+                    )}
+                    <div style={{marginTop:'12px'}}>
+                      <div style={{...blocoHeaderStyle,borderRadius:'6px 6px 0 0'}}><span style={blocoTituloStyle}>Contratar Créditos</span></div>
+                      <div style={{border:'1px solid #E2E8F0',borderTop:'none',borderRadius:'0 0 6px 6px',padding:'12px'}}>
+                        <p style={{fontSize:'11px',color:'#6B7280',marginBottom:'12px',lineHeight:1.5}}>Contrate um plano ou créditos avulsos a qualquer momento, inclusive quando seus créditos acabarem. O pedido fica registrado e é liberado após a confirmação do pagamento.</p>
+                        <div style={{display:'flex',gap:'8px',alignItems:'flex-end',flexWrap:'wrap'}}>
+                          <div style={{flex:1,minWidth:'180px'}}>
+                            <label style={labelStyle}>O que deseja contratar</label>
+                            <select value={tipoPedido} onChange={e=>setTipoPedido(e.target.value)} style={inputStyle}>
+                              <option value="PLANO SERVIÇO">PLANO SERVIÇO (600 CR)</option>
+                              <option value="PLANO MENSAL">PLANO MENSAL (1.200 CR)</option>
+                              <option value="PLANO ESCRITÓRIO">PLANO ESCRITÓRIO (3.600 CR)</option>
+                              <option value="AVULSO">Créditos avulsos</option>
+                            </select>
+                          </div>
+                          {tipoPedido === 'AVULSO' && (
+                            <div style={{width:'140px'}}>
+                              <label style={labelStyle}>Quantidade (CR)</label>
+                              <select value={qdeAvulso} onChange={e=>setQdeAvulso(Number(e.target.value))} style={inputStyle}>
+                                {[600,1200,1800,2400,3000,3600].map(q=>(<option key={q} value={q}>{q}</option>))}
+                              </select>
+                            </div>
+                          )}
+                          <button onClick={criarPedido} disabled={enviandoPedido}
+                            style={{backgroundColor:'#1E3A8A',color:'white',border:'none',borderRadius:'9999px',padding:'8px 20px',fontSize:'12px',fontWeight:700,cursor:enviandoPedido?'not-allowed':'pointer',opacity:enviandoPedido?0.6:1}}>
+                            {enviandoPedido?'Aguarde...':'Contratar'}
+                          </button>
+                        </div>
+                        {msgPedido&&(<div style={{marginTop:'10px',padding:'8px 12px',borderRadius:'6px',fontSize:'12px',backgroundColor:msgPedido.startsWith('Erro')?'#FEE2E2':'#EFF6FF',color:msgPedido.startsWith('Erro')?'#DC2626':'#1E3A8A'}}>{msgPedido}</div>)}
+                        {pedidos.length > 0 && (
+                          <div style={{marginTop:'12px'}}>
+                            <div style={{fontSize:'11px',fontWeight:700,color:'#374151',marginBottom:'4px'}}>Meus pedidos</div>
+                            {pedidos.slice(0,5).map((pd:any)=>(
+                              <div key={pd.id} style={{display:'flex',justifyContent:'space-between',fontSize:'11px',color:'#4B5563',padding:'4px 0',borderTop:'1px solid #F1F5F9'}}>
+                                <span>#{pd.id} · {pd.tipo} · {pd.qde_creditos} CR</span>
+                                <span style={{fontWeight:700,color:pd.status==='pago'?'#059669':pd.status==='cancelado'?'#9CA3AF':'#D97706'}}>{pd.status==='pago'?'Pago':pd.status==='cancelado'?'Cancelado':'Aguardando pagamento'}</span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    </>
+                    )}
                   </>
                 )}
               </div>
