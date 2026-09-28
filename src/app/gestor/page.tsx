@@ -723,8 +723,8 @@ export default function GestorPage() {
                     },
                     {
                       label: 'Tempo médio até a 1ª vistoria', cor:'#0284C7', icon:'⏱️',
-                      valor: resumo.diasAtePrimeiraVistoria.total !== null ? `${resumo.diasAtePrimeiraVistoria.total.toFixed(1)} dias` : '—',
-                      desde: resumo.diasAtePrimeiraVistoria.desde !== null ? `${resumo.diasAtePrimeiraVistoria.desde.toFixed(1)} dias` : null,
+                      valor: resumo.diasAtePrimeiraVistoria.total !== null ? `${resumo.diasAtePrimeiraVistoria.total} dias` : '—',
+                      desde: resumo.diasAtePrimeiraVistoria.desde !== null ? `${resumo.diasAtePrimeiraVistoria.desde} dias` : null,
                     },
                     {
                       label: 'Vistorias por laudo técnico', cor:'#7C3AED', icon:'🔎',
