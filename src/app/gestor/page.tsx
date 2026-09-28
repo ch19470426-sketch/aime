@@ -30,6 +30,7 @@ const S = {
   planoCard: (ativo: boolean) => ({ border: `2px solid ${ativo ? '#1E3A8A' : '#E2E8F0'}`, borderRadius: '8px', padding: '10px 12px', backgroundColor: ativo ? '#EBF1FF' : 'white' }) as React.CSSProperties,
 }
 
+type ComTotalEDesde<T> = { total: T; desde: T | null }
 type ResumoGestor = {
   totalInspetores: number
   inspetoresAtivos: number
@@ -38,6 +39,14 @@ type ResumoGestor = {
   totalCrAvulso: number
   totalCrConsumo: number
   inspetoresSemContrato: string[]
+  // Indicadores do Painel Geral (pedido de Celso, 28/09/2026)
+  inspetores: ComTotalEDesde<number>
+  porPlano: ComTotalEDesde<Record<string, number>>
+  diasAtePrimeiraVistoria: ComTotalEDesde<number | null>
+  vistoriasPorLaudo: ComTotalEDesde<number | null>
+  laudosGerados: ComTotalEDesde<number>
+  planosManutencaoGerados: ComTotalEDesde<number>
+  creditos: { contratadosTotal: number; contratadosDesde: number | null; disponiveis: number }
 }
 
 type Estabelecimento = {
@@ -103,6 +112,7 @@ export default function GestorPage() {
   const [carregandoEstab, setCarregandoEstab] = useState(false)
   const [resumo, setResumo] = useState<ResumoGestor | null>(null)
   const [carregandoResumo, setCarregandoResumo] = useState(false)
+  const [dataReferencia, setDataReferencia] = useState('')
   // Novo plano
   const [novoPlano, setNovoPlano] = useState('PLANO MENSAL')
   const [novoAvulso, setNovoAvulso] = useState(600)
@@ -181,7 +191,8 @@ export default function GestorPage() {
   async function carregarResumo() {
     setCarregandoResumo(true)
     try {
-      const res = await fetch('/api/gestor/resumo')
+      const qs = dataReferencia ? `?desde=${dataReferencia}` : ''
+      const res = await fetch(`/api/gestor/resumo${qs}`)
       const data = await res.json()
       setResumo(data)
     } catch { setResumo(null) }
@@ -665,6 +676,26 @@ export default function GestorPage() {
               </div>
             ) : (
               <div>
+                <div style={{ display:'flex', alignItems:'flex-end', gap:'10px', marginBottom:'16px', flexWrap:'wrap' }}>
+                  <div>
+                    <label style={S.label}>Data de referência (opcional)</label>
+                    <input type="date" value={dataReferencia} onChange={e => setDataReferencia(e.target.value)} style={S.input} />
+                  </div>
+                  <button onClick={carregarResumo} style={{ ...S.btnPri, fontSize:'11px', padding:'9px 16px' }}>
+                    {dataReferencia ? 'Aplicar data' : 'Ver só totais'}
+                  </button>
+                  {dataReferencia && (
+                    <button onClick={() => { setDataReferencia(''); setTimeout(carregarResumo, 0) }}
+                      style={{ ...S.btnSec, fontSize:'11px', padding:'9px 16px' }}>
+                      Limpar data
+                    </button>
+                  )}
+                </div>
+                {dataReferencia && (
+                  <p style={{ fontSize:'11px', color:'#6B7280', marginTop:'-8px', marginBottom:'16px' }}>
+                    Os cards abaixo mostram o total desde sempre e, entre parênteses, o valor a partir de {new Date(dataReferencia+'T00:00:00').toLocaleDateString('pt-BR')}.
+                  </p>
+                )}
                 <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(150px, 1fr))', gap:'12px', marginBottom:'24px' }}>
                   {[
                     { label:'Total de Inspetores', valor: resumo.totalInspetores, cor:'#1E3A8A', icon:'👤' },
@@ -682,6 +713,73 @@ export default function GestorPage() {
                     </div>
                   ))}
                 </div>
+
+                <div style={S.secaoTitulo}>Acompanhamento de uso</div>
+                <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(180px, 1fr))', gap:'12px', marginBottom:'24px' }}>
+                  {[
+                    {
+                      label: 'Inspetores cadastrados', cor:'#1E3A8A', icon:'👤',
+                      valor: resumo.inspetores.total, desde: resumo.inspetores.desde,
+                    },
+                    {
+                      label: 'Tempo médio até a 1ª vistoria', cor:'#0284C7', icon:'⏱️',
+                      valor: resumo.diasAtePrimeiraVistoria.total !== null ? `${resumo.diasAtePrimeiraVistoria.total.toFixed(1)} dias` : '—',
+                      desde: resumo.diasAtePrimeiraVistoria.desde !== null ? `${resumo.diasAtePrimeiraVistoria.desde.toFixed(1)} dias` : null,
+                    },
+                    {
+                      label: 'Vistorias por laudo técnico', cor:'#7C3AED', icon:'🔎',
+                      valor: resumo.vistoriasPorLaudo.total !== null ? resumo.vistoriasPorLaudo.total.toFixed(1) : '—',
+                      desde: resumo.vistoriasPorLaudo.desde !== null ? resumo.vistoriasPorLaudo.desde.toFixed(1) : null,
+                    },
+                    {
+                      label: 'Laudos técnicos gerados', cor:'#059669', icon:'📄',
+                      valor: resumo.laudosGerados.total, desde: resumo.laudosGerados.desde,
+                    },
+                    {
+                      label: 'Planos de manutenção gerados', cor:'#D97706', icon:'🛠️',
+                      valor: resumo.planosManutencaoGerados.total, desde: resumo.planosManutencaoGerados.desde,
+                    },
+                    {
+                      label: 'CR contratados', cor:'#065F46', icon:'💳',
+                      valor: resumo.creditos.contratadosTotal, desde: resumo.creditos.contratadosDesde,
+                    },
+                    {
+                      label: 'CR disponíveis agora', cor:'#0284C7', icon:'💎',
+                      valor: resumo.creditos.disponiveis, desde: null,
+                    },
+                  ].map(({ label, valor, desde, cor, icon }) => (
+                    <div key={label} style={{ backgroundColor:'white', borderRadius:'10px', padding:'16px',
+                      border:`2px solid ${cor}20`, boxShadow:'0 1px 4px rgba(0,0,0,0.06)' }}>
+                      <div style={{ fontSize:'20px', marginBottom:'6px' }}>{icon}</div>
+                      <div style={{ fontSize:'22px', fontWeight:900, color: cor }}>
+                        {typeof valor === 'number' ? valor.toLocaleString('pt-BR') : valor}
+                      </div>
+                      {dataReferencia && desde !== null && (
+                        <div style={{ fontSize:'12px', fontWeight:700, color: cor, opacity:0.7 }}>
+                          ({typeof desde === 'number' ? desde.toLocaleString('pt-BR') : desde} desde a data)
+                        </div>
+                      )}
+                      <div style={{ fontSize:'10px', color:'#6B7280', marginTop:'4px' }}>{label}</div>
+                    </div>
+                  ))}
+                </div>
+
+                {Object.keys(resumo.porPlano.total).length > 0 && (
+                  <div style={{ marginBottom:'24px' }}>
+                    <div style={S.secaoTitulo}>Inspetores por tipo de plano (contrato atual de cada um)</div>
+                    <div style={{ display:'flex', flexWrap:'wrap', gap:'8px' }}>
+                      {Object.entries(resumo.porPlano.total).map(([plano, qtd]) => (
+                        <div key={plano} style={{ backgroundColor:'#EBF1FF', border:'1px solid #1E3A8A30', borderRadius:'8px',
+                          padding:'8px 14px', fontSize:'12px' }}>
+                          <strong style={{ color:'#1E3A8A' }}>{qtd}</strong> {plano}
+                          {dataReferencia && resumo.porPlano.desde && (resumo.porPlano.desde[plano] ?? 0) > 0 && (
+                            <span style={{ color:'#6B7280' }}> ({resumo.porPlano.desde[plano]} desde a data)</span>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
                 {resumo.inspetoresSemContrato.length > 0 && (
                   <div>
                     <div style={S.secaoTitulo}>Inspetores sem contrato vigente</div>
