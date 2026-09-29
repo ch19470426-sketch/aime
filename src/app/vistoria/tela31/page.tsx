@@ -638,22 +638,26 @@ function Tela31Inner() {
                         }}
                         onBlur={() => setTimeout(() => setMostrarSugAnomalia(false), 150)}
                         disabled={!subsistema} placeholder="Selecione ou digite..." />
-                      {mostrarSugAnomalia && subsistema && typeof document !== 'undefined' && createPortal(
-                        <div style={{ position: 'absolute', top: posSugAnomalia.top, left: posSugAnomalia.left, width: posSugAnomalia.width, zIndex: 9999,
+                      {/* Portal SEMPRE montado (nao so quando visivel) — evita criar/destruir
+                          essa lista a cada foco/perda de foco do campo, mais leve para o
+                          navegador. Visibilidade controlada so por CSS (display). */}
+                      {typeof document !== 'undefined' && createPortal(
+                        <div style={{ display: mostrarSugAnomalia && subsistema ? 'block' : 'none',
+                          position: 'absolute', top: posSugAnomalia.top, left: posSugAnomalia.left, width: posSugAnomalia.width, zIndex: 9999,
                           background: '#fff', border: '1px solid #c3d4f0', borderRadius: '6px',
                           maxHeight: '160px', overflowY: 'auto', boxShadow: '0 2px 8px rgba(0,0,0,.12)' }}>
-                          {anomaliasFiltradas
-                            .filter(a => a.toLowerCase().includes(anomalia.toLowerCase()))
-                            .map(a => (
+                          {(() => {
+                            const filtradas = anomaliasFiltradas.filter(a => a.toLowerCase().includes(anomalia.toLowerCase()))
+                            return filtradas.length > 0 ? filtradas.map(a => (
                               <div key={a}
                                 onMouseDown={() => { setAnomalia(a); setMostrarSugAnomalia(false) }}
                                 style={{ padding: '6px 10px', fontSize: '8pt', cursor: 'pointer', borderBottom: '1px solid #eef2f7' }}>
                                 {a}
                               </div>
-                            ))}
-                          {anomaliasFiltradas.filter(a => a.toLowerCase().includes(anomalia.toLowerCase())).length === 0 && (
-                            <div style={{ padding: '6px 10px', fontSize: '8pt', color: '#8aa3c4' }}>Nenhum valor tabelado encontrado — o texto digitado será usado.</div>
-                          )}
+                            )) : (
+                              <div style={{ padding: '6px 10px', fontSize: '8pt', color: '#8aa3c4' }}>Nenhum valor tabelado encontrado — o texto digitado será usado.</div>
+                            )
+                          })()}
                         </div>,
                         document.body
                       )}
