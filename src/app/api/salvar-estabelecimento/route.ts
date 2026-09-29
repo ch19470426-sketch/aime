@@ -23,7 +23,16 @@ export async function POST(request: NextRequest) {
       numero_imovel, complemento, cep_estabelecimento,
     }
     if (tipo_id !== undefined) payload.tipo_id = tipo_id
-    if (data_cadastro) payload.data_cadastro = data_cadastro
+    // data_cadastro: o CLIENTE so manda esse campo quando e um cadastro novo
+    // (nao numa atualizacao) — mantemos essa decisao, mas o VALOR em si e
+    // sempre calculado aqui no servidor, ignorando o que veio no corpo da
+    // requisicao. Antes usava new Date() do navegador do usuario, o que
+    // corrompia a data se o relogio do aparelho estivesse errado (mesmo
+    // achado de 29/09/2026 que motivou esta correcao em varios campos).
+    if (data_cadastro) {
+      const hojeBR = new Date().toLocaleDateString('sv-SE', { timeZone: 'America/Sao_Paulo' }) // 'AAAA-MM-DD'
+      payload.data_cadastro = hojeBR
+    }
 
     const { error } = await supabase
       .from('estabelecimento')

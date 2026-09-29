@@ -247,7 +247,12 @@ function PlanoInner() {
       const tag = needsTag ? ativoAtual.tag_ativo_nr_serie : '1'
       const payload = {
         cpf_inspetor: cpfInspetor, cnpjoucpf, tipo_servico: tsVistoria,
-        data_cadastro: new Date().toISOString(),
+        // data_cadastro NAO e enviada — o banco preenche sozinho, com o
+        // relogio do SERVIDOR (nao o do navegador do usuario). Antes usava
+        // new Date() do navegador, o que corrompia a data se o relogio do
+        // aparelho estivesse errado (achado real em 29/09/2026 — decisao de
+        // Celso). Este fluxo nao passa pelo mecanismo offline, entao a
+        // mudanca nao afeta nenhuma vistoria feita sem internet.
         tipo_ativo: ativoAtual.tipo_ativo,
         tag_ativo_nr_serie: tag,
         data_inicio_operacao: ativoAtual.data_inicio_operacao || null,
@@ -270,7 +275,10 @@ function PlanoInner() {
         body: JSON.stringify(payload)
       })
       if (res.ok) {
-        const novos = [...ativos, { ...ativoAtual, tag_ativo_nr_serie: tag, data_cadastro: payload.data_cadastro }]
+        // data_cadastro aqui e so para a lista em tela (o valor real, gravado
+        // pelo servidor, pode diferir por fracoes de segundo — irrelevante
+        // para exibicao)
+        const novos = [...ativos, { ...ativoAtual, tag_ativo_nr_serie: tag, data_cadastro: new Date().toISOString() }]
         setAtivos(novos)
         setAtivoAtual({ ...ATIVO_VAZIO })
         setShowForm(false)

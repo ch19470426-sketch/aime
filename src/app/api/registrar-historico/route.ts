@@ -6,7 +6,7 @@ export const dynamic = 'force-dynamic'
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { data_hora, tipo_servico, cnpjoucpf, valor_servico, prazo_execucao, uf_estabelecimento } = body
+    const { tipo_servico, cnpjoucpf, valor_servico, prazo_execucao, uf_estabelecimento } = body
 
     if (!tipo_servico || !cnpjoucpf) {
       return NextResponse.json({ erro: 'tipo_servico e cnpjoucpf obrigatórios' }, { status: 400 })
@@ -20,7 +20,10 @@ export async function POST(request: NextRequest) {
     const { error } = await supabase
       .from('historico_valores')
       .insert({
-        data_hora: data_hora || new Date().toISOString(),
+        // Sempre o relogio do SERVIDOR, nunca o do navegador do usuario —
+        // mesmo achado de 29/09/2026 que motivou esta correcao em varios
+        // campos (relogio do aparelho desconfigurado corrompia a data).
+        data_hora: new Date().toISOString(),
         tipo_servico: String(tipo_servico).slice(0, 32),
         cnpjoucpf: String(cnpjoucpf).replace(/\D/g, '').slice(0, 14),
         valor_servico: Number(valor_servico) || 0,

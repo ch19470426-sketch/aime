@@ -633,7 +633,12 @@ function Tela40Inner() {
           tipo_servico: form.tipoServico,
           numero_foto: form.fotoNr,
           data_vistoria: paraISO(form.dataVistoria),
-          data_homologacao: new Date().toISOString().slice(0, 10),
+          // data_homologacao NAO e enviada — o banco preenche sozinho, com o
+          // relogio do SERVIDOR (nao o do navegador do usuario). Achado real
+          // em 29/09/2026 (data_homologacao aparecia um mes no futuro,
+          // relogio do aparelho de teste desconfigurado) - decisao de Celso.
+          // Esta tela (homologacao) nao passa pelo mecanismo offline, entao
+          // a mudanca nao afeta vistoria nenhuma feita sem internet.
           tipo_ativo: form.tipoAtivo,
           tag_ativo_nr_serie: form.tagNrSerie,
           sistema_vistoria: sistema,
