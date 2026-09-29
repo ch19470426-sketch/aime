@@ -24,7 +24,8 @@ import { sessaoDaRequisicao } from '@/lib/sessaoServidor'
 import { ehGestor } from '@/lib/creditos'
 import {
   dataCorte, selecionarArquivosVistorias, selecionarArquivosDocumentos,
-  selecionarLinhasPorData, PRAZO_PADRAO_DIAS, type ArquivoStorage,
+  selecionarLinhasPorData, selecionarPedidosNaoPagos,
+  PRAZO_PADRAO_DIAS, PRAZO_PEDIDOS_NAO_PAGOS_DIAS, type ArquivoStorage,
 } from '@/lib/higienizacao'
 
 export const dynamic = 'force-dynamic'
@@ -64,6 +65,10 @@ export async function GET(request: NextRequest) {
     if (!Number.isFinite(prazoDias) || prazoDias < 0) {
       return NextResponse.json({ erro: 'Parâmetro "dias" inválido.' }, { status: 400 })
     }
+    const prazoPedidosDias = Number(url.searchParams.get('diasPedidos') ?? PRAZO_PEDIDOS_NAO_PAGOS_DIAS)
+    if (!Number.isFinite(prazoPedidosDias) || prazoPedidosDias < 0) {
+      return NextResponse.json({ erro: 'Parâmetro "diasPedidos" inválido.' }, { status: 400 })
+    }
 
     if (!simular) {
       const viaCron = ehCronVercel(request)
@@ -82,7 +87,11 @@ export async function GET(request: NextRequest) {
     }
 
     const corte = dataCorte(new Date(), prazoDias)
-    const resultado: Record<string, unknown> = { simulado: simular, prazoDias, dataCorte: corte.toISOString().slice(0, 10) }
+    const cortePedidos = dataCorte(new Date(), prazoPedidosDias)
+    const resultado: Record<string, unknown> = {
+      simulado: simular, prazoDias, dataCorte: corte.toISOString().slice(0, 10),
+      prazoPedidosDias, dataCortePedidos: cortePedidos.toISOString().slice(0, 10),
+    }
 
     // ---------- a) Storage "vistorias/" ----------
     const arqVistorias = await listarTodos('vistorias')
@@ -147,6 +156,34 @@ export async function GET(request: NextRequest) {
         if (error) falhas.push(i); else removidos++
       }
       resultado.ativosAVistoriar = { elegiveis: selLinhasAtivos.length, removidos, falhasNaLinha: falhas.length }
+    }
+
+    // ---------- e) Tabela pedidos_credito (nunca pagos — extensão sugerida
+    //              por Claude em 28/09/2026, aprovada por Celso em 29/09/2026,
+    //              amparada pelo item (e) da especificação: "pode ampliar a
+    //              higienização com os itens sugeridos") ----------
+    // Prazo próprio (15 dias, bem mais curto que os 185 dos diretórios —
+    // carrinho abandonado é resolvido rápido, documento antigo não).
+    // Cancela (nunca apaga a linha) — mantém o histórico de que o pedido
+    // existiu, só sai do estado "aguardando pagamento" para sempre.
+    try {
+      const { data: pedidosRaw } = await supabase.from('pedidos_credito')
+        .select('id,cpf_inspetor,tipo,qde_creditos,status,criado_em').eq('status', 'aguardando_pagamento')
+      const selPedidos = selecionarPedidosNaoPagos(pedidosRaw ?? [], cortePedidos)
+      if (simular) {
+        resultado.pedidosNaoPagos = { total: (pedidosRaw ?? []).length, elegiveis: selPedidos.length }
+      } else {
+        let cancelados = 0
+        for (const p of selPedidos as any[]) {
+          const { error } = await supabase.from('pedidos_credito').update({ status: 'cancelado' }).eq('id', p.id)
+          if (!error) cancelados++
+        }
+        resultado.pedidosNaoPagos = { elegiveis: selPedidos.length, cancelados }
+      }
+    } catch {
+      // Tabela pode ainda não existir em ambientes onde a migracao de
+      // creditos nao foi aplicada — nao derruba o resto da higienizacao.
+      resultado.pedidosNaoPagos = { total: 0, elegiveis: 0 }
     }
 
     return NextResponse.json(resultado)

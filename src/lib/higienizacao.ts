@@ -19,6 +19,9 @@
 // (excluir de verdade, ou só relatar em modo simulação).
 
 export const PRAZO_PADRAO_DIAS = 185
+/** Pedidos de crédito nunca pagos: cancelados após este prazo (bem mais
+ *  curto que o dos diretórios — decisão de Celso, 29/09/2026). */
+export const PRAZO_PEDIDOS_NAO_PAGOS_DIAS = 15
 
 /** Padrão de nome que NUNCA deve ser excluído de documentos_inspetor. */
 const PRESERVAR_SEMPRE = /_termo_de_aceite\.html$/i
@@ -62,6 +65,23 @@ export function selecionarLinhasPorData<T extends LinhaComData>(
   const corteISO = corte.toISOString().slice(0, 10)
   return linhas.filter(l => {
     const v = l[campo]
+    return typeof v === 'string' && v.length >= 10 && v.slice(0, 10) < corteISO
+  })
+}
+
+/**
+ * Pedidos de contratação (pedidos_credito) elegíveis para cancelamento:
+ * status ainda 'aguardando_pagamento' E criados antes da data de corte.
+ * Pedidos já pagos ou já cancelados nunca são selecionados aqui — só a
+ * "sujeira" de carrinho abandonado.
+ */
+export function selecionarPedidosNaoPagos<T extends LinhaComData & { status?: unknown }>(
+  pedidos: T[], corte: Date
+): T[] {
+  const corteISO = corte.toISOString().slice(0, 10)
+  return pedidos.filter(p => {
+    if (p.status !== 'aguardando_pagamento') return false
+    const v = p['criado_em']
     return typeof v === 'string' && v.length >= 10 && v.slice(0, 10) < corteISO
   })
 }
