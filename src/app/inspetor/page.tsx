@@ -60,6 +60,8 @@ function CadastroInspetor() {
   const [qdeAvulso, setQdeAvulso] = useState(600)
   const [enviandoPedido, setEnviandoPedido] = useState(false)
   const [msgPedido, setMsgPedido] = useState('')
+  const [formaPagamento, setFormaPagamento] = useState<'PIX' | 'CREDIT_CARD'>('PIX')
+  const [pagamentoInfo, setPagamentoInfo] = useState<{ invoiceUrl: string; pixQrCode?: string; pixCopiaECola?: string } | null>(null)
 
   const formatarCPF = (valor: string) => {
     return valor
@@ -267,20 +269,27 @@ function CadastroInspetor() {
   }
 
   async function criarPedido() {
-    setEnviandoPedido(true); setMsgPedido('')
+    setEnviandoPedido(true); setMsgPedido(''); setPagamentoInfo(null)
     try {
       const { data: { session } } = await createClient().auth.getSession()
       const res = await fetch('/api/creditos/pedido', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session?.access_token ?? ''}` },
-        body: JSON.stringify({ tipo: tipoPedido, qdeAvulso: tipoPedido === 'AVULSO' ? qdeAvulso : undefined }),
+        body: JSON.stringify({ tipo: tipoPedido, qdeAvulso: tipoPedido === 'AVULSO' ? qdeAvulso : undefined, forma: formaPagamento }),
       })
       const d = await res.json()
       if (res.ok) {
         const base = d.reaproveitado
           ? `Você já tem o pedido #${d.pedido.id} aguardando pagamento.`
-          : `Pedido #${d.pedido.id} registrado (aguardando pagamento).`
-        setMsgPedido(d.pagamento === 'indisponivel' ? `${base} O pagamento online ainda não está habilitado neste ambiente.` : base)
+          : `Pedido #${d.pedido.id} registrado.`
+        if (d.pagamento && typeof d.pagamento === 'object') {
+          setMsgPedido(base)
+          setPagamentoInfo(d.pagamento)
+        } else if (d.pagamento === 'erro') {
+          setMsgPedido(`${base} O pedido ficou registrado, mas não foi possível gerar a cobrança agora (${d.avisoAsaas ?? 'erro desconhecido'}). Tente novamente em instantes.`)
+        } else {
+          setMsgPedido(`${base} O pagamento online ainda não está habilitado neste ambiente.`)
+        }
         await carregarCreditos()
       } else {
         setMsgPedido(`Erro: ${d.erro ?? 'Não foi possível registrar o pedido.'}`)
@@ -570,12 +579,39 @@ function CadastroInspetor() {
                               </select>
                             </div>
                           )}
+                          <div style={{width:'140px'}}>
+                            <label style={labelStyle}>Forma de pagamento</label>
+                            <select value={formaPagamento} onChange={e=>setFormaPagamento(e.target.value as 'PIX'|'CREDIT_CARD')} style={inputStyle}>
+                              <option value="PIX">PIX</option>
+                              <option value="CREDIT_CARD">Cartão de crédito</option>
+                            </select>
+                          </div>
                           <button onClick={criarPedido} disabled={enviandoPedido}
                             style={{backgroundColor:'#1E3A8A',color:'white',border:'none',borderRadius:'9999px',padding:'8px 20px',fontSize:'12px',fontWeight:700,cursor:enviandoPedido?'not-allowed':'pointer',opacity:enviandoPedido?0.6:1}}>
                             {enviandoPedido?'Aguarde...':'Contratar'}
                           </button>
                         </div>
                         {msgPedido&&(<div style={{marginTop:'10px',padding:'8px 12px',borderRadius:'6px',fontSize:'12px',backgroundColor:msgPedido.startsWith('Erro')?'#FEE2E2':'#EFF6FF',color:msgPedido.startsWith('Erro')?'#DC2626':'#1E3A8A'}}>{msgPedido}</div>)}
+                        {pagamentoInfo && (
+                          <div style={{marginTop:'12px',padding:'14px',borderRadius:'8px',border:'1.5px solid #1E3A8A',backgroundColor:'#F8FAFC',textAlign:'center'}}>
+                            {pagamentoInfo.pixQrCode ? (
+                              <>
+                                <div style={{fontSize:'12px',fontWeight:700,color:'#1E3A8A',marginBottom:'8px'}}>Escaneie o QR Code para pagar via PIX</div>
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                <img src={`data:image/png;base64,${pagamentoInfo.pixQrCode}`} alt="QR Code PIX" style={{width:'200px',height:'200px',margin:'0 auto 8px'}} />
+                                <div style={{fontSize:'10px',color:'#6B7280',marginBottom:'4px'}}>Ou copie o código:</div>
+                                <textarea readOnly value={pagamentoInfo.pixCopiaECola} onClick={e=>(e.target as HTMLTextAreaElement).select()}
+                                  style={{width:'100%',fontSize:'10px',padding:'6px',borderRadius:'6px',border:'1px solid #D1D5DB',resize:'none' as const}} rows={3} />
+                              </>
+                            ) : (
+                              <div style={{fontSize:'12px',color:'#374151'}}>Cobrança gerada — conclua o pagamento pelo link abaixo.</div>
+                            )}
+                            <a href={pagamentoInfo.invoiceUrl} target="_blank" rel="noopener noreferrer"
+                              style={{display:'inline-block',marginTop:'10px',backgroundColor:'#059669',color:'white',textDecoration:'none',borderRadius:'9999px',padding:'8px 20px',fontSize:'12px',fontWeight:700}}>
+                              Abrir página de pagamento
+                            </a>
+                          </div>
+                        )}
                         {pedidos.length > 0 && (
                           <div style={{marginTop:'12px'}}>
                             <div style={{fontSize:'11px',fontWeight:700,color:'#374151',marginBottom:'4px'}}>Meus pedidos</div>

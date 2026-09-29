@@ -29,9 +29,31 @@ export const PLANO_CR: Record<string, number> = {
   'PLANO ESCRITÓRIO': 3600,
 }
 
+/**
+ * Preço de cada plano, em CENTAVOS (evita erro de ponto flutuante com
+ * dinheiro). Definidos por Celso em 29/09/2026. PLANO CORTESIA não é
+ * vendável (concedido só pela gestão) — sem preço aqui de propósito.
+ */
+export const PLANO_PRECO_CENTAVOS: Record<string, number> = {
+  'PLANO SERVIÇO': 8100,
+  'PLANO MENSAL': 13770,
+  'PLANO ESCRITÓRIO': 38880,
+}
+
 /** Avulso é vendido em múltiplos de 600 CR (mesma regra de adicionar-avulso). */
 export const AVULSO_MULTIPLO = 600
 export const AVULSO_MAXIMO = 36000
+/** Preço por unidade de 600 CR avulso, em centavos — mesma taxa do PLANO SERVIÇO. */
+export const AVULSO_PRECO_UNITARIO_CENTAVOS = 8100
+
+/** Preço total (centavos) de uma contratação — null se o tipo não for vendável. */
+export function precoCentavos(tipo: string, qdeCreditos: number): number | null {
+  if (tipo === 'AVULSO') {
+    const unidades = qdeCreditos / AVULSO_MULTIPLO
+    return Number.isInteger(unidades) && unidades > 0 ? unidades * AVULSO_PRECO_UNITARIO_CENTAVOS : null
+  }
+  return PLANO_PRECO_CENTAVOS[tipo] ?? null
+}
 
 /** Vistoria só inicia com pelo menos este saldo disponível (especificação). */
 export const MINIMO_INICIAR_VISTORIA = 100
@@ -220,5 +242,57 @@ export async function consumirCreditos(
   } catch (e) {
     console.error('[creditos] consumir_creditos exceção:', e)
     return { ok: false, cobrado: false, motivo: 'erro', erro: String(e) }
+  }
+}
+
+/**
+ * Concede créditos de verdade (após pagamento confirmado). Mesma lógica já
+ * usada em /api/trocar-plano (plano) e /api/gestor/adicionar-avulso
+ * (avulso) — extraída aqui para o webhook do Asaas reaproveitar, em vez de
+ * duplicar. data_fim_contrato NUNCA é definida aqui: é calculada por um
+ * gatilho no próprio banco a partir de data_inicio_contrato, exatamente
+ * como nessas duas rotas já fazem.
+ */
+export async function concederCreditos(
+  cpf: string, tipo: string, qdeCreditos: number
+): Promise<{ ok: boolean; erro?: string }> {
+  const supabase = admin()
+  try {
+    if (tipo === 'AVULSO') {
+      const { data: contrato } = await supabase
+        .from('contratos_inspetor').select('*')
+        .eq('cpf_inspetor', cpf).gte('data_fim_contrato', new Date().toISOString().slice(0, 10))
+        .order('data_inicio_contrato', { ascending: false }).limit(1).maybeSingle()
+
+      if (contrato) {
+        const { error } = await supabase.from('contratos_inspetor').update({
+          qde_contratada_avulso: contrato.qde_contratada_avulso + qdeCreditos,
+          saldo_quantidade_avulso: contrato.saldo_quantidade_avulso + qdeCreditos,
+        }).eq('cpf_inspetor', cpf).eq('tipo_assinatura', contrato.tipo_assinatura)
+          .eq('data_inicio_contrato', contrato.data_inicio_contrato)
+        if (error) return { ok: false, erro: error.message }
+      } else {
+        const { error } = await supabase.from('contratos_inspetor').insert({
+          cpf_inspetor: cpf, tipo_assinatura: 'PLANO SERVIÇO', // placeholder p/ satisfazer o check
+          data_inicio_contrato: new Date().toISOString().slice(0, 10),
+          qde_contratada_plano: 0, saldo_quantidade_plano: 0,
+          qde_contratada_avulso: qdeCreditos, saldo_quantidade_avulso: qdeCreditos,
+        })
+        if (error) return { ok: false, erro: error.message }
+      }
+      return { ok: true }
+    }
+
+    // Plano (MENSAL/SERVIÇO/ESCRITÓRIO) — novo contrato
+    const { error } = await supabase.from('contratos_inspetor').insert({
+      cpf_inspetor: cpf, tipo_assinatura: tipo,
+      data_inicio_contrato: new Date().toISOString().slice(0, 10),
+      qde_contratada_plano: qdeCreditos, saldo_quantidade_plano: qdeCreditos,
+      qde_contratada_avulso: 0, saldo_quantidade_avulso: 0,
+    })
+    if (error) return { ok: false, erro: error.message }
+    return { ok: true }
+  } catch (e) {
+    return { ok: false, erro: String(e) }
   }
 }
