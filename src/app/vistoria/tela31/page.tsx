@@ -122,6 +122,7 @@ function Tela31Inner() {
   // foto por limitação de memória, perdendo tudo que foi digitado) ──
   const draftKey = `aime_rascunho_${chaveInspetor}_${cnpjoucpf}_${tipoServico}`
   const [rascunhoRecuperado, setRascunhoRecuperado] = useState(false)
+  const suprimirProximoSalvamentoRef = useRef(false)
 
   useEffect(() => {
     try {
@@ -160,6 +161,7 @@ function Tela31Inner() {
   }, [])
 
   useEffect(() => {
+    if (suprimirProximoSalvamentoRef.current) { suprimirProximoSalvamentoRef.current = false; return }
     const temAlgo = tipoAtivo || tagNrSerie || subsistema || anomalia
     try {
       if (temAlgo) {
@@ -504,6 +506,7 @@ function Tela31Inner() {
       if (fileInputRef.current) fileInputRef.current.value = ''
       try { localStorage.removeItem(draftKey) } catch {}
     setRascunhoRecuperado(false)
+    suprimirProximoSalvamentoRef.current = true
       return
     }
 
@@ -516,6 +519,7 @@ function Tela31Inner() {
     if (fileInputRef.current) fileInputRef.current.value = ''
     try { localStorage.removeItem(draftKey) } catch {}
     setRascunhoRecuperado(false)
+    suprimirProximoSalvamentoRef.current = true
     setSalvando(false); setSalvoOk(true); setArquivoSalvo(nomeArquivo)
   }
 

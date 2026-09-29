@@ -124,6 +124,12 @@ function Tela31Inner() {
   // foto por limitação de memória, perdendo tudo que foi digitado) ──
   const draftKey = `aime_rascunho_${chaveInspetor}_${cnpjoucpf}_${tipoServico}`
   const [rascunhoRecuperado, setRascunhoRecuperado] = useState(false)
+  // Trava por 1 ciclo: impede que o efeito de salvar rascunho grave algo
+  // logo apos um salvamento bem-sucedido, mesmo que algum campo ainda tenha
+  // valor residual no instante do reset (protecao extra, independente da
+  // causa exata — Celso reportou 29/09/2026 o aviso reaparecendo na 2a
+  // vistoria da mesma sessao, mesmo sem nenhum recarregamento visivel).
+  const suprimirProximoSalvamentoRef = useRef(false)
 
   useEffect(() => {
     try {
@@ -156,6 +162,7 @@ function Tela31Inner() {
   }, [])
 
   useEffect(() => {
+    if (suprimirProximoSalvamentoRef.current) { suprimirProximoSalvamentoRef.current = false; return }
     const temAlgo = tipoAtivo || tagNrSerie || subsistema || anomalia
     try {
       if (temAlgo) {
@@ -507,6 +514,7 @@ function Tela31Inner() {
       if (fileInputRef.current) fileInputRef.current.value = ''
       try { localStorage.removeItem(draftKey) } catch {}
     setRascunhoRecuperado(false)
+    suprimirProximoSalvamentoRef.current = true
       return
     }
 
@@ -519,6 +527,7 @@ function Tela31Inner() {
     if (fileInputRef.current) fileInputRef.current.value = ''
     try { localStorage.removeItem(draftKey) } catch {}
     setRascunhoRecuperado(false)
+    suprimirProximoSalvamentoRef.current = true
     setSalvando(false); setSalvoOk(true); setArquivoSalvo(nomeArquivo)
   }
 
