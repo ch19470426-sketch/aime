@@ -60,6 +60,11 @@ function ehCronVercel(request: NextRequest): boolean {
 export async function GET(request: NextRequest) {
   try {
     const url = new URL(request.url)
+    const formato = url.searchParams.get('formato') === 'csv' ? 'csv' : 'json'
+    // Linhas para a planilha (preenchidas abaixo, junto com o calculo normal —
+    // sempre com TODOS os itens, nao so a amostra de 10, para conferencia real)
+    const linhasCsv: string[][] = [['categoria', 'identificador', 'data', 'data_corte', 'seria_excluido']]
+
     const simular = url.searchParams.get('simular') !== 'false'   // padrão: SIMULA
     const prazoDias = Number(url.searchParams.get('dias') ?? PRAZO_PADRAO_DIAS)
     if (!Number.isFinite(prazoDias) || prazoDias < 0) {
@@ -96,6 +101,10 @@ export async function GET(request: NextRequest) {
     // ---------- a) Storage "vistorias/" ----------
     const arqVistorias = await listarTodos('vistorias')
     const selVistorias = selecionarArquivosVistorias(arqVistorias, corte)
+    const corteISO = corte.toISOString().slice(0, 10)
+    for (const a of arqVistorias) {
+      linhasCsv.push(['vistorias', a.name, a.created_at?.slice(0, 10) ?? '(sem data)', corteISO, selVistorias.includes(a) ? 'sim' : 'não'])
+    }
     if (simular) {
       resultado.vistorias = { total: arqVistorias.length, elegiveis: selVistorias.length, amostra: selVistorias.slice(0, 10).map(a => a.name) }
     } else {
@@ -110,6 +119,9 @@ export async function GET(request: NextRequest) {
     // ---------- b) Storage "documentos_inspetor/" (preserva Termo de Aceite) ----------
     const arqDocs = await listarTodos('documentos_inspetor')
     const selDocs = selecionarArquivosDocumentos(arqDocs, corte)
+    for (const a of arqDocs) {
+      linhasCsv.push(['documentos_inspetor', a.name, a.created_at?.slice(0, 10) ?? '(sem data)', corteISO, selDocs.includes(a) ? 'sim' : 'não'])
+    }
     if (simular) {
       resultado.documentosInspetor = { total: arqDocs.length, elegiveis: selDocs.length, amostra: selDocs.slice(0, 10).map(a => a.name) }
     } else {
@@ -124,6 +136,10 @@ export async function GET(request: NextRequest) {
     // ---------- c) Tabela dados_vistoria (por data_homologacao) ----------
     const { data: linhasVist } = await supabase.from('dados_vistoria').select('numero_foto,cpf_inspetor,cnpjoucpf,tipo_servico,data_homologacao')
     const selLinhasVist = selecionarLinhasPorData(linhasVist ?? [], 'data_homologacao', corte)
+    for (const l of linhasVist ?? []) {
+      const id = `${l.cpf_inspetor}_${l.cnpjoucpf}_${l.tipo_servico}_${l.numero_foto}`
+      linhasCsv.push(['dados_vistoria', id, l.data_homologacao ?? '(sem data)', corteISO, selLinhasVist.includes(l) ? 'sim' : 'não'])
+    }
     if (simular) {
       resultado.dadosVistoria = { total: (linhasVist ?? []).length, elegiveis: selLinhasVist.length }
     } else {
@@ -144,6 +160,10 @@ export async function GET(request: NextRequest) {
     const { data: linhasAtivos } = await supabase.from('ativos_a_vistoriar')
       .select('cpf_inspetor,cnpjoucpf,tipo_servico,tipo_ativo,tag_ativo_nr_serie,data_cadastro')
     const selLinhasAtivos = selecionarLinhasPorData(linhasAtivos ?? [], 'data_cadastro', corte)
+    for (const l of linhasAtivos ?? []) {
+      const id = `${l.cpf_inspetor}_${l.cnpjoucpf}_${l.tipo_servico}_${l.tipo_ativo}_${l.tag_ativo_nr_serie}`
+      linhasCsv.push(['ativos_a_vistoriar', id, String(l.data_cadastro ?? '').slice(0, 10) || '(sem data)', corteISO, selLinhasAtivos.includes(l) ? 'sim' : 'não'])
+    }
     if (simular) {
       resultado.ativosAVistoriar = { total: (linhasAtivos ?? []).length, elegiveis: selLinhasAtivos.length }
     } else {
@@ -170,6 +190,11 @@ export async function GET(request: NextRequest) {
       const { data: pedidosRaw } = await supabase.from('pedidos_credito')
         .select('id,cpf_inspetor,tipo,qde_creditos,status,criado_em').eq('status', 'aguardando_pagamento')
       const selPedidos = selecionarPedidosNaoPagos(pedidosRaw ?? [], cortePedidos)
+      const cortePedidosISO = cortePedidos.toISOString().slice(0, 10)
+      for (const p of pedidosRaw ?? []) {
+        const id = `#${p.id} ${p.cpf_inspetor} ${p.tipo} ${p.qde_creditos}CR`
+        linhasCsv.push(['pedidos_credito', id, String(p.criado_em ?? '').slice(0, 10) || '(sem data)', cortePedidosISO, selPedidos.includes(p) ? 'sim' : 'não'])
+      }
       if (simular) {
         resultado.pedidosNaoPagos = { total: (pedidosRaw ?? []).length, elegiveis: selPedidos.length }
       } else {
@@ -184,6 +209,22 @@ export async function GET(request: NextRequest) {
       // Tabela pode ainda não existir em ambientes onde a migracao de
       // creditos nao foi aplicada — nao derruba o resto da higienizacao.
       resultado.pedidosNaoPagos = { total: 0, elegiveis: 0 }
+    }
+
+    if (formato === 'csv') {
+      // Ponto-e-virgula (nao virgula) como separador — Excel em Portugues do
+      // Brasil espera isso por padrao para abrir corretamente sem assistente
+      // de importacao. BOM UTF-8 no inicio, para acentos aparecerem certos.
+      const csv = '\uFEFF' + linhasCsv.map(linha =>
+        linha.map(campo => `"${String(campo).replace(/"/g, '""')}"`).join(';')
+      ).join('\r\n')
+      return new NextResponse(csv, {
+        status: 200,
+        headers: {
+          'Content-Type': 'text/csv; charset=utf-8',
+          'Content-Disposition': `attachment; filename="higienizacao_${corteISO}.csv"`,
+        },
+      })
     }
 
     return NextResponse.json(resultado)
