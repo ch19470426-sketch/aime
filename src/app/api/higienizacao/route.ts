@@ -57,6 +57,20 @@ function ehCronVercel(request: NextRequest): boolean {
   return request.headers.get('authorization') === `Bearer ${segredo}`
 }
 
+/**
+ * 'AAAA-MM-DD' -> 'DD/MM/AAAA', só para a planilha (CSV). Uma data ISO como
+ * "2026-09-10" é tecnicamente inequívoca, mas o Excel, ao importar CSV, pode
+ * reinterpretar mês/dia de forma errada dependendo da configuração regional
+ * — Celso reportou exatamente isso em 29/09/2026 (10/09 virou "09/10" na
+ * planilha, embora o dado no banco estivesse certo). Escrever já no formato
+ * brasileiro por extenso elimina essa ambiguidade.
+ */
+function fmtBR(isoDate: string | null | undefined): string {
+  if (!isoDate) return '(sem data)'
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(isoDate)
+  return m ? `${m[3]}/${m[2]}/${m[1]}` : '(sem data)'
+}
+
 export async function GET(request: NextRequest) {
   try {
     const url = new URL(request.url)
@@ -102,8 +116,9 @@ export async function GET(request: NextRequest) {
     const arqVistorias = await listarTodos('vistorias')
     const selVistorias = selecionarArquivosVistorias(arqVistorias, corte)
     const corteISO = corte.toISOString().slice(0, 10)
+    const corteBR = fmtBR(corteISO)
     for (const a of arqVistorias) {
-      linhasCsv.push(['vistorias', a.name, a.created_at?.slice(0, 10) ?? '(sem data)', corteISO, selVistorias.includes(a) ? 'sim' : 'não'])
+      linhasCsv.push(['vistorias', a.name, fmtBR(a.created_at), corteBR, selVistorias.includes(a) ? 'sim' : 'não'])
     }
     if (simular) {
       resultado.vistorias = { total: arqVistorias.length, elegiveis: selVistorias.length, amostra: selVistorias.slice(0, 10).map(a => a.name) }
@@ -120,7 +135,7 @@ export async function GET(request: NextRequest) {
     const arqDocs = await listarTodos('documentos_inspetor')
     const selDocs = selecionarArquivosDocumentos(arqDocs, corte)
     for (const a of arqDocs) {
-      linhasCsv.push(['documentos_inspetor', a.name, a.created_at?.slice(0, 10) ?? '(sem data)', corteISO, selDocs.includes(a) ? 'sim' : 'não'])
+      linhasCsv.push(['documentos_inspetor', a.name, fmtBR(a.created_at), corteBR, selDocs.includes(a) ? 'sim' : 'não'])
     }
     if (simular) {
       resultado.documentosInspetor = { total: arqDocs.length, elegiveis: selDocs.length, amostra: selDocs.slice(0, 10).map(a => a.name) }
@@ -138,7 +153,7 @@ export async function GET(request: NextRequest) {
     const selLinhasVist = selecionarLinhasPorData(linhasVist ?? [], 'data_homologacao', corte)
     for (const l of linhasVist ?? []) {
       const id = `${l.cpf_inspetor}_${l.cnpjoucpf}_${l.tipo_servico}_${l.numero_foto}`
-      linhasCsv.push(['dados_vistoria', id, l.data_homologacao ?? '(sem data)', corteISO, selLinhasVist.includes(l) ? 'sim' : 'não'])
+      linhasCsv.push(['dados_vistoria', id, fmtBR(l.data_homologacao), corteBR, selLinhasVist.includes(l) ? 'sim' : 'não'])
     }
     if (simular) {
       resultado.dadosVistoria = { total: (linhasVist ?? []).length, elegiveis: selLinhasVist.length }
@@ -162,7 +177,7 @@ export async function GET(request: NextRequest) {
     const selLinhasAtivos = selecionarLinhasPorData(linhasAtivos ?? [], 'data_cadastro', corte)
     for (const l of linhasAtivos ?? []) {
       const id = `${l.cpf_inspetor}_${l.cnpjoucpf}_${l.tipo_servico}_${l.tipo_ativo}_${l.tag_ativo_nr_serie}`
-      linhasCsv.push(['ativos_a_vistoriar', id, String(l.data_cadastro ?? '').slice(0, 10) || '(sem data)', corteISO, selLinhasAtivos.includes(l) ? 'sim' : 'não'])
+      linhasCsv.push(['ativos_a_vistoriar', id, fmtBR(l.data_cadastro), corteBR, selLinhasAtivos.includes(l) ? 'sim' : 'não'])
     }
     if (simular) {
       resultado.ativosAVistoriar = { total: (linhasAtivos ?? []).length, elegiveis: selLinhasAtivos.length }
@@ -190,10 +205,10 @@ export async function GET(request: NextRequest) {
       const { data: pedidosRaw } = await supabase.from('pedidos_credito')
         .select('id,cpf_inspetor,tipo,qde_creditos,status,criado_em').eq('status', 'aguardando_pagamento')
       const selPedidos = selecionarPedidosNaoPagos(pedidosRaw ?? [], cortePedidos)
-      const cortePedidosISO = cortePedidos.toISOString().slice(0, 10)
+      const cortePedidosBR = fmtBR(cortePedidos.toISOString().slice(0, 10))
       for (const p of pedidosRaw ?? []) {
         const id = `#${p.id} ${p.cpf_inspetor} ${p.tipo} ${p.qde_creditos}CR`
-        linhasCsv.push(['pedidos_credito', id, String(p.criado_em ?? '').slice(0, 10) || '(sem data)', cortePedidosISO, selPedidos.includes(p) ? 'sim' : 'não'])
+        linhasCsv.push(['pedidos_credito', id, fmtBR(p.criado_em), cortePedidosBR, selPedidos.includes(p) ? 'sim' : 'não'])
       }
       if (simular) {
         resultado.pedidosNaoPagos = { total: (pedidosRaw ?? []).length, elegiveis: selPedidos.length }
