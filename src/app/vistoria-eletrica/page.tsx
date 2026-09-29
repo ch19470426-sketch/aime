@@ -30,6 +30,7 @@ function VistoriaEletricaInner() {
   const router        = useRouter()
   const cpfEletrico   = params.get('cpf_inspetor')   ?? ''
   const chaveEletrico = params.get('chave_inspetor') ?? ''
+  const sessaoToken    = params.get('sessao')         ?? ''
 
   const [cnpj,      setCnpj]      = useState('')
   const [cpfCivil,  setCpfCivil]  = useState('')
@@ -74,7 +75,7 @@ function VistoriaEletricaInner() {
       // Vai direto para a vistoria — o comando já foi dado ao clicar em
       // "Vistoriar", não precisa de uma tela intermediária com outro botão.
       router.push(
-        `/vistoria/tela32?cpf_inspetor=${cpfLimpo}&chave_inspetor=${chaveEletrico}&cnpjoucpf=${cnpjLimpo}&tipo_servico=32&sistema_fixo=07-Instalações elétricas&cpf_eletrico=${cpfEletrico}`
+        `/vistoria/tela32?cpf_inspetor=${cpfLimpo}&chave_inspetor=${chaveEletrico}&cnpjoucpf=${cnpjLimpo}&tipo_servico=32&sistema_fixo=07-Instalações elétricas&cpf_eletrico=${cpfEletrico}&sessao=${sessaoToken}`
       )
     } catch(e: any) {
       setErro(e.message ?? 'Erro inesperado')
@@ -155,7 +156,7 @@ function VistoriaEletricaInner() {
               </button>
               <button style={{ ...S.btn, ...S.btnPri }}
                 onClick={() => router.push(
-                  `/vistoria/tela32?cpf_inspetor=${credencial.cpfCivil}&chave_inspetor=${chaveEletrico}&cnpjoucpf=${credencial.cnpj}&tipo_servico=32&sistema_fixo=07-Instalações elétricas&cpf_eletrico=${cpfEletrico}`
+                  `/vistoria/tela32?cpf_inspetor=${credencial.cpfCivil}&chave_inspetor=${chaveEletrico}&cnpjoucpf=${credencial.cnpj}&tipo_servico=32&sistema_fixo=07-Instalações elétricas&cpf_eletrico=${cpfEletrico}&sessao=${sessaoToken}`
                 )}>
                 Iniciar Vistoria
               </button>

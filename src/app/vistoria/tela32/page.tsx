@@ -74,6 +74,7 @@ function Tela31Inner() {
   const chaveInspetor = params.get('chave_inspetor') ?? cpfInspetor
   const cnpjoucpf     = params.get('cnpjoucpf')      ?? ''
   const tipoServico   = params.get('tipo_servico')   ?? '31'
+  const sessaoToken   = params.get('sessao')          ?? ''
   const sistemaFixo   = params.get('sistema_fixo')  ?? ''   // se preenchido: modo elétrico
   const cpfEletrico   = params.get('cpf_eletrico')  ?? ''
   const tipoServicoBanco = TIPO_SERVICO_BANCO[tipoServico] ?? `${tipoServico} Autovistoria`
@@ -129,6 +130,7 @@ function Tela31Inner() {
       const salvo = localStorage.getItem(draftKey)
       if (salvo) {
         const d = JSON.parse(salvo)
+        if (d.sessao && sessaoToken && d.sessao === sessaoToken) {
         if (d.tipoAtivo)       setTipoAtivo(d.tipoAtivo)
         if (d.tagNrSerie)      setTagNrSerie(d.tagNrSerie)
         if (d.finalidade)      setFinalidade(d.finalidade)
@@ -145,6 +147,9 @@ function Tela31Inner() {
         if (d.nc)              setNc(d.nc)
         if (d.cp)              setCp(d.cp)
         setRascunhoRecuperado(true)
+        } else {
+          try { localStorage.removeItem(draftKey) } catch {}
+        }
       }
     } catch {}
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -157,6 +162,7 @@ function Tela31Inner() {
         localStorage.setItem(draftKey, JSON.stringify({
           tipoAtivo, tagNrSerie, finalidade, sistema, subsistema, anomalia, origem, local,
           complemento, descGravidade, descUrgencia, descAbrangencia, descExposicao, nc, cp,
+          sessao: sessaoToken,
         }))
       } else {
         localStorage.removeItem(draftKey)

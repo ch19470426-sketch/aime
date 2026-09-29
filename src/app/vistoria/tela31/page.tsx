@@ -74,6 +74,7 @@ function Tela31Inner() {
   const chaveInspetor = params.get('chave_inspetor') ?? cpfInspetor
   const cnpjoucpf     = params.get('cnpjoucpf')      ?? ''
   const tipoServico   = params.get('tipo_servico')   ?? '31'
+  const sessaoToken   = params.get('sessao')          ?? ''
   const tipoServicoBanco = TIPO_SERVICO_BANCO[tipoServico] ?? `${tipoServico} Autovistoria`
   const tagObrigatorio   = ['35', '37', '38'].includes(tipoServico)
 
@@ -127,6 +128,13 @@ function Tela31Inner() {
       const salvo = localStorage.getItem(draftKey)
       if (salvo) {
         const d = JSON.parse(salvo)
+        // Só recupera se o rascunho for da MESMA entrada pelo menu (mesmo
+        // sessaoToken) — ex: a página recarregou sozinha por falta de
+        // memória, dentro da mesma sessão de trabalho. Um acesso NOVO pelo
+        // menu gera um sessaoToken diferente: o rascunho antigo, de uma
+        // tentativa anterior encerrada sem salvar, é descartado em silêncio,
+        // sem mostrar o aviso. Pedido de Celso, 29/09/2026.
+        if (d.sessao && sessaoToken && d.sessao === sessaoToken) {
         if (d.tipoAtivo)       setTipoAtivo(d.tipoAtivo)
         if (d.tagNrSerie)      setTagNrSerie(d.tagNrSerie)
         if (d.finalidade)      setFinalidade(d.finalidade)
@@ -143,6 +151,9 @@ function Tela31Inner() {
         if (d.nc)              setNc(d.nc)
         if (d.cp)              setCp(d.cp)
         setRascunhoRecuperado(true)
+        } else {
+          try { localStorage.removeItem(draftKey) } catch {}
+        }
       }
     } catch {}
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -155,6 +166,7 @@ function Tela31Inner() {
         localStorage.setItem(draftKey, JSON.stringify({
           tipoAtivo, tagNrSerie, finalidade, sistema, subsistema, anomalia, origem, local,
           complemento, descGravidade, descUrgencia, descAbrangencia, descExposicao, nc, cp,
+          sessao: sessaoToken,
         }))
       } else {
         localStorage.removeItem(draftKey)

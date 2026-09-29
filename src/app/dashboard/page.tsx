@@ -610,9 +610,16 @@ export default function Dashboard() {
       }
       setEstadoDoc('aguardando')
     }
+    // Identificador unico desta ENTRADA pelo menu — usado pelas telas de
+    // vistoria para saber se um rascunho salvo (localStorage) pertence a
+    // ESTA sessao de trabalho (recarregamento da mesma pagina, por ex. por
+    // falta de memoria do navegador) ou a um acesso ANTERIOR, encerrado sem
+    // salvar — nesse segundo caso o aviso de "rascunho recuperado" nao deve
+    // aparecer. Pedido de Celso, 29/09/2026.
+    const sessaoToken = `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`
     const url = tipoServico === '39'
-      ? `/vistoria-eletrica?cpf_inspetor=${cpfInspetor}&chave_inspetor=${chaveInspetor}`
-      : `/vistoria/tela${tipoServico}?cpf_inspetor=${cpfInspetor}&chave_inspetor=${chaveInspetor}&cnpjoucpf=${docLimpo}&tipo_servico=${tipoServico}`
+      ? `/vistoria-eletrica?cpf_inspetor=${cpfInspetor}&chave_inspetor=${chaveInspetor}&sessao=${sessaoToken}`
+      : `/vistoria/tela${tipoServico}?cpf_inspetor=${cpfInspetor}&chave_inspetor=${chaveInspetor}&cnpjoucpf=${docLimpo}&tipo_servico=${tipoServico}&sessao=${sessaoToken}`
     window.location.href = url
   }
 
