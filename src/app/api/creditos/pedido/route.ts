@@ -12,7 +12,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { cpfDaSessao } from '@/lib/sessaoServidor'
-import { AVULSO_MAXIMO, AVULSO_MULTIPLO, PLANO_CR, ehGestor, precoCentavos } from '@/lib/creditos'
+import { AVULSO_MAXIMO, AVULSO_MULTIPLO, PLANO_CR, ehGestor, precoCentavos, podeComprarAvulso } from '@/lib/creditos'
 import { acharOuCriarCliente, criarCobranca, consultarCobranca, type FormaPagamento } from '@/lib/asaas'
 
 export const dynamic = 'force-dynamic'
@@ -74,6 +74,14 @@ export async function POST(request: NextRequest) {
         return NextResponse.json(
           { erro: `Quantidade avulsa deve ser múltiplo de ${AVULSO_MULTIPLO}, até ${AVULSO_MAXIMO}.` },
           { status: 400 }
+        )
+      }
+      // Regra de Celso (29/09/2026): avulso só para quem já tem PLANO MENSAL
+      // ou PLANO ESCRITÓRIO vigente — não é uma opção "de entrada".
+      if (!(await podeComprarAvulso(cpf))) {
+        return NextResponse.json(
+          { erro: 'Créditos avulsos só podem ser contratados por quem já tem o PLANO MENSAL ou PLANO ESCRITÓRIO ativo.' },
+          { status: 403 }
         )
       }
     } else if (typeof tipo === 'string' && PLANO_CR[tipo]) {

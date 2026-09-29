@@ -5,7 +5,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { cpfDaSessao } from '@/lib/sessaoServidor'
-import { cobrancaAtiva, ehGestor, lerSaldo } from '@/lib/creditos'
+import { cobrancaAtiva, ehGestor, lerSaldo, podeComprarAvulso } from '@/lib/creditos'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -18,6 +18,7 @@ export async function GET(request: NextRequest) {
   // o saldo vem da função SQL e fica null se a migração ainda não foi aplicada.
   const gestor = await ehGestor(cpf)
   const saldo = await lerSaldo(cpf)
+  const avulsoLiberado = gestor === true ? false : await podeComprarAvulso(cpf)
 
   return NextResponse.json({
     isento: gestor === true,
@@ -25,5 +26,6 @@ export async function GET(request: NextRequest) {
     saldoPlano: saldo?.saldo_plano ?? null,
     saldoAvulso: saldo?.saldo_avulso ?? null,
     saldoTotal: saldo?.saldo_total ?? null,
+    avulsoLiberado,
   })
 }

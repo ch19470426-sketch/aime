@@ -54,7 +54,7 @@ function CadastroInspetor() {
   const [solicitandoTroca, setSolicitandoTroca] = useState(false)
   const [planoDesejado, setPlanoDesejado] = useState('PLANO MENSAL')
   // Contratação de créditos / isenção de gestor
-  const [statusCred, setStatusCred] = useState<{isento:boolean; cobrancaAtiva:boolean} | null>(null)
+  const [statusCred, setStatusCred] = useState<{isento:boolean; cobrancaAtiva:boolean; avulsoLiberado?:boolean} | null>(null)
   const [pedidos, setPedidos] = useState<any[]>([])
   const [tipoPedido, setTipoPedido] = useState('PLANO MENSAL')
   const [qdeAvulso, setQdeAvulso] = useState(600)
@@ -568,7 +568,7 @@ function CadastroInspetor() {
                               <option value="PLANO SERVIÇO">PLANO SERVIÇO (600 CR)</option>
                               <option value="PLANO MENSAL">PLANO MENSAL (1.200 CR)</option>
                               <option value="PLANO ESCRITÓRIO">PLANO ESCRITÓRIO (3.600 CR)</option>
-                              <option value="AVULSO">Créditos avulsos</option>
+                              {statusCred?.avulsoLiberado && <option value="AVULSO">Créditos avulsos</option>}
                             </select>
                           </div>
                           {tipoPedido === 'AVULSO' && (

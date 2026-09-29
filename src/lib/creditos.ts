@@ -195,6 +195,26 @@ export async function ehGestor(cpf: string): Promise<boolean | null> {
   } catch { return null }
 }
 
+/** Tipos de plano que dão direito a comprar créditos avulsos — decisão de
+ *  Celso, 29/09/2026: avulso só para quem já tem Mensal ou Escritório
+ *  vigente (Cortesia e Serviço não dão esse direito). */
+const PLANOS_QUE_PERMITEM_AVULSO = ['PLANO MENSAL', 'PLANO ESCRITÓRIO']
+
+/**
+ * O CPF tem, HOJE, um contrato vigente (data_fim_contrato >= hoje) do tipo
+ * Mensal ou Escritório? Entre vários vigentes, olha o de início mais
+ * recente — mesma regra usada no resto do módulo de créditos.
+ */
+export async function podeComprarAvulso(cpf: string): Promise<boolean> {
+  try {
+    const { data } = await admin()
+      .from('contratos_inspetor').select('tipo_assinatura,data_inicio_contrato')
+      .eq('cpf_inspetor', cpf).gte('data_fim_contrato', new Date().toISOString().slice(0, 10))
+      .order('data_inicio_contrato', { ascending: false }).limit(1).maybeSingle()
+    return !!data && PLANOS_QUE_PERMITEM_AVULSO.includes(data.tipo_assinatura)
+  } catch { return false }
+}
+
 /** Saldo via função SQL. null se a migração ainda não foi aplicada ou houve erro. */
 export async function lerSaldo(cpf: string): Promise<Saldo | null> {
   try {
