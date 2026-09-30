@@ -34,8 +34,22 @@ const supabase = createClient(
 
 function tokenValido(request: NextRequest): boolean {
   const esperado = process.env.ASAAS_WEBHOOK_TOKEN
+  const recebido = request.headers.get('asaas-access-token')
+
+  // DIAGNOSTICO TEMPORARIO (30/09/2026) — Asaas devolveu 401 numa tentativa
+  // real; isto ajuda a ver exatamente o que chega, sem expor os segredos
+  // nos logs. Remover depois que o webhook estiver validado de ponta a
+  // ponta.
+  console.log('[asaas-webhook] diagnostico:', {
+    todosOsCabecalhos: [...request.headers.keys()],
+    temCabecalhoAsaasAccessToken: recebido !== null,
+    tamanhoRecebido: recebido?.length ?? 0,
+    tamanhoEsperado: esperado?.length ?? 0,
+    bateExatamente: recebido === esperado,
+  })
+
   if (!esperado) return false
-  return request.headers.get('asaas-access-token') === esperado
+  return recebido === esperado
 }
 
 export async function POST(request: NextRequest) {
