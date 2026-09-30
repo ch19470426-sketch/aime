@@ -306,21 +306,28 @@ export async function concederCreditos(
     // Plano (MENSAL/SERVIÇO/ESCRITÓRIO) — normalmente um contrato novo, mas
     // a chave primária é (cpf, tipo_assinatura, data_inicio_contrato): se o
     // MESMO tipo já foi contratado HOJE por este CPF (ex.: testando duas
-    // vezes no mesmo dia), a linha já existe e não pode ser duplicada.
-    // NÃO soma (qde_contratada_plano só aceita 0/600/1200/3600 — um valor
-    // somado quase sempre cai fora dessa lista); trata como RENOVAÇÃO:
-    // devolve o saldo ao valor cheio contratado, sem alterar a quantidade
-    // contratada em si. Achado real de Celso, 30/09/2026 (2 rodadas: 1o
-    // "duplicate key", depois "check constraint" ao tentar somar).
+    // vezes no mesmo dia, ou renovação no mesmo dia em que o plano anterior
+    // ainda está cheio), a linha já existe e não pode ser duplicada, e
+    // qde_contratada_plano só aceita 0/600/1200/3600 — não dá para "somar"
+    // ali. A correção de 30/09 que só "renovava" o saldo ao valor cheio
+    // DESCARTAVA o que foi pago se o saldo já estivesse cheio (achado de
+    // Celso). Correto: o excedente entra como AVULSO — pool sem essa trava
+    // de valor fixo (só exige múltiplo de 600) — garantindo que o
+    // pagamento sempre vira crédito de verdade, nunca se perde.
     const hoje = new Date().toISOString().slice(0, 10)
     const { data: jaExiste } = await supabase
-      .from('contratos_inspetor').select('qde_contratada_plano')
+      .from('contratos_inspetor').select('qde_contratada_plano,saldo_quantidade_plano,qde_contratada_avulso,saldo_quantidade_avulso')
       .eq('cpf_inspetor', cpf).eq('tipo_assinatura', tipo).eq('data_inicio_contrato', hoje)
       .maybeSingle()
 
     if (jaExiste) {
+      const faltaParaEncher = jaExiste.qde_contratada_plano - jaExiste.saldo_quantidade_plano
+      const paraPlano = Math.min(faltaParaEncher, qdeCreditos)   // preenche o plano ate o teto antes de sobrar
+      const excedente = qdeCreditos - paraPlano                  // o resto vira avulso, nunca se perde
       const { error } = await supabase.from('contratos_inspetor').update({
-        saldo_quantidade_plano: jaExiste.qde_contratada_plano,
+        saldo_quantidade_plano: jaExiste.saldo_quantidade_plano + paraPlano,
+        qde_contratada_avulso: jaExiste.qde_contratada_avulso + excedente,
+        saldo_quantidade_avulso: jaExiste.saldo_quantidade_avulso + excedente,
       }).eq('cpf_inspetor', cpf).eq('tipo_assinatura', tipo).eq('data_inicio_contrato', hoje)
       if (error) return { ok: false, erro: error.message }
       return { ok: true }
