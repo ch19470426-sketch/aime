@@ -33,20 +33,15 @@ const supabase = createClient(
 )
 
 function diagnosticoToken(request: NextRequest) {
-  const esperado = process.env.ASAAS_WEBHOOK_TOKEN
-  const recebido = request.headers.get('asaas-access-token')
+  const esperado = process.env.ASAAS_WEBHOOK_TOKEN ?? ''
+  const recebido = request.headers.get('asaas-access-token') ?? ''
+  // DIAGNOSTICO TEMPORARIO (30/09/2026) — a tela do Asaas corta mensagens
+  // longas; resumido ao maximo. Mostra so as pontas de cada valor (nao o
+  // segredo inteiro) para achar diferenca de espaco/caractere sem expor.
+  const ponta = (s: string) => s.length <= 8 ? s : `${s.slice(0, 4)}...${s.slice(-4)}`
   return {
     valido: !!esperado && recebido === esperado,
-    // DIAGNOSTICO TEMPORARIO (30/09/2026) — Celso nao conseguiu localizar
-    // os Logs da Vercel; devolvendo o diagnostico aqui, no proprio corpo da
-    // resposta 401, que ele ja consegue ver na tela de tentativas do
-    // webhook no painel do Asaas. Nao expoe os segredos em si, so
-    // tamanhos/comparacao. Remover depois que o webhook estiver validado.
-    cabecalhoRecebido: recebido !== null,
-    todosOsCabecalhos: [...request.headers.keys()],
-    tamanhoTokenRecebido: recebido?.length ?? 0,
-    tamanhoTokenEsperado: esperado?.length ?? 0,
-    variavelDeAmbienteConfigurada: !!esperado,
+    resumo: `recebido[${recebido.length}]=${ponta(recebido)} esperado[${esperado.length}]=${ponta(esperado)}`,
   }
 }
 
