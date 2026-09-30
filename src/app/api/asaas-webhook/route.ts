@@ -32,30 +32,29 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
 
-function tokenValido(request: NextRequest): boolean {
+function diagnosticoToken(request: NextRequest) {
   const esperado = process.env.ASAAS_WEBHOOK_TOKEN
   const recebido = request.headers.get('asaas-access-token')
-
-  // DIAGNOSTICO TEMPORARIO (30/09/2026) — Asaas devolveu 401 numa tentativa
-  // real; isto ajuda a ver exatamente o que chega, sem expor os segredos
-  // nos logs. Remover depois que o webhook estiver validado de ponta a
-  // ponta.
-  console.log('[asaas-webhook] diagnostico:', {
+  return {
+    valido: !!esperado && recebido === esperado,
+    // DIAGNOSTICO TEMPORARIO (30/09/2026) — Celso nao conseguiu localizar
+    // os Logs da Vercel; devolvendo o diagnostico aqui, no proprio corpo da
+    // resposta 401, que ele ja consegue ver na tela de tentativas do
+    // webhook no painel do Asaas. Nao expoe os segredos em si, so
+    // tamanhos/comparacao. Remover depois que o webhook estiver validado.
+    cabecalhoRecebido: recebido !== null,
     todosOsCabecalhos: [...request.headers.keys()],
-    temCabecalhoAsaasAccessToken: recebido !== null,
-    tamanhoRecebido: recebido?.length ?? 0,
-    tamanhoEsperado: esperado?.length ?? 0,
-    bateExatamente: recebido === esperado,
-  })
-
-  if (!esperado) return false
-  return recebido === esperado
+    tamanhoTokenRecebido: recebido?.length ?? 0,
+    tamanhoTokenEsperado: esperado?.length ?? 0,
+    variavelDeAmbienteConfigurada: !!esperado,
+  }
 }
 
 export async function POST(request: NextRequest) {
   try {
-    if (!tokenValido(request)) {
-      return NextResponse.json({ erro: 'Token inválido.' }, { status: 401 })
+    const diag = diagnosticoToken(request)
+    if (!diag.valido) {
+      return NextResponse.json({ erro: 'Token inválido.', diagnostico: diag }, { status: 401 })
     }
 
     const corpo = await request.json().catch(() => null)
