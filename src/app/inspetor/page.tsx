@@ -568,7 +568,7 @@ function CadastroInspetor() {
                               <option value="PLANO SERVIÇO">PLANO SERVIÇO (600 CR)</option>
                               <option value="PLANO MENSAL">PLANO MENSAL (1.200 CR)</option>
                               <option value="PLANO ESCRITÓRIO">PLANO ESCRITÓRIO (3.600 CR)</option>
-                              {statusCred?.avulsoLiberado && <option value="AVULSO">Créditos avulsos</option>}
+                              {statusCred?.avulsoLiberado && <option value="AVULSO">CRÉDITOS AVULSOS (600 CR)</option>}
                             </select>
                           </div>
                           {tipoPedido === 'AVULSO' && (
