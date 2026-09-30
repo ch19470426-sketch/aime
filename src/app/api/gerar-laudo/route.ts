@@ -9,6 +9,7 @@ export const maxDuration = 60
 import { NextRequest, NextResponse } from 'next/server'
 import { gerarCapa } from '@/lib/gerarCapa'
 import { createClient } from '@supabase/supabase-js'
+import { verificarDisponibilidade, consumirCreditos } from '@/lib/creditos'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -358,6 +359,14 @@ export async function POST(request: NextRequest) {
 
     if (!cpfInspetor || !tipoServico || !nomeArquivo)
       return NextResponse.json({ erro: 'Parâmetros obrigatórios ausentes.' }, { status: 400 })
+
+    const verificacaoLaudo = await verificarDisponibilidade(cpfInspetor, Number(tipoServico))
+    if (!verificacaoLaudo.liberado) {
+      return NextResponse.json({
+        erro: 'Créditos insuficientes para gerar este laudo.',
+        necessario: verificacaoLaudo.necessario, saldoTotal: verificacaoLaudo.saldoTotal, faltam: verificacaoLaudo.faltam,
+      }, { status: 402 })
+    }
 
     // Imagens/documentos do storage — usado por 41-44 e 45-48
     async function imgSrc(path: string): Promise<string> {
@@ -1565,6 +1574,7 @@ export async function POST(request: NextRequest) {
       const { error: errSave } = await supabase.storage.from('aime')
         .upload('documentos_inspetor/' + nomeArquivo, new Blob([htmlNR], { type:'text/html' }), { upsert: true })
       if (errSave) throw new Error('Erro ao salvar: ' + errSave.message)
+      await consumirCreditos(cpfInspetor, Number(tipoServico), { cnpjoucpf, referencia: `${cnpjoucpf}_${tipoServico}_laudo` })
       return NextResponse.json({ sucesso: true, nome: nomeArquivo, html: htmlNR })
     }
     // ── FIM GERADOR NR (45-48) ────────────────────────────────────────────────
@@ -2497,6 +2507,7 @@ ${srcArtMecanico ? `<div style="page-break-before:always;page-break-inside:avoid
       )
     } catch {}
 
+    await consumirCreditos(cpfInspetor, Number(tipoServico), { cnpjoucpf, referencia: `${cnpjoucpf}_${tipoServico}_laudo` })
     return NextResponse.json({ ok:true, nomeArquivo, html })
 
   } catch (err) {

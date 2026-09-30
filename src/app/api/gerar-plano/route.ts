@@ -4,6 +4,7 @@ export const runtime = 'nodejs'
 // src/app/api/gerar-plano/route.ts
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { verificarDisponibilidade, consumirCreditos } from '@/lib/creditos'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -472,6 +473,18 @@ export async function POST(request: NextRequest) {
     // um CNPJ formatado causava "Estabelecimento nao encontrado" mesmo
     // quando o registro existia (comparacao exata falhava silenciosamente).
     const cnpjoucpf = String(cnpjoucpfBruto ?? '').replace(/\D/g, '')
+
+    // tipoServico e o codigo do PROPRIO plano de trabalho (21-28) — usado
+    // para classificar o custo. tipoVistoria (usado mais abaixo) e so para
+    // localizar os ativos da vistoria ASSOCIADA, uma coisa diferente — nao
+    // confundir os dois aqui.
+    const verificacaoPlano = await verificarDisponibilidade(cpfInspetor, Number(tipoServico))
+    if (!verificacaoPlano.liberado) {
+      return NextResponse.json({
+        erro: 'Créditos insuficientes para gerar este plano de trabalho.',
+        necessario: verificacaoPlano.necessario, saldoTotal: verificacaoPlano.saldoTotal, faltam: verificacaoPlano.faltam,
+      }, { status: 402 })
+    }
     const datasAtiv = (datas ?? []) as {ini: string; fim: string}[]
     const docsLista = (docs ?? []) as {doc: string; sit: string; res: string}[]
 
@@ -724,6 +737,10 @@ export async function POST(request: NextRequest) {
       conselho: siglaConselho,
       inscricao: numLimpo(insp.inscricao_crea_cau)
     }
+
+    // Idempotente por estabelecimento+tipo: regenerar o mesmo plano não cobra de novo.
+    await consumirCreditos(cpfInspetor, Number(tipoServico), { cnpjoucpf, referencia: `${cnpjoucpf}_${tipoServico}_plano` })
+
     return NextResponse.json({ html, planoInfo: { titulo: String(plano.titulo), parceiro: String(plano.parceiro), atividades, documentos }, docInfo, endereco })
   } catch (err) {
     return NextResponse.json({ erro: String(err) }, { status: 500 })

@@ -628,6 +628,22 @@ export default function Dashboard() {
       }
       setEstadoDoc('aguardando')
     }
+
+    // Saldo minimo para INICIAR a vistoria (nao debita nada aqui, so
+    // verifica) — mesmo padrao fail-open das demais checagens: erro de
+    // rede libera o acesso, nunca bloqueia por incerteza.
+    try {
+      const resSaldo = await fetch(`/api/creditos/verificar-servico?cpf_inspetor=${cpfInspetor}&codigo_servico=${tipoServico}`)
+      if (resSaldo.ok) {
+        const verificacao = await resSaldo.json()
+        if (verificacao.liberado === false) {
+          setEstadoDoc('erro')
+          setMsgErro(`Créditos insuficientes para iniciar esta vistoria. São necessários ${verificacao.necessario} CR (faltam ${verificacao.faltam ?? '—'}).`)
+          return
+        }
+      }
+    } catch { /* falha na verificação — libera normalmente */ }
+
     // Identificador unico desta ENTRADA pelo menu — usado pelas telas de
     // vistoria para saber se um rascunho salvo (localStorage) pertence a
     // ESTA sessao de trabalho (recarregamento da mesma pagina, por ex. por

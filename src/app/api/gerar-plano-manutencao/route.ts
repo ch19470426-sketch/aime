@@ -3,6 +3,7 @@ export const runtime = 'nodejs'
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { verificarDisponibilidade, consumirCreditos } from '@/lib/creditos'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -114,6 +115,14 @@ export async function POST(request: NextRequest) {
       const estabNomeVal = (e as any).razao_social_nome || (e as any).razao_social || (e as any).nome || Object.values(e as any).find((v:any)=>typeof v==='string'&&v.length>5) || ''
       const cabInsVal = (i as any).cabecalho_documentos || (i as any).nome_inspetor || ''
       return NextResponse.json({ estabNome: estabNomeVal, cabInspetor: cabInsVal, _debug: { e, i } })
+    }
+
+    const verificacaoManut = await verificarDisponibilidade(cpfInspetor, Number(tipoServico))
+    if (!verificacaoManut.liberado) {
+      return NextResponse.json({
+        erro: 'Créditos insuficientes para gerar este plano de manutenção.',
+        necessario: verificacaoManut.necessario, saldoTotal: verificacaoManut.saldoTotal, faltam: verificacaoManut.faltam,
+      }, { status: 402 })
     }
 
     const ts = String(tipoServico)
@@ -583,6 +592,8 @@ ${anx1Rows||'<tr><td colspan="5" style="text-align:center;color:#9a3412;font-sty
     const { error } = await supabase.storage.from('aime')
       .upload(`documentos_inspetor/${nomeArquivo}`, new Blob([html], { type: 'text/html' }), { upsert: true, contentType: 'text/html' })
     if (error) return NextResponse.json({ erro: error.message }, { status: 400 })
+
+    await consumirCreditos(cpfInspetor, Number(tipoServico), { cnpjoucpf, referencia: `${cnpjoucpf}_${tipoServico}_planomanut` })
     return NextResponse.json({ sucesso: true, nome: nomeArquivo, html })
 
   } catch (e) {

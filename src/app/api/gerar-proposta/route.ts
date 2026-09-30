@@ -4,6 +4,7 @@ export const runtime = 'nodejs'
 // src/app/api/gerar-proposta/route.ts
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { verificarDisponibilidade, consumirCreditos } from '@/lib/creditos'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -259,6 +260,14 @@ export async function POST(request: NextRequest) {
       .eq('cpf_inspetor', cpfInspetor).single()
     if (!insp) return NextResponse.json({ erro: 'Inspetor não encontrado' }, { status: 404 })
 
+    const verificacao = await verificarDisponibilidade(cpfInspetor, Number(tipoServico))
+    if (!verificacao.liberado) {
+      return NextResponse.json({
+        erro: 'Créditos insuficientes para gerar esta proposta.',
+        necessario: verificacao.necessario, saldoTotal: verificacao.saldoTotal, faltam: verificacao.faltam,
+      }, { status: 402 })
+    }
+
     const c = C[tipoServico] ?? C['11']
   // Pré-processar: juntar linhas com > de continuação ao item anterior
   function preProcessar(txt: string): string {
@@ -478,6 +487,11 @@ ${insp.especializacao ? `<p style="margin:0;line-height:1">Especialista ${insp.e
       uf_estabelecimento: ufEstabelecimento,
     })
     if (erroHistorico) console.error('Erro ao gravar historico_valores:', erroHistorico.message)
+
+    // Debita créditos por último, só depois que a proposta já foi montada
+    // com sucesso — idempotente por estabelecimento+tipo: regenerar a
+    // mesma proposta não cobra de novo.
+    await consumirCreditos(cpfInspetor, Number(tipoServico), { cnpjoucpf, referencia: `${cnpjoucpf}_${tipoServico}_proposta` })
 
     return NextResponse.json({ html })
   } catch (err) {
