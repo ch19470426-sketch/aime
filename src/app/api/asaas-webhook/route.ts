@@ -32,24 +32,16 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
 
-function diagnosticoToken(request: NextRequest) {
-  const esperado = process.env.ASAAS_WEBHOOK_TOKEN ?? ''
-  const recebido = request.headers.get('asaas-access-token') ?? ''
-  // DIAGNOSTICO TEMPORARIO (30/09/2026) — a tela do Asaas corta mensagens
-  // longas; resumido ao maximo. Mostra so as pontas de cada valor (nao o
-  // segredo inteiro) para achar diferenca de espaco/caractere sem expor.
-  const ponta = (s: string) => s.length <= 8 ? s : `${s.slice(0, 4)}...${s.slice(-4)}`
-  return {
-    valido: !!esperado && recebido === esperado,
-    resumo: `recebido[${recebido.length}]=${ponta(recebido)} esperado[${esperado.length}]=${ponta(esperado)}`,
-  }
+function tokenValido(request: NextRequest): boolean {
+  const esperado = process.env.ASAAS_WEBHOOK_TOKEN
+  if (!esperado) return false
+  return request.headers.get('asaas-access-token') === esperado
 }
 
 export async function POST(request: NextRequest) {
   try {
-    const diag = diagnosticoToken(request)
-    if (!diag.valido) {
-      return NextResponse.json({ erro: 'Token inválido.', diagnostico: diag }, { status: 401 })
+    if (!tokenValido(request)) {
+      return NextResponse.json({ erro: 'Token inválido.' }, { status: 401 })
     }
 
     const corpo = await request.json().catch(() => null)
