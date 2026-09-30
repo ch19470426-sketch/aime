@@ -207,11 +207,17 @@ const PLANOS_QUE_PERMITEM_AVULSO = ['PLANO MENSAL', 'PLANO ESCRITÓRIO']
  */
 export async function podeComprarAvulso(cpf: string): Promise<boolean> {
   try {
+    // Verifica se EXISTE algum contrato vigente do tipo certo — não olha só
+    // "o mais recente" (bug real: com vários planos vigentes na MESMA data,
+    // a ordenação por data empata entre eles e pode escolher qualquer um,
+    // inclusive um tipo que não libera avulso, mesmo com Mensal/Escritório
+    // tambem vigentes ao mesmo tempo — achado de Celso, 30/09/2026).
     const { data } = await admin()
-      .from('contratos_inspetor').select('tipo_assinatura,data_inicio_contrato')
+      .from('contratos_inspetor').select('tipo_assinatura')
       .eq('cpf_inspetor', cpf).gte('data_fim_contrato', new Date().toISOString().slice(0, 10))
-      .order('data_inicio_contrato', { ascending: false }).limit(1).maybeSingle()
-    return !!data && PLANOS_QUE_PERMITEM_AVULSO.includes(data.tipo_assinatura)
+      .in('tipo_assinatura', PLANOS_QUE_PERMITEM_AVULSO)
+      .limit(1).maybeSingle()
+    return !!data
   } catch { return false }
 }
 
