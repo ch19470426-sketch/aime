@@ -306,18 +306,21 @@ export async function concederCreditos(
     // Plano (MENSAL/SERVIÇO/ESCRITÓRIO) — normalmente um contrato novo, mas
     // a chave primária é (cpf, tipo_assinatura, data_inicio_contrato): se o
     // MESMO tipo já foi contratado HOJE por este CPF (ex.: testando duas
-    // vezes no mesmo dia), soma ao contrato existente em vez de tentar
-    // duplicar a linha e falhar — achado real de Celso, 30/09/2026.
+    // vezes no mesmo dia), a linha já existe e não pode ser duplicada.
+    // NÃO soma (qde_contratada_plano só aceita 0/600/1200/3600 — um valor
+    // somado quase sempre cai fora dessa lista); trata como RENOVAÇÃO:
+    // devolve o saldo ao valor cheio contratado, sem alterar a quantidade
+    // contratada em si. Achado real de Celso, 30/09/2026 (2 rodadas: 1o
+    // "duplicate key", depois "check constraint" ao tentar somar).
     const hoje = new Date().toISOString().slice(0, 10)
     const { data: jaExiste } = await supabase
-      .from('contratos_inspetor').select('qde_contratada_plano,saldo_quantidade_plano')
+      .from('contratos_inspetor').select('qde_contratada_plano')
       .eq('cpf_inspetor', cpf).eq('tipo_assinatura', tipo).eq('data_inicio_contrato', hoje)
       .maybeSingle()
 
     if (jaExiste) {
       const { error } = await supabase.from('contratos_inspetor').update({
-        qde_contratada_plano: jaExiste.qde_contratada_plano + qdeCreditos,
-        saldo_quantidade_plano: jaExiste.saldo_quantidade_plano + qdeCreditos,
+        saldo_quantidade_plano: jaExiste.qde_contratada_plano,
       }).eq('cpf_inspetor', cpf).eq('tipo_assinatura', tipo).eq('data_inicio_contrato', hoje)
       if (error) return { ok: false, erro: error.message }
       return { ok: true }
