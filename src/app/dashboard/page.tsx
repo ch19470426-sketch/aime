@@ -371,6 +371,24 @@ export default function Dashboard() {
           } catch { /* falha na verificação — libera acesso normalmente */ }
         }
 
+        // Escolha obrigatória de plano (mesmo que Cortesia) — decisão de
+        // Celso, 30/09/2026, aplicada também retroativamente a quem já
+        // existe no sistema sem nenhum contrato. Gestor está isento (a
+        // própria rota já trata isso). Só quando online; falha ou offline
+        // libera o acesso normalmente (mesma filosofia do prazo acima).
+        if (navigator.onLine) {
+          try {
+            const resContrato = await fetch(`/api/tem-contrato?cpf_inspetor=${cpf}`)
+            if (resContrato.ok) {
+              const dadosContrato = await resContrato.json()
+              if (dadosContrato.temContrato === false) {
+                window.location.href = `/escolher-plano?cpf=${cpf}&proximo=${encodeURIComponent('/dashboard')}`
+                return
+              }
+            }
+          } catch { /* falha na verificação — libera acesso normalmente */ }
+        }
+
         try {
           let dados: any[] = []
           try {

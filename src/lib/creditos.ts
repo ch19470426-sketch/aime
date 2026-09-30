@@ -221,6 +221,24 @@ export async function podeComprarAvulso(cpf: string): Promise<boolean> {
   } catch { return false }
 }
 
+/**
+ * O CPF já tem QUALQUER contrato registrado (de qualquer tipo, vigente ou
+ * não)? Usado para saber se é a primeira vez do inspetor escolhendo um
+ * plano — decisão de Celso, 30/09/2026: todo inspetor é obrigado a
+ * escolher um plano (mesmo que Cortesia) no primeiro acesso, aplicado
+ * também retroativamente a quem já existe no sistema sem nenhum contrato.
+ * Em caso de erro, retorna true (na dúvida, NÃO interrompe o acesso — mesma
+ * filosofia do verificar-acesso).
+ */
+export async function temAlgumContrato(cpf: string): Promise<boolean> {
+  try {
+    const { data, error } = await admin()
+      .from('contratos_inspetor').select('cpf_inspetor').eq('cpf_inspetor', cpf).limit(1).maybeSingle()
+    if (error) return true
+    return !!data
+  } catch { return true }
+}
+
 /** Saldo via função SQL. null se a migração ainda não foi aplicada ou houve erro. */
 export async function lerSaldo(cpf: string): Promise<Saldo | null> {
   try {

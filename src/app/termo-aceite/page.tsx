@@ -21,7 +21,10 @@ function TermoAceite() {
 
   const [aceitando, setAceitando] = useState(false)
   const [erro, setErro] = useState("")
-  const [mostrarDiagrama, setMostrarDiagrama] = useState(false)
+  // Macro Fluxo aparece PRIMEIRO agora (antes vinha depois do Termo) —
+  // decisão de Celso, 30/09/2026: mostrar o contexto antes de pedir
+  // qualquer compromisso (aceite do termo, escolha de plano) reduz atrito.
+  const [mostrarDiagrama, setMostrarDiagrama] = useState(true)
 
   async function aceitar() {
     setErro("")
@@ -38,8 +41,10 @@ function TermoAceite() {
         setAceitando(false)
         return
       }
-      setAceitando(false)
-      setMostrarDiagrama(true)
+      // Próxima etapa obrigatória: escolher um plano (mesmo que Cortesia) —
+      // o "proximo" original (ex.: /dashboard) é repassado para DEPOIS
+      // dessa escolha, não pulado.
+      window.location.href = `/escolher-plano?cpf=${cpf}&chave=${encodeURIComponent(chave)}&proximo=${encodeURIComponent(proximo)}`
       return
     } catch {
       setErro('Não foi possível conectar. Tente novamente.')
@@ -78,7 +83,7 @@ function TermoAceite() {
             <img src="/fluxo-aime.png" alt="Macro Fluxo no AIMÊ" style={{ width: "100%", borderRadius: "8px" }} />
             <div style={{ display: "flex", justifyContent: "center", marginTop: "20pt" }}>
               <button style={{ backgroundColor: "#1E3A8A", color: "white", fontWeight: "600", padding: "12px 36px", borderRadius: "50px", border: "none", cursor: "pointer", fontSize: "13px" }}
-                onClick={() => { window.location.href = proximo }}>
+                onClick={() => setMostrarDiagrama(false)}>
                 Entendi, vamos começar!
               </button>
             </div>
