@@ -60,9 +60,15 @@ export async function POST(request: NextRequest) {
     // verdade (pasta padrao, JSON) — nunca para documentos_inspetor
     // (proposta/plano, ja cobrados em suas proprias rotas). Fogo-e-esquece:
     // uma falha aqui nunca derruba o salvamento, que ja teve sucesso.
-    if (folder === 'vistorias' && !isHtml && payload?.cpfInspetor && payload?.tipoServico) {
+    //
+    // Fluxo elétrico (código 39): o registro em si pertence ao contrato do
+    // inspetor CIVIL (cpfInspetor), mas quem deve ser debitado é o
+    // ELETRICISTA que de fato executou essa parte (cpfEletrico, presente
+    // no payload só nesse fluxo) — decisão de Celso, 01/10/2026.
+    const cpfParaDebito = payload?.cpfEletrico || payload?.cpfInspetor
+    if (folder === 'vistorias' && !isHtml && cpfParaDebito && payload?.tipoServico) {
       try {
-        await consumirCreditos(payload.cpfInspetor, Number(payload.tipoServico), {
+        await consumirCreditos(cpfParaDebito, Number(payload.tipoServico), {
           quantidade: 1,
           cnpjoucpf: payload.cnpjoucpf,
           referencia: `${payload.cnpjoucpf}_${payload.tipoServico}_foto_${payload.fotoNr ?? nomeArquivo}`,

@@ -4,6 +4,8 @@ import { useState, Suspense } from "react"
 import { useSearchParams, useRouter } from "next/navigation"
 import React from "react"
 import Image from "next/image"
+import Banner from '@/components/Banner'
+import { useBanner } from '@/hooks/useBanner'
 
 const S: Record<string, React.CSSProperties> = {
   body:       { background:'#E8EEF7', display:'flex', justifyContent:'center', padding:'24px', fontFamily:'Arial, Helvetica, sans-serif', minHeight:'100vh' },
@@ -37,6 +39,7 @@ function VistoriaEletricaInner() {
   const [salvando,  setSalvando]  = useState(false)
   const [erro,      setErro]      = useState('')
   const [credencial,setCredencial]= useState<any>(null)
+  const { bannerProps, solicita, fechar } = useBanner()
 
   function fmtCNPJ(v: string) {
     const d = v.replace(/\D/g,'').slice(0,14)
@@ -72,6 +75,28 @@ function VistoriaEletricaInner() {
       })
       const data = await res.json()
       if (!res.ok || data.erro) throw new Error(data.erro || 'Erro no upload')
+
+      // Saldo minimo para INICIAR a vistoria — quem deve ter credito
+      // suficiente e o ELETRICISTA, nao o inspetor civil (decisao de
+      // Celso, 01/10/2026). Mesmo padrao fail-open das demais checagens.
+      try {
+        const resSaldo = await fetch(`/api/creditos/verificar-servico?cpf_inspetor=${cpfEletrico}&codigo_servico=39`)
+        if (resSaldo.ok) {
+          const verificacao = await resSaldo.json()
+          if (verificacao.liberado === false) {
+            setSalvando(false)
+            solicita('Créditos insuficientes',
+              `Créditos insuficientes para iniciar esta vistoria. São necessários ${verificacao.necessario} CR (faltam ${verificacao.faltam ?? '—'}).`,
+              [
+                { label: 'Comprar Créditos', acao: () => { fechar(); window.location.href = `/inspetor?cpf=${cpfEletrico}&aba=plano` }, estilo: 'primario' },
+                { label: 'Cancelar', acao: () => fechar(), estilo: 'secundario' },
+              ]
+            )
+            return
+          }
+        }
+      } catch { /* falha na verificação — libera normalmente */ }
+
       // Vai direto para a vistoria — o comando já foi dado ao clicar em
       // "Vistoriar", não precisa de uma tela intermediária com outro botão.
       router.push(
@@ -84,8 +109,31 @@ function VistoriaEletricaInner() {
     }
   }
 
+  async function iniciarVistoriaComCredencial() {
+    try {
+      const resSaldo = await fetch(`/api/creditos/verificar-servico?cpf_inspetor=${cpfEletrico}&codigo_servico=39`)
+      if (resSaldo.ok) {
+        const verificacao = await resSaldo.json()
+        if (verificacao.liberado === false) {
+          solicita('Créditos insuficientes',
+            `Créditos insuficientes para iniciar esta vistoria. São necessários ${verificacao.necessario} CR (faltam ${verificacao.faltam ?? '—'}).`,
+            [
+              { label: 'Comprar Créditos', acao: () => { fechar(); window.location.href = `/inspetor?cpf=${cpfEletrico}&aba=plano` }, estilo: 'primario' },
+              { label: 'Cancelar', acao: () => fechar(), estilo: 'secundario' },
+            ]
+          )
+          return
+        }
+      }
+    } catch { /* falha na verificação — libera normalmente */ }
+    router.push(
+      `/vistoria/tela32?cpf_inspetor=${credencial.cpfCivil}&chave_inspetor=${chaveEletrico}&cnpjoucpf=${credencial.cnpj}&tipo_servico=32&sistema_fixo=07-Instalações elétricas&cpf_eletrico=${cpfEletrico}&sessao=${sessaoToken}`
+    )
+  }
+
   return (
     <div style={S.body}>
+      <Banner {...bannerProps} />
       <div style={S.page}>
         {/* Cabeçalho */}
         <div style={{ ...S.header, alignItems:'center', justifyContent:'space-between' }}>
@@ -155,9 +203,7 @@ function VistoriaEletricaInner() {
                 Dashboard
               </button>
               <button style={{ ...S.btn, ...S.btnPri }}
-                onClick={() => router.push(
-                  `/vistoria/tela32?cpf_inspetor=${credencial.cpfCivil}&chave_inspetor=${chaveEletrico}&cnpjoucpf=${credencial.cnpj}&tipo_servico=32&sistema_fixo=07-Instalações elétricas&cpf_eletrico=${cpfEletrico}&sessao=${sessaoToken}`
-                )}>
+                onClick={iniciarVistoriaComCredencial}>
                 Iniciar Vistoria
               </button>
             </div>
