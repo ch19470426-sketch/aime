@@ -357,11 +357,36 @@ export async function concederCreditos(
       return { ok: true }
     }
 
+    // TROCA DE PLANO: se existe um contrato vigente de um tipo DIFERENTE
+    // (ex.: tinha Mensal, comprou Escritório), esse contrato antigo é
+    // encerrado hoje e TUDO que ele ainda tinha — saldo de plano não usado
+    // E qualquer avulso que já carregava — migra para o avulso do contrato
+    // novo (sem vencimento). Decisão de Celso, 01/10/2026: mesmo critério
+    // da compra repetida no mesmo dia (nada se perde), agora também para
+    // quando o tipo de plano muda.
+    const { data: planoAntigo } = await supabase
+      .from('contratos_inspetor').select('tipo_assinatura,data_inicio_contrato,saldo_quantidade_plano,qde_contratada_avulso,saldo_quantidade_avulso')
+      .eq('cpf_inspetor', cpf).neq('tipo_assinatura', tipo)
+      .gte('data_fim_contrato', hoje)
+      .order('data_inicio_contrato', { ascending: false }).limit(1).maybeSingle()
+
+    let avulsoMigradoQde = 0
+    let avulsoMigradoSaldo = 0
+    if (planoAntigo) {
+      avulsoMigradoQde = planoAntigo.saldo_quantidade_plano + planoAntigo.qde_contratada_avulso
+      avulsoMigradoSaldo = planoAntigo.saldo_quantidade_plano + planoAntigo.saldo_quantidade_avulso
+      const { error: erroEncerra } = await supabase.from('contratos_inspetor').update({
+        data_fim_contrato: hoje, saldo_quantidade_plano: 0,
+        qde_contratada_avulso: 0, saldo_quantidade_avulso: 0,
+      }).eq('cpf_inspetor', cpf).eq('tipo_assinatura', planoAntigo.tipo_assinatura).eq('data_inicio_contrato', planoAntigo.data_inicio_contrato)
+      if (erroEncerra) return { ok: false, erro: erroEncerra.message }
+    }
+
     const { error } = await supabase.from('contratos_inspetor').insert({
       cpf_inspetor: cpf, tipo_assinatura: tipo,
       data_inicio_contrato: hoje,
       qde_contratada_plano: qdeCreditos, saldo_quantidade_plano: qdeCreditos,
-      qde_contratada_avulso: 0, saldo_quantidade_avulso: 0,
+      qde_contratada_avulso: avulsoMigradoQde, saldo_quantidade_avulso: avulsoMigradoSaldo,
     })
     if (error) return { ok: false, erro: error.message }
     return { ok: true }
