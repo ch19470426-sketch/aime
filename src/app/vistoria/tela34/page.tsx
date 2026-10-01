@@ -558,7 +558,7 @@ function Tela31Inner() {
           {rascunhoRecuperado && (
             <div style={{ background: '#FFF7ED', border: '1px solid #FED7AA', borderRadius: '6px',
               padding: '8px 12px', fontSize: '8pt', color: '#92400E', textAlign: 'center' }}>
-              ⚠️ Dados de um preenchimento anterior (interrompido) foram recuperados automaticamente. Revise antes de salvar.
+              ⚠️ Ocorreu problema de salvamento de dados de preenchimento anterior ou atual. Revise e complemente antes de salvar.
             </div>
           )}
 
