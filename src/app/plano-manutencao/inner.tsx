@@ -190,7 +190,7 @@ export default function PlanoManutencaoInner() {
             `${data.erro ?? 'Créditos insuficientes para gerar este plano de manutenção.'} Faltam ${data.faltam ?? '—'} CR (saldo atual: ${data.saldoTotal ?? '—'}).`,
             [
               { label: 'Comprar Créditos', acao: () => { fechar(); window.location.href = `/inspetor?cpf=${cpfInspetor}&aba=plano` }, estilo: 'primario' },
-              { label: 'Cancelar', acao: () => fechar(), estilo: 'secundario' },
+              { label: 'Cancelar', acao: () => { fechar(); window.location.href = retorno }, estilo: 'secundario' },
             ]
           )
         } else {
