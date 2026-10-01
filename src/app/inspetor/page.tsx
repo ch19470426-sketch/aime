@@ -499,12 +499,6 @@ function CadastroInspetor() {
             </form>}
             {abaInspetor === 'plano' && ehConsulta && (
               <div style={{paddingTop:'8px'}}>
-                <div style={{display:'flex',justifyContent:'flex-end',marginBottom:'10px'}}>
-                  <button type="button" onClick={() => window.location.href = "/dashboard"}
-                    style={{padding:"8px 20px",borderRadius:"50px",border:"1px solid #1E3A8A",backgroundColor:"white",color:"#1E3A8A",fontWeight:"600",fontSize:"12px",cursor:"pointer"}}>
-                    Voltar
-                  </button>
-                </div>
                 {carregandoPlano ? (
                   <div style={{textAlign:'center',padding:'32px',color:'#6B7280',fontSize:'13px'}}>Carregando...</div>
                 ) : (
@@ -592,6 +586,10 @@ function CadastroInspetor() {
                               <option value="CREDIT_CARD">Cartão de crédito</option>
                             </select>
                           </div>
+                          <button type="button" onClick={() => window.location.href = "/dashboard"}
+                            style={{padding:"8px 20px",borderRadius:"50px",border:"1px solid #1E3A8A",backgroundColor:"white",color:"#1E3A8A",fontWeight:"600",fontSize:"12px",cursor:"pointer"}}>
+                            Voltar
+                          </button>
                           <button onClick={criarPedido} disabled={enviandoPedido}
                             style={{backgroundColor:'#1E3A8A',color:'white',border:'none',borderRadius:'9999px',padding:'8px 20px',fontSize:'12px',fontWeight:700,cursor:enviandoPedido?'not-allowed':'pointer',opacity:enviandoPedido?0.6:1}}>
                             {enviandoPedido?'Aguarde...':'Contratar'}
