@@ -132,6 +132,23 @@ export default function GestorPage() {
 
   const supabase = createClient()
 
+  async function alternarGestor(cpf: string, novoValor: boolean) {
+    setMsg('')
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      const res = await fetch('/api/gestor/alternar-gestor', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session?.access_token ?? ''}` },
+        body: JSON.stringify({ cpf, novoValor }),
+      })
+      const d = await res.json()
+      if (!res.ok) { setMsg(`Erro: ${d.erro ?? 'Não foi possível alterar o status de gestor.'}`); return }
+      setMsg(novoValor ? 'Inspetor promovido a gestor.' : 'Direito de gestor removido.')
+      setSelecionado(prev => prev ? { ...prev, is_gestor: novoValor } : prev)
+      setInspetores(prev => prev.map(i => i.cpf_inspetor === cpf ? { ...i, is_gestor: novoValor } : i))
+    } catch { setMsg('Erro de conexão.') }
+  }
+
   useEffect(() => {
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (!session) { window.location.href = '/'; return }
@@ -304,11 +321,6 @@ export default function GestorPage() {
           <div style={S.lista}>
             <div style={{ ...S.listaHeader, display:'flex', justifyContent:'space-between', alignItems:'center' }}>
               <span>Inspetores ({inspetores.length})</span>
-              <button onClick={() => window.location.href='/inspetor?gestor=1'}
-                style={{ backgroundColor:'white', color:'#1E3A8A', border:'none',
-                  borderRadius:'4px', padding:'2px 8px', fontSize:'10px', fontWeight:700, cursor:'pointer' }}>
-                + Novo Gestor
-              </button>
             </div>
             <div style={{ padding:'8px' }}>
               <input
@@ -409,6 +421,10 @@ export default function GestorPage() {
                       <button onClick={() => window.location.href=`/inspetor?cpf=${selecionado.cpf_inspetor}&visualizar=1`}
                         style={S.btnPri}>
                         🔍 Visualizar Cadastro
+                      </button>
+                      <button onClick={() => alternarGestor(selecionado.cpf_inspetor, !selecionado.is_gestor)}
+                        style={{ ...S.btnPri, backgroundColor: selecionado.is_gestor ? '#DC2626' : '#7C3AED' }}>
+                        {selecionado.is_gestor ? '✕ Remover Gestor' : '★ Promover a Gestor'}
                       </button>
                     </div>
                   </div>
