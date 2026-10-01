@@ -194,8 +194,8 @@ export default function PlanoManutencaoInner() {
           )
         } else {
           setErro(data.erro ?? 'Erro ao gerar.')
+          setEtapa('erro')
         }
-        setEtapa('erro')
         return
       }
 
