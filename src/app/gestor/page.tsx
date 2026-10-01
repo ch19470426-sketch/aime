@@ -6,6 +6,19 @@ import { createClient } from '@/utils/supabase/client'
 const SUPA_URL = 'https://asgorarunzhiojqioxzq.supabase.co'
 const SUPA_KEY = 'sb_publishable_dH85HYKGxv3X0te627VfOw_OGaPoNMF'
 
+/**
+ * 'AAAA-MM-DD' -> 'DD/MM/AAAA', sem passar por new Date()/toLocaleDateString.
+ * new Date('2026-10-01').toLocaleDateString('pt-BR') mostra "30/09/2026" no
+ * fuso de Brasília (a string é interpretada como meia-noite UTC, e a
+ * conversão para local -3h volta para o dia anterior). Achado real de
+ * Celso, 01/10/2026 (mesmo bug encontrado em /inspetor).
+ */
+function fmtDataBR(isoDate: string | null | undefined): string {
+  if (!isoDate) return '—'
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(isoDate)
+  return m ? `${m[3]}/${m[2]}/${m[1]}` : '—'
+}
+
 const S = {
   page: { backgroundColor: '#E8EEF7', minHeight: '100vh', padding: '16px' } as React.CSSProperties,
   card: { backgroundColor: 'white', borderRadius: '16px', boxShadow: '0 4px 24px rgba(0,0,0,0.12)', overflow: 'hidden', maxWidth: '1200px', margin: '0 auto', width: '100%' } as React.CSSProperties,
@@ -418,17 +431,17 @@ export default function GestorPage() {
                               <div style={{ display:'flex', justifyContent:'space-between', marginBottom:'6px' }}>
                                 <span style={S.badge(COR_PLANO[ct.tipo_assinatura] ?? '#6B7280')}>{ct.tipo_assinatura}</span>
                                 <span style={{ fontSize:'10px', color: vencido?'#DC2626':'#059669', fontWeight:700 }}>
-                                  {vencido ? '⚠ Vencido' : `✓ Válido até ${new Date(ct.data_fim_contrato).toLocaleDateString('pt-BR')}`}
+                                  {vencido ? '⚠ Vencido' : `✓ Válido até ${fmtDataBR(ct.data_fim_contrato)}`}
                                 </span>
                               </div>
                               <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:'8px', marginTop:'8px' }}>
                                 <div style={{ fontSize:'11px' }}>
                                   <div style={{ color:'#6B7280' }}>Início</div>
-                                  <div style={{ fontWeight:700 }}>{new Date(ct.data_inicio_contrato).toLocaleDateString('pt-BR')}</div>
+                                  <div style={{ fontWeight:700 }}>{fmtDataBR(ct.data_inicio_contrato)}</div>
                                 </div>
                                 <div style={{ fontSize:'11px' }}>
                                   <div style={{ color:'#6B7280' }}>Vencimento</div>
-                                  <div style={{ fontWeight:700, color:vencido?'#DC2626':'#059669' }}>{new Date(ct.data_fim_contrato).toLocaleDateString('pt-BR')}</div>
+                                  <div style={{ fontWeight:700, color:vencido?'#DC2626':'#059669' }}>{fmtDataBR(ct.data_fim_contrato)}</div>
                                 </div>
                                 <div style={{ fontSize:'11px' }}>
                                   <div style={{ color:'#6B7280' }}>CR Contratado</div>
@@ -504,12 +517,12 @@ export default function GestorPage() {
                               {ct.tipo_assinatura}
                             </span>
                             <span style={{ fontSize:'10px', fontWeight:700, color:vencido?'#DC2626':'#059669' }}>
-                              {vencido?'⚠ Vencido':`✓ Vigente até ${new Date(ct.data_fim_contrato).toLocaleDateString('pt-BR')}`}
+                              {vencido?'⚠ Vencido':`✓ Vigente até ${fmtDataBR(ct.data_fim_contrato)}`}
                             </span>
                           </div>
                           <table style={{ width:'100%', fontSize:'11px', borderCollapse:'collapse' as const }}>
                             {[
-                              ['Data Início Contrato', new Date(ct.data_inicio_contrato).toLocaleDateString('pt-BR')],
+                              ['Data Início Contrato', fmtDataBR(ct.data_inicio_contrato)],
                               ['Qtde Contratada Plano (CR)', ct.qde_contratada_plano],
                               ['Saldo Plano (CR)', ct.saldo_quantidade_plano],
                               ['Qtde Contratada Avulso (CR)', ct.qde_contratada_avulso],
