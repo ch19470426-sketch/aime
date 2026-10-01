@@ -185,6 +185,7 @@ export default function PlanoManutencaoInner() {
       const data = await res.json()
       if (!res.ok || data.erro) {
         if (res.status === 402) {
+          setEtapa('banner')
           solicita('Créditos insuficientes',
             `${data.erro ?? 'Créditos insuficientes para gerar este plano de manutenção.'} Faltam ${data.faltam ?? '—'} CR (saldo atual: ${data.saldoTotal ?? '—'}).`,
             [
