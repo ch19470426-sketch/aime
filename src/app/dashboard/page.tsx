@@ -318,14 +318,13 @@ function docValido(v: string): boolean {
 export default function Dashboard() {
   const router = useRouter()
 
-  const { bannerProps, orienta } = useBanner()
+  const { bannerProps, orienta, solicita, fechar } = useBanner()
   const [tipoServico, setTipoServico] = useState<number | null>(null)
   const [isGestor, setIsGestor] = useState(false)
   const [grupoAberto, setGrupoAberto] = useState<string | null>(null)
   const [documento, setDocumento] = useState("")
   const [estadoDoc, setEstadoDoc] = useState<"aguardando" | "verificando" | "nao_cadastrado" | "erro">("aguardando")
   const [msgErro, setMsgErro] = useState("")
-  const [creditosInsuficientesInicio, setCreditosInsuficientesInicio] = useState(false)
 
   // Sessão do inspetor logado (autenticação real via Supabase Auth, identidade por CPF)
   const [carregandoSessao, setCarregandoSessao] = useState(true)
@@ -611,7 +610,6 @@ export default function Dashboard() {
     if (tipoServicoBancoVistoria) {
       setEstadoDoc('verificando')
       setMsgErro('')
-      setCreditosInsuficientesInicio(false)
       try {
         const { data: { session: sessaoAtual } } = await createClient().auth.getSession()
         const tokenAtual = sessaoAtual?.access_token ?? ''
@@ -639,9 +637,14 @@ export default function Dashboard() {
       if (resSaldo.ok) {
         const verificacao = await resSaldo.json()
         if (verificacao.liberado === false) {
-          setEstadoDoc('erro')
-          setCreditosInsuficientesInicio(true)
-          setMsgErro(`Créditos insuficientes para iniciar esta vistoria. São necessários ${verificacao.necessario} CR (faltam ${verificacao.faltam ?? '—'}).`)
+          setEstadoDoc('aguardando')
+          solicita('Créditos insuficientes',
+            `Créditos insuficientes para iniciar esta vistoria. São necessários ${verificacao.necessario} CR (faltam ${verificacao.faltam ?? '—'}).`,
+            [
+              { label: 'Comprar Créditos', acao: () => { fechar(); window.location.href = `/inspetor?cpf=${cpfInspetor}&aba=plano` }, estilo: 'primario' },
+              { label: 'Cancelar', acao: () => fechar(), estilo: 'secundario' },
+            ]
+          )
           return
         }
       }
@@ -824,12 +827,6 @@ export default function Dashboard() {
                         <div style={{ fontSize: "10px", color: "#DC2626", marginTop: "4px", wordBreak: "break-all", background: "#FEF2F2", padding: "4px 6px", borderRadius: "4px" }}>
                           {msgErro}
                         </div>
-                      )}
-                      {creditosInsuficientesInicio && (
-                        <button onClick={() => { window.location.href = `/inspetor?cpf=${cpfInspetor}&aba=plano` }}
-                          style={{ backgroundColor: "#1E3A8A", color: "white", fontWeight: 600, padding: "6px 16px", borderRadius: "50px", border: "none", cursor: "pointer", fontSize: "10px", marginTop: "6px" }}>
-                          Comprar Créditos
-                        </button>
                       )}
 
                       {estadoDoc === "nao_cadastrado" && (

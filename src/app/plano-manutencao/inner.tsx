@@ -2,6 +2,8 @@
 import { useSearchParams } from 'next/navigation'
 import { useState, useEffect, useRef } from 'react'
 import Image from 'next/image'
+import Banner from '@/components/Banner'
+import { useBanner } from '@/hooks/useBanner'
 
 const SUPA_URL = 'https://asgorarunzhiojqioxzq.supabase.co'
 const SUPA_KEY = 'sb_publishable_dH85HYKGxv3X0te627VfOw_OGaPoNMF'
@@ -80,8 +82,8 @@ export default function PlanoManutencaoInner() {
   const tipoServico = params.get('tipo_servico')   ?? ''
 
   const [etapa,     setEtapa]    = useState<'carregando'|'banner'|'gerando'|'gerado'|'erro'>('carregando')
+  const { bannerProps, solicita, fechar } = useBanner()
   const [erro,      setErro]     = useState('')
-  const [creditosInsuficientes, setCreditosInsuficientes] = useState(false)
   const [ncs,       setNcs]      = useState<any[]>([])
   const [estabNome, setEstabNome]= useState('')
   const [cabInspetor, setCabInspetor] = useState('')
@@ -182,9 +184,17 @@ export default function PlanoManutencaoInner() {
       })
       const data = await res.json()
       if (!res.ok || data.erro) {
-        setCreditosInsuficientes(res.status === 402)
-        const sufixo = res.status === 402 ? ` Faltam ${data.faltam ?? '—'} CR (saldo atual: ${data.saldoTotal ?? '—'}).` : ''
-        setErro((data.erro ?? 'Erro ao gerar.') + sufixo)
+        if (res.status === 402) {
+          solicita('Créditos insuficientes',
+            `${data.erro ?? 'Créditos insuficientes para gerar este plano de manutenção.'} Faltam ${data.faltam ?? '—'} CR (saldo atual: ${data.saldoTotal ?? '—'}).`,
+            [
+              { label: 'Comprar Créditos', acao: () => { fechar(); window.location.href = `/inspetor?cpf=${cpfInspetor}&aba=plano` }, estilo: 'primario' },
+              { label: 'Cancelar', acao: () => fechar(), estilo: 'secundario' },
+            ]
+          )
+        } else {
+          setErro(data.erro ?? 'Erro ao gerar.')
+        }
         setEtapa('erro')
         return
       }
@@ -272,6 +282,7 @@ export default function PlanoManutencaoInner() {
 
   return (
     <div style={S.body}>
+      <Banner {...bannerProps} />
       <div style={S.page}>
         <HeaderBar subtitulo={titulo} />
         <div style={S.divider} />
@@ -286,10 +297,6 @@ export default function PlanoManutencaoInner() {
           <div style={S.formBody}>
             <p style={{ color: '#9a3412', fontSize: '9pt', padding: 20 }}><b>Erro:</b> {erro}</p>
             <div style={S.footer}>
-              {creditosInsuficientes && (
-                <button style={{ ...S.btn, ...S.btnPri }}
-                  onClick={() => { window.location.href = `/inspetor?cpf=${cpfInspetor}&aba=plano` }}>Comprar Créditos</button>
-              )}
               <button style={{ ...S.btn, ...S.btnPri, gridColumn: '1 / -1' }}
                 onClick={() => window.location.href = retorno}>Voltar ao Dashboard</button>
             </div>

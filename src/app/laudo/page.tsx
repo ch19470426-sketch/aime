@@ -3,6 +3,8 @@ export const dynamic = 'force-dynamic'
 import { useState, useEffect, Suspense } from "react"
 import { useSearchParams } from "next/navigation"
 import Image from "next/image"
+import Banner from '@/components/Banner'
+import { useBanner } from '@/hooks/useBanner'
 
 // ─── Tipos ───────────────────────────────────────────────────────────────────
 interface NC {
@@ -87,6 +89,7 @@ function LaudoComplemento() {
   const tipoServico   = params.get('tipo_servico')    ?? '41'
 
   const cfg = LAUDO_CONFIG[tipoServico] ?? LAUDO_CONFIG['41']
+  const { bannerProps, solicita, fechar } = useBanner()
 
   // ── Sessão ──
   const [sessaoVerificada, setSessaoVerificada] = useState(false)
@@ -108,7 +111,6 @@ function LaudoComplemento() {
   // ── Estados ──
   const [etapa, setEtapa]       = useState<'complemento'|'gerando'|'pronto'>('complemento')
   const [erro, setErro]         = useState('')
-  const [creditosInsuficientes, setCreditosInsuficientes] = useState(false)
   const [nomeArquivo, setNomeArquivo] = useState('')
   const [semCapa, setSemCapa] = useState(false)  // temp: gerar sem capa para validar resto do documento
 
@@ -647,9 +649,17 @@ function LaudoComplemento() {
       const data = await res.json()
       console.log('GERAR: data recebido ok=', res.ok, 'erro=', data.erro?.slice?.(0,100))
       if (!res.ok || data.erro) {
-        setCreditosInsuficientes(res.status === 402)
-        const sufixo = res.status === 402 ? ` Faltam ${data.faltam ?? '—'} CR (saldo atual: ${data.saldoTotal ?? '—'}).` : ''
-        setErro((data.erro ?? 'Erro ao gerar laudo.') + sufixo)
+        if (res.status === 402) {
+          solicita('Créditos insuficientes',
+            `${data.erro ?? 'Créditos insuficientes para gerar este laudo.'} Faltam ${data.faltam ?? '—'} CR (saldo atual: ${data.saldoTotal ?? '—'}).`,
+            [
+              { label: 'Comprar Créditos', acao: () => { fechar(); window.location.href = `/inspetor?cpf=${cpfInspetor}&aba=plano` }, estilo: 'primario' },
+              { label: 'Cancelar', acao: () => fechar(), estilo: 'secundario' },
+            ]
+          )
+        } else {
+          setErro(data.erro ?? 'Erro ao gerar laudo.')
+        }
         setEtapa('complemento')
         return
       }
@@ -728,6 +738,7 @@ function LaudoComplemento() {
 
   return (
     <div style={S.body}>
+      <Banner {...bannerProps} />
       <div style={S.card}>
         <div style={S.header}>
           <Image src="/logo.png" alt="AIMÊ" width={80} height={32} priority style={{ filter: "brightness(0) invert(1)" }} />
@@ -1113,13 +1124,7 @@ function LaudoComplemento() {
             </div>
           )}
 
-          {erro && <p style={{ color: "#DC2626", fontSize: "12px", marginBottom: "8px" }}>{erro}</p>}
-          {creditosInsuficientes && (
-            <button onClick={() => { window.location.href = `/inspetor?cpf=${cpfInspetor}&aba=plano` }}
-              style={{ backgroundColor: "#1E3A8A", color: "white", fontWeight: 600, padding: "7px 18px", borderRadius: "50px", border: "none", cursor: "pointer", fontSize: "11px", marginBottom: "12px" }}>
-              Comprar Créditos
-            </button>
-          )}
+          {erro && <p style={{ color: "#DC2626", fontSize: "12px", marginBottom: "12px" }}>{erro}</p>}
 
           <div style={{ display: "flex", gap: "10px", justifyContent: "flex-end" }}>
             <button style={S.btnSec} onClick={() => window.location.href = '/dashboard'}>Voltar</button>
