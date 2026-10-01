@@ -10,7 +10,7 @@ export const runtime = 'nodejs'
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 
-const BETA_EXPIRA = new Date('2026-09-30T23:59:59-03:00') // 30/09/2026 meia-noite horário de Brasília
+const BETA_EXPIRA = new Date('2026-12-31T23:59:59-03:00') // estendido por Celso em 01/10/2026 (era 30/09/2026), para continuar testando
 
 export async function GET(request: NextRequest) {
   try {
