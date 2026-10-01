@@ -77,6 +77,8 @@ function Tela31Inner() {
   // ── Dados do estabelecimento ──
   const [cnpjDisplay,  setCnpjDisplay]  = useState('')
   const [razaoSocial,  setRazaoSocial]  = useState('')
+  const [erroEstab,    setErroEstab]    = useState(false)
+  const [recarregarContador, setRecarregarContador] = useState(0)
 
   // ── Listas ──
   const [sistemas,     setSistemas]     = useState<ItemSistema[]>([])
@@ -253,7 +255,14 @@ function Tela31Inner() {
               : c.replace(/^(\d{3})(\d{3})(\d{3})(\d{2})$/, '$1.$2.$3-$4')
             setCnpjDisplay(fmt)
             setRazaoSocial(estArr[0].razao_social_nome)
+            setErroEstab(false)
             console.warn('Estab: ' + estArr[0].razao_social_nome?.slice(0,20))
+          } else {
+            // Nem a busca atual nem o cache tinham nada — conexao ruim e
+            // primeira vez nesse aparelho. Sem isto, os campos ficam em
+            // branco sem explicacao nenhuma (achado real de Celso,
+            // 01/10/2026, com testes em tablet e notebook).
+            setErroEstab(true)
           }
         }
 
@@ -311,7 +320,7 @@ function Tela31Inner() {
       }
     }
     carregar()
-  }, [cpfInspetor, cnpjoucpf, tipoServico])
+  }, [cpfInspetor, cnpjoucpf, tipoServico, recarregarContador])
 
   // ── Foto e IA ──
   function handleFotoChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -549,6 +558,16 @@ function Tela31Inner() {
             <div style={{ background: '#FFF7ED', border: '1px solid #FED7AA', borderRadius: '6px',
               padding: '8px 12px', fontSize: '8pt', color: '#92400E', textAlign: 'center' }}>
               ⚠️ Ocorreu problema de salvamento de dados de preenchimento anterior ou atual. Revise e complemente antes de salvar.
+            </div>
+          )}
+
+          {erroEstab && (
+            <div style={{ backgroundColor:'#FEF3C7', border:'1px solid #F59E0B', borderRadius:'6px', padding:'8px 10px', fontSize:'11px', color:'#92400E', display:'flex', alignItems:'center', justifyContent:'space-between', gap:'8px' }}>
+              <span>⚠️ Não foi possível carregar os dados do estabelecimento (CNPJ/Razão social). Verifique a conexão.</span>
+              <button type="button" onClick={() => setRecarregarContador(c => c + 1)}
+                style={{ backgroundColor:'#F59E0B', color:'white', border:'none', borderRadius:'4px', padding:'4px 10px', fontSize:'10px', fontWeight:700, cursor:'pointer', whiteSpace:'nowrap' }}>
+                Tentar novamente
+              </button>
             </div>
           )}
 
