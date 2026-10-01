@@ -81,6 +81,7 @@ export default function PlanoManutencaoInner() {
 
   const [etapa,     setEtapa]    = useState<'carregando'|'banner'|'gerando'|'gerado'|'erro'>('carregando')
   const [erro,      setErro]     = useState('')
+  const [creditosInsuficientes, setCreditosInsuficientes] = useState(false)
   const [ncs,       setNcs]      = useState<any[]>([])
   const [estabNome, setEstabNome]= useState('')
   const [cabInspetor, setCabInspetor] = useState('')
@@ -180,7 +181,13 @@ export default function PlanoManutencaoInner() {
         body: JSON.stringify({ cpfInspetor, chaveInspetor: chaveInsp, cnpjoucpf, tipoServico, nomeArquivo: nome, ncs: ncsComPC })
       })
       const data = await res.json()
-      if (!res.ok || data.erro) { setErro(data.erro ?? 'Erro ao gerar.'); setEtapa('erro'); return }
+      if (!res.ok || data.erro) {
+        setCreditosInsuficientes(res.status === 402)
+        const sufixo = res.status === 402 ? ` Faltam ${data.faltam ?? '—'} CR (saldo atual: ${data.saldoTotal ?? '—'}).` : ''
+        setErro((data.erro ?? 'Erro ao gerar.') + sufixo)
+        setEtapa('erro')
+        return
+      }
 
       if (data.html) { try { sessionStorage.setItem('laudoHtml_' + nome, data.html) } catch {}; setHtmlGerado(data.html) }
       setNomeArq(nome)
@@ -279,6 +286,10 @@ export default function PlanoManutencaoInner() {
           <div style={S.formBody}>
             <p style={{ color: '#9a3412', fontSize: '9pt', padding: 20 }}><b>Erro:</b> {erro}</p>
             <div style={S.footer}>
+              {creditosInsuficientes && (
+                <button style={{ ...S.btn, ...S.btnPri }}
+                  onClick={() => { window.location.href = `/inspetor?cpf=${cpfInspetor}&aba=plano` }}>Comprar Créditos</button>
+              )}
               <button style={{ ...S.btn, ...S.btnPri, gridColumn: '1 / -1' }}
                 onClick={() => window.location.href = retorno}>Voltar ao Dashboard</button>
             </div>

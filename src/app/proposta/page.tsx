@@ -323,7 +323,17 @@ function PropostaInner() {
       })
       const data = await res.json()
       if (!data.html) {
-        informa('Erro', data.erro ?? 'Não foi possível gerar a proposta.')
+        if (res.status === 402) {
+          solicita('Créditos insuficientes',
+            `${data.erro ?? 'Créditos insuficientes para gerar esta proposta.'} Faltam ${data.faltam ?? '—'} CR (saldo atual: ${data.saldoTotal ?? '—'}).`,
+            [
+              { label: 'Comprar Créditos', acao: () => { fechar(); window.location.href = `/inspetor?cpf=${cpfInspetor}&aba=plano` }, estilo: 'primario' },
+              { label: 'Cancelar', acao: () => fechar(), estilo: 'secundario' },
+            ]
+          )
+        } else {
+          informa('Erro', data.erro ?? 'Não foi possível gerar a proposta.')
+        }
         return
       }
 

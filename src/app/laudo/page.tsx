@@ -108,6 +108,7 @@ function LaudoComplemento() {
   // ── Estados ──
   const [etapa, setEtapa]       = useState<'complemento'|'gerando'|'pronto'>('complemento')
   const [erro, setErro]         = useState('')
+  const [creditosInsuficientes, setCreditosInsuficientes] = useState(false)
   const [nomeArquivo, setNomeArquivo] = useState('')
   const [semCapa, setSemCapa] = useState(false)  // temp: gerar sem capa para validar resto do documento
 
@@ -645,7 +646,13 @@ function LaudoComplemento() {
       console.log('GERAR: aguardando res.json')
       const data = await res.json()
       console.log('GERAR: data recebido ok=', res.ok, 'erro=', data.erro?.slice?.(0,100))
-      if (!res.ok || data.erro) { setErro(data.erro ?? 'Erro ao gerar laudo.'); setEtapa('complemento'); return }
+      if (!res.ok || data.erro) {
+        setCreditosInsuficientes(res.status === 402)
+        const sufixo = res.status === 402 ? ` Faltam ${data.faltam ?? '—'} CR (saldo atual: ${data.saldoTotal ?? '—'}).` : ''
+        setErro((data.erro ?? 'Erro ao gerar laudo.') + sufixo)
+        setEtapa('complemento')
+        return
+      }
       setNomeArquivo(nome)
       // Salvar HTML no sessionStorage para bypass do cache do Supabase Storage CDN
       if (data.html) { try { sessionStorage.setItem('laudoHtml_' + nome, data.html) } catch {} }
@@ -1106,7 +1113,13 @@ function LaudoComplemento() {
             </div>
           )}
 
-          {erro && <p style={{ color: "#DC2626", fontSize: "12px", marginBottom: "12px" }}>{erro}</p>}
+          {erro && <p style={{ color: "#DC2626", fontSize: "12px", marginBottom: "8px" }}>{erro}</p>}
+          {creditosInsuficientes && (
+            <button onClick={() => { window.location.href = `/inspetor?cpf=${cpfInspetor}&aba=plano` }}
+              style={{ backgroundColor: "#1E3A8A", color: "white", fontWeight: 600, padding: "7px 18px", borderRadius: "50px", border: "none", cursor: "pointer", fontSize: "11px", marginBottom: "12px" }}>
+              Comprar Créditos
+            </button>
+          )}
 
           <div style={{ display: "flex", gap: "10px", justifyContent: "flex-end" }}>
             <button style={S.btnSec} onClick={() => window.location.href = '/dashboard'}>Voltar</button>

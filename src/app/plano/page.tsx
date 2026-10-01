@@ -334,6 +334,15 @@ function PlanoInner() {
         if (data.endereco) setEnderecoDoc(data.endereco)
         setEtapa('plano')
       }
+      else if (res.status === 402) {
+        solicita('Créditos insuficientes',
+          `${data.erro ?? 'Créditos insuficientes para gerar este plano de trabalho.'} Faltam ${data.faltam ?? '—'} CR (saldo atual: ${data.saldoTotal ?? '—'}).`,
+          [
+            { label: 'Comprar Créditos', acao: () => { fechar(); window.location.href = `/inspetor?cpf=${cpfInspetor}&aba=plano` }, estilo: 'primario' },
+            { label: 'Cancelar', acao: () => fechar(), estilo: 'secundario' },
+          ]
+        )
+      }
       else informa('Erro', data.erro ?? 'Não foi possível gerar o plano.')
     } finally {
       setSalvando(false)
