@@ -360,13 +360,13 @@ export async function concederCreditos(
     // TROCA/RENOVAÇÃO DE PLANO: se existe QUALQUER contrato vigente (mesmo
     // tipo mas de um dia anterior — ex.: comprou Mensal de novo por engano
     // enquanto o Mensal da semana passada ainda está ativo — ou de um tipo
-    // diferente), esse contrato antigo é encerrado hoje e TUDO que ele
-    // ainda tinha — saldo de plano não usado E qualquer avulso que já
-    // carregava — migra para o avulso do contrato novo (sem vencimento).
-    // A colisão de MESMO tipo + MESMO dia já foi tratada acima (jaExiste) e
-    // retorna antes de chegar aqui, então não há risco de pegar a mesma
-    // linha duas vezes. Decisão de Celso, 01/10/2026: nada se perde, em
-    // nenhum dos casos.
+    // diferente), o saldo desse contrato antigo é ZERADO (data_fim_contrato
+    // não pode ser alterada — ver nota abaixo) e TUDO que ele ainda tinha —
+    // saldo de plano não usado E qualquer avulso que já carregava — migra
+    // para o avulso do contrato novo (sem vencimento). A colisão de MESMO
+    // tipo + MESMO dia já foi tratada acima (jaExiste) e retorna antes de
+    // chegar aqui, então não há risco de pegar a mesma linha duas vezes.
+    // Decisão de Celso, 01/10/2026: nada se perde, em nenhum dos casos.
     const { data: planoAntigo } = await supabase
       .from('contratos_inspetor').select('tipo_assinatura,data_inicio_contrato,saldo_quantidade_plano,qde_contratada_avulso,saldo_quantidade_avulso')
       .eq('cpf_inspetor', cpf)
@@ -378,9 +378,15 @@ export async function concederCreditos(
     if (planoAntigo) {
       avulsoMigradoQde = planoAntigo.saldo_quantidade_plano + planoAntigo.qde_contratada_avulso
       avulsoMigradoSaldo = planoAntigo.saldo_quantidade_plano + planoAntigo.saldo_quantidade_avulso
+      // data_fim_contrato NAO pode ser definida diretamente (coluna
+      // controlada por gatilho no banco - so aceita DEFAULT). Zerar o
+      // saldo já atinge o efeito prático: mesmo que a linha antiga
+      // continue "vigente" pela data, sem saldo ela não contribui em
+      // nada numa próxima consulta de disponibilidade/consumo — e a
+      // linha NOVA (data_inicio_contrato de hoje) sempre é escolhida
+      // primeiro por ser mais recente. Achado real de Celso, 01/10/2026.
       const { error: erroEncerra } = await supabase.from('contratos_inspetor').update({
-        data_fim_contrato: hoje, saldo_quantidade_plano: 0,
-        qde_contratada_avulso: 0, saldo_quantidade_avulso: 0,
+        saldo_quantidade_plano: 0, qde_contratada_avulso: 0, saldo_quantidade_avulso: 0,
       }).eq('cpf_inspetor', cpf).eq('tipo_assinatura', planoAntigo.tipo_assinatura).eq('data_inicio_contrato', planoAntigo.data_inicio_contrato)
       if (erroEncerra) return { ok: false, erro: erroEncerra.message }
     }
