@@ -665,19 +665,12 @@ function Tela40Inner() {
         console.error('Falha ao salvar dados_vistoria:', erroTexto)
         // Alerta visível — não depender do console do navegador para diagnosticar
         alert('⚠️ FALHA AO SALVAR dados_vistoria (status ' + resDadosVistoria.status + '):\n\n' + erroTexto)
-      } else {
-        // Debito de 1 CR pela foto — em segundo plano, nunca trava a
-        // experiencia do usuario mesmo se falhar (mesma filosofia de
-        // consumirCreditos). So dispara se o insert acima deu certo.
-        fetch('/api/consumir-foto-vistoria', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            cpfInspetor: form.cpfInspetor, tipoServico: form.tipoServico,
-            cnpjoucpf: form.cnpjoucpf, numeroFoto: form.fotoNr,
-          }),
-        }).catch(() => { /* fogo-e-esquece — falha aqui nao impede a homologacao */ })
       }
+      // O debito de 1 CR pela foto NAO acontece mais aqui — foi movido para
+      // o salvamento da vistoria em si (/api/salvar-vistoria), momento em
+      // que o custo de armazenamento/IA ja e incorrido de verdade. Decisao
+      // de Celso, 01/10/2026: um item pode nunca chegar a ser homologado,
+      // e nesse caso o custo ja incorrido ficaria sem cobranca.
 
       // Homologar server-side: gera HTML com foto, salva em vistorias_homologadas/, exclui JSON
       const homologarRes = await fetch('/api/homologar', {
