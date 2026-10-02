@@ -870,7 +870,6 @@ function Tela40Inner() {
 
               </div>
               <Field label={isNR ? 'Requisito Normativo' : 'Anomalia / Falha'}>
-                <div style={{ fontSize:'8px', color:'#059669', fontWeight:700 }}>[marca de versão temporária: v-anomalia-fix-02out-18h]</div>
                 {isNR && resultado === 'Conforme' ? (
                   // "Requisito atendido plenamente." não é uma opção real do banco —
                   // um <select> não consegue exibir um valor que não está na lista de
@@ -903,7 +902,15 @@ function Tela40Inner() {
                           // ja vinha com mais de uma anomalia combinada (achado real de Celso,
                           // 02/10/2026, no fluxo de homologacao do codigo 39/eletrico).
                           const segmentoAtual = (anomalia.split(';').pop() ?? '').trim().toLowerCase()
-                          const filtradas = anomaliasFiltradas.filter(a => a.toLowerCase().includes(segmentoAtual))
+                          // Se o trecho atual JA E um valor completo e reconhecido (acabou de
+                          // ser selecionado, ou veio assim da vistoria), mostra a lista INTEIRA
+                          // de novo — a pessoa pode querer combinar com outra anomalia, nao so
+                          // ver repetido o que ja tem. So filtra de verdade enquanto o texto
+                          // ainda nao bate com nenhum valor tabelado (busca em andamento).
+                          const ehValorCompleto = anomaliasFiltradas.some(a => a.toLowerCase() === segmentoAtual)
+                          const filtradas = ehValorCompleto
+                            ? anomaliasFiltradas
+                            : anomaliasFiltradas.filter(a => a.toLowerCase().includes(segmentoAtual))
                           return filtradas.length > 0 ? filtradas.map(a => (
                             <div key={a}
                               onMouseDown={() => {
