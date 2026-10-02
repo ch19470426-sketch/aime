@@ -870,6 +870,7 @@ function Tela40Inner() {
 
               </div>
               <Field label={isNR ? 'Requisito Normativo' : 'Anomalia / Falha'}>
+                <div style={{ fontSize:'8px', color:'#059669', fontWeight:700 }}>[marca de versão temporária: v-anomalia-fix-02out-18h]</div>
                 {isNR && resultado === 'Conforme' ? (
                   // "Requisito atendido plenamente." não é uma opção real do banco —
                   // um <select> não consegue exibir um valor que não está na lista de
