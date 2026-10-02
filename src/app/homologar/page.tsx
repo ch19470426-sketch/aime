@@ -867,6 +867,10 @@ function Tela40Inner() {
                     {subsistemasFiltrados.map(s => <option key={s} value={s}>{s}</option>)}
                   </select>
                 </Field>
+                {/* DIAGNOSTICO TEMPORARIO 02/10/2026 — remover depois de achar a causa */}
+                <div style={{ fontSize:'9px', color:'#DC2626', background:'#FEF2F2', padding:'4px 6px', borderRadius:'4px', marginTop:'4px', gridColumn:'1 / -1' }}>
+                  🔧 ts="{ts}" | tipoServicoBanco="{tipoServicoBanco}" | sistema="{sistema}" | sistemas={sistemas.length} | subsistemas={subsistemas.length} | anomalias={anomalias.length} | subsistemasFiltrados={subsistemasFiltrados.length}
+                </div>
               </div>
               <Field label={isNR ? 'Requisito Normativo' : 'Anomalia / Falha'}>
                 {isNR && resultado === 'Conforme' ? (
