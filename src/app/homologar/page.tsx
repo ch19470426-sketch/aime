@@ -867,10 +867,7 @@ function Tela40Inner() {
                     {subsistemasFiltrados.map(s => <option key={s} value={s}>{s}</option>)}
                   </select>
                 </Field>
-                {/* DIAGNOSTICO TEMPORARIO 02/10/2026 — remover depois de achar a causa */}
-                <div style={{ fontSize:'9px', color:'#DC2626', background:'#FEF2F2', padding:'4px 6px', borderRadius:'4px', marginTop:'4px', gridColumn:'1 / -1' }}>
-                  🔧 subsistema SALVO="{subsistema}" (tam={subsistema.length}) | opções disponíveis=[{subsistemasFiltrados.join(' | ')}] | anomaliasFiltradas={anomaliasFiltradas.length}
-                </div>
+
               </div>
               <Field label={isNR ? 'Requisito Normativo' : 'Anomalia / Falha'}>
                 {isNR && resultado === 'Conforme' ? (
@@ -898,10 +895,26 @@ function Tela40Inner() {
                         background: '#fff', border: '1px solid #c3d4f0', borderRadius: '6px',
                         maxHeight: '160px', overflowY: 'auto', boxShadow: '0 2px 8px rgba(0,0,0,.12)' }}>
                         {(() => {
-                          const filtradas = anomaliasFiltradas.filter(a => a.toLowerCase().includes(anomalia.toLowerCase()))
+                          // Compara so o ULTIMO trecho digitado (apos o ultimo ';'), nao a string
+                          // toda — o campo permite combinar varias anomalias separadas por ';',
+                          // e nenhum valor tabelado individual jamais vai "conter" a combinacao
+                          // inteira. Sem isto, a lista sempre aparecia vazia assim que o campo
+                          // ja vinha com mais de uma anomalia combinada (achado real de Celso,
+                          // 02/10/2026, no fluxo de homologacao do codigo 39/eletrico).
+                          const segmentoAtual = (anomalia.split(';').pop() ?? '').trim().toLowerCase()
+                          const filtradas = anomaliasFiltradas.filter(a => a.toLowerCase().includes(segmentoAtual))
                           return filtradas.length > 0 ? filtradas.map(a => (
                             <div key={a}
-                              onMouseDown={() => { setAnomalia(a); setMostrarSugAnomalia(false) }}
+                              onMouseDown={() => {
+                                  // Substitui so o ULTIMO trecho (apos o ultimo ';'), preservando
+                                  // anomalias ja combinadas antes — selecionar uma sugestao nao pode
+                                  // apagar o que ja estava escrito
+                                  const partes = anomalia.split(';').map(s => s.trim()).filter(Boolean)
+                                  partes.pop()
+                                  partes.push(a)
+                                  setAnomalia(partes.join('; '))
+                                  setMostrarSugAnomalia(false)
+                                }}
                               style={{ padding: '6px 10px', fontSize: '8pt', cursor: 'pointer', borderBottom: '1px solid #eef2f7' }}>
                               {a}
                             </div>
