@@ -24,7 +24,20 @@ export async function GET(request: NextRequest) {
     .order('criado_em', { ascending: false })
   if (error) return NextResponse.json({ erro: error.message }, { status: 500 })
 
-  return NextResponse.json({ mensagens: data })
+  // Traz o WhatsApp/e-mail de cada inspetor que escreveu, para o gestor
+  // poder responder direto — a mensagem em si nao guarda isso, so o cpf.
+  const cpfs = [...new Set((data ?? []).map(m => m.cpf_inspetor))]
+  const { data: insps } = cpfs.length
+    ? await supabase.from('inspetor').select('cpf_inspetor, inspetor_whatsapp, inspetor_email').in('cpf_inspetor', cpfs)
+    : { data: [] }
+  const porCpf = new Map((insps ?? []).map(i => [i.cpf_inspetor, i]))
+  const mensagens = (data ?? []).map(m => ({
+    ...m,
+    inspetor_whatsapp: porCpf.get(m.cpf_inspetor)?.inspetor_whatsapp ?? '',
+    inspetor_email: porCpf.get(m.cpf_inspetor)?.inspetor_email ?? '',
+  }))
+
+  return NextResponse.json({ mensagens })
 }
 
 export async function PATCH(request: NextRequest) {

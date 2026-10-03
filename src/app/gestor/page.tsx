@@ -53,6 +53,8 @@ type MensagemSuporte = {
   status: 'pendente' | 'respondido'
   criado_em: string
   respondido_em: string | null
+  inspetor_whatsapp: string
+  inspetor_email: string
 }
 
 type ResumoGestor = {
@@ -847,6 +849,21 @@ export default function GestorPage() {
                     </span>
                   </div>
                   <p style={{ fontSize:'12px', color:'#374151', whiteSpace:'pre-wrap', marginBottom:'8px' }}>{m.mensagem}</p>
+                  <div style={{ display:'flex', gap:'8px', marginBottom:'8px', flexWrap:'wrap' as const }}>
+                    {m.inspetor_whatsapp && (
+                      <a href={`https://wa.me/55${m.inspetor_whatsapp.replace(/\D/g,'')}?text=${encodeURIComponent(`Olá ${m.nome_inspetor.split(' ')[0]}, aqui é o suporte AIMÊ, sobre sua mensagem "${m.assunto}":`)}`}
+                        target="_blank" rel="noopener noreferrer"
+                        style={{ fontSize:'10px', fontWeight:700, padding:'4px 12px', borderRadius:'4px', textDecoration:'none', backgroundColor:'#25D366', color:'white' }}>
+                        💬 Responder no WhatsApp
+                      </a>
+                    )}
+                    {m.inspetor_email && (
+                      <a href={`mailto:${m.inspetor_email}?subject=${encodeURIComponent(`Re: ${m.assunto}`)}`}
+                        style={{ fontSize:'10px', fontWeight:700, padding:'4px 12px', borderRadius:'4px', textDecoration:'none', border:'1px solid #1E3A8A', color:'#1E3A8A' }}>
+                        ✉️ Responder por e-mail
+                      </a>
+                    )}
+                  </div>
                   <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
                     <span style={{ fontSize:'10px', color:'#9CA3AF' }}>{fmtDataBR(m.criado_em.slice(0,10))} {m.criado_em.slice(11,16)}</span>
                     <button onClick={() => alternarStatusSuporte(m.id, m.status)}
