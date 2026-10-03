@@ -590,6 +590,16 @@ function Tela31Inner() {
                 <div style={{ fontSize:'8px', color:'#DC2626', background:'#FEF2F2', padding:'3px 5px', borderRadius:'4px', gridColumn:'1 / -1' }}>
                   🔧 cpfInspetor="{cpfInspetor}" | cnpjoucpf="{cnpjoucpf}" | tipoServicoBanco="{tipoServicoBanco}" | ativos.length={ativos.length} | tiposAtivo=[{tiposAtivo.join(' | ')}]
                 </div>
+                <button type="button" onClick={async () => {
+                  const url = `${SUPA_URL}/rest/v1/ativos_a_vistoriar?cpf_inspetor=eq.${cpfInspetor}&cnpjoucpf=eq.${cnpjoucpf}&tipo_servico=eq.${encodeURIComponent(tipoServicoBanco)}&select=tipo_ativo,tag_ativo_nr_serie,data_cadastro&order=data_cadastro.desc`
+                  try {
+                    const r = await fetch(url, { headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` } })
+                    const texto = await r.text()
+                    alert(`URL: ${url}\n\nSTATUS: ${r.status}\n\nCORPO: ${texto}`)
+                  } catch (e) { alert('ERRO NO FETCH: ' + String(e)) }
+                }} style={{ fontSize:'9px', padding:'4px 8px', background:'#DC2626', color:'white', border:'none', borderRadius:'4px', gridColumn:'1 / -1' }}>
+                  🔧 Testar busca de ativos agora (mostra resposta bruta)
+                </button>
                 <Field label={tagObrigatorio ? 'Tag / Nr série *' : 'Tag / Nr série'}>
                   <select style={S.input} value={tagNrSerie} onChange={e => {
                     setTagNrSerie(e.target.value)
