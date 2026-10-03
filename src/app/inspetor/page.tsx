@@ -530,29 +530,47 @@ function CadastroInspetor() {
                       <div style={{border:'1px solid #E2E8F0',borderTop:'none',borderRadius:'0 0 6px 6px',padding:'12px'}}>
                         {contratos.length === 0 ? (
                           <p style={{fontSize:'12px',color:'#9CA3AF'}}>Nenhum contrato encontrado.</p>
-                        ) : contratos.map((ct, i) => {
+                        ) : contratos.flatMap((ct, i) => {
                           const vencido = new Date(ct.data_fim_contrato) < new Date()
                           const pct = ct.qde_contratada_plano > 0 ? Math.round((ct.saldo_quantidade_plano/ct.qde_contratada_plano)*100) : 0
                           const COR: Record<string,string> = {'PLANO CORTESIA':'#6B7280','PLANO SERVIÇO':'#0284C7','PLANO MENSAL':'#059669','PLANO ESCRITÓRIO':'#7C3AED'}
-                          return (
-                            <div key={i} style={{border:`1.5px solid ${vencido?'#E5E7EB':'#1E3A8A'}`,borderRadius:'8px',padding:'12px',marginBottom:'8px',opacity:vencido?0.6:1}}>
-                              <div style={{display:'flex',justifyContent:'space-between',marginBottom:'8px'}}>
-                                <span style={{padding:'2px 10px',borderRadius:'9999px',fontSize:'10px',fontWeight:700,backgroundColor:COR[ct.tipo_assinatura]??'#6B7280',color:'white'}}>{ct.tipo_assinatura}</span>
-                                <span style={{fontSize:'10px',fontWeight:700,color:vencido?'#DC2626':'#059669'}}>{vencido?'⚠ Plano vencido':`✓ Plano válido até ${fmtDataBR(ct.data_fim_contrato)}`}</span>
+                          const cards = []
+                          // Card do plano — so quando ha algo de plano contratado (o
+                          // placeholder criado para uma compra de avulso sem plano
+                          // vigente no momento usa qde_contratada_plano=0 e nao deve
+                          // gerar um card de plano vazio)
+                          if (ct.qde_contratada_plano > 0) {
+                            cards.push(
+                              <div key={`${i}-plano`} style={{border:`1.5px solid ${vencido?'#E5E7EB':'#1E3A8A'}`,borderRadius:'8px',padding:'12px',marginBottom:'8px',opacity:vencido?0.6:1}}>
+                                <div style={{display:'flex',justifyContent:'space-between',marginBottom:'8px'}}>
+                                  <span style={{padding:'2px 10px',borderRadius:'9999px',fontSize:'10px',fontWeight:700,backgroundColor:COR[ct.tipo_assinatura]??'#6B7280',color:'white'}}>{ct.tipo_assinatura}</span>
+                                  <span style={{fontSize:'10px',fontWeight:700,color:vencido?'#DC2626':'#059669'}}>{vencido?'⚠ Plano vencido':`✓ Plano válido até ${fmtDataBR(ct.data_fim_contrato)}`}</span>
+                                </div>
+                                <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit, minmax(120px, 1fr))',gap:'12px'}}>
+                                  <div><div style={{fontSize:'10px',color:'#6B7280'}}>CR Plano</div><div style={{fontWeight:700,color:'#1E3A8A',fontSize:'16px'}}>{ct.saldo_quantidade_plano}<span style={{fontSize:'10px',color:'#6B7280'}}>/{ct.qde_contratada_plano}</span></div><div style={{height:'4px',backgroundColor:'#E5E7EB',borderRadius:'2px',marginTop:'4px'}}><div style={{height:'4px',backgroundColor:'#1E3A8A',borderRadius:'2px',width:`${pct}%`}} /></div></div>
+                                  <div><div style={{fontSize:'10px',color:'#6B7280'}}>Início</div><div style={{fontWeight:700,fontSize:'12px'}}>{fmtDataBR(ct.data_inicio_contrato)}</div></div>
+                                </div>
                               </div>
-                              <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit, minmax(120px, 1fr))',gap:'12px'}}>
-                                <div><div style={{fontSize:'10px',color:'#6B7280'}}>CR Plano <span style={{color:'#9CA3AF'}}>(com vencimento)</span></div><div style={{fontWeight:700,color:'#1E3A8A',fontSize:'16px'}}>{ct.saldo_quantidade_plano}<span style={{fontSize:'10px',color:'#6B7280'}}>/{ct.qde_contratada_plano}</span></div><div style={{height:'4px',backgroundColor:'#E5E7EB',borderRadius:'2px',marginTop:'4px'}}><div style={{height:'4px',backgroundColor:'#1E3A8A',borderRadius:'2px',width:`${pct}%`}} /></div></div>
-                                {(() => {
-                                  const hojeStrAvulso = new Date().toISOString().slice(0, 10)
-                                  const avulsoVencido = !!ct.data_fim_avulso && ct.data_fim_avulso < hojeStrAvulso
-                                  return (
-                                    <div><div style={{fontSize:'10px',color:'#6B7280'}}>CR Avulso <span style={{color:avulsoVencido?'#DC2626':'#9CA3AF'}}>{ct.data_fim_avulso ? (avulsoVencido ? '(vencido)' : `(válido até ${fmtDataBR(ct.data_fim_avulso)})`) : '(sem vencimento)'}</span></div><div style={{fontWeight:700,color:'#7C3AED',fontSize:'16px'}}>{ct.saldo_quantidade_avulso}<span style={{fontSize:'10px',color:'#6B7280'}}>/{ct.qde_contratada_avulso}</span></div></div>
-                                  )
-                                })()}
-                                <div><div style={{fontSize:'10px',color:'#6B7280'}}>Início</div><div style={{fontWeight:700,fontSize:'12px'}}>{fmtDataBR(ct.data_inicio_contrato)}</div></div>
+                            )
+                          }
+                          // Card do avulso — proprio, igual aos demais, so quando
+                          // houver avulso contratado nesta linha
+                          if (ct.qde_contratada_avulso > 0) {
+                            const hojeStrAvulso = new Date().toISOString().slice(0, 10)
+                            const avulsoVencido = !!ct.data_fim_avulso && ct.data_fim_avulso < hojeStrAvulso
+                            cards.push(
+                              <div key={`${i}-avulso`} style={{border:`1.5px solid ${avulsoVencido?'#E5E7EB':'#7C3AED'}`,borderRadius:'8px',padding:'12px',marginBottom:'8px',opacity:avulsoVencido?0.6:1}}>
+                                <div style={{display:'flex',justifyContent:'space-between',marginBottom:'8px'}}>
+                                  <span style={{padding:'2px 10px',borderRadius:'9999px',fontSize:'10px',fontWeight:700,backgroundColor:'#7C3AED',color:'white'}}>CRÉDITOS AVULSOS</span>
+                                  <span style={{fontSize:'10px',fontWeight:700,color:avulsoVencido?'#DC2626':'#059669'}}>{ct.data_fim_avulso ? (avulsoVencido ? '⚠ Avulso vencido' : `✓ Avulso válido até ${fmtDataBR(ct.data_fim_avulso)}`) : '✓ Sem vencimento'}</span>
+                                </div>
+                                <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit, minmax(120px, 1fr))',gap:'12px'}}>
+                                  <div><div style={{fontSize:'10px',color:'#6B7280'}}>CR Avulso</div><div style={{fontWeight:700,color:'#7C3AED',fontSize:'16px'}}>{ct.saldo_quantidade_avulso}<span style={{fontSize:'10px',color:'#6B7280'}}>/{ct.qde_contratada_avulso}</span></div></div>
+                                </div>
                               </div>
-                            </div>
-                          )
+                            )
+                          }
+                          return cards
                         })}
                       </div>
                     </div>
