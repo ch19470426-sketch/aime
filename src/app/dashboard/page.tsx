@@ -91,6 +91,7 @@ const menuGrupos = [
     { codigo: 62, label: "Meu Cadastro" },
     { codigo: 63, label: "Meus Estabelecimentos" },
     { codigo: 64, label: "Meu Plano e Créditos" },
+    { codigo: 91, label: "Fale Conosco" },
     { codigo: 99, label: "Sair do Aplicativo" },
   ]},
 ]
@@ -506,6 +507,11 @@ export default function Dashboard() {
     // usuário sem créditos precisa conseguir chegar aqui para contratar.
     if (codigo === 64) {
       window.location.href = `/inspetor?cpf=${cpfInspetor}&aba=plano`
+      return
+    }
+    // 91: Fale Conosco — navega direto, sem coletar CNPJ.
+    if (codigo === 91) {
+      window.location.href = `/fale-conosco?cpf_inspetor=${cpfInspetor}`
       return
     }
     // Item 39: navegar direto sem coletar CNPJ

@@ -44,6 +44,17 @@ const S = {
 }
 
 type ComTotalEDesde<T> = { total: T; desde: T | null }
+type MensagemSuporte = {
+  id: number
+  cpf_inspetor: string
+  nome_inspetor: string
+  assunto: string
+  mensagem: string
+  status: 'pendente' | 'respondido'
+  criado_em: string
+  respondido_em: string | null
+}
+
 type ResumoGestor = {
   totalInspetores: number
   inspetoresAtivos: number
@@ -115,7 +126,7 @@ export default function GestorPage() {
   const [aba, setAba] = useState<'dados'|'plano'|'info'>('dados')
   const searchParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null
   const abaInicial = (searchParams?.get('aba') as any) || 'inspetores'
-  const [abaGestor, setAbaGestor] = useState<'inspetores'|'estabelecimentos'|'visao-geral'|'configuracoes'>(abaInicial)
+  const [abaGestor, setAbaGestor] = useState<'inspetores'|'estabelecimentos'|'visao-geral'|'configuracoes'|'suporte'>(abaInicial)
   const [estabelecimentos, setEstabelecimentos] = useState<Estabelecimento[]>([])
   const [estabSel, setEstabSel] = useState<Estabelecimento | null>(null)
   const [buscaEstab, setBuscaEstab] = useState('')
@@ -124,6 +135,8 @@ export default function GestorPage() {
   const [msgEstab, setMsgEstab] = useState('')
   const [carregandoEstab, setCarregandoEstab] = useState(false)
   const [resumo, setResumo] = useState<ResumoGestor | null>(null)
+  const [mensagensSuporte, setMensagensSuporte] = useState<MensagemSuporte[]>([])
+  const [carregandoSuporte, setCarregandoSuporte] = useState(false)
   const [carregandoResumo, setCarregandoResumo] = useState(false)
   const [dataReferencia, setDataReferencia] = useState('')
   // Novo plano
@@ -210,6 +223,32 @@ export default function GestorPage() {
     finally { setCarregandoResumo(false) }
   }
 
+  async function carregarMensagensSuporte() {
+    setCarregandoSuporte(true)
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      const res = await fetch('/api/mensagens-suporte', {
+        headers: { Authorization: `Bearer ${session?.access_token ?? ''}` },
+      })
+      const d = await res.json()
+      setMensagensSuporte(res.ok ? (d.mensagens ?? []) : [])
+    } catch { setMensagensSuporte([]) }
+    finally { setCarregandoSuporte(false) }
+  }
+
+  async function alternarStatusSuporte(id: number, statusAtual: 'pendente' | 'respondido') {
+    const novoStatus = statusAtual === 'pendente' ? 'respondido' : 'pendente'
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      const res = await fetch('/api/mensagens-suporte', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session?.access_token ?? ''}` },
+        body: JSON.stringify({ id, status: novoStatus }),
+      })
+      if (res.ok) await carregarMensagensSuporte()
+    } catch {}
+  }
+
   async function carregarEstabelecimentos() {
     setCarregandoEstab(true)
     try {
@@ -286,12 +325,12 @@ export default function GestorPage() {
 
         {/* Navegação principal */}
         <div style={{ display:'flex', gap:'0', borderBottom:'2px solid #1E3A8A', flexWrap:'wrap' as const }}>
-          {(['inspetores','estabelecimentos','visao-geral','configuracoes'] as const).map(ab => (
-            <button key={ab} onClick={() => { setAbaGestor(ab); if(ab==='estabelecimentos') carregarEstabelecimentos(); if(ab==='visao-geral') carregarResumo() }}
+          {(['inspetores','estabelecimentos','visao-geral','suporte','configuracoes'] as const).map(ab => (
+            <button key={ab} onClick={() => { setAbaGestor(ab); if(ab==='estabelecimentos') carregarEstabelecimentos(); if(ab==='visao-geral') carregarResumo(); if(ab==='suporte') carregarMensagensSuporte() }}
               style={{ padding:'8px 20px', border:'none', cursor:'pointer', fontSize:'12px', fontWeight:700,
                 borderBottom: abaGestor===ab ? '3px solid #1E3A8A' : '3px solid transparent',
                 color: abaGestor===ab ? '#1E3A8A' : '#6B7280', backgroundColor:'white' }}>
-              {ab === 'inspetores' ? '👤 Inspetores' : ab === 'estabelecimentos' ? '🏢 Estabelecimentos' : ab === 'visao-geral' ? '📊 Painel Geral' : '⚙️ Configurações'}
+              {ab === 'inspetores' ? '👤 Inspetores' : ab === 'estabelecimentos' ? '🏢 Estabelecimentos' : ab === 'visao-geral' ? '📊 Painel Geral' : ab === 'suporte' ? '💬 Fale Conosco' : '⚙️ Configurações'}
             </button>
           ))}
         </div>
@@ -789,6 +828,38 @@ export default function GestorPage() {
             )}
           </div>
           </>)}
+          {abaGestor === 'suporte' && (<>
+            {carregandoSuporte ? (
+              <p style={{ fontSize:'12px', color:'#9CA3AF' }}>Carregando...</p>
+            ) : mensagensSuporte.length === 0 ? (
+              <p style={{ fontSize:'12px', color:'#9CA3AF' }}>Nenhuma mensagem recebida ainda.</p>
+            ) : (
+              mensagensSuporte.map(m => (
+                <div key={m.id} style={{ border:`1.5px solid ${m.status==='pendente'?'#F59E0B':'#E5E7EB'}`, borderRadius:'8px', padding:'12px', marginBottom:'8px' }}>
+                  <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:'6px' }}>
+                    <div>
+                      <span style={{ fontWeight:700, fontSize:'13px', color:'#1E3A8A' }}>{m.assunto}</span>
+                      <div style={{ fontSize:'11px', color:'#6B7280' }}>{m.nome_inspetor} — CPF {m.cpf_inspetor}</div>
+                    </div>
+                    <span style={{ padding:'2px 10px', borderRadius:'9999px', fontSize:'10px', fontWeight:700, color:'white',
+                      backgroundColor: m.status==='pendente' ? '#F59E0B' : '#059669' }}>
+                      {m.status==='pendente' ? 'Pendente' : 'Respondido'}
+                    </span>
+                  </div>
+                  <p style={{ fontSize:'12px', color:'#374151', whiteSpace:'pre-wrap', marginBottom:'8px' }}>{m.mensagem}</p>
+                  <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+                    <span style={{ fontSize:'10px', color:'#9CA3AF' }}>{fmtDataBR(m.criado_em.slice(0,10))} {m.criado_em.slice(11,16)}</span>
+                    <button onClick={() => alternarStatusSuporte(m.id, m.status)}
+                      style={{ fontSize:'10px', fontWeight:700, padding:'4px 12px', borderRadius:'4px', border:'none', cursor:'pointer',
+                        backgroundColor: m.status==='pendente' ? '#059669' : '#6B7280', color:'white' }}>
+                      {m.status==='pendente' ? 'Marcar como respondido' : 'Marcar como pendente'}
+                    </button>
+                  </div>
+                </div>
+              ))
+            )}
+          </>)}
+
           {abaGestor === 'configuracoes' && (<>
           {/* ── Configurações ── */}
           <div style={{ flex:1, padding:'20px', backgroundColor:'#F8FAFC' }}>
