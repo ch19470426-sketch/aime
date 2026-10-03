@@ -3,6 +3,7 @@ import { Suspense, useEffect, useRef, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Image from 'next/image'
 import { salvarOffline } from '@/lib/offlineVistoria'
+import { fetchTimeout } from '@/lib/fetchTimeout'
 
 // ─── Tipos ───────────────────────────────────────────────────────────────────
 
@@ -400,7 +401,7 @@ function Tela31Inner() {
             const r2 = await fetchTimeout('/api/gerar-nc-cp', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ sistema, subsistema, anomalia, local, complemento, origem, abrangencia: descAbrangencia })
+              body: JSON.stringify({ sistema, subsistema, anomalia, local, complemento, origem, abrangencia: descProbabilidade })
             }, 10000)
             if (r2.ok) {
               const d2 = await r2.json()
@@ -431,6 +432,13 @@ function Tela31Inner() {
     if (!local) { alert('Informe o Local/Instalação/Setor/Área antes de salvar.'); return }
     if (!resultado) { alert('Selecione o Resultado antes de salvar.'); return }
     setSalvando(true); setErroSave('')
+    // Declarado aqui (fora do try) para continuar acessivel la embaixo, no
+    // caminho de SUCESSO, que roda depois que o try/catch termina — estava
+    // dentro do try antes, causando ReferenceError no ultimo passo (so
+    // depois que o dado JA tinha sido salvo com sucesso no servidor).
+    // Achado real de Celso, 02/10/2026 — explica os "retornos de tela"
+    // apos acionar a foto/salvar.
+    let nomeArquivo = ''
 
     try {
     // Incrementa o contador de foto
@@ -443,7 +451,7 @@ function Tela31Inner() {
     if (!nrRes.ok && nrRes.status === 503) throw new Error('offline')
     const nrFinal = nrData?.formatado ?? fotoNr
 
-    const nomeArquivo = `${chaveInspetor}_${cnpjoucpf}_${tipoServico}_${nrFinal}.json`
+    nomeArquivo = `${chaveInspetor}_${cnpjoucpf}_${tipoServico}_${nrFinal}.json`
     const payload = {
       chaveInspetor, cpfInspetor, cnpjoucpf, tipoServico,
       savedAt: new Date().toISOString(),

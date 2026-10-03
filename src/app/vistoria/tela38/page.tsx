@@ -3,6 +3,7 @@ import { Suspense, useEffect, useRef, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Image from 'next/image'
 import { salvarOffline } from '@/lib/offlineVistoria'
+import { fetchTimeout } from '@/lib/fetchTimeout'
 
 // ─── Tipos ───────────────────────────────────────────────────────────────────
 
@@ -79,7 +80,6 @@ function Tela31Inner() {
   const [razaoSocial,  setRazaoSocial]  = useState('')
   const [erroEstab,    setErroEstab]    = useState(false)
   const [erroAtivos,   setErroAtivos]   = useState(false)
-  const [erroAtivosDetalhe, setErroAtivosDetalhe] = useState('') // TEMPORARIO 02/10/2026
   const [recarregarContador, setRecarregarContador] = useState(0)
 
   // ── Listas ──
@@ -236,7 +236,6 @@ function Tela31Inner() {
         if (Array.isArray(dados)) { try { localStorage.setItem(chaveCompleta, JSON.stringify(dados)) } catch {} }
         return dados
       } catch (e) {
-        if (chave.startsWith('atv_')) setErroAtivosDetalhe(String(e)) // TEMPORARIO 02/10/2026
         try { const r = localStorage.getItem(chaveCompleta); if (r) return JSON.parse(r) } catch {}
         return []
       }
@@ -285,9 +284,7 @@ function Tela31Inner() {
             // cache tinham nada) — carga inicial concorrendo com varias
             // outras buscas pode falhar so nesta, sem rede ruim de verdade
             // (achado real de Celso, 02/10/2026)
-            const semNada = atv.length === 0
-            setErroAtivos(semNada)
-            if (!semNada) setErroAtivosDetalhe('') // TEMPORARIO 02/10/2026
+            setErroAtivos(atv.length === 0)
           }
           // Buscar finalidade_vistoria de contato_cliente
           try {
@@ -404,7 +401,7 @@ function Tela31Inner() {
             const r2 = await fetchTimeout('/api/gerar-nc-cp', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ sistema, subsistema, anomalia, local, complemento, origem, abrangencia: descAbrangencia })
+              body: JSON.stringify({ sistema, subsistema, anomalia, local, complemento, origem, abrangencia: descProbabilidade })
             }, 10000)
             if (r2.ok) {
               const d2 = await r2.json()
@@ -435,6 +432,13 @@ function Tela31Inner() {
     if (!local) { alert('Informe o Local/Instalação/Setor/Área antes de salvar.'); return }
     if (!resultado) { alert('Selecione o Resultado antes de salvar.'); return }
     setSalvando(true); setErroSave('')
+    // Declarado aqui (fora do try) para continuar acessivel la embaixo, no
+    // caminho de SUCESSO, que roda depois que o try/catch termina — estava
+    // dentro do try antes, causando ReferenceError no ultimo passo (so
+    // depois que o dado JA tinha sido salvo com sucesso no servidor).
+    // Achado real de Celso, 02/10/2026 — explica os "retornos de tela"
+    // apos acionar a foto/salvar.
+    let nomeArquivo = ''
 
     try {
     // Incrementa o contador de foto
@@ -447,7 +451,7 @@ function Tela31Inner() {
     if (!nrRes.ok && nrRes.status === 503) throw new Error('offline')
     const nrFinal = nrData?.formatado ?? fotoNr
 
-    const nomeArquivo = `${chaveInspetor}_${cnpjoucpf}_${tipoServico}_${nrFinal}.json`
+    nomeArquivo = `${chaveInspetor}_${cnpjoucpf}_${tipoServico}_${nrFinal}.json`
     const payload = {
       chaveInspetor, cpfInspetor, cnpjoucpf, tipoServico,
       savedAt: new Date().toISOString(),
@@ -613,12 +617,7 @@ function Tela31Inner() {
                       </button>
                     </div>
                   )}
-                  {/* TEMPORARIO 02/10/2026 — detalhe do erro para diagnostico */}
-                  {erroAtivosDetalhe && (
-                    <div style={{ fontSize:'8px', color:'#DC2626', background:'#FEF2F2', padding:'3px 5px', borderRadius:'4px', marginTop:'3px', wordBreak:'break-all' }}>
-                      🔧 {erroAtivosDetalhe}
-                    </div>
-                  )}
+
                 </Field>
                 <Field label={tagObrigatorio ? 'Tag / Nr série *' : 'Tag / Nr série'}>
                   <select style={S.input} value={tagNrSerie} onChange={e => {

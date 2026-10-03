@@ -442,6 +442,12 @@ function Tela31Inner() {
     if (!tagNrSerie) { alert('Selecione o TAG / Nº Série antes de salvar.'); return }
     if (!fotoBase64) { alert('Adicione a foto antes de salvar.'); return }
     setSalvando(true); setErroSave('')
+    // Declarado aqui (fora do try) para continuar acessivel no caminho de
+    // SUCESSO, que roda depois que o try/catch termina — estava dentro do
+    // try antes, causando ReferenceError no ultimo passo (so depois que o
+    // dado JA tinha sido salvo com sucesso no servidor). Achado real de
+    // Celso, 02/10/2026 — explica os "retornos de tela" apos salvar.
+    let nomeArquivo = ''
 
     const dadosBase = {
       chaveInspetor, cpfInspetor, cnpjoucpf, tipoServico,
@@ -465,7 +471,7 @@ function Tela31Inner() {
       if (!nrRes.ok && nrRes.status === 503) throw new Error('offline')
       const nrFinal = nrData?.formatado ?? fotoNr
 
-      const nomeArquivo = `${chaveInspetor}_${cnpjoucpf}_${tipoServico}_${nrFinal}.json`
+      nomeArquivo = `${chaveInspetor}_${cnpjoucpf}_${tipoServico}_${nrFinal}.json`
       const payload = { ...dadosBase, savedAt: new Date().toISOString(), fotoNr: nrFinal }
 
       const res = await fetchTimeout('/api/salvar-vistoria', {

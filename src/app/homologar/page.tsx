@@ -89,14 +89,14 @@ const VALOR_GUT_NR: Record<string, number> = {
 
 
 // Mapas reversos: número → texto para carregar listas na homologação
-const GR_PREDIAL_REVERSO: Record<number, Record<string, string>> = {
+const GR_PREDIAL_REVERSO: Record<string, Record<number, string>> = {
   gravidade:   { 1: 'Estética', 2: 'Leve', 3: 'Moderada', 4: 'Alta', 5: 'Crítica' },
   urgencia:    { 1: 'Pode aguardar', 3: 'Planejar', 5: 'Imediata' },
   abrangencia: { 1: 'Ponto isolado', 3: 'Vários pontos', 5: 'Sistema completo' },
   exposicao:   { 1: 'Baixa', 3: 'Média', 5: 'Alta' },
 }
 
-const GR_NR_REVERSO: Record<number, Record<string, string>> = {
+const GR_NR_REVERSO: Record<string, Record<number, string>> = {
   gravidade:     { 1: 'Sem risco', 2: 'Lesão/dano baixo', 3: 'Lesão/dano moderado', 4: 'Lesão/dano grave', 5: 'Lesão/dano fatal' },
   urgencia:      { 1: 'Pode aguardar', 3: 'Planejar', 5: 'Imediata' },
   abrangencia:   { 1: 'Improvável', 3: 'Possível', 5: 'Provável/eminente' },
