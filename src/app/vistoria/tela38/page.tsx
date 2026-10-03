@@ -79,6 +79,7 @@ function Tela31Inner() {
   const [razaoSocial,  setRazaoSocial]  = useState('')
   const [erroEstab,    setErroEstab]    = useState(false)
   const [erroAtivos,   setErroAtivos]   = useState(false)
+  const [erroAtivosDetalhe, setErroAtivosDetalhe] = useState('') // TEMPORARIO 02/10/2026
   const [recarregarContador, setRecarregarContador] = useState(0)
 
   // ── Listas ──
@@ -211,6 +212,13 @@ function Tela31Inner() {
       const res = await fetchTimeout(`${SUPA_URL}/rest/v1/${table}?${params}`, {
         headers: { 'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}` }
       }, 6000)
+      // Sem isto, uma resposta de ERRO da Supabase (ex.: 400) mas com corpo em
+      // JSON valido era aceita como se fosse o resultado — nunca lancava
+      // excecao, entao comCache() nunca caia no catch (nem tentava o cache
+      // de reserva), e quem chamou so via um objeto de erro no lugar de uma
+      // lista (Array.isArray dava falso, nada era atualizado, sem aviso
+      // nenhum). Achado real de Celso, 02/10/2026.
+      if (!res.ok) { const corpo = await res.text(); throw new Error(`${table}: ${res.status} ${corpo}`) }
       return res.json()
     }
 
@@ -227,7 +235,8 @@ function Tela31Inner() {
         const dados = await query(table, params)
         if (Array.isArray(dados)) { try { localStorage.setItem(chaveCompleta, JSON.stringify(dados)) } catch {} }
         return dados
-      } catch {
+      } catch (e) {
+        if (chave.startsWith('atv_')) setErroAtivosDetalhe(String(e)) // TEMPORARIO 02/10/2026
         try { const r = localStorage.getItem(chaveCompleta); if (r) return JSON.parse(r) } catch {}
         return []
       }
@@ -276,7 +285,9 @@ function Tela31Inner() {
             // cache tinham nada) — carga inicial concorrendo com varias
             // outras buscas pode falhar so nesta, sem rede ruim de verdade
             // (achado real de Celso, 02/10/2026)
-            setErroAtivos(atv.length === 0)
+            const semNada = atv.length === 0
+            setErroAtivos(semNada)
+            if (!semNada) setErroAtivosDetalhe('') // TEMPORARIO 02/10/2026
           }
           // Buscar finalidade_vistoria de contato_cliente
           try {
@@ -600,6 +611,12 @@ function Tela31Inner() {
                         style={{ backgroundColor:'#F59E0B', color:'white', border:'none', borderRadius:'4px', padding:'3px 8px', fontSize:'9px', fontWeight:700, cursor:'pointer', whiteSpace:'nowrap' }}>
                         Tentar novamente
                       </button>
+                    </div>
+                  )}
+                  {/* TEMPORARIO 02/10/2026 — detalhe do erro para diagnostico */}
+                  {erroAtivosDetalhe && (
+                    <div style={{ fontSize:'8px', color:'#DC2626', background:'#FEF2F2', padding:'3px 5px', borderRadius:'4px', marginTop:'3px', wordBreak:'break-all' }}>
+                      🔧 {erroAtivosDetalhe}
                     </div>
                   )}
                 </Field>

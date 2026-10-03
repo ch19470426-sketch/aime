@@ -218,6 +218,13 @@ function Tela31Inner() {
       const res = await fetchTimeout(`${SUPA_URL}/rest/v1/${table}?${params}`, {
         headers: { 'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}` }
       }, 6000)
+      // Sem isto, uma resposta de ERRO da Supabase (ex.: 400) mas com corpo em
+      // JSON valido era aceita como se fosse o resultado — nunca lancava
+      // excecao, entao comCache() nunca caia no catch (nem tentava o cache
+      // de reserva), e quem chamou so via um objeto de erro no lugar de uma
+      // lista (Array.isArray dava falso, nada era atualizado, sem aviso
+      // nenhum). Achado real de Celso, 02/10/2026.
+      if (!res.ok) { const corpo = await res.text(); throw new Error(`${table}: ${res.status} ${corpo}`) }
       return res.json()
     }
 
