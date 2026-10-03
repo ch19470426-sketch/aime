@@ -133,6 +133,7 @@ function SelecaoInner() {
                     <span style={S.sub2}>Informe o CNPJ/CPF do estabelecimento</span>
                     <input
                       value={cnpjNR10}
+                      inputMode="numeric"
                       onChange={e => setCnpjNR10(fmtDoc(e.target.value))}
                       placeholder="00.000.000/0000-00"
                       style={{ marginTop:'6px', padding:'8px 10px', borderRadius:'6px', border:'1px solid #c3d4f0', fontSize:'13px', fontFamily:'inherit' }}

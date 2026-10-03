@@ -796,6 +796,7 @@ export default function Dashboard() {
                       </label>
                       <input
                         type="text"
+                        inputMode="numeric"
                         value={documento}
                         onChange={(e) => {
                           setDocumento(formatarDocumento(e.target.value))

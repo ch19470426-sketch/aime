@@ -454,7 +454,7 @@ function PlanoInner() {
                         </select>
                       </Field>
                       <Field label="CPF do responsável">
-                        <input style={S.input} value={fmtCPF(cpfResp)} maxLength={14}
+                        <input style={S.input} value={fmtCPF(cpfResp)} maxLength={14} inputMode="numeric"
                           onChange={e => setCpfResp(e.target.value.replace(/\D/g,'').slice(0,11))}
                           placeholder="000.000.000-00" />
                       </Field>

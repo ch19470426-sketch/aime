@@ -69,6 +69,7 @@ export default function RecuperarSenhaPage() {
               <input
                 style={S.input}
                 type="text"
+                inputMode="numeric"
                 placeholder="000.000.000-00"
                 value={cpf}
                 onChange={e => setCpf(formatCpf(e.target.value))}

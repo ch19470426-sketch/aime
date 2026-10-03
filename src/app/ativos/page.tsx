@@ -168,11 +168,11 @@ function AtivosVistoriarInner() {
                   <div style={grid4}>
                     <div>
                       <label style={labelStyle}>CPF do Inspetor *</label>
-                      <input name="cpf_inspetor" maxLength={11} value={form.cpf_inspetor} onChange={handleChange} placeholder="000.000.000-00" required style={{...inputStyle, textAlign:"center"}} />
+                      <input name="cpf_inspetor" maxLength={11} inputMode="numeric" value={form.cpf_inspetor} onChange={handleChange} placeholder="000.000.000-00" required style={{...inputStyle, textAlign:"center"}} />
                     </div>
                     <div>
                       <label style={labelStyle}>CNPJ / CPF Estabelecimento *</label>
-                      <input name="cnpjoucpf" maxLength={18} value={form.cnpjoucpf} onChange={handleChange} placeholder="00.000.000/0000-00" required style={{...inputStyle, textAlign:"center"}} />
+                      <input name="cnpjoucpf" maxLength={18} inputMode="numeric" value={form.cnpjoucpf} onChange={handleChange} placeholder="00.000.000/0000-00" required style={{...inputStyle, textAlign:"center"}} />
                     </div>
                     <div>
                       <label style={labelStyle}>Tipo de Servico *</label>
@@ -224,7 +224,7 @@ function AtivosVistoriarInner() {
                   <div style={{...grid4, marginBottom:"12px"}}>
                     <div>
                       <label style={labelStyle}>CPF do Responsavel</label>
-                      <input name="cpf_responsavel" maxLength={11} value={form.cpf_responsavel} onChange={handleChange} placeholder="000.000.000-00" style={inputStyle} />
+                      <input name="cpf_responsavel" maxLength={11} inputMode="numeric" value={form.cpf_responsavel} onChange={handleChange} placeholder="000.000.000-00" style={inputStyle} />
                     </div>
                     <div>
                       <label style={labelStyle}>Nome do Responsavel *</label>
