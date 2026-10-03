@@ -303,24 +303,31 @@ export async function concederCreditos(
   const supabase = admin()
   try {
     if (tipo === 'AVULSO') {
+      const hojeAvulso = new Date().toISOString().slice(0, 10)
+      // Validade de 90 dias — so para avulso concedido A PARTIR desta
+      // mudanca (02/10/2026). Avulso concedido antes continua sem
+      // vencimento (data_fim_avulso fica null), por decisao de Celso.
+      const fimAvulso = new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
       const { data: contrato } = await supabase
         .from('contratos_inspetor').select('*')
-        .eq('cpf_inspetor', cpf).gte('data_fim_contrato', new Date().toISOString().slice(0, 10))
+        .eq('cpf_inspetor', cpf).gte('data_fim_contrato', hojeAvulso)
         .order('data_inicio_contrato', { ascending: false }).limit(1).maybeSingle()
 
       if (contrato) {
         const { error } = await supabase.from('contratos_inspetor').update({
           qde_contratada_avulso: contrato.qde_contratada_avulso + qdeCreditos,
           saldo_quantidade_avulso: contrato.saldo_quantidade_avulso + qdeCreditos,
+          data_fim_avulso: fimAvulso,
         }).eq('cpf_inspetor', cpf).eq('tipo_assinatura', contrato.tipo_assinatura)
           .eq('data_inicio_contrato', contrato.data_inicio_contrato)
         if (error) return { ok: false, erro: error.message }
       } else {
         const { error } = await supabase.from('contratos_inspetor').insert({
           cpf_inspetor: cpf, tipo_assinatura: 'PLANO SERVIÇO', // placeholder p/ satisfazer o check
-          data_inicio_contrato: new Date().toISOString().slice(0, 10),
+          data_inicio_contrato: hojeAvulso,
           qde_contratada_plano: 0, saldo_quantidade_plano: 0,
           qde_contratada_avulso: qdeCreditos, saldo_quantidade_avulso: qdeCreditos,
+          data_fim_avulso: fimAvulso,
         })
         if (error) return { ok: false, erro: error.message }
       }
@@ -348,11 +355,18 @@ export async function concederCreditos(
       const faltaParaEncher = jaExiste.qde_contratada_plano - jaExiste.saldo_quantidade_plano
       const paraPlano = Math.min(faltaParaEncher, qdeCreditos)   // preenche o plano ate o teto antes de sobrar
       const excedente = qdeCreditos - paraPlano                  // o resto vira avulso, nunca se perde
-      const { error } = await supabase.from('contratos_inspetor').update({
+      const atualizacao: Record<string, number | string> = {
         saldo_quantidade_plano: jaExiste.saldo_quantidade_plano + paraPlano,
         qde_contratada_avulso: jaExiste.qde_contratada_avulso + excedente,
         saldo_quantidade_avulso: jaExiste.saldo_quantidade_avulso + excedente,
-      }).eq('cpf_inspetor', cpf).eq('tipo_assinatura', tipo).eq('data_inicio_contrato', hoje)
+      }
+      // So renova a validade do avulso se algo foi de fato adicionado a ele
+      // agora — nao mexe na data so por reprocessar um pedido sem excedente.
+      if (excedente > 0) {
+        atualizacao.data_fim_avulso = new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
+      }
+      const { error } = await supabase.from('contratos_inspetor').update(atualizacao)
+        .eq('cpf_inspetor', cpf).eq('tipo_assinatura', tipo).eq('data_inicio_contrato', hoje)
       if (error) return { ok: false, erro: error.message }
       return { ok: true }
     }
@@ -368,7 +382,7 @@ export async function concederCreditos(
     // chegar aqui, então não há risco de pegar a mesma linha duas vezes.
     // Decisão de Celso, 01/10/2026: nada se perde, em nenhum dos casos.
     const { data: planoAntigo } = await supabase
-      .from('contratos_inspetor').select('tipo_assinatura,data_inicio_contrato,saldo_quantidade_plano,qde_contratada_avulso,saldo_quantidade_avulso')
+      .from('contratos_inspetor').select('tipo_assinatura,data_inicio_contrato,saldo_quantidade_plano,qde_contratada_avulso,saldo_quantidade_avulso,data_fim_avulso')
       .eq('cpf_inspetor', cpf)
       .gte('data_fim_contrato', hoje)
       .order('data_inicio_contrato', { ascending: false }).limit(1).maybeSingle()
@@ -396,6 +410,10 @@ export async function concederCreditos(
       data_inicio_contrato: hoje,
       qde_contratada_plano: qdeCreditos, saldo_quantidade_plano: qdeCreditos,
       qde_contratada_avulso: avulsoMigradoQde, saldo_quantidade_avulso: avulsoMigradoSaldo,
+      // Preserva a validade que o avulso ja tinha (ou null = sem
+      // vencimento) — isto e realocacao do que ja existia, nao uma nova
+      // concessao, entao NAO renova os 90 dias.
+      data_fim_avulso: planoAntigo?.data_fim_avulso ?? null,
     })
     if (error) return { ok: false, erro: error.message }
     return { ok: true }

@@ -542,7 +542,13 @@ function CadastroInspetor() {
                               </div>
                               <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit, minmax(120px, 1fr))',gap:'12px'}}>
                                 <div><div style={{fontSize:'10px',color:'#6B7280'}}>CR Plano <span style={{color:'#9CA3AF'}}>(com vencimento)</span></div><div style={{fontWeight:700,color:'#1E3A8A',fontSize:'16px'}}>{ct.saldo_quantidade_plano}<span style={{fontSize:'10px',color:'#6B7280'}}>/{ct.qde_contratada_plano}</span></div><div style={{height:'4px',backgroundColor:'#E5E7EB',borderRadius:'2px',marginTop:'4px'}}><div style={{height:'4px',backgroundColor:'#1E3A8A',borderRadius:'2px',width:`${pct}%`}} /></div></div>
-                                <div><div style={{fontSize:'10px',color:'#6B7280'}}>CR Avulso <span style={{color:'#9CA3AF'}}>(sem vencimento)</span></div><div style={{fontWeight:700,color:'#7C3AED',fontSize:'16px'}}>{ct.saldo_quantidade_avulso}<span style={{fontSize:'10px',color:'#6B7280'}}>/{ct.qde_contratada_avulso}</span></div></div>
+                                {(() => {
+                                  const hojeStrAvulso = new Date().toISOString().slice(0, 10)
+                                  const avulsoVencido = !!ct.data_fim_avulso && ct.data_fim_avulso < hojeStrAvulso
+                                  return (
+                                    <div><div style={{fontSize:'10px',color:'#6B7280'}}>CR Avulso <span style={{color:avulsoVencido?'#DC2626':'#9CA3AF'}}>{ct.data_fim_avulso ? (avulsoVencido ? '(vencido)' : `(válido até ${fmtDataBR(ct.data_fim_avulso)})`) : '(sem vencimento)'}</span></div><div style={{fontWeight:700,color:'#7C3AED',fontSize:'16px'}}>{ct.saldo_quantidade_avulso}<span style={{fontSize:'10px',color:'#6B7280'}}>/{ct.qde_contratada_avulso}</span></div></div>
+                                  )
+                                })()}
                                 <div><div style={{fontSize:'10px',color:'#6B7280'}}>Início</div><div style={{fontWeight:700,fontSize:'12px'}}>{fmtDataBR(ct.data_inicio_contrato)}</div></div>
                               </div>
                             </div>
