@@ -68,6 +68,7 @@ function fmtWpp(v: string): string {
 }
 
 interface Ativo {
+  data_cadastro?: string // presente nos ativos já salvos (busca usa select=*); ausente nos recém-adicionados ainda não salvos
   tipo_ativo: string; tag_ativo_nr_serie: string; data_inicio_operacao: string
   numero_pavimentos: string; numero_unidades_salas: string
   area_terreno: string; area_construida: string; numero_fachadas: string
@@ -496,7 +497,7 @@ function PlanoInner() {
                             })
                             const djCC = await resCC.json()
                             if (resCC.ok) {
-                              agradece('Contato salvo com sucesso.')
+                              agradece('Sucesso', 'Contato salvo com sucesso.')
                             } else {
                               informa('Erro', 'Não foi possível salvar: ' + (djCC.erro ?? ''))
                             }

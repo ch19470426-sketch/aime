@@ -1744,7 +1744,7 @@ export async function POST(request: NextRequest) {
         while ((mRow = rgxRow.exec(htmlPlano)) !== null) {
           const rowHtml = mRow[1]
           if (!rowHtml.includes('text-align:justify')) continue
-          const tds = [...rowHtml.matchAll(/<td[^>]*>(.*?)<\/td>/gs)]
+          const tds = [...rowHtml.matchAll(/<td[^>]*>([\s\S]*?)<\/td>/g)]
           if (tds.length < 3) continue
           const desc = tds[0][1].replace(/<[^>]+>/g,'').trim()
           const getV = (s: string) => {

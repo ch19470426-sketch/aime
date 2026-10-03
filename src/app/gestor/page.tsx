@@ -128,7 +128,6 @@ export default function GestorPage() {
   const [dataReferencia, setDataReferencia] = useState('')
   // Novo plano
   const [novoPlano, setNovoPlano] = useState('PLANO MENSAL')
-  const [novoAvulso, setNovoAvulso] = useState(600)
 
   const supabase = createClient()
 
@@ -197,24 +196,6 @@ export default function GestorPage() {
       await selecionarInspetor(selecionado)
       setAba('plano')
     } catch (e) { setMsg('Erro ao atribuir plano.') }
-    finally { setSalvando(false) }
-  }
-
-  async function adicionarAvulso() {
-    if (!selecionado) return
-    setSalvando(true); setMsg('')
-    try {
-      const res = await fetch('/api/gestor/adicionar-avulso', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ cpf: selecionado.cpf_inspetor, qde: novoAvulso })
-      })
-      const d = await res.json()
-      if (!res.ok) { setMsg(`Erro: ${d.erro}`); return }
-      setMsg(`${novoAvulso} créditos avulsos adicionados!`)
-      await selecionarInspetor(selecionado)
-      setAba('plano')
-    } catch (e) { setMsg('Erro ao adicionar créditos.') }
     finally { setSalvando(false) }
   }
 
@@ -490,30 +471,6 @@ export default function GestorPage() {
                   </div>
                 )}
 
-                {/* Aba Avulso */}
-                {aba === 'avulso' && (
-                  <div>
-                    <div style={S.secaoTitulo}>Adicionar Créditos Avulsos</div>
-                    <p style={{ fontSize:'12px', color:'#374151', marginBottom:'16px', lineHeight:1.6 }}>
-                      Créditos avulsos não possuem validade e são acumulativos. Pacotes de 600 CR.
-                    </p>
-                    <div style={S.grid2}>
-                      <div>
-                        <label style={S.label}>Quantidade de Créditos</label>
-                        <select style={S.select} value={novoAvulso} onChange={e => setNovoAvulso(Number(e.target.value))}>
-                          {[600,1200,1800,2400,3000,3600].map(v => (
-                            <option key={v} value={v}>{v} CR ({v/600} pacote{v>600?'s':''})</option>
-                          ))}
-                        </select>
-                      </div>
-                      <div style={{ display:'flex', alignItems:'flex-end' }}>
-                        <button onClick={adicionarAvulso} disabled={salvando} style={S.btnPri}>
-                          {salvando ? 'Aguarde...' : 'Adicionar Créditos'}
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                )}
               </>
             )}
 

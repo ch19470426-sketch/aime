@@ -486,7 +486,7 @@ function LaudoComplemento() {
         if (mime === 'application/pdf') return b64
         try {
           const img = await new Promise<HTMLImageElement>((ok, falha) => {
-            const el = new Image()
+            const el = new window.Image()
             el.onload = () => ok(el)
             el.onerror = () => falha(new Error('imagem invalida'))
             el.src = b64
@@ -776,7 +776,7 @@ function LaudoComplemento() {
               </div>
               <div style={{ marginTop: "8px" }}>
                 <label style={S.label}>{(['45','46','47','48'].includes(tipoServico) ? 'Descreva sinteticamente o estabelecimento e os ativos a vistoriar (tipo, quantidade, localização e condições gerais)' : 'Descreva sinteticamente a edificação (Convenção ou Escritura)')} *</label>
-                <textarea style={{ ...S.textarea, backgroundColor: editandoSintese ? '#FFFBEB' : undefined, borderColor: editandoSintese ? '#F59E0B' : undefined }} value={sinteseEdif} maxLength={900} value={sinteseEdif}
+                <textarea style={{ ...S.textarea, backgroundColor: editandoSintese ? '#FFFBEB' : undefined, borderColor: editandoSintese ? '#F59E0B' : undefined }} value={sinteseEdif} maxLength={900}
                   onChange={e => setSinteseEdif(e.target.value)}
                   placeholder="Insira uma breve descrição e a topologia da edificação, ou clique em ✦ Gerar para geração automática com IA..." />
                 <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>

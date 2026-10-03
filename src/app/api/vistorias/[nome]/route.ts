@@ -11,9 +11,9 @@ const supabase = createClient(
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { nome: string } }
+  { params }: { params: Promise<{ nome: string }> }
 ) {
-  const { nome } = params
+  const { nome } = await params
 
   try {
     const { data, error } = await supabase.storage

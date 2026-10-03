@@ -356,7 +356,7 @@ function AtivosVistoriarInner() {
                       {["37","38"].includes(ts) && (
                         <div>
                           <label style={labelStyle}>Fabricante / Marca *</label>
-                          <input na maxLength={48}me="fabricante" value={form.fabricante} onChange={handleChange} placeholder="Ex: WEG" required style={inputStyle} />
+                          <input name="fabricante" maxLength={48} value={form.fabricante} onChange={handleChange} placeholder="Ex: WEG" required style={inputStyle} />
                         </div>
                       )}
                       <div>

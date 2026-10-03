@@ -153,7 +153,6 @@ export async function POST(request: NextRequest) {
 
       bufferBruto = await HTMLtoDOCX(htmlSanitizado, headerHTML, {
         table: { row: { cantSplit: true } },
-        header: !!headerHTML,
         footer: true,
         pageNumber: false,
         font: 'Calibri Light',

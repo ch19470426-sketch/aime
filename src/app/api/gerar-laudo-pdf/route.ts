@@ -124,7 +124,7 @@ export async function POST(request: NextRequest) {
         }, { status: 500 })
       }
 
-      return new NextResponse(pdf, {
+      return new NextResponse(new Uint8Array(pdf), {
         headers: {
           'Content-Type': 'application/pdf',
           'Content-Disposition': `attachment; filename="${nomeArquivo.replace(/\.html$/i, '.pdf')}"`,

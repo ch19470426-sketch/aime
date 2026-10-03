@@ -202,23 +202,6 @@ function ProcedimentoGrupo({ codigo, grupo }: { codigo: number; grupo: string })
 
 // ── Procedimentos operacionais por grupo ─────────────────────────────────────
 const PROC_MAP: Record<string, string> = {
-  '1x': `a) No menu: selecionar o tipo de proposta desejado
-b) CNPJ ou CPF: informar o da edificação ou estabelecimento
-c) "Iniciar": o sistema carrega os dados cadastrados
-d) "Gerar proposta": monta o documento com dados do inspetor e do cliente
-e) Revisar: o documento gerado na tela
-f) "Continuar": redireciona para o Módulo Homologar Documento
-g) Módulo Homologar Documento: baixa o PDF, assina e faz upload do assinado
-ℹ  A edificação/estabelecimento deve estar cadastrado antes de iniciar.`,
-  '2x': `a) No menu: selecionar o tipo de plano desejado
-b) CNPJ ou CPF: informar da edificação ou estabelecimento
-c) "Iniciar": carrega os dados do estabelecimento e ativos cadastrados
-d) Cadastrar: possibilita cadastrar os ativos a vistoriar
-e) "Gerar plano": o sistema monta o documento
-f) Revisar: preencher datas no bloco 1.2 e documentos no bloco 1.3
-g) "Salvar": redireciona para o Módulo Homologar Documento
-h) Módulo Homologar Documento: baixa o PDF, assina e faz upload do assinado
-ℹ  O plano de trabalho deve existir antes de iniciar as vistorias.`,
   '1x': `a) Selecione o tipo de proposta e informe o CNPJ ou CPF
 b) Preencha o valor do serviço e o prazo de execução
 c) Gere a proposta: o documento é montado automaticamente com os dados do estabelecimento
@@ -657,7 +640,7 @@ export default function Dashboard() {
     // salvar — nesse segundo caso o aviso de "rascunho recuperado" nao deve
     // aparecer. Pedido de Celso, 29/09/2026.
     const sessaoToken = `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`
-    const url = tipoServico === '39'
+    const url = Number(tipoServico) === 39
       ? `/vistoria-eletrica?cpf_inspetor=${cpfInspetor}&chave_inspetor=${chaveInspetor}&sessao=${sessaoToken}`
       : `/vistoria/tela${tipoServico}?cpf_inspetor=${cpfInspetor}&chave_inspetor=${chaveInspetor}&cnpjoucpf=${docLimpo}&tipo_servico=${tipoServico}&sessao=${sessaoToken}`
     window.location.href = url
@@ -865,7 +848,7 @@ export default function Dashboard() {
                   </div>
 
                   {/* ── Caixa de procedimento operacional ── */}
-                  {tipoServico && getProcedimento(tipoServico) && (
+                  {tipoServico && getProcedimento(String(tipoServico)) && (
                     <div style={{
                       marginTop: '16px', display: 'flex',
                       alignItems: 'center', justifyContent: 'center',
@@ -881,7 +864,7 @@ export default function Dashboard() {
                           borderBottom: '1px solid #1E3A8A', paddingBottom: '4px' }}>
                           Procedimento para Execução do Serviço
                         </div>
-                        {getProcedimento(tipoServico)}
+                        {getProcedimento(String(tipoServico))}
                       </div>
                     </div>
                   )}

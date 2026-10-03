@@ -564,7 +564,7 @@ export async function POST(request: NextRequest) {
 
     const outBuf = await zip.generateAsync({ type: 'nodebuffer', compression: 'DEFLATE' })
 
-    return new NextResponse(outBuf, {
+    return new NextResponse(new Uint8Array(outBuf), {
       headers: {
         'Content-Type': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
         'Content-Disposition': 'attachment; filename="laudo.docx"',

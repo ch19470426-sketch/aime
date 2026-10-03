@@ -4,9 +4,6 @@ const nextConfig: NextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
   experimental: {
     serverActions: {
       bodySizeLimit: '80mb',
@@ -23,13 +20,6 @@ const nextConfig: NextConfig = {
     '/api/gerar-laudo-pdf/**': ['./node_modules/@sparticuz/chromium/bin/**'],
     '/api/gerar-plano-manutencao-pdf/**': ['./node_modules/@sparticuz/chromium/bin/**'],
     '/api/gerar-laudo-pdf-indice-real/**': ['./node_modules/@sparticuz/chromium/bin/**'],
-  },
-  // Aumentar limite de body para route handlers (foto base64 pode ser grande)
-  api: {
-    bodyParser: {
-      sizeLimit: '20mb',
-    },
-    responseLimit: '20mb',
   },
 }
 

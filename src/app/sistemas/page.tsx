@@ -48,7 +48,7 @@ export default function SistemasConstrutivos() {
         .eq("tipo_servico", form.tipo_servico)
         .order("sistema")
       console.log("sistemas:", data, error)
-      if (data) setSistemas([...new Set(data.filter((r: any) => r.ativo !== false).map((r: any) => r.sistema))])
+      if (data) setSistemas([...new Set<string>(data.filter((r: any) => r.ativo !== false).map((r: any) => r.sistema as string))])
       setCarregando(false)
     }
     buscar()
