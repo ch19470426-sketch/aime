@@ -1560,7 +1560,7 @@ export async function POST(request: NextRequest) {
       // ANEXOS
       partsNR.push('<div class="section">' + A1nr + '</div>')
       partsNR.push('<div class="section"><div class="titulo" style="text-align:center">Anexo 2 – Resultado da Vistoria</div><br>' + A2nr + '</div>')
-      partsNR.push('<div class="section"><div class="titulo" style="text-align:center">Anexo 3 – Anotação de Responsabilidade Técnica</div>' +
+      partsNR.push('<div class="section" style="page-break-before:always"><div class="titulo" style="text-align:center">Anexo 3 – Anotação de Responsabilidade Técnica</div>' +
         (srcArt
           ? '<div style="page-break-inside:avoid;text-align:center">' + artTag(srcArt) + '</div>'
           : '<div style="border:2px dashed #1E3A8A;min-height:260mm;margin:10mm 0;display:flex;align-items:center;justify-content:center"><p style="color:#6b7280;font-size:8.5pt;text-align:center">ART / RRT não anexada.<br>Inserir a ART ou RRT na tela de coleta de dados.</p></div>'
@@ -2466,7 +2466,7 @@ ${A1}
 ${A2}
 </div>
 
-<div class="section">
+<div class="section" style="page-break-before:always">
 <div class="titulo" style="text-align:center">Anexo 3 – Anotações de Responsabilidade Técnica</div>
 <br>
 
