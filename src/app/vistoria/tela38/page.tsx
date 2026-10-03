@@ -78,6 +78,7 @@ function Tela31Inner() {
   const [cnpjDisplay,  setCnpjDisplay]  = useState('')
   const [razaoSocial,  setRazaoSocial]  = useState('')
   const [erroEstab,    setErroEstab]    = useState(false)
+  const [erroAtivos,   setErroAtivos]   = useState(false)
   const [recarregarContador, setRecarregarContador] = useState(0)
 
   // ── Listas ──
@@ -269,7 +270,14 @@ function Tela31Inner() {
         // Ativos
         if (cpfInspetor) {
           const atv = await comCache(`atv_${cnpjoucpf}`, 'ativos_a_vistoriar', `cpf_inspetor=eq.${cpfInspetor}&cnpjoucpf=eq.${cnpjoucpf}&tipo_servico=eq.${encodeURIComponent(tipoServicoBanco)}&select=tipo_ativo,tag_ativo_nr_serie,data_cadastro&order=data_cadastro.desc`)
-          if (Array.isArray(atv)) setAtivos(atv)
+          if (Array.isArray(atv)) {
+            setAtivos(atv)
+            // So sinaliza erro se vier vazio mesmo (nem busca atual nem
+            // cache tinham nada) — carga inicial concorrendo com varias
+            // outras buscas pode falhar so nesta, sem rede ruim de verdade
+            // (achado real de Celso, 02/10/2026)
+            setErroAtivos(atv.length === 0)
+          }
           // Buscar finalidade_vistoria de contato_cliente
           try {
             const rCC = await fetch(`/api/contato-cliente?cpf_inspetor=${cpfInspetor}&cnpjoucpf=${cnpjoucpf}&tipo_servico=${encodeURIComponent('38 Vistoria nr-13')}`)
@@ -585,21 +593,16 @@ function Tela31Inner() {
                     <option value="">Selecione...</option>
                     {tiposAtivo.map(t => <option key={t} value={t}>{t}</option>)}
                   </select>
+                  {erroAtivos && (
+                    <div style={{ backgroundColor:'#FEF3C7', border:'1px solid #F59E0B', borderRadius:'6px', padding:'6px 8px', fontSize:'10px', color:'#92400E', display:'flex', alignItems:'center', justifyContent:'space-between', gap:'6px', marginTop:'4px' }}>
+                      <span>⚠️ Não foi possível carregar os ativos cadastrados. Verifique a conexão.</span>
+                      <button type="button" onClick={() => setRecarregarContador(c => c + 1)}
+                        style={{ backgroundColor:'#F59E0B', color:'white', border:'none', borderRadius:'4px', padding:'3px 8px', fontSize:'9px', fontWeight:700, cursor:'pointer', whiteSpace:'nowrap' }}>
+                        Tentar novamente
+                      </button>
+                    </div>
+                  )}
                 </Field>
-                {/* DIAGNOSTICO TEMPORARIO 02/10/2026 */}
-                <div style={{ fontSize:'8px', color:'#DC2626', background:'#FEF2F2', padding:'3px 5px', borderRadius:'4px', gridColumn:'1 / -1' }}>
-                  🔧 cpfInspetor="{cpfInspetor}" | cnpjoucpf="{cnpjoucpf}" | tipoServicoBanco="{tipoServicoBanco}" | ativos.length={ativos.length} | tiposAtivo=[{tiposAtivo.join(' | ')}]
-                </div>
-                <button type="button" onClick={async () => {
-                  const url = `${SUPA_URL}/rest/v1/ativos_a_vistoriar?cpf_inspetor=eq.${cpfInspetor}&cnpjoucpf=eq.${cnpjoucpf}&tipo_servico=eq.${encodeURIComponent(tipoServicoBanco)}&select=tipo_ativo,tag_ativo_nr_serie,data_cadastro&order=data_cadastro.desc`
-                  try {
-                    const r = await fetch(url, { headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` } })
-                    const texto = await r.text()
-                    alert(`URL: ${url}\n\nSTATUS: ${r.status}\n\nCORPO: ${texto}`)
-                  } catch (e) { alert('ERRO NO FETCH: ' + String(e)) }
-                }} style={{ fontSize:'9px', padding:'4px 8px', background:'#DC2626', color:'white', border:'none', borderRadius:'4px', gridColumn:'1 / -1' }}>
-                  🔧 Testar busca de ativos agora (mostra resposta bruta)
-                </button>
                 <Field label={tagObrigatorio ? 'Tag / Nr série *' : 'Tag / Nr série'}>
                   <select style={S.input} value={tagNrSerie} onChange={e => {
                     setTagNrSerie(e.target.value)
