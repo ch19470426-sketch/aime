@@ -586,6 +586,10 @@ function Tela31Inner() {
                     {tiposAtivo.map(t => <option key={t} value={t}>{t}</option>)}
                   </select>
                 </Field>
+                {/* DIAGNOSTICO TEMPORARIO 02/10/2026 */}
+                <div style={{ fontSize:'8px', color:'#DC2626', background:'#FEF2F2', padding:'3px 5px', borderRadius:'4px', gridColumn:'1 / -1' }}>
+                  🔧 cpfInspetor="{cpfInspetor}" | cnpjoucpf="{cnpjoucpf}" | tipoServicoBanco="{tipoServicoBanco}" | ativos.length={ativos.length} | tiposAtivo=[{tiposAtivo.join(' | ')}]
+                </div>
                 <Field label={tagObrigatorio ? 'Tag / Nr série *' : 'Tag / Nr série'}>
                   <select style={S.input} value={tagNrSerie} onChange={e => {
                     setTagNrSerie(e.target.value)
