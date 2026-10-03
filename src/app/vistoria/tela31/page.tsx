@@ -673,15 +673,16 @@ function Tela31Inner() {
                           // ja vinha com mais de uma anomalia combinada (achado real de Celso,
                           // 02/10/2026, no fluxo de homologacao do codigo 39/eletrico).
                           const segmentoAtual = (anomalia.split(';').pop() ?? '').trim().toLowerCase()
-                          // Se o trecho atual JA E um valor completo e reconhecido (acabou de
-                          // ser selecionado, ou veio assim da vistoria), mostra a lista INTEIRA
-                          // de novo — a pessoa pode querer combinar com outra anomalia, nao so
-                          // ver repetido o que ja tem. So filtra de verdade enquanto o texto
-                          // ainda nao bate com nenhum valor tabelado (busca em andamento).
+                          // Mostra a lista INTEIRA (nao filtrada) em tres casos: campo vazio,
+                          // trecho atual ja e um valor completo reconhecido (a pessoa pode
+                          // querer combinar com outra anomalia), ou o texto digitado e livre e
+                          // nao bate com NENHUM valor tabelado (nao faz sentido mostrar uma
+                          // lista vazia so porque o texto e livre - a pessoa ainda pode querer
+                          // escolher um valor tabelado em vez do que digitou). So filtra de
+                          // verdade quando ha correspondencia PARCIAL real (busca em andamento).
                           const ehValorCompleto = anomaliasFiltradas.some(a => a.toLowerCase() === segmentoAtual)
-                          const filtradas = ehValorCompleto
-                            ? anomaliasFiltradas
-                            : anomaliasFiltradas.filter(a => a.toLowerCase().includes(segmentoAtual))
+                          const filtroParcial = anomaliasFiltradas.filter(a => a.toLowerCase().includes(segmentoAtual))
+                          const filtradas = (ehValorCompleto || filtroParcial.length === 0) ? anomaliasFiltradas : filtroParcial
                             return filtradas.length > 0 ? filtradas.map(a => (
                               <div key={a}
                                 onMouseDown={() => {
