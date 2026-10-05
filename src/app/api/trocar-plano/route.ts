@@ -14,7 +14,7 @@ const supabase = createClient(
 
 const PLANO_CR: Record<string,number> = {
   'PLANO CORTESIA': 600, 'PLANO SERVIÇO': 600,
-  'PLANO MENSAL': 1200, 'PLANO ESCRITÓRIO': 3600
+  'PLANO MENSAL': 1200, 'PLANO ESCRITÓRIO': 3000
 }
 
 export async function POST(request: NextRequest) {

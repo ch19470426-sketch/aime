@@ -605,7 +605,7 @@ function CadastroInspetor() {
                             <select value={tipoPedido} onChange={e=>setTipoPedido(e.target.value)} style={inputStyle}>
                               <option value="PLANO SERVIÇO">PLANO SERVIÇO (600 CR)</option>
                               <option value="PLANO MENSAL">PLANO MENSAL (1.200 CR)</option>
-                              <option value="PLANO ESCRITÓRIO">PLANO ESCRITÓRIO (3.600 CR)</option>
+                              <option value="PLANO ESCRITÓRIO">PLANO ESCRITÓRIO (3.000 CR)</option>
                               {statusCred?.avulsoLiberado && <option value="AVULSO">CRÉDITOS AVULSOS (600 CR)</option>}
                             </select>
                           </div>

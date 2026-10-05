@@ -25,7 +25,7 @@ export function cobrancaAtiva(): boolean {
 export const PLANO_CR: Record<string, number> = {
   'PLANO SERVIÇO': 600,
   'PLANO MENSAL': 1200,
-  'PLANO ESCRITÓRIO': 3600,
+  'PLANO ESCRITÓRIO': 3000, // era 3600 até 05/10/2026 (24% do SM); agora 20% do SM, ~10 processos completos
 }
 
 /**
@@ -36,7 +36,9 @@ export const PLANO_CR: Record<string, number> = {
 export const PLANO_PRECO_CENTAVOS: Record<string, number> = {
   'PLANO SERVIÇO': 8100,
   'PLANO MENSAL': 13770,
-  'PLANO ESCRITÓRIO': 38880,
+  // 20% do salario minimo de referencia (R$ 1.620,00) = R$ 324,00. Era 24% = R$ 388,80
+  // ate 05/10/2026 (Celso). Mudar so aqui e nos cartoes de escolher-plano.
+  'PLANO ESCRITÓRIO': 32400,
 }
 
 /** Avulso é vendido em múltiplos de 600 CR (mesma regra de adicionar-avulso). */
@@ -337,7 +339,7 @@ export async function concederCreditos(
     // MESMO tipo já foi contratado HOJE por este CPF (ex.: testando duas
     // vezes no mesmo dia, ou renovação no mesmo dia em que o plano anterior
     // ainda está cheio), a linha já existe e não pode ser duplicada, e
-    // qde_contratada_plano só aceita 0/600/1200/3600 — não dá para "somar"
+    // qde_contratada_plano só aceita valores fixos (0/600/1200/3000/3600) — não dá para "somar"
     // ali. A correção de 30/09 que só "renovava" o saldo ao valor cheio
     // DESCARTAVA o que foi pago se o saldo já estivesse cheio (achado de
     // Celso). Correto: o excedente entra como AVULSO — pool sem essa trava

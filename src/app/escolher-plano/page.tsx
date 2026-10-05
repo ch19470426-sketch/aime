@@ -22,7 +22,7 @@ const PLANOS = [
     descricao: 'Para quem realiza vistorias pontuais.' },
   { tipo: 'PLANO MENSAL', nome: 'Mensal', creditos: 1200, preco: 'R$ 137,70', cor: '#059669',
     descricao: 'Para uso recorrente ao longo do mês.' },
-  { tipo: 'PLANO ESCRITÓRIO', nome: 'Escritório', creditos: 3600, preco: 'R$ 388,80', cor: '#7C3AED',
+  { tipo: 'PLANO ESCRITÓRIO', nome: 'Escritório', creditos: 3000, preco: 'R$ 324,00', cor: '#7C3AED',
     descricao: 'Maior volume, para equipes e escritórios.' },
 ]
 
