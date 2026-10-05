@@ -339,7 +339,7 @@ export async function concederCreditos(
     // MESMO tipo já foi contratado HOJE por este CPF (ex.: testando duas
     // vezes no mesmo dia, ou renovação no mesmo dia em que o plano anterior
     // ainda está cheio), a linha já existe e não pode ser duplicada, e
-    // qde_contratada_plano só aceita valores fixos (0/600/1200/3000/3600) — não dá para "somar"
+    // qde_contratada_plano só aceita valores fixos (0/600/1200/3000) — não dá para "somar"
     // ali. A correção de 30/09 que só "renovava" o saldo ao valor cheio
     // DESCARTAVA o que foi pago se o saldo já estivesse cheio (achado de
     // Celso). Correto: o excedente entra como AVULSO — pool sem essa trava
