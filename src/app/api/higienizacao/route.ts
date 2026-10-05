@@ -7,13 +7,16 @@
 // do Supabase — ver registro de 28/09/2026):
 //   * Modo SIMULAÇÃO por padrão. Só executa de verdade com ?simular=false
 //     explícito.
-//   * A execução REAL só é aceita de duas origens:
+//   * QUALQUER chamada (simulação ou execução real) só é aceita de duas
+//     origens:
 //       1. O cron da Vercel (identificado pelo cabeçalho que a própria
 //          Vercel injeta, comparado a CRON_SECRET nas variáveis de ambiente)
 //       2. Um gestor logado (mesmo porteiro usado no painel do gestor)
-//     Qualquer outra chamada com ?simular=false é recusada.
-//   * A simulação é sempre liberada (nenhum efeito colateral) para permitir
-//     conferência antes de ligar a execução real.
+//     Qualquer outra chamada é recusada.
+//   * A simulação NÃO tem efeito colateral, mas também não é pública: a
+//     resposta traz nomes de arquivos e, na planilha (?formato=csv), CPFs de
+//     inspetores e CNPJs de estabelecimentos — dado pessoal (LGPD). Antes de
+//     05/10/2026 a simulação era aberta a qualquer pessoa; corrigido.
 //   * Cada exclusão de arquivo é feita individualmente (não em lote único),
 //     para que uma falha isolada não impeça as demais e para relatar
 //     exatamente o que foi ou não excluído.
@@ -89,14 +92,14 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ erro: 'Parâmetro "diasPedidos" inválido.' }, { status: 400 })
     }
 
-    if (!simular) {
+    {
       const viaCron = ehCronVercel(request)
       if (!viaCron) {
         // Checagem PROPRIA, SEMPRE ativa — nao usa exigirGestor porque esse
         // porteiro fica inerte se AUTH_API_ATIVA estiver desligada (correto
-        // para as demais rotas, inaceitavel aqui: exclusao permanente nao
-        // pode depender de uma chave que pode estar desligada por qualquer
-        // motivo, inclusive engano).
+        // para as demais rotas, inaceitavel aqui: exclusao permanente e dado
+        // pessoal nao podem depender de uma chave que pode estar desligada
+        // por qualquer motivo, inclusive engano).
         const sessao = await sessaoDaRequisicao(request)
         if (!sessao) return NextResponse.json({ erro: 'Sessão inválida ou expirada.' }, { status: 401 })
         if ((await ehGestor(sessao.cpf)) !== true) {
