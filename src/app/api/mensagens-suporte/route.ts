@@ -5,6 +5,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { exigirGestor } from '@/lib/autorizacao'
+import { agoraBrasilia } from '@/lib/emailSuporte'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -20,7 +21,7 @@ export async function GET(request: NextRequest) {
 
   const { data, error } = await supabase
     .from('mensagens_suporte')
-    .select('id, cpf_inspetor, nome_inspetor, assunto, mensagem, status, criado_em, respondido_em')
+    .select('*') // inclui 'resposta' (texto da resposta enviada, quando houver)
     .order('criado_em', { ascending: false })
   if (error) return NextResponse.json({ erro: error.message }, { status: 500 })
 
@@ -51,7 +52,7 @@ export async function PATCH(request: NextRequest) {
 
   const { error } = await supabase
     .from('mensagens_suporte')
-    .update({ status, respondido_em: status === 'respondido' ? new Date().toISOString() : null })
+    .update({ status, respondido_em: status === 'respondido' ? agoraBrasilia() : null })
     .eq('id', id)
   if (error) return NextResponse.json({ erro: error.message }, { status: 500 })
 

@@ -55,6 +55,7 @@ type MensagemSuporte = {
   respondido_em: string | null
   inspetor_whatsapp: string
   inspetor_email: string
+  resposta?: string | null
 }
 
 type ResumoGestor = {
@@ -139,6 +140,10 @@ export default function GestorPage() {
   const [resumo, setResumo] = useState<ResumoGestor | null>(null)
   const [mensagensSuporte, setMensagensSuporte] = useState<MensagemSuporte[]>([])
   const [carregandoSuporte, setCarregandoSuporte] = useState(false)
+  const [respondendoId, setRespondendoId] = useState<number | null>(null)
+  const [textoResposta, setTextoResposta] = useState('')
+  const [enviandoResposta, setEnviandoResposta] = useState(false)
+  const [erroResposta, setErroResposta] = useState('')
   const [carregandoResumo, setCarregandoResumo] = useState(false)
   const [dataReferencia, setDataReferencia] = useState('')
   // Novo plano
@@ -236,6 +241,24 @@ export default function GestorPage() {
       setMensagensSuporte(res.ok ? (d.mensagens ?? []) : [])
     } catch { setMensagensSuporte([]) }
     finally { setCarregandoSuporte(false) }
+  }
+
+  async function enviarRespostaSuporte(id: number) {
+    if (!textoResposta.trim()) { setErroResposta('Escreva a resposta antes de enviar.'); return }
+    setEnviandoResposta(true); setErroResposta('')
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      const res = await fetch('/api/mensagens-suporte/responder', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session?.access_token ?? ''}` },
+        body: JSON.stringify({ id, resposta: textoResposta }),
+      })
+      const d = await res.json()
+      if (!res.ok) { setErroResposta(d.erro ?? 'Não foi possível enviar a resposta.'); return }
+      setRespondendoId(null); setTextoResposta('')
+      await carregarMensagensSuporte()
+    } catch { setErroResposta('Erro de conexão. Tente novamente.') }
+    finally { setEnviandoResposta(false) }
   }
 
   async function alternarStatusSuporte(id: number, statusAtual: 'pendente' | 'respondido') {
@@ -859,12 +882,39 @@ export default function GestorPage() {
                       </a>
                     )}
                     {m.inspetor_email && (
-                      <a href={`mailto:${m.inspetor_email}?subject=${encodeURIComponent(`Re: ${m.assunto}`)}`}
-                        style={{ fontSize:'10px', fontWeight:700, padding:'4px 12px', borderRadius:'4px', textDecoration:'none', border:'1px solid #1E3A8A', color:'#1E3A8A' }}>
-                        ✉️ Responder por e-mail
-                      </a>
+                      <button type="button"
+                        onClick={() => { setRespondendoId(respondendoId === m.id ? null : m.id); setTextoResposta(''); setErroResposta('') }}
+                        style={{ fontSize:'10px', fontWeight:700, padding:'4px 12px', borderRadius:'4px', cursor:'pointer', border:'1px solid #1E3A8A', color:'#1E3A8A', backgroundColor:'white' }}>
+                        ✉️ {m.resposta ? 'Responder de novo por e-mail' : 'Responder por e-mail'}
+                      </button>
                     )}
                   </div>
+                  {respondendoId === m.id && (
+                    <div style={{ marginBottom:'8px' }}>
+                      <textarea value={textoResposta} onChange={e => setTextoResposta(e.target.value)} rows={5} maxLength={5000}
+                        placeholder={`Resposta para ${m.nome_inspetor.split(' ')[0]} — vai por e-mail de suporte@aime.eng.br, com a assinatura da Equipe AIMÊ.`}
+                        style={{ width:'100%', border:'1px solid #D1D5DB', borderRadius:'6px', padding:'8px 10px', fontSize:'12px', boxSizing:'border-box', resize:'vertical' as const, fontFamily:'inherit' }} />
+                      {erroResposta && <div style={{ fontSize:'11px', color:'#DC2626', margin:'4px 0' }}>{erroResposta}</div>}
+                      <div style={{ display:'flex', gap:'8px', justifyContent:'flex-end', marginTop:'6px' }}>
+                        <button type="button" onClick={() => { setRespondendoId(null); setTextoResposta(''); setErroResposta('') }}
+                          style={{ fontSize:'10px', fontWeight:700, padding:'5px 14px', borderRadius:'4px', border:'1px solid #9CA3AF', backgroundColor:'white', color:'#374151', cursor:'pointer' }}>
+                          Cancelar
+                        </button>
+                        <button type="button" onClick={() => enviarRespostaSuporte(m.id)} disabled={enviandoResposta}
+                          style={{ fontSize:'10px', fontWeight:700, padding:'5px 14px', borderRadius:'4px', border:'none', backgroundColor:'#1E3A8A', color:'white', cursor: enviandoResposta ? 'not-allowed' : 'pointer', opacity: enviandoResposta ? 0.6 : 1 }}>
+                          {enviandoResposta ? 'Enviando...' : 'Enviar resposta'}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                  {m.resposta && (
+                    <div style={{ margin:'0 0 8px', padding:'8px 10px', background:'#F0FDF4', borderLeft:'3px solid #059669', borderRadius:'4px' }}>
+                      <div style={{ fontSize:'10px', fontWeight:700, color:'#047857', marginBottom:'2px' }}>
+                        Resposta enviada por e-mail{m.respondido_em ? ` em ${fmtDataBR(m.respondido_em.slice(0,10))} ${m.respondido_em.slice(11,16)}` : ''}
+                      </div>
+                      <div style={{ fontSize:'12px', color:'#374151', whiteSpace:'pre-wrap' }}>{m.resposta}</div>
+                    </div>
+                  )}
                   <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
                     <span style={{ fontSize:'10px', color:'#9CA3AF' }}>{fmtDataBR(m.criado_em.slice(0,10))} {m.criado_em.slice(11,16)}</span>
                     <button onClick={() => alternarStatusSuporte(m.id, m.status)}
