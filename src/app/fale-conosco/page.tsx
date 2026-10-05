@@ -15,9 +15,6 @@ export default function FaleConoscoPage() {
   )
 }
 
-const WHATSAPP_SUPORTE = '5527999544362' // (27) 99954-4362
-const EMAIL_SUPORTE = 'suporte@aime.eng.br'
-
 function FaleConosco() {
   const params = useSearchParams()
   const cpfInspetor = params.get('cpf_inspetor') ?? ''
@@ -75,25 +72,9 @@ function FaleConosco() {
         <div style={S.divider} />
         <div style={S.body2}>
 
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px", marginBottom: "24px" }}>
-            <a href={`https://wa.me/${WHATSAPP_SUPORTE}?text=${encodeURIComponent('Olá! Preciso de ajuda com o AIMÊ.')}`}
-              target="_blank" rel="noopener noreferrer"
-              style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px", padding: "14px", borderRadius: "10px", border: "1.5px solid #25D366", textDecoration: "none" }}>
-              <span style={{ fontSize: "22px" }}>💬</span>
-              <span style={{ fontSize: "12px", fontWeight: 700, color: "#128C4A" }}>WhatsApp</span>
-              <span style={{ fontSize: "10px", color: "#6B7280" }}>(27) 99954-4362</span>
-            </a>
-            <a href={`mailto:${EMAIL_SUPORTE}`}
-              style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px", padding: "14px", borderRadius: "10px", border: "1.5px solid #1E3A8A", textDecoration: "none" }}>
-              <span style={{ fontSize: "22px" }}>✉️</span>
-              <span style={{ fontSize: "12px", fontWeight: 700, color: "#1E3A8A" }}>E-mail</span>
-              <span style={{ fontSize: "10px", color: "#6B7280" }}>{EMAIL_SUPORTE}</span>
-            </a>
-          </div>
-
-          <div style={{ borderTop: "1px solid #E5E7EB", paddingTop: "16px" }}>
+          <div>
             <p style={{ fontSize: "12px", color: "#374151", marginBottom: "14px" }}>
-              Ou envie sua mensagem por aqui — fica registrada e nossa equipe responde pelo seu e-mail cadastrado.
+              Envie sua dúvida ou solicitação — fica registrada e nossa equipe responde em breve.
             </p>
 
             <label style={{ fontSize: "11px", fontWeight: 700, color: "#374151", display: "block", marginBottom: "4px" }}>Assunto</label>

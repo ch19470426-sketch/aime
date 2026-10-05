@@ -830,7 +830,8 @@ export default function GestorPage() {
             )}
           </div>
           </>)}
-          {abaGestor === 'suporte' && (<>
+          {abaGestor === 'suporte' && (
+          <div style={{ width:'100%', padding:'12px' }}>
             {carregandoSuporte ? (
               <p style={{ fontSize:'12px', color:'#9CA3AF' }}>Carregando...</p>
             ) : mensagensSuporte.length === 0 ? (
@@ -875,7 +876,8 @@ export default function GestorPage() {
                 </div>
               ))
             )}
-          </>)}
+          </div>
+          )}
 
           {abaGestor === 'configuracoes' && (<>
           {/* ── Configurações ── */}
