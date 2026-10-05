@@ -11,8 +11,7 @@
 //     lugares independentes — aqui e dentro da função SQL consumir_creditos
 //     — para que um chamador que esqueça de checar não cobre um gestor.
 //   * O débito em si é atômico no banco (sql/2026-09-27_creditos_asaas.sql).
-//   * Falha de infraestrutura NUNCA bloqueia o usuário (mesma filosofia do
-//     verificar-acesso): na dúvida, libera e registra o erro.
+//   * Falha de infraestrutura NUNCA bloqueia o usuário: na dúvida, libera e registra o erro.
 
 import { createClient } from '@supabase/supabase-js'
 
@@ -227,8 +226,7 @@ export async function podeComprarAvulso(cpf: string): Promise<boolean> {
  * plano — decisão de Celso, 30/09/2026: todo inspetor é obrigado a
  * escolher um plano (mesmo que Cortesia) no primeiro acesso, aplicado
  * também retroativamente a quem já existe no sistema sem nenhum contrato.
- * Em caso de erro, retorna true (na dúvida, NÃO interrompe o acesso — mesma
- * filosofia do verificar-acesso).
+ * Em caso de erro, retorna true (na dúvida, NÃO interrompe o acesso).
  */
 export async function temAlgumContrato(cpf: string): Promise<boolean> {
   try {
