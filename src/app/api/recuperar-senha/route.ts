@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { Resend } from 'resend'
+import { REMETENTE_SUPORTE } from '@/lib/emailSuporte'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -50,7 +51,7 @@ export async function POST(request: NextRequest) {
     // 3. Enviar e-mail real via Resend
     const resend = new Resend(process.env.RESEND_API_KEY)
     const { error: errEmail } = await resend.emails.send({
-      from: 'AIMÊ <onboarding@resend.dev>',
+      from: REMETENTE_SUPORTE, // dominio aime.eng.br verificado no Resend (o remetente de teste so entrega no e-mail do dono da conta)
       to: emailReal,
       subject: 'AIMÊ — Redefinição de senha',
       html: `
