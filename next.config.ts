@@ -1,9 +1,9 @@
 ﻿import type { NextConfig } from "next"
 
 const nextConfig: NextConfig = {
-  typescript: {
-    ignoreBuildErrors: true,
-  },
+  // Erros de tipo DERRUBAM o build (padrao do Next). Ficou ligado como
+  // ignoreBuildErrors:true ate 05/10/2026 e por isso bugs reais (import
+  // faltando, variavel fora de escopo) foram publicados sem aviso.
   experimental: {
     serverActions: {
       bodySizeLimit: '80mb',
