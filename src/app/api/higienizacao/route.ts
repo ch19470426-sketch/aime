@@ -25,6 +25,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { sessaoDaRequisicao } from '@/lib/sessaoServidor'
 import { ehGestor } from '@/lib/creditos'
+import { cancelarAssinaturaNoAsaas } from '@/lib/asaas'
+import { agoraBrasilia } from '@/lib/emailSuporte'
 import {
   dataCorte, selecionarArquivosVistorias, selecionarArquivosDocumentos,
   selecionarLinhasPorData, selecionarPedidosNaoPagos,
@@ -227,6 +229,47 @@ export async function GET(request: NextRequest) {
       // Tabela pode ainda não existir em ambientes onde a migracao de
       // creditos nao foi aplicada — nao derruba o resto da higienizacao.
       resultado.pedidosNaoPagos = { total: 0, elegiveis: 0 }
+    }
+
+    // ---------- f) Assinaturas paradas esperando o 1º pagamento (06/10/2026) ----------
+    // O inspetor começou a assinar e nunca pagou o cartão. O Asaas continuaria gerando uma
+    // cobrança por mês para essa assinatura; além disso, a linha "em andamento" bloqueia o
+    // índice de uma-assinatura-por-inspetor só até ele escolher outro plano. Mesmo prazo dos
+    // pedidos (15 dias). Cancela no Asaas e na base — a linha fica, como histórico.
+    try {
+      const { data: assRaw } = await supabase.from('assinaturas')
+        .select('id,cpf_inspetor,tipo,asaas_subscription_id,status,criada_em').eq('status', 'aguardando_primeiro_pagamento')
+      const selAss = selecionarLinhasPorData(assRaw ?? [], 'criada_em', cortePedidos)
+      const corteAssBR = fmtBR(cortePedidos.toISOString().slice(0, 10))
+      for (const a of assRaw ?? []) {
+        linhasCsv.push(['assinaturas', `#${a.id} ${a.cpf_inspetor} ${a.tipo}`, fmtBR(a.criada_em), corteAssBR, selAss.includes(a) ? 'sim' : 'não'])
+      }
+      if (simular) {
+        resultado.assinaturasParadas = { total: (assRaw ?? []).length, elegiveis: selAss.length }
+      } else {
+        let canceladas = 0
+        const falhasAss: string[] = []
+        for (const a of selAss as any[]) {
+          try {
+            if (a.asaas_subscription_id) {
+              try { await cancelarAssinaturaNoAsaas(a.asaas_subscription_id) } catch (e) {
+                const msg = e instanceof Error ? e.message : String(e)
+                if (!/n[ãa]o encontrad|not found|404/i.test(msg)) throw e   // já não existe lá: segue
+              }
+            }
+            await supabase.from('assinaturas').update({ status: 'cancelada', cancelada_em: agoraBrasilia() })
+              .eq('id', a.id).eq('status', 'aguardando_primeiro_pagamento')
+            await supabase.from('pedidos_credito').update({ status: 'cancelado' })
+              .eq('assinatura_id', a.id).eq('status', 'aguardando_pagamento')
+            canceladas++
+          } catch (e) {
+            falhasAss.push(`#${a.id}: ${e instanceof Error ? e.message : String(e)}`)
+          }
+        }
+        resultado.assinaturasParadas = { elegiveis: selAss.length, canceladas, falhas: falhasAss }
+      }
+    } catch {
+      resultado.assinaturasParadas = { total: 0, elegiveis: 0 }
     }
 
     if (formato === 'csv') {

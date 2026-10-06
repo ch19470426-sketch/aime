@@ -14,6 +14,7 @@
 //   * Falha de infraestrutura NUNCA bloqueia o usuário: na dúvida, libera e registra o erro.
 
 import { createClient } from '@supabase/supabase-js'
+import { precoPlanoCentavos, precoAvulsoPacoteCentavos } from '@/lib/precos'
 
 // ───────────────────────── Configuração ─────────────────────────
 
@@ -34,18 +35,18 @@ export const PLANO_CR: Record<string, number> = {
  * vendável (concedido só pela gestão) — sem preço aqui de propósito.
  */
 export const PLANO_PRECO_CENTAVOS: Record<string, number> = {
-  'PLANO SERVIÇO': 8100,
-  'PLANO MENSAL': 13770,
-  // 20% do salario minimo de referencia (R$ 1.620,00) = R$ 324,00. Era 24% = R$ 388,80
-  // ate 05/10/2026 (Celso). Mudar so aqui e nos cartoes de escolher-plano.
-  'PLANO ESCRITÓRIO': 32400,
+  // Calculados em src/lib/precos.ts (percentuais do salário mínimo de referência): é lá que
+  // se reajusta. Valores de hoje: R$ 81,00 / R$ 137,70 / R$ 324,00.
+  'PLANO SERVIÇO': precoPlanoCentavos('PLANO SERVIÇO')!,
+  'PLANO MENSAL': precoPlanoCentavos('PLANO MENSAL')!,
+  'PLANO ESCRITÓRIO': precoPlanoCentavos('PLANO ESCRITÓRIO')!,
 }
 
 /** Avulso é vendido em múltiplos de 600 CR (mesma regra de adicionar-avulso). */
 export const AVULSO_MULTIPLO = 600
 export const AVULSO_MAXIMO = 36000
 /** Preço por unidade de 600 CR avulso, em centavos — mesma taxa do PLANO SERVIÇO. */
-export const AVULSO_PRECO_UNITARIO_CENTAVOS = 8100
+export const AVULSO_PRECO_UNITARIO_CENTAVOS = precoAvulsoPacoteCentavos()
 
 /** Preço total (centavos) de uma contratação — null se o tipo não for vendável. */
 export function precoCentavos(tipo: string, qdeCreditos: number): number | null {

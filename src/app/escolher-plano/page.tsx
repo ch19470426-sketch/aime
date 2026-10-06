@@ -4,6 +4,7 @@ import { Suspense, useState } from "react"
 import { useSearchParams } from "next/navigation"
 import Image from "next/image"
 import { createClient } from "@/utils/supabase/client"
+import { precoPlanoCentavos, formatarReais } from "@/lib/precos"
 
 export default function EscolherPlanoPage() {
   return (
@@ -18,11 +19,11 @@ type Pagamento = { invoiceUrl: string; pixQrCode?: string; pixCopiaECola?: strin
 const PLANOS = [
   { tipo: 'PLANO CORTESIA', nome: 'Cortesia', creditos: 600, preco: 'Grátis', cor: '#6B7280',
     descricao: 'Créditos de boas-vindas, concedidos uma única vez. Sem custo.' },
-  { tipo: 'PLANO SERVIÇO', nome: 'Serviço', creditos: 600, preco: 'R$ 81,00', cor: '#0284C7',
+  { tipo: 'PLANO SERVIÇO', nome: 'Serviço', creditos: 600, preco: formatarReais(precoPlanoCentavos('PLANO SERVIÇO')!), cor: '#0284C7',
     descricao: 'Para quem realiza vistorias pontuais.' },
-  { tipo: 'PLANO MENSAL', nome: 'Mensal', creditos: 1200, preco: 'R$ 137,70', cor: '#059669',
+  { tipo: 'PLANO MENSAL', nome: 'Mensal', creditos: 1200, preco: formatarReais(precoPlanoCentavos('PLANO MENSAL')!), cor: '#059669',
     descricao: 'Para uso recorrente ao longo do mês.' },
-  { tipo: 'PLANO ESCRITÓRIO', nome: 'Escritório', creditos: 3000, preco: 'R$ 324,00', cor: '#7C3AED',
+  { tipo: 'PLANO ESCRITÓRIO', nome: 'Escritório', creditos: 3000, preco: formatarReais(precoPlanoCentavos('PLANO ESCRITÓRIO')!), cor: '#7C3AED',
     descricao: 'Maior volume, para equipes e escritórios.' },
 ]
 

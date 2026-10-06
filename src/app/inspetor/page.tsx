@@ -317,7 +317,7 @@ function CadastroInspetor() {
   async function assinarPlano(tipo: string) {
     const atual = statusCred?.assinatura
     if (atual && atual.tipo !== tipo && atual.status !== 'aguardando_primeiro_pagamento'
-        && !window.confirm(`Isto cancela a sua assinatura atual (${atual.tipo}) e começa a do ${tipo}. Continuar?`)) return
+        && !window.confirm(`Isto cancela a sua assinatura atual (${atual.tipo}) e começa a do ${tipo}. Os créditos que sobrarem do plano atual ficam com você, como créditos avulsos. Continuar?`)) return
     setEnviandoPedido(true); setMsgPedido(''); setPagamentoInfo(null)
     try {
       const { data: { session } } = await createClient().auth.getSession()
