@@ -201,7 +201,7 @@ function EscolherPlano() {
           {assinavel && !pagamento && (
             <p style={{ fontSize: "11px", color: "#6B7280", textAlign: "center", margin: "10px auto 0", maxWidth: "520px", lineHeight: 1.5 }}>
               <b>Assinar</b>: cobrança automática todo mês no cartão de crédito; você cancela quando quiser, e os créditos do período pago continuam valendo.{" "}
-              <b>Pagar só este mês</b>: PIX ou cartão, sem renovação.
+              <b>Pagar só este mês</b>: PIX ou cartão, sem renovação automática.
             </p>
           )}
 
