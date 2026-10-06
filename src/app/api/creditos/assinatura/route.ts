@@ -84,7 +84,7 @@ export async function POST(request: NextRequest) {
         try { invoiceUrl = (await listarCobrancasDaAssinatura(atual.asaas_subscription_id))[0]?.invoiceUrl ?? null } catch { /* segue */ }
         return NextResponse.json({
           ok: true, reaproveitada: true, assinatura: publica(atual),
-          pagamento: invoiceUrl ? { invoiceUrl, forma: 'CREDIT_CARD' } : 'indisponivel',
+          pagamento: invoiceUrl ? { invoiceUrl, forma: 'CREDIT_CARD', assinatura: true } : 'indisponivel',
         })
       }
       // Outro plano (troca), ou cobrança recusada (inadimplente): encerra a anterior e começa a nova.
@@ -138,7 +138,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       ok: true,
       assinatura: publica({ ...nova, proxima_cobranca: sub.nextDueDate ?? hojeBrasilia() }),
-      pagamento: primeira ? { invoiceUrl: primeira.invoiceUrl, forma: 'CREDIT_CARD' } : 'indisponivel',
+      pagamento: primeira ? { invoiceUrl: primeira.invoiceUrl, forma: 'CREDIT_CARD', assinatura: true } : 'indisponivel',
     })
   } catch (err) {
     return NextResponse.json({ erro: String(err) }, { status: 500 })

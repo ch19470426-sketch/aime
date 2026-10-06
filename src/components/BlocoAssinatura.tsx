@@ -36,7 +36,7 @@ export default function BlocoAssinatura({ assinatura, ocupado, onCancelar, onRet
   return (
     <div style={{ marginTop: '12px' }} data-bloco="assinatura">
       <div style={{ backgroundColor: '#1E3A8A', color: 'white', padding: '6px 12px', fontSize: '12px', fontWeight: 700, borderRadius: '6px 6px 0 0' }}>
-        Assinatura mensal
+        Assinatura
       </div>
       <div style={{ border: '1px solid #E2E8F0', borderTop: 'none', borderRadius: '0 0 6px 6px', padding: '12px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', marginBottom: '6px' }}>

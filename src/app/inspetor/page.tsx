@@ -77,7 +77,7 @@ function CadastroInspetor() {
   const [enviandoPedido, setEnviandoPedido] = useState(false)
   const [msgPedido, setMsgPedido] = useState('')
   const [formaPagamento, setFormaPagamento] = useState<'PIX' | 'CREDIT_CARD'>('PIX')
-  const [pagamentoInfo, setPagamentoInfo] = useState<{ invoiceUrl: string; forma?: string; pixQrCode?: string; pixCopiaECola?: string } | null>(null)
+  const [pagamentoInfo, setPagamentoInfo] = useState<{ invoiceUrl: string; forma?: string; assinatura?: boolean; pixQrCode?: string; pixCopiaECola?: string } | null>(null)
 
   const formatarCPF = (valor: string) => {
     return valor
@@ -770,7 +770,9 @@ function CadastroInspetor() {
                                   style={{width:'100%',fontSize:'10px',padding:'6px',borderRadius:'6px',border:'1px solid #D1D5DB',resize:'none' as const}} rows={3} />
                               </>
                             ) : (
-                              <div style={{fontSize:'12px',color:'#374151'}}>Cobrança gerada — conclua o pagamento pelo link abaixo.</div>
+                              <div style={{fontSize:'12px',color:'#374151'}}>{pagamentoInfo.assinatura
+                                ? 'Para começar a assinatura, abra a página de pagamento e informe os dados do cartão. A renovação é automática todo mês.'
+                                : 'Cobrança gerada — conclua o pagamento pelo link abaixo.'}</div>
                             )}
                             {!pagamentoInfo.pixQrCode && (
                               <a href={pagamentoInfo.invoiceUrl} target="_blank" rel="noopener noreferrer"
@@ -778,10 +780,12 @@ function CadastroInspetor() {
                                 Abrir página de pagamento
                               </a>
                             )}
-                            <button onClick={()=>{ setPagamentoInfo(null); setMsgPedido('') }}
-                              style={{display:'block',margin:'10px auto 0',background:'none',border:'none',color:'#1E3A8A',textDecoration:'underline',fontSize:'11px',cursor:'pointer'}}>
-                              Trocar forma de pagamento
-                            </button>
+                            {!pagamentoInfo.assinatura && (
+                              <button onClick={()=>{ setPagamentoInfo(null); setMsgPedido('') }}
+                                style={{display:'block',margin:'10px auto 0',background:'none',border:'none',color:'#1E3A8A',textDecoration:'underline',fontSize:'11px',cursor:'pointer'}}>
+                                Trocar forma de pagamento
+                              </button>
+                            )}
                           </div>
                         )}
                         {pedidos.length > 0 && (
