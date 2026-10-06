@@ -385,6 +385,9 @@ function CadastroInspetor() {
           ativo = false
           setPagamentoInfo(null)
           setMsgPedido('Pagamento confirmado! Os créditos já estão na sua conta.')
+          // Os cartões de plano e de avulso vêm da lista de CONTRATOS (outra carga): sem recarregá-la
+          // a confirmação aparecia e os créditos não (06/10/2026).
+          await carregarContratos()
         } else if (!r.restaPendente) {
           ativo = false   // o pedido deixou de estar pendente por outro motivo (cancelado/removido)
         }
@@ -655,6 +658,7 @@ function CadastroInspetor() {
                                 </div>
                                 <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit, minmax(120px, 1fr))',gap:'12px'}}>
                                   <div><div style={{fontSize:'10px',color:'#6B7280'}}>CR Avulso</div><div style={{fontWeight:700,color:'#7C3AED',fontSize:'16px'}}>{ct.saldo_quantidade_avulso}<span style={{fontSize:'10px',color:'#6B7280'}}>/{ct.qde_contratada_avulso}</span></div></div>
+                                  <div><div style={{fontSize:'10px',color:'#6B7280'}}>Início</div><div style={{fontWeight:700,fontSize:'12px'}}>{fmtDataBR(ct.data_inicio_contrato)}</div></div>
                                 </div>
                               </div>
                             )
