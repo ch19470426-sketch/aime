@@ -187,6 +187,11 @@ export async function criarAssinatura(params: {
   })
 }
 
+/** Consulta a assinatura: nextDueDate é o próximo vencimento exato (não depende do nosso cálculo de calendário). */
+export async function consultarAssinatura(id: string): Promise<{ id: string; status?: string; nextDueDate?: string }> {
+  return chamar(`/subscriptions/${id}`)
+}
+
 export type CobrancaDaAssinatura = { id: string; status: string; invoiceUrl: string; dueDate?: string }
 
 /** Cobranças geradas por uma assinatura (a primeira traz o link para digitar o cartão). */

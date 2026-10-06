@@ -298,7 +298,10 @@ export async function consumirCreditos(
  * como nessas duas rotas já fazem.
  */
 export async function concederCreditos(
-  cpf: string, tipo: string, qdeCreditos: number
+  cpf: string, tipo: string, qdeCreditos: number,
+  // Assinatura: o contrato vale ATÉ essa data (próximo vencimento da cobrança, 'AAAA-MM-DD') em vez
+  // dos 30 dias fixos — evita um dia sem plano em mês de 31 dias. Só o webhook de assinaturas usa.
+  opcoes?: { fimAssinatura?: string }
 ): Promise<{ ok: boolean; erro?: string }> {
   const supabase = admin()
   try {
@@ -365,6 +368,7 @@ export async function concederCreditos(
       if (excedente > 0) {
         atualizacao.data_fim_avulso = new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
       }
+      if (opcoes?.fimAssinatura) atualizacao.data_fim_assinatura = opcoes.fimAssinatura
       const { error } = await supabase.from('contratos_inspetor').update(atualizacao)
         .eq('cpf_inspetor', cpf).eq('tipo_assinatura', tipo).eq('data_inicio_contrato', hoje)
       if (error) return { ok: false, erro: error.message }
@@ -414,6 +418,7 @@ export async function concederCreditos(
       // vencimento) — isto e realocacao do que ja existia, nao uma nova
       // concessao, entao NAO renova os 90 dias.
       data_fim_avulso: planoAntigo?.data_fim_avulso ?? null,
+      ...(opcoes?.fimAssinatura ? { data_fim_assinatura: opcoes.fimAssinatura } : {}),
     })
     if (error) return { ok: false, erro: error.message }
     return { ok: true }
