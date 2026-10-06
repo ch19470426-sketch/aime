@@ -122,7 +122,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Busca o nome do inspetor — o Asaas exige um nome para o cliente
-    const { data: insp } = await supabase.from('inspetor').select('nome_inspetor').eq('cpf_inspetor', cpf).maybeSingle()
+    const { data: insp } = await supabase.from('inspetor').select('nome_inspetor,inspetor_email,inspetor_whatsapp').eq('cpf_inspetor', cpf).maybeSingle()
     const nomeInspetor = insp?.nome_inspetor ?? cpf
 
     const { data: novo, error } = await supabase
@@ -133,7 +133,7 @@ export async function POST(request: NextRequest) {
     if (error) return NextResponse.json({ erro: error.message }, { status: 500 })
 
     try {
-      const cliente = await acharOuCriarCliente(cpf, nomeInspetor)
+      const cliente = await acharOuCriarCliente(cpf, nomeInspetor, { email: insp?.inspetor_email, telefone: insp?.inspetor_whatsapp })
       const cobranca = await criarCobranca({
         clienteId: cliente.id,
         forma: forma as FormaPagamento,

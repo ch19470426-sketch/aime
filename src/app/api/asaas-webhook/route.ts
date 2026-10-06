@@ -14,6 +14,14 @@
 //   3. Idempotência: se o pedido já estiver com status 'pago', a rota
 //      responde 200 sem conceder nada de novo (o Asaas reenvia o mesmo
 //      evento por tentativas de reentrega — nunca pode duplicar o crédito).
+//   5. ASSINATURAS (05/10/2026): a cobrança mensal de uma assinatura é criada pelo próprio
+//      Asaas, então ainda não existe pedido para ela. Quando o pagamento não tem pedido, a
+//      cobrança é consultada DIRETO no Asaas (fonte de verdade, não o corpo do webhook): se
+//      ela pertence a uma assinatura nossa, o pedido do mês é criado na hora (o índice único
+//      por asaas_payment_id protege contra eventos simultâneos) e segue o MESMO caminho de
+//      sempre — verificação em dobro, idempotência, concessão. Eventos da própria assinatura
+//      (cancelada no painel do Asaas) e cobrança vencida/recusada só atualizam o status e
+//      avisam o inspetor; nunca concedem nada.
 //   4. Sempre responde 200 quando o evento foi genuinamente processado (ou
 //      já tinha sido antes) — um erro 5xx faz o Asaas tentar de novo depois,
 //      o que é o comportamento certo só para falha de infraestrutura
@@ -23,6 +31,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { consultarCobranca, STATUS_PAGO } from '@/lib/asaas'
 import { concederCreditos, PLANO_CR } from '@/lib/creditos'
+import { agoraBrasilia } from '@/lib/emailSuporte'
+import { avisarInspetor, dataBR, somarUmMes } from '@/lib/assinaturas'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -38,6 +48,38 @@ function tokenValido(request: NextRequest): boolean {
   return request.headers.get('asaas-access-token') === esperado
 }
 
+/** Cobrança de assinatura vencida/recusada: marca 'inadimplente' (só uma vez) e avisa. */
+async function marcarInadimplente(pedido: any, invoiceUrl: string | undefined): Promise<void> {
+  // Se for a PRIMEIRA cobrança que falhou, a assinatura ainda nem começou: o inspetor pode tentar de novo pelo link.
+  const { data: mudou } = await supabase.from('assinaturas')
+    .update({ status: 'inadimplente' }).eq('id', pedido.assinatura_id).eq('status', 'ativa').select('id')
+  if (!mudou || mudou.length === 0) return
+  await avisarInspetor(pedido.cpf_inspetor, 'AIMÊ — Não conseguimos renovar sua assinatura', [
+    { tipo: 'p', texto: `O pagamento da sua assinatura do ${pedido.tipo} não foi concluído, e por isso os créditos do mês não foram liberados.` },
+    ...(invoiceUrl ? [{ tipo: 'link' as const, rotulo: 'Regularizar o pagamento', url: invoiceUrl, mostrarUrl: true }] : []),
+    { tipo: 'p', texto: 'Se preferir, você pode cancelar a assinatura em Meu Plano e Créditos, no aplicativo.' },
+  ])
+}
+
+/** Pagamento de assinatura confirmado e crédito concedido: ativa a assinatura e avisa o inspetor. */
+async function aposPagamentoDeAssinatura(pedido: any, vencimento: string | undefined, qde: number): Promise<void> {
+  const { data: ass } = await supabase.from('assinaturas').select('id,status').eq('id', pedido.assinatura_id).maybeSingle()
+  if (!ass) return
+  const primeira = ass.status === 'aguardando_primeiro_pagamento'
+  const cancelada = ass.status === 'cancelada'   // o último pagamento chegou depois do cancelamento
+  const proxima = !cancelada && vencimento ? somarUmMes(vencimento) : null
+  if (!cancelada) {
+    await supabase.from('assinaturas')
+      .update({ status: 'ativa', ...(proxima ? { proxima_cobranca: proxima } : {}) }).eq('id', ass.id)
+  }
+  await avisarInspetor(pedido.cpf_inspetor, primeira ? 'AIMÊ — Assinatura ativada' : 'AIMÊ — Assinatura renovada', [
+    { tipo: 'p', texto: `Recebemos o pagamento da sua assinatura do ${pedido.tipo}. Os ${qde.toLocaleString('pt-BR')} créditos do mês já estão disponíveis.` },
+    cancelada
+      ? { tipo: 'p', texto: 'A assinatura está cancelada, então não haverá novas cobranças.' }
+      : { tipo: 'p', texto: `${proxima ? `Próxima cobrança: ${dataBR(proxima)}. ` : ''}Para cancelar quando quiser, use Meu Plano e Créditos, no aplicativo.` },
+  ])
+}
+
 export async function POST(request: NextRequest) {
   try {
     if (!tokenValido(request)) {
@@ -45,20 +87,52 @@ export async function POST(request: NextRequest) {
     }
 
     const corpo = await request.json().catch(() => null)
+    const evento: string = corpo?.event ?? ''
     const paymentId: string | undefined = corpo?.payment?.id
     if (!paymentId) {
+      // Assinatura cancelada/encerrada pelo painel do Asaas: reflete na nossa base.
+      const subId: string | undefined = corpo?.subscription?.id
+      if (subId && (evento === 'SUBSCRIPTION_DELETED' || evento === 'SUBSCRIPTION_INACTIVATED')) {
+        await supabase.from('assinaturas')
+          .update({ status: 'cancelada', cancelada_em: agoraBrasilia() })
+          .eq('asaas_subscription_id', subId).neq('status', 'cancelada')
+        return NextResponse.json({ ok: true, assinaturaEncerrada: true })
+      }
       // Evento que não é sobre uma cobrança (ex.: teste de conexão do
       // Asaas) — nada a fazer, mas não é erro.
       return NextResponse.json({ ok: true, ignorado: true })
     }
 
-    const { data: pedido } = await supabase
+    let { data: pedido } = await supabase
       .from('pedidos_credito').select('*').eq('asaas_payment_id', paymentId).maybeSingle()
+    let cobranca: Awaited<ReturnType<typeof consultarCobranca>> | null = null
+
     if (!pedido) {
-      // Cobrança que não reconhecemos (de outro sistema, ou pedido não
-      // encontrado por qualquer motivo) — responde 200 para o Asaas não
-      // ficar reentregando um evento que nunca vamos processar.
-      return NextResponse.json({ ok: true, ignorado: true, motivo: 'pedido_nao_encontrado' })
+      // Pode ser a cobrança mensal de uma assinatura nossa (o Asaas a cria sozinho,
+      // então não há pedido ainda). Pergunta ao Asaas — não confia no corpo do webhook.
+      cobranca = await consultarCobranca(paymentId)
+      const subId = cobranca.subscription
+      if (!subId) {
+        // Cobrança que não reconhecemos (de outro sistema, ou pedido não
+        // encontrado por qualquer motivo) — responde 200 para o Asaas não
+        // ficar reentregando um evento que nunca vamos processar.
+        return NextResponse.json({ ok: true, ignorado: true, motivo: 'pedido_nao_encontrado' })
+      }
+      const { data: ass } = await supabase.from('assinaturas').select('*').eq('asaas_subscription_id', subId).maybeSingle()
+      if (!ass) return NextResponse.json({ ok: true, ignorado: true, motivo: 'assinatura_nao_encontrada' })
+
+      const { data: criado, error: errCriar } = await supabase.from('pedidos_credito').insert({
+        cpf_inspetor: ass.cpf_inspetor, tipo: ass.tipo, qde_creditos: PLANO_CR[ass.tipo],
+        valor: cobranca.value ?? ass.valor, asaas_payment_id: paymentId, assinatura_id: ass.id,
+      }).select('*').single()
+      if (errCriar) {
+        // Outro evento da mesma cobrança chegou junto e já criou o pedido: usa o dele.
+        const { data: jaCriado } = await supabase.from('pedidos_credito').select('*').eq('asaas_payment_id', paymentId).maybeSingle()
+        if (!jaCriado) return NextResponse.json({ erro: errCriar.message }, { status: 500 })
+        pedido = jaCriado
+      } else {
+        pedido = criado
+      }
     }
 
     // Idempotência: já processado antes.
@@ -73,8 +147,12 @@ export async function POST(request: NextRequest) {
     }
 
     // Verificação em dobro: confia na API do Asaas, não só no corpo do webhook.
-    const cobranca = await consultarCobranca(paymentId)
+    cobranca = cobranca ?? await consultarCobranca(paymentId)
     if (!STATUS_PAGO.has(cobranca.status)) {
+      // Cobrança de assinatura vencida ou com cartão recusado: avisa o inspetor.
+      if (pedido.assinatura_id && (evento === 'PAYMENT_OVERDUE' || evento === 'PAYMENT_CREDIT_CARD_CAPTURE_REFUSED')) {
+        await marcarInadimplente(pedido, cobranca.invoiceUrl)
+      }
       // Webhook de um evento que não é de pagamento confirmado (ex.:
       // PAYMENT_CREATED, PAYMENT_OVERDUE) — nada a conceder ainda.
       return NextResponse.json({ ok: true, aguardando: true, statusAtual: cobranca.status })
@@ -91,6 +169,8 @@ export async function POST(request: NextRequest) {
     await supabase.from('pedidos_credito')
       .update({ status: 'pago', pago_em: new Date().toISOString() })
       .eq('id', pedido.id)
+
+    if (pedido.assinatura_id) await aposPagamentoDeAssinatura(pedido, cobranca.dueDate, qde)
 
     return NextResponse.json({ ok: true, creditosConcedidos: qde })
   } catch (err) {

@@ -49,18 +49,48 @@ async function chamar<T>(caminho: string, opcoes: RequestInit = {}): Promise<T> 
 
 export type ClienteAsaas = { id: string; cpfCnpj: string }
 
+export type DadosContatoCliente = { email?: string | null; telefone?: string | null }
+
+/**
+ * Campos de contato do cliente. Só entram se tiverem formato válido (um e-mail ou telefone
+ * fora do padrão faria o Asaas recusar o cadastro inteiro). Com o e-mail preenchido, a página
+ * de pagamento por cartão do Asaas tende a vir com ele já preenchido (confirmar no sandbox).
+ * notificationDisabled: os avisos de cobrança ficam com o AIMÊ (e-mail da equipe); sem isto
+ * o Asaas mandaria os dele em paralelo.
+ */
+function extrasDoCliente(c?: DadosContatoCliente): Record<string, unknown> {
+  const extras: Record<string, unknown> = { notificationDisabled: true }
+  const email = String(c?.email ?? '').trim()
+  if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) extras.email = email
+  const tel = String(c?.telefone ?? '').replace(/\D/g, '').replace(/^55(?=\d{10,11}$)/, '')
+  if (tel.length === 11) extras.mobilePhone = tel
+  else if (tel.length === 10) extras.phone = tel
+  return extras
+}
+
 /**
  * Acha o cliente do Asaas pelo CPF (campo externReference, onde guardamos o
  * CPF do inspetor) ou cria um novo se não existir. Idempotente: chamar de
  * novo para o mesmo CPF sempre devolve o mesmo id do Asaas.
  */
-export async function acharOuCriarCliente(cpf: string, nome: string): Promise<ClienteAsaas> {
+export async function acharOuCriarCliente(cpf: string, nome: string, contato?: DadosContatoCliente): Promise<ClienteAsaas> {
+  const extras = extrasDoCliente(contato)
   const busca = await chamar<{ data: ClienteAsaas[] }>(`/customers?cpfCnpj=${cpf}`)
-  if (busca.data.length > 0) return busca.data[0]
-  return chamar<ClienteAsaas>('/customers', {
-    method: 'POST',
-    body: JSON.stringify({ name: nome, cpfCnpj: cpf, externalReference: cpf }),
-  })
+  if (busca.data.length > 0) {
+    const existente = busca.data[0]
+    // Clientes criados antes desta melhoria não têm e-mail/telefone: completa o
+    // cadastro (melhor esforço — nunca derruba a compra por causa disso).
+    try { await chamar(`/customers/${existente.id}`, { method: 'PUT', body: JSON.stringify(extras) }) } catch { /* segue */ }
+    return existente
+  }
+  const base = { name: nome, cpfCnpj: cpf, externalReference: cpf }
+  try {
+    return await chamar<ClienteAsaas>('/customers', { method: 'POST', body: JSON.stringify({ ...base, ...extras }) })
+  } catch {
+    // O Asaas pode recusar um contato que parece válido; volta ao cadastro
+    // mínimo, que sempre funcionou, em vez de impedir a compra.
+    return chamar<ClienteAsaas>('/customers', { method: 'POST', body: JSON.stringify(base) })
+  }
 }
 
 // ───────────────────────── Cobrança (payment) ─────────────────────────
@@ -113,7 +143,12 @@ export async function criarCobranca(params: {
 }
 
 /** Consulta o status atual de uma cobrança (usado como reforço do webhook, e para reexibir o link de pagamento de um pedido já criado). */
-export async function consultarCobranca(id: string): Promise<{ id: string; status: string; invoiceUrl: string }> {
+export async function consultarCobranca(id: string): Promise<{
+  id: string; status: string; invoiceUrl: string
+  subscription?: string | null   // id da assinatura, quando a cobrança nasceu de uma
+  value?: number                 // em reais
+  dueDate?: string               // 'AAAA-MM-DD'
+}> {
   return chamar(`/payments/${id}`)
 }
 
@@ -124,3 +159,51 @@ export async function consultarCobranca(id: string): Promise<{ id: string; statu
  * (decisão de Celso, 29/09/2026: só PIX e cartão).
  */
 export const STATUS_PAGO = new Set(['RECEIVED', 'CONFIRMED', 'RECEIVED_IN_CASH'])
+
+// ───────────────────────── Assinatura (subscription) ─────────────────────────
+// PLANO MENSAL e PLANO ESCRITÓRIO podem ser assinados: o Asaas gera uma cobrança por mês,
+// sozinho, e o webhook (/api/asaas-webhook) libera os créditos de cada uma.
+
+export type AssinaturaAsaas = { id: string; status?: string; nextDueDate?: string }
+
+export async function criarAssinatura(params: {
+  clienteId: string
+  valorCentavos: number
+  descricao: string
+  referenciaExterna: string       // id da linha em `assinaturas`
+  primeiroVencimento: string      // 'AAAA-MM-DD', hoje ou futuro
+}): Promise<AssinaturaAsaas> {
+  return chamar<AssinaturaAsaas>('/subscriptions', {
+    method: 'POST',
+    body: JSON.stringify({
+      customer: params.clienteId,
+      billingType: 'CREDIT_CARD',   // renovação automática só no cartão (decisão de Celso, 05/10/2026)
+      value: params.valorCentavos / 100,
+      nextDueDate: params.primeiroVencimento,
+      cycle: 'MONTHLY',
+      description: params.descricao,
+      externalReference: params.referenciaExterna,
+    }),
+  })
+}
+
+export type CobrancaDaAssinatura = { id: string; status: string; invoiceUrl: string; dueDate?: string }
+
+/** Cobranças geradas por uma assinatura (a primeira traz o link para digitar o cartão). */
+export async function listarCobrancasDaAssinatura(id: string): Promise<CobrancaDaAssinatura[]> {
+  const r = await chamar<{ data?: CobrancaDaAssinatura[] }>(`/subscriptions/${id}/payments`)
+  return r.data ?? []
+}
+
+/** Cancela a assinatura no Asaas (cobranças futuras param; as cobranças pendentes são removidas por ele). */
+export async function cancelarAssinaturaNoAsaas(id: string): Promise<void> {
+  await chamar(`/subscriptions/${id}`, { method: 'DELETE' })
+}
+
+/** Reajuste de valor (ex.: salário mínimo novo): vale para as próximas cobranças e as pendentes. */
+export async function atualizarValorAssinaturaNoAsaas(id: string, valorCentavos: number): Promise<void> {
+  await chamar(`/subscriptions/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify({ value: valorCentavos / 100, updatePendingPayments: true }),
+  })
+}
