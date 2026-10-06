@@ -123,6 +123,8 @@ export async function POST(request: NextRequest) {
     const corpo = await request.json().catch(() => null)
     const evento: string = corpo?.event ?? ''
     const paymentId: string | undefined = corpo?.payment?.id
+    // Só ids e o nome do evento (nada pessoal): permite conferir no log da Vercel que o Asaas está entregando.
+    console.log('[asaas-webhook] evento=%s pagamento=%s assinatura=%s', evento || '-', paymentId ?? '-', corpo?.subscription?.id ?? corpo?.payment?.subscription ?? '-')
     if (!paymentId) {
       // Assinatura cancelada/encerrada pelo painel do Asaas: reflete na nossa base.
       const subId: string | undefined = corpo?.subscription?.id

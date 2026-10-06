@@ -3,6 +3,7 @@ export const dynamic = 'force-dynamic'
 import { useState, Suspense } from "react"
 import { useSearchParams } from "next/navigation"
 import Image from "next/image"
+import LinkSair from "@/components/LinkSair"
 
 export default function TermoAceitePage() {
   return (
@@ -74,6 +75,7 @@ function TermoAceite() {
             <span style={{ color: "white", fontWeight: "bold", fontSize: "12px", flex: 1, textAlign: "center" }}>
               Bem-vindo ao AIMÊ
             </span>
+            <LinkSair />
           </div>
           <div style={S.divider} />
           <div style={{ padding: "20px 24px" }}>
@@ -102,6 +104,7 @@ function TermoAceite() {
           <span style={{ color: "white", fontWeight: "bold", fontSize: "12px", flex: 1, textAlign: "center" }}>
             Termo de Aceite dos Serviços – Plataforma AIMÊ
           </span>
+          <LinkSair />
         </div>
         <div style={S.divider} />
         <div style={S.body2}>

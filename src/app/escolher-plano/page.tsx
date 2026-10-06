@@ -3,6 +3,7 @@ export const dynamic = 'force-dynamic'
 import { Suspense, useState } from "react"
 import { useSearchParams } from "next/navigation"
 import Image from "next/image"
+import LinkSair from "@/components/LinkSair"
 import { createClient } from "@/utils/supabase/client"
 import { precoPlanoCentavos, formatarReais } from "@/lib/precos"
 
@@ -157,6 +158,7 @@ function EscolherPlano() {
           <span style={{ color: "white", fontWeight: "bold", fontSize: "12px", flex: 1, textAlign: "center" }}>
             Escolha seu plano para começar
           </span>
+          <LinkSair />
         </div>
         <div style={S.divider} />
         <div style={S.body2}>
