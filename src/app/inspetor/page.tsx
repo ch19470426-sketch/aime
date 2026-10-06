@@ -388,6 +388,12 @@ function CadastroInspetor() {
           // Os cartões de plano e de avulso vêm da lista de CONTRATOS (outra carga): sem recarregá-la
           // a confirmação aparecia e os créditos não (06/10/2026).
           await carregarContratos()
+          // O servidor marca o pedido como pago ANTES de terminar (liberar os créditos e ativar a
+          // assinatura), para nunca somar crédito em duplicidade. Se a tela detectou "pago" nesse
+          // intervalo, a foto acima pode estar velha (sem créditos, assinatura ainda "aguardando"):
+          // sincroniza de novo logo depois e mais uma vez com folga.
+          setTimeout(() => { void carregarContratos() }, 3000)
+          setTimeout(() => { void carregarContratos() }, 10000)
         } else if (!r.restaPendente) {
           ativo = false   // o pedido deixou de estar pendente por outro motivo (cancelado/removido)
         }
