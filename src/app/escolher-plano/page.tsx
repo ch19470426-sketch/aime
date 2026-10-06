@@ -38,6 +38,9 @@ function EscolherPlano() {
   const [erro, setErro] = useState('')
   const [pagamento, setPagamento] = useState<Pagamento>(null)
   const [cortesiaConcedida, setCortesiaConcedida] = useState(false)
+  const [ehAssinatura, setEhAssinatura] = useState(false)
+  // Só Mensal e Escritório podem ser assinados (renovação automática no cartão).
+  const assinavel = selecionado === 'PLANO MENSAL' || selecionado === 'PLANO ESCRITÓRIO'
 
   async function tokenSessao() {
     const { data: { session } } = await createClient().auth.getSession()
@@ -72,6 +75,25 @@ function EscolherPlano() {
         setPagamento(d.pagamento)
       } else {
         setErro('Pedido registrado, mas a cobrança falhou. Tente novamente em instantes.')
+      }
+      setEnviando(false)
+    } catch { setErro('Erro de conexão.'); setEnviando(false) }
+  }
+
+  async function assinar(tipo: string) {
+    setEnviando(true); setErro(''); setPagamento(null); setEhAssinatura(false)
+    try {
+      const res = await fetch('/api/creditos/assinatura', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${await tokenSessao()}` },
+        body: JSON.stringify({ tipo }),
+      })
+      const d = await res.json()
+      if (!res.ok) { setErro(d.erro ?? 'Não foi possível iniciar a assinatura.'); setEnviando(false); return }
+      if (d.pagamento && typeof d.pagamento === 'object') {
+        setPagamento(d.pagamento); setEhAssinatura(true)
+      } else {
+        setErro('Assinatura registrada, mas o link de pagamento não foi gerado agora. Toque em Assinar de novo em instantes.')
       }
       setEnviando(false)
     } catch { setErro('Erro de conexão.'); setEnviando(false) }
@@ -128,7 +150,7 @@ function EscolherPlano() {
 
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: "12px", marginBottom: "16px" }}>
             {PLANOS.map(p => (
-              <button key={p.tipo} onClick={() => { setSelecionado(p.tipo); setErro(''); setPagamento(null) }}
+              <button key={p.tipo} onClick={() => { setSelecionado(p.tipo); setErro(''); setPagamento(null); setEhAssinatura(false) }}
                 style={{
                   textAlign: "left", cursor: "pointer", padding: "14px", borderRadius: "10px",
                   border: `2px solid ${selecionado === p.tipo ? p.cor : '#E5E7EB'}`,
@@ -165,9 +187,21 @@ function EscolherPlano() {
               </div>
               <button onClick={() => contratarPago(selecionado)} disabled={enviando}
                 style={{ backgroundColor: "#1E3A8A", color: "white", fontWeight: 600, padding: "9px 24px", borderRadius: "50px", border: "none", cursor: enviando ? "not-allowed" : "pointer", fontSize: "12px", opacity: enviando ? 0.6 : 1 }}>
-                {enviando ? "Aguarde..." : "Contratar"}
+                {enviando ? "Aguarde..." : (assinavel ? "Pagar só este mês" : "Contratar")}
               </button>
+              {assinavel && (
+                <button onClick={() => assinar(selecionado!)} disabled={enviando}
+                  style={{ backgroundColor: "#059669", color: "white", fontWeight: 600, padding: "9px 24px", borderRadius: "50px", border: "none", cursor: enviando ? "not-allowed" : "pointer", fontSize: "12px", opacity: enviando ? 0.6 : 1 }}>
+                  {enviando ? "Aguarde..." : "Assinar — renova todo mês"}
+                </button>
+              )}
             </div>
+          )}
+          {assinavel && !pagamento && (
+            <p style={{ fontSize: "11px", color: "#6B7280", textAlign: "center", margin: "10px auto 0", maxWidth: "520px", lineHeight: 1.5 }}>
+              <b>Assinar</b>: cobrança automática todo mês no cartão de crédito; você cancela quando quiser, e os créditos do período pago continuam valendo.{" "}
+              <b>Pagar só este mês</b>: PIX ou cartão, sem renovação.
+            </p>
           )}
 
           {pagamento && (
@@ -188,6 +222,11 @@ function EscolherPlano() {
                 style={{ display: "inline-block", marginTop: "10px", backgroundColor: "#059669", color: "white", textDecoration: "none", borderRadius: "9999px", padding: "8px 20px", fontSize: "12px", fontWeight: 700 }}>
                 Abrir página de pagamento
               </a>
+              {ehAssinatura && (
+                <p style={{ fontSize: "11px", color: "#047857", marginTop: "10px", fontWeight: 600 }}>
+                  Digite os dados do cartão na página de pagamento. A assinatura renova todo mês no mesmo cartão e pode ser cancelada em Meu Plano e Créditos.
+                </p>
+              )}
               <p style={{ fontSize: "10px", color: "#6B7280", marginTop: "12px" }}>
                 Assim que o pagamento for confirmado, os créditos aparecem automaticamente. Pode continuar enquanto isso.
               </p>

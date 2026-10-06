@@ -4,6 +4,7 @@ import { useState, useEffect, Suspense } from "react"
 import { useSearchParams } from "next/navigation"
 import Image from "next/image"
 import { createClient } from "@/utils/supabase/client"
+import BlocoAssinatura, { type AssinaturaStatus } from '@/components/BlocoAssinatura'
 
 const SUPA_URL = 'https://asgorarunzhiojqioxzq.supabase.co'
 const SUPA_KEY = 'sb_publishable_dH85HYKGxv3X0te627VfOw_OGaPoNMF'
@@ -68,7 +69,7 @@ function CadastroInspetor() {
   const [solicitandoTroca, setSolicitandoTroca] = useState(false)
   const [planoDesejado, setPlanoDesejado] = useState('PLANO MENSAL')
   // Contratação de créditos / isenção de gestor
-  const [statusCred, setStatusCred] = useState<{isento:boolean; cobrancaAtiva:boolean; avulsoLiberado?:boolean} | null>(null)
+  const [statusCred, setStatusCred] = useState<{isento:boolean; cobrancaAtiva:boolean; avulsoLiberado?:boolean; assinatura?: AssinaturaStatus | null} | null>(null)
   const [pedidos, setPedidos] = useState<any[]>([])
   const [tipoPedido, setTipoPedido] = useState('PLANO MENSAL')
   const [qdeAvulso, setQdeAvulso] = useState(600)
@@ -308,6 +309,48 @@ function CadastroInspetor() {
       } else {
         setMsgPedido(`Erro: ${d.erro ?? 'Não foi possível registrar o pedido.'}`)
       }
+    } catch { setMsgPedido('Erro de conexão.') }
+    finally { setEnviandoPedido(false) }
+  }
+
+  // Assinatura mensal (Mensal/Escritório): renovação automática no cartão, pelo Asaas.
+  async function assinarPlano(tipo: string) {
+    const atual = statusCred?.assinatura
+    if (atual && atual.tipo !== tipo && atual.status !== 'aguardando_primeiro_pagamento'
+        && !window.confirm(`Isto cancela a sua assinatura atual (${atual.tipo}) e começa a do ${tipo}. Continuar?`)) return
+    setEnviandoPedido(true); setMsgPedido(''); setPagamentoInfo(null)
+    try {
+      const { data: { session } } = await createClient().auth.getSession()
+      const res = await fetch('/api/creditos/assinatura', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session?.access_token ?? ''}` },
+        body: JSON.stringify({ tipo }),
+      })
+      const d = await res.json()
+      if (res.ok && d.pagamento && typeof d.pagamento === 'object') {
+        setMsgPedido(d.reaproveitada
+          ? 'Sua assinatura está aguardando o primeiro pagamento. Conclua pelo link abaixo.'
+          : 'Assinatura criada. Digite os dados do cartão na página de pagamento; a renovação passa a ser automática todo mês.')
+        setPagamentoInfo(d.pagamento)
+      } else if (res.ok) {
+        setMsgPedido('Erro: a assinatura foi registrada, mas o link de pagamento não foi gerado agora. Tente de novo em instantes.')
+      } else {
+        setMsgPedido(`Erro: ${d.erro ?? 'Não foi possível iniciar a assinatura.'}`)
+      }
+      await carregarCreditos()
+    } catch { setMsgPedido('Erro de conexão.') }
+    finally { setEnviandoPedido(false) }
+  }
+
+  async function cancelarAssinatura() {
+    if (!window.confirm('Cancelar a assinatura? Não haverá novas cobranças, e os créditos do período que você já pagou continuam valendo até o fim dele.')) return
+    setEnviandoPedido(true); setMsgPedido(''); setPagamentoInfo(null)
+    try {
+      const { data: { session } } = await createClient().auth.getSession()
+      const res = await fetch('/api/creditos/assinatura', { method: 'DELETE', headers: { Authorization: `Bearer ${session?.access_token ?? ''}` } })
+      const d = await res.json()
+      setMsgPedido(res.ok ? 'Assinatura cancelada. Não haverá novas cobranças.' : `Erro: ${d.erro ?? 'Não foi possível cancelar agora.'}`)
+      await carregarCreditos()
     } catch { setMsgPedido('Erro de conexão.') }
     finally { setEnviandoPedido(false) }
   }
@@ -595,10 +638,13 @@ function CadastroInspetor() {
                       </div>
                     </div>
                     )}
+                    <BlocoAssinatura assinatura={statusCred?.assinatura} ocupado={enviandoPedido}
+                      onCancelar={cancelarAssinatura}
+                      onRetomar={() => statusCred?.assinatura && assinarPlano(statusCred.assinatura.tipo)} />
                     <div style={{marginTop:'12px'}}>
                       <div style={{...blocoHeaderStyle,borderRadius:'6px 6px 0 0'}}><span style={blocoTituloStyle}>Contratar Créditos</span></div>
                       <div style={{border:'1px solid #E2E8F0',borderTop:'none',borderRadius:'0 0 6px 6px',padding:'12px'}}>
-                        <p style={{fontSize:'11px',color:'#6B7280',marginBottom:'12px',lineHeight:1.5}}>Contrate um plano ou créditos avulsos a qualquer momento, inclusive quando seus créditos acabarem. O pedido fica registrado e é liberado após a confirmação do pagamento.</p>
+                        <p style={{fontSize:'11px',color:'#6B7280',marginBottom:'12px',lineHeight:1.5}}>Contrate um plano ou créditos avulsos a qualquer momento, inclusive quando seus créditos acabarem. O pedido fica registrado e é liberado após a confirmação do pagamento. O Plano Mensal e o Plano Escritório também podem ser <b>assinados</b>: a cobrança se renova sozinha todo mês no cartão, e você cancela quando quiser.</p>
                         <div style={{display:'flex',gap:'8px',alignItems:'flex-end',flexWrap:'wrap'}}>
                           <div style={{flex:1,minWidth:'180px'}}>
                             <label style={labelStyle}>O que deseja contratar</label>
@@ -630,8 +676,14 @@ function CadastroInspetor() {
                           </button>
                           <button onClick={criarPedido} disabled={enviandoPedido}
                             style={{backgroundColor:'#1E3A8A',color:'white',border:'none',borderRadius:'9999px',padding:'8px 20px',fontSize:'12px',fontWeight:700,cursor:enviandoPedido?'not-allowed':'pointer',opacity:enviandoPedido?0.6:1}}>
-                            {enviandoPedido?'Aguarde...':'Contratar'}
+                            {enviandoPedido?'Aguarde...':((tipoPedido==='PLANO MENSAL'||tipoPedido==='PLANO ESCRITÓRIO')?'Pagar só este mês':'Contratar')}
                           </button>
+                          {(tipoPedido==='PLANO MENSAL'||tipoPedido==='PLANO ESCRITÓRIO') && !(statusCred?.assinatura?.tipo===tipoPedido && statusCred.assinatura.status==='ativa') && (
+                            <button onClick={() => assinarPlano(tipoPedido)} disabled={enviandoPedido}
+                              style={{backgroundColor:'#059669',color:'white',border:'none',borderRadius:'9999px',padding:'8px 20px',fontSize:'12px',fontWeight:700,cursor:enviandoPedido?'not-allowed':'pointer',opacity:enviandoPedido?0.6:1}}>
+                              {enviandoPedido?'Aguarde...':'Assinar — renova todo mês'}
+                            </button>
+                          )}
                         </div>
                         {msgPedido&&(<div style={{marginTop:'10px',padding:'8px 12px',borderRadius:'6px',fontSize:'12px',backgroundColor:msgPedido.startsWith('Erro')?'#FEE2E2':'#EFF6FF',color:msgPedido.startsWith('Erro')?'#DC2626':'#1E3A8A'}}>{msgPedido}</div>)}
                         {pagamentoInfo && (
