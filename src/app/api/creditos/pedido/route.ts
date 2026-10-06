@@ -97,17 +97,25 @@ export async function POST(request: NextRequest) {
 
     const supabase = admin()
 
-    // Evita empilhar pedidos idênticos: reaproveita o que já está aguardando
-    const { data: existente, error: errBusca } = await supabase
+    // Evita empilhar pedidos idênticos: reaproveita o que já está aguardando.
+    // Só pedidos de COMPRA ÚNICA (assinatura_id nulo): o pedido de uma assinatura é cobrado pela
+    // própria assinatura e nunca pode ser reaproveitado aqui. E pega o mais recente em vez de
+    // exigir "exatamente um": com o pedido da assinatura ao lado havia dois iguais, e o
+    // .maybeSingle() devolvia "JSON object requested, multiple (or no) rows returned"
+    // (achado de Celso, 06/10/2026).
+    const { data: pendentes, error: errBusca } = await supabase
       .from('pedidos_credito')
       .select('id,tipo,qde_creditos,status,criado_em,asaas_payment_id')
       .eq('cpf_inspetor', cpf).eq('tipo', tipo).eq('qde_creditos', qde)
       .eq('status', 'aguardando_pagamento')
-      .maybeSingle()
+      .is('assinatura_id', null)
+      .order('criado_em', { ascending: false })
+      .limit(1)
     if (errBusca) {
       if (errBusca.code === '42P01') return NextResponse.json({ erro: MIGRACAO_PENDENTE }, { status: 503 })
       return NextResponse.json({ erro: errBusca.message }, { status: 500 })
     }
+    const existente = pendentes?.[0] ?? null
     if (existente) {
       // Reaproveita o pedido, mas busca o link/QR ATUAL na Asaas — evita
       // devolver um QR Code já expirado de uma visita anterior.

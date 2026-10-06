@@ -40,6 +40,8 @@ function EscolherPlano() {
   const [pagamento, setPagamento] = useState<Pagamento>(null)
   const [cortesiaConcedida, setCortesiaConcedida] = useState(false)
   const [ehAssinatura, setEhAssinatura] = useState(false)
+  const [verificando, setVerificando] = useState(false)
+  const [avisoPagamento, setAvisoPagamento] = useState('')
   // Só Mensal e Escritório podem ser assinados (renovação automática no cartão).
   const assinavel = selecionado === 'PLANO MENSAL' || selecionado === 'PLANO ESCRITÓRIO'
 
@@ -98,6 +100,19 @@ function EscolherPlano() {
       }
       setEnviando(false)
     } catch { setErro('Erro de conexão.'); setEnviando(false) }
+  }
+
+  // Quem ainda não pagou não tem contrato, e o dashboard devolveria à escolha de plano sem
+  // explicar. Aqui o app confere antes e diz o que está acontecendo.
+  async function jaPaguei() {
+    setVerificando(true); setAvisoPagamento('')
+    try {
+      const res = await fetch(`/api/tem-contrato?cpf_inspetor=${cpf}`)
+      const d = await res.json()
+      if (d.temContrato) { continuar(); return }
+      setAvisoPagamento('Ainda não recebemos a confirmação do pagamento. Isso pode levar alguns segundos depois de pagar: aguarde um pouco e toque de novo.')
+    } catch { setAvisoPagamento('Não foi possível verificar agora. Tente de novo em instantes.') }
+    setVerificando(false)
   }
 
   function continuar() {
@@ -229,11 +244,14 @@ function EscolherPlano() {
                 </p>
               )}
               <p style={{ fontSize: "10px", color: "#6B7280", marginTop: "12px" }}>
-                Assim que o pagamento for confirmado, os créditos aparecem automaticamente. Pode continuar enquanto isso.
+                Assim que o pagamento for confirmado, os créditos aparecem automaticamente. Depois de pagar, toque em &quot;Já paguei&quot; para entrar no AIMÊ.
               </p>
-              <button onClick={continuar}
-                style={{ display: "block", margin: "12px auto 0", backgroundColor: "#1E3A8A", color: "white", fontWeight: 600, padding: "8px 24px", borderRadius: "50px", border: "none", cursor: "pointer", fontSize: "12px" }}>
-                Continuar
+              {avisoPagamento && (
+                <div style={{ padding: "8px 12px", borderRadius: "6px", fontSize: "11px", backgroundColor: "#FFFBEB", color: "#92400E", margin: "10px 0 0", lineHeight: 1.5 }}>{avisoPagamento}</div>
+              )}
+              <button onClick={jaPaguei} disabled={verificando}
+                style={{ display: "block", margin: "12px auto 0", backgroundColor: "#1E3A8A", color: "white", fontWeight: 600, padding: "8px 24px", borderRadius: "50px", border: "none", cursor: verificando ? "not-allowed" : "pointer", fontSize: "12px", opacity: verificando ? 0.6 : 1 }}>
+                {verificando ? "Verificando..." : "Já paguei — continuar"}
               </button>
             </div>
           )}
