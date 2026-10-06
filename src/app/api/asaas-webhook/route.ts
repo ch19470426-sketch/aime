@@ -141,10 +141,30 @@ export async function POST(request: NextRequest) {
       .from('pedidos_credito').select('*').eq('asaas_payment_id', paymentId).maybeSingle()
     let cobranca: Awaited<ReturnType<typeof consultarCobranca>> | null = null
 
+    // Cobrança REMOVIDA no Asaas (trocamos a forma de pagamento do pedido, a assinatura foi
+    // cancelada, ou alguém apagou no painel): não há mais o que cobrar. NÃO consulta o Asaas —
+    // a cobrança já não existe lá, a consulta daria erro, o webhook responderia 500 e o Asaas
+    // reentregaria o evento (e pode pausar a fila depois de falhas seguidas).
+    if (evento === 'PAYMENT_DELETED') {
+      if (pedido && pedido.status === 'aguardando_pagamento') {
+        await supabase.from('pedidos_credito').update({ status: 'cancelado' })
+          .eq('id', pedido.id).eq('status', 'aguardando_pagamento')
+      }
+      return NextResponse.json({ ok: true, ignorado: true, motivo: 'cobranca_removida' })
+    }
+
     if (!pedido) {
       // Pode ser a cobrança mensal de uma assinatura nossa (o Asaas a cria sozinho,
       // então não há pedido ainda). Pergunta ao Asaas — não confia no corpo do webhook.
-      cobranca = await consultarCobranca(paymentId)
+      try {
+        cobranca = await consultarCobranca(paymentId)
+      } catch (e) {
+        // Só "não encontrada" é ignorável; qualquer outro erro vira 500 para o Asaas reentregar.
+        if (/n[ãa]o encontrad|not found|404/i.test(e instanceof Error ? e.message : String(e))) {
+          return NextResponse.json({ ok: true, ignorado: true, motivo: 'cobranca_nao_encontrada' })
+        }
+        throw e
+      }
       const subId = cobranca.subscription
       if (!subId) {
         // Cobrança que não reconhecemos (de outro sistema, ou pedido não

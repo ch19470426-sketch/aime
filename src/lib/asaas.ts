@@ -148,8 +148,14 @@ export async function consultarCobranca(id: string): Promise<{
   subscription?: string | null   // id da assinatura, quando a cobrança nasceu de uma
   value?: number                 // em reais
   dueDate?: string               // 'AAAA-MM-DD'
+  billingType?: string           // 'PIX' | 'CREDIT_CARD' | ...: a forma com que a cobrança foi criada
 }> {
   return chamar(`/payments/${id}`)
+}
+
+/** Remove uma cobrança AINDA NÃO PAGA (o Asaas recusa remover uma já paga). */
+export async function cancelarCobranca(id: string): Promise<void> {
+  await chamar(`/payments/${id}`, { method: 'DELETE' })
 }
 
 /**
