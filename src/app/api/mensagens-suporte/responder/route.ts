@@ -50,16 +50,18 @@ export async function POST(request: NextRequest) {
     }
 
     const resend = new Resend(process.env.RESEND_API_KEY)
+    const email = montarEmailResposta({
+      nome: msg.nome_inspetor, resposta: texto,
+      assuntoOriginal: msg.assunto, mensagemOriginal: msg.mensagem,
+    })
     // O SDK do Resend NÃO lança exceção em erro da API — devolve { error }.
     const { error: erroEnvio } = await resend.emails.send({
       from: REMETENTE_SUPORTE,
       to: destino,
       reply_to: EMAIL_SUPORTE,
       subject: `Re: ${msg.assunto}`,
-      html: montarEmailResposta({
-        nome: msg.nome_inspetor, resposta: texto,
-        assuntoOriginal: msg.assunto, mensagemOriginal: msg.mensagem,
-      }),
+      html: email.html,
+      text: email.text,
     })
     if (erroEnvio) {
       console.error('[mensagens-suporte/responder] Resend recusou o envio:', erroEnvio)
