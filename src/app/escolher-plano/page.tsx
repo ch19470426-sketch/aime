@@ -30,7 +30,11 @@ const PLANOS = [
 
 function EscolherPlano() {
   const params = useSearchParams()
-  const cpf = params.get('cpf') ?? ''
+  // O CPF vem da URL, mas a SESSÃO é a fonte confiável (é a que o dashboard usa): se a URL não
+  // trouxer o CPF, a tela antes ficava presa em "Aguardando..." sem conferir nada.
+  const cpfUrl = params.get('cpf') ?? ''
+  const [cpfSessao, setCpfSessao] = useState('')
+  const cpf = cpfSessao || cpfUrl
   const chave = params.get('chave') ?? ''
   const proximo = params.get('proximo') ?? '/dashboard'
 
@@ -44,21 +48,31 @@ function EscolherPlano() {
   const [confirmado, setConfirmado] = useState(false)
   const [esperouMuito, setEsperouMuito] = useState(false)
 
+  useEffect(() => {
+    createClient().auth.getSession().then(({ data: { session } }) => {
+      const email = session?.user?.email
+      if (email) setCpfSessao(email.split('@')[0])
+    }).catch(() => { /* segue com o CPF da URL */ })
+  }, [])
+
   // Com a cobrança na tela, espera a confirmação sozinho: confere rápido a cada 4 s e, a cada
   // 20 s, pede ao servidor que pergunte ao Asaas. Para sozinho depois de ~10 minutos.
   // Reconhecido: mostra a confirmação e leva ao menu sozinho. Demorou (~30 s): avisa que os créditos
   // serão liberados automaticamente e deixa seguir para o menu (o portão do dashboard aceita quem
   // está com pagamento em andamento).
   useEffect(() => {
-    if (!pagamento || !cpf) return
+    if (!pagamento) return
     setConfirmado(false); setEsperouMuito(false)
     let ativo = true
     let ciclos = 0
+    // A SAÍDA para o menu NÃO depende de a conferência funcionar: temporizador próprio de 30 s.
+    const aviso = setTimeout(() => { if (ativo) setEsperouMuito(true) }, 30000)
     const id = setInterval(async () => {
       if (!ativo) return
       ciclos++
       try {
-        const pronto = ciclos % 5 === 0 ? await conferirNoServidor() : await temContratoRapido()
+        // Sem CPF conhecido, só a conferência do servidor (que usa a sessão) pode confirmar.
+        const pronto = (!cpf || ciclos % 5 === 0) ? await conferirNoServidor() : await temContratoRapido()
         if (pronto && ativo) {
           ativo = false; clearInterval(id)
           setConfirmado(true)
@@ -66,10 +80,9 @@ function EscolherPlano() {
           return
         }
       } catch { /* tenta de novo no próximo ciclo */ }
-      if (ciclos === 8 && ativo) setEsperouMuito(true)
       if (ciclos >= 150 && ativo) { ativo = false; clearInterval(id) }
     }, 4000)
-    return () => { ativo = false; clearInterval(id) }
+    return () => { ativo = false; clearInterval(id); clearTimeout(aviso) }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pagamento, cpf])
   // Só Mensal e Escritório podem ser assinados (renovação automática no cartão).

@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation"
 import Image from "next/image"
 import { createClient } from "@/utils/supabase/client"
 import BlocoAssinatura, { type AssinaturaStatus } from '@/components/BlocoAssinatura'
+import { rodadaDeEspera } from '@/lib/esperaPagamento'
 
 const SUPA_URL = 'https://asgorarunzhiojqioxzq.supabase.co'
 const SUPA_KEY = 'sb_publishable_dH85HYKGxv3X0te627VfOw_OGaPoNMF'
@@ -279,7 +280,7 @@ function CadastroInspetor() {
         fetch('/api/creditos/pedido', { headers: h }),
       ])
       if (rs.ok) setStatusCred(await rs.json())
-      if (rp.ok) setPedidos((await rp.json()).pedidos ?? [])
+      if (rp.ok) { const lista = (await rp.json()).pedidos ?? []; setPedidos(lista); return lista as any[] }
     } catch { /* sem status: a aba continua funcionando como antes */ }
   }
 
@@ -356,34 +357,45 @@ function CadastroInspetor() {
   }
 
   // Pedido pendente: o AIMÊ confere com o Asaas sozinho (agora e a cada 20 s, por ~10 minutos), sem
-  // depender do aviso do Asaas nem de o usuário tocar em nada. O servidor pergunta DIRETO ao Asaas e
-  // libera pelo mesmo caminho seguro do webhook.
+  // depender do aviso do Asaas nem de o usuário tocar em nada. A cada rodada o servidor pergunta
+  // DIRETO ao Asaas E a lista de pedidos é recarregada: se o aviso do Asaas (webhook) chegou antes,
+  // a lista já mostra o pedido pago e a tela se atualiza do mesmo jeito (06/10/2026: antes só
+  // atualizava quando a conferência liberava, e ficava presa em "Aguardando" com o pedido já pago).
   const temPedidoPendente = pedidos.some((pd: any) => pd.status === 'aguardando_pagamento')
   useEffect(() => {
     if (!temPedidoPendente) return
+    const pendentesIds = pedidos.filter((pd: any) => pd.status === 'aguardando_pagamento').map((pd: any) => pd.id)
     let ativo = true
     let ciclos = 0
-    async function conferir() {
+    async function rodada() {
       try {
-        const { data: { session } } = await createClient().auth.getSession()
-        if (!session?.access_token) return
-        const res = await fetch('/api/creditos/conferir-pagamento', {
-          method: 'POST', cache: 'no-store', headers: { Authorization: `Bearer ${session.access_token}` },
-        })
-        const d = await res.json()
-        if (ativo && res.ok && d.concedidos > 0) {
+        const r = await rodadaDeEspera(
+          pendentesIds,
+          async () => {
+            const { data: { session } } = await createClient().auth.getSession()
+            if (!session?.access_token) return
+            await fetch('/api/creditos/conferir-pagamento', {
+              method: 'POST', cache: 'no-store', headers: { Authorization: `Bearer ${session.access_token}` },
+            })
+          },
+          async () => ((await carregarCreditos()) ?? []) as any[],
+        )
+        if (!ativo) return
+        if (r.confirmado) {
           ativo = false
+          setPagamentoInfo(null)
           setMsgPedido('Pagamento confirmado! Os créditos já estão na sua conta.')
-          await carregarCreditos()
+        } else if (!r.restaPendente) {
+          ativo = false   // o pedido deixou de estar pendente por outro motivo (cancelado/removido)
         }
       } catch { /* tenta de novo no próximo ciclo */ }
     }
-    conferir()
+    rodada()
     const id = setInterval(() => {
       if (!ativo) return
       ciclos++
       if (ciclos > 30) { ativo = false; clearInterval(id); return }
-      conferir()
+      rodada()
     }, 20000)
     return () => { ativo = false; clearInterval(id) }
     // eslint-disable-next-line react-hooks/exhaustive-deps
