@@ -241,10 +241,14 @@ function EscolherPlano() {
               ) : (
                 <div style={{ fontSize: "12px", color: "#374151" }}>Cobrança gerada — conclua o pagamento pelo link abaixo.</div>
               )}
-              <a href={pagamento.invoiceUrl} target="_blank" rel="noopener noreferrer"
-                style={{ display: "inline-block", marginTop: "10px", backgroundColor: "#059669", color: "white", textDecoration: "none", borderRadius: "9999px", padding: "8px 20px", fontSize: "12px", fontWeight: 700 }}>
-                Abrir página de pagamento
-              </a>
+              {/* No PIX o QR Code e o "copia e cola" bastam; a página do Asaas só é necessária no cartão
+                  (onde o cartão é digitado) ou se o QR não veio. */}
+              {!pagamento.pixQrCode && (
+                <a href={pagamento.invoiceUrl} target="_blank" rel="noopener noreferrer"
+                  style={{ display: "inline-block", marginTop: "10px", backgroundColor: "#059669", color: "white", textDecoration: "none", borderRadius: "9999px", padding: "8px 20px", fontSize: "12px", fontWeight: 700 }}>
+                  Abrir página de pagamento
+                </a>
+              )}
               {!ehAssinatura && (
                 <button onClick={() => { setPagamento(null); setErro('') }}
                   style={{ display: "block", margin: "10px auto 0", background: "none", border: "none", color: "#1E3A8A", textDecoration: "underline", fontSize: "11px", cursor: "pointer" }}>
