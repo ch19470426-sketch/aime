@@ -355,6 +355,24 @@ function CadastroInspetor() {
     finally { setEnviandoPedido(false) }
   }
 
+  // "Já paguei": o servidor pergunta DIRETO ao Asaas se os pedidos pendentes foram pagos e libera os
+  // créditos (não depende de o aviso do Asaas ter chegado).
+  async function conferirPagamentos() {
+    setEnviandoPedido(true); setMsgPedido('')
+    try {
+      const { data: { session } } = await createClient().auth.getSession()
+      const res = await fetch('/api/creditos/conferir-pagamento', {
+        method: 'POST', cache: 'no-store', headers: { Authorization: `Bearer ${session?.access_token ?? ''}` },
+      })
+      const d = await res.json()
+      setMsgPedido(!res.ok ? `Erro: ${d.erro ?? 'Não foi possível conferir agora.'}`
+        : d.concedidos > 0 ? 'Pagamento confirmado! Os créditos já estão na sua conta.'
+        : 'Ainda não recebemos a confirmação. No PIX costuma levar poucos segundos depois de pagar; tente de novo em instantes.')
+      await carregarCreditos()
+    } catch { setMsgPedido('Erro de conexão.') }
+    finally { setEnviandoPedido(false) }
+  }
+
   async function trocarPlano() {
     setSolicitandoTroca(true); setMsgPlano('')
     try {
@@ -719,7 +737,15 @@ function CadastroInspetor() {
                         )}
                         {pedidos.length > 0 && (
                           <div style={{marginTop:'12px'}}>
-                            <div style={{fontSize:'11px',fontWeight:700,color:'#374151',marginBottom:'4px'}}>Meus pedidos</div>
+                            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'4px'}}>
+                              <span style={{fontSize:'11px',fontWeight:700,color:'#374151'}}>Meus pedidos</span>
+                              {pedidos.some((pd:any)=>pd.status==='aguardando_pagamento') && (
+                                <button onClick={conferirPagamentos} disabled={enviandoPedido}
+                                  style={{background:'none',border:'none',color:'#1E3A8A',textDecoration:'underline',fontSize:'11px',cursor:enviandoPedido?'not-allowed':'pointer'}}>
+                                  Já paguei — conferir agora
+                                </button>
+                              )}
+                            </div>
                             {pedidos.slice(0,5).map((pd:any)=>(
                               <div key={pd.id} style={{display:'flex',justifyContent:'space-between',fontSize:'11px',color:'#4B5563',padding:'4px 0',borderTop:'1px solid #F1F5F9'}}>
                                 <span>#{pd.id} · {pd.tipo} · {pd.qde_creditos} CR</span>

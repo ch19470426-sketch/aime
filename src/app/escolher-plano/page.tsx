@@ -1,6 +1,6 @@
 "use client"
 export const dynamic = 'force-dynamic'
-import { Suspense, useState } from "react"
+import { Suspense, useEffect, useState } from "react"
 import { useSearchParams } from "next/navigation"
 import Image from "next/image"
 import LinkSair from "@/components/LinkSair"
@@ -43,6 +43,25 @@ function EscolherPlano() {
   const [ehAssinatura, setEhAssinatura] = useState(false)
   const [verificando, setVerificando] = useState(false)
   const [avisoPagamento, setAvisoPagamento] = useState('')
+
+  // Com a cobrança na tela, espera a confirmação sozinho: confere rápido a cada 4 s e, a cada
+  // 20 s, pede ao servidor que pergunte ao Asaas. Para sozinho depois de ~10 minutos.
+  useEffect(() => {
+    if (!pagamento || !cpf) return
+    let ativo = true
+    let ciclos = 0
+    const id = setInterval(async () => {
+      if (!ativo) return
+      ciclos++
+      try {
+        const pronto = ciclos % 5 === 0 ? await conferirNoServidor() : await temContratoRapido()
+        if (pronto && ativo) { ativo = false; clearInterval(id); continuar() }
+      } catch { /* tenta de novo no próximo ciclo */ }
+      if (ciclos >= 150 && ativo) { ativo = false; clearInterval(id) }
+    }, 4000)
+    return () => { ativo = false; clearInterval(id) }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pagamento, cpf])
   // Só Mensal e Escritório podem ser assinados (renovação automática no cartão).
   const assinavel = selecionado === 'PLANO MENSAL' || selecionado === 'PLANO ESCRITÓRIO'
 
@@ -104,14 +123,30 @@ function EscolherPlano() {
   }
 
   // Quem ainda não pagou não tem contrato, e o dashboard devolveria à escolha de plano sem
-  // explicar. Aqui o app confere antes e diz o que está acontecendo.
+  // explicar. Aqui a tela espera a confirmação sozinha e diz o que está acontecendo.
+  //
+  // Duas formas de conferir: a rápida (só olha se já há contrato) e a do servidor, que pergunta
+  // DIRETO ao Asaas se o pedido foi pago e libera os créditos — assim não depende de o aviso do
+  // Asaas (webhook) ter chegado (06/10/2026: um PIX confirmado no Asaas deixou a tela esperando).
+  async function temContratoRapido(): Promise<boolean> {
+    const res = await fetch(`/api/tem-contrato?cpf_inspetor=${cpf}&_=${Date.now()}`, { cache: 'no-store' })
+    const d = await res.json()
+    return d.temContrato === true
+  }
+  async function conferirNoServidor(): Promise<boolean> {
+    const res = await fetch('/api/creditos/conferir-pagamento', {
+      method: 'POST', cache: 'no-store',
+      headers: { Authorization: `Bearer ${await tokenSessao()}` },
+    })
+    const d = await res.json()
+    return d.temContrato === true
+  }
+
   async function jaPaguei() {
     setVerificando(true); setAvisoPagamento('')
     try {
-      const res = await fetch(`/api/tem-contrato?cpf_inspetor=${cpf}`)
-      const d = await res.json()
-      if (d.temContrato) { continuar(); return }
-      setAvisoPagamento('Ainda não recebemos a confirmação do pagamento. Isso pode levar alguns segundos depois de pagar: aguarde um pouco e toque de novo.')
+      if (await conferirNoServidor()) { continuar(); return }
+      setAvisoPagamento('Ainda não recebemos a confirmação do pagamento. No PIX costuma levar poucos segundos depois de pagar; esta tela avança sozinha assim que confirmar.')
     } catch { setAvisoPagamento('Não foi possível verificar agora. Tente de novo em instantes.') }
     setVerificando(false)
   }
@@ -261,14 +296,14 @@ function EscolherPlano() {
                 </p>
               )}
               <p style={{ fontSize: "10px", color: "#6B7280", marginTop: "12px" }}>
-                Assim que o pagamento for confirmado, os créditos aparecem automaticamente. Depois de pagar, toque em &quot;Já paguei&quot; para entrar no AIMÊ.
+                Assim que o pagamento for confirmado, esta tela avança sozinha. Se preferir, toque em &quot;Já paguei&quot; para conferir agora.
               </p>
               {avisoPagamento && (
                 <div style={{ padding: "8px 12px", borderRadius: "6px", fontSize: "11px", backgroundColor: "#FFFBEB", color: "#92400E", margin: "10px 0 0", lineHeight: 1.5 }}>{avisoPagamento}</div>
               )}
               <button onClick={jaPaguei} disabled={verificando}
                 style={{ display: "block", margin: "12px auto 0", backgroundColor: "#1E3A8A", color: "white", fontWeight: 600, padding: "8px 24px", borderRadius: "50px", border: "none", cursor: verificando ? "not-allowed" : "pointer", fontSize: "12px", opacity: verificando ? 0.6 : 1 }}>
-                {verificando ? "Verificando..." : "Já paguei — continuar"}
+                {verificando ? "Verificando..." : "Já paguei — conferir agora"}
               </button>
             </div>
           )}
