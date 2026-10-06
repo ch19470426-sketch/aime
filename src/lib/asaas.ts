@@ -153,6 +153,14 @@ export async function consultarCobranca(id: string): Promise<{
   return chamar(`/payments/${id}`)
 }
 
+/** QR Code e "copia e cola" de uma cobrança PIX já existente; null se o Asaas não devolver (melhor esforço). */
+export async function buscarPixQrCode(id: string): Promise<{ pixQrCode: string; pixCopiaECola: string } | null> {
+  try {
+    const pix = await chamar<{ encodedImage: string; payload: string }>(`/payments/${id}/pixQrCode`)
+    return { pixQrCode: pix.encodedImage, pixCopiaECola: pix.payload }
+  } catch { return null }
+}
+
 /** Remove uma cobrança AINDA NÃO PAGA (o Asaas recusa remover uma já paga). */
 export async function cancelarCobranca(id: string): Promise<void> {
   await chamar(`/payments/${id}`, { method: 'DELETE' })

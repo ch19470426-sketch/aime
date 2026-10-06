@@ -14,7 +14,7 @@ export default function EscolherPlanoPage() {
   )
 }
 
-type Pagamento = { invoiceUrl: string; pixQrCode?: string; pixCopiaECola?: string } | null
+type Pagamento = { invoiceUrl: string; forma?: string; pixQrCode?: string; pixCopiaECola?: string } | null
 
 const PLANOS = [
   { tipo: 'PLANO CORTESIA', nome: 'Cortesia', creditos: 600, preco: 'Grátis', cor: '#6B7280',
@@ -222,6 +222,11 @@ function EscolherPlano() {
 
           {pagamento && (
             <div style={{ padding: "16px", borderRadius: "8px", border: "1.5px solid #1E3A8A", backgroundColor: "#F8FAFC", textAlign: "center" }}>
+              {pagamento.forma && (
+                <div style={{ fontSize: "10px", fontWeight: 700, color: "#6B7280", textTransform: "uppercase" as const, letterSpacing: "0.04em", marginBottom: "8px" }}>
+                  {pagamento.forma === 'PIX' ? 'Pagamento por PIX' : 'Pagamento por cartão de crédito'}
+                </div>
+              )}
               {pagamento.pixQrCode ? (
                 <>
                   <div style={{ fontSize: "12px", fontWeight: 700, color: "#1E3A8A", marginBottom: "8px" }}>Escaneie o QR Code para pagar via PIX</div>
@@ -238,6 +243,12 @@ function EscolherPlano() {
                 style={{ display: "inline-block", marginTop: "10px", backgroundColor: "#059669", color: "white", textDecoration: "none", borderRadius: "9999px", padding: "8px 20px", fontSize: "12px", fontWeight: 700 }}>
                 Abrir página de pagamento
               </a>
+              {!ehAssinatura && (
+                <button onClick={() => { setPagamento(null); setErro('') }}
+                  style={{ display: "block", margin: "10px auto 0", background: "none", border: "none", color: "#1E3A8A", textDecoration: "underline", fontSize: "11px", cursor: "pointer" }}>
+                  Trocar forma de pagamento
+                </button>
+              )}
               {ehAssinatura && (
                 <p style={{ fontSize: "11px", color: "#047857", marginTop: "10px", fontWeight: 600 }}>
                   Digite os dados do cartão na página de pagamento. A assinatura renova todo mês no mesmo cartão e pode ser cancelada em Meu Plano e Créditos.

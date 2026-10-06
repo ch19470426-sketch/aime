@@ -13,7 +13,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { cpfDaSessao } from '@/lib/sessaoServidor'
 import { AVULSO_MAXIMO, AVULSO_MULTIPLO, PLANO_CR, ehGestor, precoCentavos, podeComprarAvulso } from '@/lib/creditos'
-import { acharOuCriarCliente, criarCobranca, consultarCobranca, type FormaPagamento, cancelarCobranca } from '@/lib/asaas'
+import { acharOuCriarCliente, criarCobranca, consultarCobranca, buscarPixQrCode, type FormaPagamento, cancelarCobranca } from '@/lib/asaas'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -47,6 +47,16 @@ export async function GET(request: NextRequest) {
 }
 
 /** Cria (ou reaproveita) um pedido de contratação. */
+/** O que a tela precisa para pagar: link, forma e, no PIX, o QR Code (também ao reaproveitar). */
+async function montarPagamento(cobranca: { id: string; invoiceUrl: string }, forma: string) {
+  const base: Record<string, unknown> = { invoiceUrl: cobranca.invoiceUrl, forma }
+  if (forma === 'PIX') {
+    const pix = await buscarPixQrCode(cobranca.id)
+    if (pix) Object.assign(base, pix)
+  }
+  return base
+}
+
 export async function POST(request: NextRequest) {
   try {
     const cpf = await cpfDaSessao(request)
@@ -97,12 +107,10 @@ export async function POST(request: NextRequest) {
 
     const supabase = admin()
 
-    // Evita empilhar pedidos idênticos: reaproveita o que já está aguardando.
-    // Só pedidos de COMPRA ÚNICA (assinatura_id nulo): o pedido de uma assinatura é cobrado pela
-    // própria assinatura e nunca pode ser reaproveitado aqui. E pega o mais recente em vez de
-    // exigir "exatamente um": com o pedido da assinatura ao lado havia dois iguais, e o
-    // .maybeSingle() devolvia "JSON object requested, multiple (or no) rows returned"
-    // (achado de Celso, 06/10/2026).
+    // Pedidos de COMPRA ÚNICA ainda pendentes deste item (assinatura_id nulo: o pedido de uma
+    // assinatura é cobrado por ela e nunca é reaproveitado aqui). Podem ser VÁRIOS (tentativas
+    // antigas, formas de pagamento diferentes), então nada aqui exige "exatamente um" nem
+    // assume que o mais recente é o da forma pedida (achados de Celso, 06/10/2026).
     const { data: pendentes, error: errBusca } = await supabase
       .from('pedidos_credito')
       .select('id,tipo,qde_creditos,status,criado_em,asaas_payment_id')
@@ -110,43 +118,58 @@ export async function POST(request: NextRequest) {
       .eq('status', 'aguardando_pagamento')
       .is('assinatura_id', null)
       .order('criado_em', { ascending: false })
-      .limit(1)
+      .limit(5)
     if (errBusca) {
       if (errBusca.code === '42P01') return NextResponse.json({ erro: MIGRACAO_PENDENTE }, { status: 503 })
       return NextResponse.json({ erro: errBusca.message }, { status: 500 })
     }
-    const existente = pendentes?.[0] ?? null
-    if (existente) {
-      // Busca a cobrança ATUAL no Asaas — evita devolver um QR Code já expirado de uma visita anterior.
-      let cobrancaAtual: Awaited<ReturnType<typeof consultarCobranca>> | null = null
-      try {
-        if (existente.asaas_payment_id) cobrancaAtual = await consultarCobranca(existente.asaas_payment_id)
-      } catch { /* segue sem o link fresco; o pedido em si continua válido */ }
 
-      const formaAntiga = cobrancaAtual?.billingType
-      if (!(cobrancaAtual && formaAntiga && formaAntiga !== forma)) {
+    if (pendentes && pendentes.length > 0) {
+      // Forma e link ATUAIS de cada cobrança pendente, direto do Asaas.
+      const cobrancas: Array<Awaited<ReturnType<typeof consultarCobranca>> | null> = []
+      for (const p of pendentes) {
+        try { cobrancas.push(p.asaas_payment_id ? await consultarCobranca(p.asaas_payment_id) : null) } catch { cobrancas.push(null) }
+      }
+      // Sem conseguir consultar alguma (Asaas fora do ar?): não arrisca duplicar nem cancelar nada.
+      if (cobrancas.some(cb => cb === null)) {
+        return NextResponse.json({ ok: true, reaproveitado: true, pedido: pendentes[0], pagamento: 'indisponivel' })
+      }
+
+      // Remove as cobranças que não vamos usar. O Asaas RECUSA remover uma já paga: nesse caso o
+      // pedido continua pendente e o webhook cuida dele — nunca cancelamos algo que foi pago.
+      const removerOutros = async (manter: number | null): Promise<boolean> => {
+        let todos = true
+        for (let k = 0; k < pendentes.length; k++) {
+          if (k === manter) continue
+          try {
+            await cancelarCobranca(pendentes[k].asaas_payment_id!)
+            await supabase.from('pedidos_credito').update({ status: 'cancelado' })
+              .eq('id', pendentes[k].id).eq('status', 'aguardando_pagamento')
+          } catch { todos = false }
+        }
+        return todos
+      }
+
+      // Já existe uma na forma pedida? Reaproveita ESSA (e limpa as redundantes). Forma que o
+      // Asaas não informa conta como a mesma, para não trocar à toa.
+      const k = cobrancas.findIndex(cb => (cb!.billingType ?? forma) === forma)
+      if (k >= 0) {
+        await removerOutros(k)
         return NextResponse.json({
-          ok: true, reaproveitado: true, pedido: existente,
-          pagamento: cobrancaAtual ? { invoiceUrl: cobrancaAtual.invoiceUrl } : 'indisponivel',
+          ok: true, reaproveitado: true, pedido: pendentes[k],
+          pagamento: await montarPagamento(cobrancas[k]!, forma),
         })
       }
 
-      // A cobrança que já existe foi criada com OUTRA forma de pagamento (ex.: cartão, e agora o
-      // inspetor escolheu PIX). Reaproveitá-la reabriria a forma antiga (achado de Celso,
-      // 06/10/2026). Remove a antiga no Asaas — que RECUSA remover uma cobrança já paga, então
-      // nunca cancelamos algo que foi pago — e só então cancela o pedido e cria o novo.
-      try {
-        await cancelarCobranca(existente.asaas_payment_id!)
-      } catch {
+      // Nenhuma na forma pedida (ex.: só há cartão e agora é PIX): remove as antigas e cria a nova.
+      // Se alguma não puder ser removida, devolve a mais recente como está, com um aviso.
+      if (!(await removerOutros(null))) {
         return NextResponse.json({
-          ok: true, reaproveitado: true, pedido: existente,
-          pagamento: { invoiceUrl: cobrancaAtual!.invoiceUrl },
+          ok: true, reaproveitado: true, pedido: pendentes[0],
+          pagamento: await montarPagamento(cobrancas[0]!, cobrancas[0]!.billingType ?? forma),
           aviso: 'Não foi possível trocar a forma de pagamento deste pedido agora. Use o link abaixo ou tente de novo em instantes.',
         })
       }
-      await supabase.from('pedidos_credito').update({ status: 'cancelado' })
-        .eq('id', existente.id).eq('status', 'aguardando_pagamento')
-      // segue: cria o pedido novo, com a forma pedida
     }
 
     // Busca o nome do inspetor — o Asaas exige um nome para o cliente
@@ -175,6 +198,7 @@ export async function POST(request: NextRequest) {
         ok: true, pedido: novo,
         pagamento: {
           invoiceUrl: cobranca.invoiceUrl,
+          forma,
           ...(cobranca.pixQrCode ? { pixQrCode: cobranca.pixQrCode, pixCopiaECola: cobranca.pixCopiaECola } : {}),
         },
       })

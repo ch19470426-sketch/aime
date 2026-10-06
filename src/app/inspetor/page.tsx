@@ -76,7 +76,7 @@ function CadastroInspetor() {
   const [enviandoPedido, setEnviandoPedido] = useState(false)
   const [msgPedido, setMsgPedido] = useState('')
   const [formaPagamento, setFormaPagamento] = useState<'PIX' | 'CREDIT_CARD'>('PIX')
-  const [pagamentoInfo, setPagamentoInfo] = useState<{ invoiceUrl: string; pixQrCode?: string; pixCopiaECola?: string } | null>(null)
+  const [pagamentoInfo, setPagamentoInfo] = useState<{ invoiceUrl: string; forma?: string; pixQrCode?: string; pixCopiaECola?: string } | null>(null)
 
   const formatarCPF = (valor: string) => {
     return valor
@@ -688,6 +688,11 @@ function CadastroInspetor() {
                         {msgPedido&&(<div style={{marginTop:'10px',padding:'8px 12px',borderRadius:'6px',fontSize:'12px',backgroundColor:msgPedido.startsWith('Erro')?'#FEE2E2':'#EFF6FF',color:msgPedido.startsWith('Erro')?'#DC2626':'#1E3A8A'}}>{msgPedido}</div>)}
                         {pagamentoInfo && (
                           <div style={{marginTop:'12px',padding:'14px',borderRadius:'8px',border:'1.5px solid #1E3A8A',backgroundColor:'#F8FAFC',textAlign:'center'}}>
+                            {pagamentoInfo.forma && (
+                              <div style={{fontSize:'10px',fontWeight:700,color:'#6B7280',textTransform:'uppercase' as const,letterSpacing:'0.04em',marginBottom:'8px'}}>
+                                {pagamentoInfo.forma==='PIX'?'Pagamento por PIX':'Pagamento por cartão de crédito'}
+                              </div>
+                            )}
                             {pagamentoInfo.pixQrCode ? (
                               <>
                                 <div style={{fontSize:'12px',fontWeight:700,color:'#1E3A8A',marginBottom:'8px'}}>Escaneie o QR Code para pagar via PIX</div>
@@ -704,6 +709,10 @@ function CadastroInspetor() {
                               style={{display:'inline-block',marginTop:'10px',backgroundColor:'#059669',color:'white',textDecoration:'none',borderRadius:'9999px',padding:'8px 20px',fontSize:'12px',fontWeight:700}}>
                               Abrir página de pagamento
                             </a>
+                            <button onClick={()=>{ setPagamentoInfo(null); setMsgPedido('') }}
+                              style={{display:'block',margin:'10px auto 0',background:'none',border:'none',color:'#1E3A8A',textDecoration:'underline',fontSize:'11px',cursor:'pointer'}}>
+                              Trocar forma de pagamento
+                            </button>
                           </div>
                         )}
                         {pedidos.length > 0 && (
