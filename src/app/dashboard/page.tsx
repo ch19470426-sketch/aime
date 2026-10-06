@@ -303,6 +303,7 @@ export default function Dashboard() {
   const router = useRouter()
 
   const { bannerProps, orienta, solicita, fechar } = useBanner()
+  const [pagamentoPendente, setPagamentoPendente] = useState(false)
   const [tipoServico, setTipoServico] = useState<number | null>(null)
   const [isGestor, setIsGestor] = useState(false)
   const [grupoAberto, setGrupoAberto] = useState<string | null>(null)
@@ -324,6 +325,38 @@ export default function Dashboard() {
   useEffect(() => {
     if (tipoServico) window.scrollTo({ top: 0, behavior: 'smooth' })
   }, [tipoServico])
+
+  // Pagamento pendente: o AIMÊ continua conferindo com o Asaas a cada 20 s (por ~10 minutos); ao
+  // confirmar, avisa e libera. O aviso do Asaas ou a próxima visita ao menu também resolvem.
+  useEffect(() => {
+    if (!pagamentoPendente) return
+    let ativo = true
+    let ciclos = 0
+    async function conferir() {
+      try {
+        const { data: { session } } = await createClient().auth.getSession()
+        if (!session?.access_token) return
+        const res = await fetch('/api/creditos/conferir-pagamento', {
+          method: 'POST', cache: 'no-store', headers: { Authorization: `Bearer ${session.access_token}` },
+        })
+        const d = await res.json()
+        if (ativo && d.temContrato === true) {
+          ativo = false
+          setPagamentoPendente(false)
+          orienta('Pagamento confirmado', 'Seu pagamento foi confirmado e seus créditos já estão disponíveis.')
+        }
+      } catch { /* tenta de novo no próximo ciclo */ }
+    }
+    conferir()
+    const id = setInterval(() => {
+      if (!ativo) return
+      ciclos++
+      if (ciclos > 30) { ativo = false; clearInterval(id); return }
+      conferir()
+    }, 20000)
+    return () => { ativo = false; clearInterval(id) }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pagamentoPendente])
 
   useEffect(() => {
     async function carregarSessao() {
@@ -349,10 +382,14 @@ export default function Dashboard() {
             const resContrato = await fetch(`/api/tem-contrato?cpf_inspetor=${cpf}`)
             if (resContrato.ok) {
               const dadosContrato = await resContrato.json()
-              if (dadosContrato.temContrato === false) {
+              // liberado = tem contrato OU um pagamento em andamento (já escolheu o plano e está pagando).
+              // Sem créditos nada é consumido, então o menu abre; "?? temContrato" cobre uma versão
+              // antiga da rota durante a publicação.
+              if ((dadosContrato.liberado ?? dadosContrato.temContrato) === false) {
                 window.location.href = `/escolher-plano?cpf=${cpf}&proximo=${encodeURIComponent('/dashboard')}`
                 return
               }
+              if (dadosContrato.pagamentoPendente === true) setPagamentoPendente(true)
             }
           } catch { /* falha na verificação — libera acesso normalmente */ }
         }
@@ -662,6 +699,13 @@ export default function Dashboard() {
           </span>
         </div>
         <div style={{ height: "2px", backgroundColor: "#1E3A8A" }} />
+
+        {pagamentoPendente && (
+          <div style={{ backgroundColor: "#FFFBEB", borderBottom: "1px solid #FDE68A", color: "#92400E", fontSize: "11px", padding: "8px 16px", lineHeight: 1.5 }}>
+            <strong>Pagamento pendente.</strong> Assim que for confirmado, seus créditos serão liberados automaticamente; não é preciso fazer nada.{" "}
+            <a href={`/inspetor?cpf=${cpfInspetor}&aba=plano`} style={{ color: "#1E3A8A", textDecoration: "underline" }}>Ver pedido</a>
+          </div>
+        )}
 
         <div style={{ display: "flex", minHeight: "500px", overflow: "hidden", flexWrap: "wrap" }}>
 

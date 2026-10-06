@@ -41,13 +41,17 @@ function EscolherPlano() {
   const [pagamento, setPagamento] = useState<Pagamento>(null)
   const [cortesiaConcedida, setCortesiaConcedida] = useState(false)
   const [ehAssinatura, setEhAssinatura] = useState(false)
-  const [verificando, setVerificando] = useState(false)
-  const [avisoPagamento, setAvisoPagamento] = useState('')
+  const [confirmado, setConfirmado] = useState(false)
+  const [esperouMuito, setEsperouMuito] = useState(false)
 
   // Com a cobrança na tela, espera a confirmação sozinho: confere rápido a cada 4 s e, a cada
   // 20 s, pede ao servidor que pergunte ao Asaas. Para sozinho depois de ~10 minutos.
+  // Reconhecido: mostra a confirmação e leva ao menu sozinho. Demorou (~30 s): avisa que os créditos
+  // serão liberados automaticamente e deixa seguir para o menu (o portão do dashboard aceita quem
+  // está com pagamento em andamento).
   useEffect(() => {
     if (!pagamento || !cpf) return
+    setConfirmado(false); setEsperouMuito(false)
     let ativo = true
     let ciclos = 0
     const id = setInterval(async () => {
@@ -55,8 +59,14 @@ function EscolherPlano() {
       ciclos++
       try {
         const pronto = ciclos % 5 === 0 ? await conferirNoServidor() : await temContratoRapido()
-        if (pronto && ativo) { ativo = false; clearInterval(id); continuar() }
+        if (pronto && ativo) {
+          ativo = false; clearInterval(id)
+          setConfirmado(true)
+          setTimeout(continuar, 2000)
+          return
+        }
       } catch { /* tenta de novo no próximo ciclo */ }
+      if (ciclos === 8 && ativo) setEsperouMuito(true)
       if (ciclos >= 150 && ativo) { ativo = false; clearInterval(id) }
     }, 4000)
     return () => { ativo = false; clearInterval(id) }
@@ -140,15 +150,6 @@ function EscolherPlano() {
     })
     const d = await res.json()
     return d.temContrato === true
-  }
-
-  async function jaPaguei() {
-    setVerificando(true); setAvisoPagamento('')
-    try {
-      if (await conferirNoServidor()) { continuar(); return }
-      setAvisoPagamento('Ainda não recebemos a confirmação do pagamento. No PIX costuma levar poucos segundos depois de pagar; esta tela avança sozinha assim que confirmar.')
-    } catch { setAvisoPagamento('Não foi possível verificar agora. Tente de novo em instantes.') }
-    setVerificando(false)
   }
 
   function continuar() {
@@ -295,16 +296,27 @@ function EscolherPlano() {
                   Digite os dados do cartão na página de pagamento. A assinatura renova todo mês no mesmo cartão e pode ser cancelada em Meu Plano e Créditos.
                 </p>
               )}
-              <p style={{ fontSize: "10px", color: "#6B7280", marginTop: "12px" }}>
-                Assim que o pagamento for confirmado, esta tela avança sozinha. Se preferir, toque em &quot;Já paguei&quot; para conferir agora.
-              </p>
-              {avisoPagamento && (
-                <div style={{ padding: "8px 12px", borderRadius: "6px", fontSize: "11px", backgroundColor: "#FFFBEB", color: "#92400E", margin: "10px 0 0", lineHeight: 1.5 }}>{avisoPagamento}</div>
+              {confirmado ? (
+                <div style={{ padding: "10px 12px", borderRadius: "6px", fontSize: "12px", fontWeight: 700, backgroundColor: "#ECFDF5", color: "#047857", marginTop: "12px", lineHeight: 1.5 }}>
+                  Pagamento confirmado! Seus créditos foram liberados. Levando você ao menu...
+                </div>
+              ) : (
+                <>
+                  <p style={{ fontSize: "11px", color: "#6B7280", marginTop: "12px" }}>
+                    Aguardando a confirmação do pagamento... Esta tela avança sozinha assim que ele for confirmado.
+                  </p>
+                  {esperouMuito && (
+                    <div style={{ padding: "10px 12px", borderRadius: "6px", fontSize: "11px", backgroundColor: "#FFFBEB", color: "#92400E", marginTop: "10px", lineHeight: 1.5 }}>
+                      Se você já pagou, a confirmação pode levar alguns instantes: seus créditos serão liberados automaticamente.
+                      Você pode seguir para o menu e continuar usando o AIMÊ enquanto isso.
+                      <button onClick={continuar}
+                        style={{ display: "block", margin: "10px auto 0", backgroundColor: "#1E3A8A", color: "white", fontWeight: 600, padding: "8px 24px", borderRadius: "50px", border: "none", cursor: "pointer", fontSize: "12px" }}>
+                        Seguir para o menu
+                      </button>
+                    </div>
+                  )}
+                </>
               )}
-              <button onClick={jaPaguei} disabled={verificando}
-                style={{ display: "block", margin: "12px auto 0", backgroundColor: "#1E3A8A", color: "white", fontWeight: 600, padding: "8px 24px", borderRadius: "50px", border: "none", cursor: verificando ? "not-allowed" : "pointer", fontSize: "12px", opacity: verificando ? 0.6 : 1 }}>
-                {verificando ? "Verificando..." : "Já paguei — conferir agora"}
-              </button>
             </div>
           )}
         </div>

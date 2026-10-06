@@ -240,6 +240,23 @@ export async function temAlgumContrato(cpf: string): Promise<boolean> {
   } catch { return true }
 }
 
+/**
+ * Há um pagamento em andamento? = pedido pendente, com cobrança já criada no Asaas, nos últimos 3
+ * dias (a validade da cobrança). Quem está nesse estado já ESCOLHEU o plano e está pagando, então
+ * o menu abre: sem créditos nada é consumido (o dashboard barra qualquer serviço sem saldo),
+ * exatamente como já acontece com quem tem o plano vencido. Falha de leitura = false.
+ */
+export async function temPedidoPendenteRecente(cpf: string): Promise<boolean> {
+  try {
+    const corte = new Date(Date.now() - 3 * 86400000).toISOString()
+    const { data, error } = await admin()
+      .from('pedidos_credito').select('id,asaas_payment_id')
+      .eq('cpf_inspetor', cpf).eq('status', 'aguardando_pagamento').gte('criado_em', corte).limit(5)
+    if (error) return false
+    return (data ?? []).some(p => !!p.asaas_payment_id)
+  } catch { return false }
+}
+
 /** Saldo via função SQL. null se a migração ainda não foi aplicada ou houve erro. */
 export async function lerSaldo(cpf: string): Promise<Saldo | null> {
   try {

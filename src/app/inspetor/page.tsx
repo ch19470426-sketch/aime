@@ -355,23 +355,39 @@ function CadastroInspetor() {
     finally { setEnviandoPedido(false) }
   }
 
-  // "Já paguei": o servidor pergunta DIRETO ao Asaas se os pedidos pendentes foram pagos e libera os
-  // créditos (não depende de o aviso do Asaas ter chegado).
-  async function conferirPagamentos() {
-    setEnviandoPedido(true); setMsgPedido('')
-    try {
-      const { data: { session } } = await createClient().auth.getSession()
-      const res = await fetch('/api/creditos/conferir-pagamento', {
-        method: 'POST', cache: 'no-store', headers: { Authorization: `Bearer ${session?.access_token ?? ''}` },
-      })
-      const d = await res.json()
-      setMsgPedido(!res.ok ? `Erro: ${d.erro ?? 'Não foi possível conferir agora.'}`
-        : d.concedidos > 0 ? 'Pagamento confirmado! Os créditos já estão na sua conta.'
-        : 'Ainda não recebemos a confirmação. No PIX costuma levar poucos segundos depois de pagar; tente de novo em instantes.')
-      await carregarCreditos()
-    } catch { setMsgPedido('Erro de conexão.') }
-    finally { setEnviandoPedido(false) }
-  }
+  // Pedido pendente: o AIMÊ confere com o Asaas sozinho (agora e a cada 20 s, por ~10 minutos), sem
+  // depender do aviso do Asaas nem de o usuário tocar em nada. O servidor pergunta DIRETO ao Asaas e
+  // libera pelo mesmo caminho seguro do webhook.
+  const temPedidoPendente = pedidos.some((pd: any) => pd.status === 'aguardando_pagamento')
+  useEffect(() => {
+    if (!temPedidoPendente) return
+    let ativo = true
+    let ciclos = 0
+    async function conferir() {
+      try {
+        const { data: { session } } = await createClient().auth.getSession()
+        if (!session?.access_token) return
+        const res = await fetch('/api/creditos/conferir-pagamento', {
+          method: 'POST', cache: 'no-store', headers: { Authorization: `Bearer ${session.access_token}` },
+        })
+        const d = await res.json()
+        if (ativo && res.ok && d.concedidos > 0) {
+          ativo = false
+          setMsgPedido('Pagamento confirmado! Os créditos já estão na sua conta.')
+          await carregarCreditos()
+        }
+      } catch { /* tenta de novo no próximo ciclo */ }
+    }
+    conferir()
+    const id = setInterval(() => {
+      if (!ativo) return
+      ciclos++
+      if (ciclos > 30) { ativo = false; clearInterval(id); return }
+      conferir()
+    }, 20000)
+    return () => { ativo = false; clearInterval(id) }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [temPedidoPendente])
 
   async function trocarPlano() {
     setSolicitandoTroca(true); setMsgPlano('')
@@ -739,11 +755,8 @@ function CadastroInspetor() {
                           <div style={{marginTop:'12px'}}>
                             <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'4px'}}>
                               <span style={{fontSize:'11px',fontWeight:700,color:'#374151'}}>Meus pedidos</span>
-                              {pedidos.some((pd:any)=>pd.status==='aguardando_pagamento') && (
-                                <button onClick={conferirPagamentos} disabled={enviandoPedido}
-                                  style={{background:'none',border:'none',color:'#1E3A8A',textDecoration:'underline',fontSize:'11px',cursor:enviandoPedido?'not-allowed':'pointer'}}>
-                                  Já paguei — conferir agora
-                                </button>
+                              {temPedidoPendente && (
+                                <span style={{fontSize:'10px',color:'#92400E'}}>Aguardando a confirmação do pagamento...</span>
                               )}
                             </div>
                             {pedidos.slice(0,5).map((pd:any)=>(

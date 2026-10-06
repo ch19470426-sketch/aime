@@ -4,7 +4,7 @@
 // nem mesmo Cortesia). Gestor está sempre isento dessa obrigação.
 
 import { NextRequest, NextResponse } from 'next/server'
-import { ehGestor, temAlgumContrato } from '@/lib/creditos'
+import { ehGestor, temAlgumContrato, temPedidoPendenteRecente } from '@/lib/creditos'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -15,5 +15,9 @@ export async function GET(request: NextRequest) {
 
   const gestor = await ehGestor(cpf)
   const tem = gestor === true ? true : await temAlgumContrato(cpf)
-  return NextResponse.json({ temContrato: tem, gestor: gestor === true })
+  // temContrato: há contrato de verdade (a tela de pagamento usa isto para saber que o pagamento
+  //   foi reconhecido). liberado: contrato OU pagamento em andamento — é o que o portão do
+  //   dashboard usa: quem já escolheu o plano e está pagando entra no menu sem esperar.
+  const pendente = tem ? false : await temPedidoPendenteRecente(cpf)
+  return NextResponse.json({ temContrato: tem, liberado: tem || pendente, pagamentoPendente: pendente, gestor: gestor === true })
 }
