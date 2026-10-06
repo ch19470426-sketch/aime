@@ -630,6 +630,12 @@ function CadastroInspetor() {
                           <p style={{fontSize:'12px',color:'#9CA3AF'}}>Nenhum contrato encontrado.</p>
                         ) : contratos.flatMap((ct, i) => {
                           const vencido = new Date(ct.data_fim_contrato) < new Date()
+                          // Aviso "pago por um mês": só no cartão do plano MAIS RECENTE ainda válido de um plano
+                          // assinável (Mensal/Escritório), e só sem assinatura em andamento — não repete em
+                          // cartões antigos já zerados pela troca de plano.
+                          const idxPlanoAtual = contratos.findIndex(c2 => c2.qde_contratada_plano > 0
+                            && new Date(c2.data_fim_contrato) >= new Date()
+                            && ['PLANO MENSAL', 'PLANO ESCRITÓRIO'].includes(c2.tipo_assinatura))
                           const pct = ct.qde_contratada_plano > 0 ? Math.round((ct.saldo_quantidade_plano/ct.qde_contratada_plano)*100) : 0
                           const COR: Record<string,string> = {'PLANO CORTESIA':'#6B7280','PLANO SERVIÇO':'#0284C7','PLANO MENSAL':'#059669','PLANO ESCRITÓRIO':'#7C3AED'}
                           const cards = []
@@ -648,6 +654,11 @@ function CadastroInspetor() {
                                   <div><div style={{fontSize:'10px',color:'#6B7280'}}>CR Plano</div><div style={{fontWeight:700,color:'#1E3A8A',fontSize:'16px'}}>{ct.saldo_quantidade_plano}<span style={{fontSize:'10px',color:'#6B7280'}}>/{ct.qde_contratada_plano}</span></div><div style={{height:'4px',backgroundColor:'#E5E7EB',borderRadius:'2px',marginTop:'4px'}}><div style={{height:'4px',backgroundColor:'#1E3A8A',borderRadius:'2px',width:`${pct}%`}} /></div></div>
                                   <div><div style={{fontSize:'10px',color:'#6B7280'}}>Início</div><div style={{fontWeight:700,fontSize:'12px'}}>{fmtDataBR(ct.data_inicio_contrato)}</div></div>
                                 </div>
+                                {i === idxPlanoAtual && !statusCred?.assinatura && statusCred?.cobrancaAtiva && !statusCred?.isento && (
+                                  <div style={{marginTop:'10px',padding:'8px 10px',borderRadius:'6px',backgroundColor:'#F8FAFC',border:'1px solid #E2E8F0',fontSize:'11px',color:'#4B5563',lineHeight:1.5}}>
+                                    <strong>Pago por um mês: não renova automaticamente.</strong> Para renovar sozinho, use &quot;Assinar&quot; em Contratar Créditos.
+                                  </div>
+                                )}
                               </div>
                             )
                           }
