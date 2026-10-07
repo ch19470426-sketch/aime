@@ -83,10 +83,10 @@ function CadastroInspetor() {
   const setMsgPedido = (texto: string) => {
     if (!texto) return
     if (texto.startsWith('Erro')) { informa('Não foi possível concluir', texto.replace(/^Erro:\s*/, '')); return }
-    if (texto.startsWith('Pagamento confirmado')) { agradece('Pagamento confirmado', 'Seu pagamento foi confirmado e os créditos já estão na sua conta.'); return }
+    if (texto.startsWith('Pagamento confirmado')) { agradece('Pedido efetuado e créditos concedidos', 'Seu pagamento foi confirmado e os créditos já estão na sua conta.'); return }
     if (texto.startsWith('Assinatura cancelada')) { informa('Assinatura cancelada', texto); return }
     if (texto.startsWith('Assinatura criada') || texto.includes('aguardando o primeiro pagamento')) { orienta('Assinatura', texto); return }
-    orienta('Pedido', texto)
+    orienta(texto.startsWith('Você já tem um pedido') ? 'Pedido aguardando pagamento' : 'Pedido registrado', texto)
   }
   const [formaPagamento, setFormaPagamento] = useState<'PIX' | 'CREDIT_CARD'>('PIX')
   const [pagamentoInfo, setPagamentoInfo] = useState<{ invoiceUrl: string; forma?: string; assinatura?: boolean; pixQrCode?: string; pixCopiaECola?: string } | null>(null)
@@ -308,8 +308,8 @@ function CadastroInspetor() {
       const d = await res.json()
       if (res.ok) {
         const base = d.reaproveitado
-          ? `Você já tem o pedido #${d.pedido.id} aguardando pagamento.`
-          : `Pedido #${d.pedido.id} registrado.`
+          ? 'Você já tem um pedido aguardando pagamento. Conclua o pagamento para que os créditos sejam liberados.'
+          : 'Pedido registrado. Os créditos serão liberados assim que o pagamento for confirmado.'
         if (d.pagamento && typeof d.pagamento === 'object') {
           setMsgPedido(base)
           setPagamentoInfo(d.pagamento)

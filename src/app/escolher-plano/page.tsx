@@ -53,7 +53,7 @@ function EscolherPlano() {
   const { bannerProps, informa, agradece, solicita, fechar } = useBanner()
   useEffect(() => { if (erro) informa('Não foi possível concluir', erro) }, [erro]) // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
-    if (confirmado) agradece('Pagamento confirmado', 'Seus créditos foram liberados. Levando você ao menu...', continuar)
+    if (confirmado) agradece('Pedido efetuado e créditos concedidos', 'Pagamento confirmado e créditos liberados. Levando você ao menu...', continuar)
   }, [confirmado]) // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (esperouMuito && !confirmado) solicita(

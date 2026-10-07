@@ -343,7 +343,7 @@ export default function Dashboard() {
         if (ativo && d.temContrato === true) {
           ativo = false
           setPagamentoPendente(false)
-          agradece('Pagamento confirmado', 'Seu pagamento foi confirmado e seus créditos já estão disponíveis.')
+          agradece('Pedido efetuado e créditos concedidos', 'Seu pagamento foi confirmado e os créditos já estão disponíveis.')
         }
       } catch { /* tenta de novo no próximo ciclo */ }
     }
