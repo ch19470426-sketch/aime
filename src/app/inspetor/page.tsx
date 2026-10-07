@@ -87,7 +87,7 @@ function CadastroInspetor() {
     if (texto.startsWith('Pagamento confirmado')) { agradece('Pedido efetuado e créditos concedidos', 'Seu pagamento foi confirmado e os créditos já estão na sua conta.'); return }
     if (texto.startsWith('Assinatura cancelada')) { informa('Assinatura cancelada', texto); return }
     if (texto.startsWith('Assinatura criada') || texto.includes('aguardando o primeiro pagamento')) { orienta('Assinatura', texto); return }
-    orienta(texto.startsWith('Você já tem um pedido') ? 'Pedido aguardando pagamento' : 'Pedido registrado', texto)
+    orienta(texto.startsWith('Você já tem um pedido') ? 'Pedido aguardando pagamento' : 'Pedido efetuado', texto)
   }
   const [formaPagamento, setFormaPagamento] = useState<'PIX' | 'CREDIT_CARD'>('PIX')
   const [pagamentoInfo, setPagamentoInfo] = useState<{ invoiceUrl: string; forma?: string; assinatura?: boolean; pixQrCode?: string; pixCopiaECola?: string } | null>(null)
@@ -309,13 +309,13 @@ function CadastroInspetor() {
       const d = await res.json()
       if (res.ok) {
         const base = d.reaproveitado
-          ? 'Você já tem um pedido aguardando pagamento. Conclua o pagamento para que os créditos sejam liberados.'
-          : 'Pedido registrado. Os créditos serão liberados assim que o pagamento for confirmado.'
+          ? 'Você já tem um pedido aguardando pagamento. Conclua o pagamento para que os créditos sejam concedidos.'
+          : 'Pedido efetuado. Os créditos serão concedidos assim que o pagamento for confirmado.'
         if (d.pagamento && typeof d.pagamento === 'object') {
           setMsgPedido(base)
           setPagamentoInfo(d.pagamento)
         } else if (d.pagamento === 'erro') {
-          setMsgPedido(`${base} O pedido ficou registrado, mas não foi possível gerar a cobrança agora (${d.avisoAsaas ?? 'erro desconhecido'}). Tente novamente em instantes.`)
+          setMsgPedido(`${base} O pedido foi efetuado, mas não foi possível gerar a cobrança agora (${d.avisoAsaas ?? 'erro desconhecido'}). Tente novamente em instantes.`)
         } else {
           setMsgPedido(`${base} O pagamento online ainda não está habilitado neste ambiente.`)
         }

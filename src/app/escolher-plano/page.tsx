@@ -138,7 +138,7 @@ function EscolherPlano() {
       if (d.pagamento && typeof d.pagamento === 'object') {
         setPagamento(d.pagamento)
       } else {
-        setErro('Pedido registrado, mas a cobrança falhou. Tente novamente em instantes.')
+        setErro('Pedido efetuado, mas a cobrança falhou. Tente novamente em instantes.')
       }
       setEnviando(false)
     } catch { setErro('Erro de conexão.'); setEnviando(false) }
