@@ -119,6 +119,7 @@ export async function POST(request: NextRequest) {
 
     const verificacaoManut = await verificarDisponibilidade(cpfInspetor, Number(tipoServico))
     if (!verificacaoManut.liberado) {
+      if (verificacaoManut.motivo === 'conta_bloqueada') return NextResponse.json({ erro: 'Conta bloqueada. Entre em contato com o suporte: suporte@aime.eng.br.', bloqueada: true }, { status: 403 })
       return NextResponse.json({
         erro: 'Créditos insuficientes para gerar este plano de manutenção.',
         necessario: verificacaoManut.necessario, saldoTotal: verificacaoManut.saldoTotal, faltam: verificacaoManut.faltam,

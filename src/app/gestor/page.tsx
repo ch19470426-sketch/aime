@@ -2,6 +2,8 @@
 import { useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { createClient } from '@/utils/supabase/client'
+import Banner from '@/components/Banner'
+import { useBanner } from '@/hooks/useBanner'
 
 const SUPA_URL = 'https://asgorarunzhiojqioxzq.supabase.co'
 const SUPA_KEY = 'sb_publishable_dH85HYKGxv3X0te627VfOw_OGaPoNMF'
@@ -126,10 +128,13 @@ export default function GestorPage() {
   const [busca, setBusca] = useState('')
   const [salvando, setSalvando] = useState(false)
   const [msg, setMsg] = useState('')
+  const { bannerProps, informa, solicita, fechar } = useBanner()
+  const [contasBloqueadas, setContasBloqueadas] = useState<any[]>([])
+  const [carregandoBloq, setCarregandoBloq] = useState(false)
   const [aba, setAba] = useState<'dados'|'plano'|'info'>('dados')
   const searchParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null
   const abaInicial = (searchParams?.get('aba') as any) || 'inspetores'
-  const [abaGestor, setAbaGestor] = useState<'inspetores'|'estabelecimentos'|'visao-geral'|'configuracoes'|'suporte'>(abaInicial)
+  const [abaGestor, setAbaGestor] = useState<'inspetores'|'estabelecimentos'|'visao-geral'|'configuracoes'|'suporte'|'bloqueadas'>(abaInicial)
   const [estabelecimentos, setEstabelecimentos] = useState<Estabelecimento[]>([])
   const [estabSel, setEstabSel] = useState<Estabelecimento | null>(null)
   const [buscaEstab, setBuscaEstab] = useState('')
@@ -274,6 +279,45 @@ export default function GestorPage() {
     } catch {}
   }
 
+  // Carrega a lista sempre que esta aba estiver aberta (inclusive quando a página abre direto nela, por ?aba=bloqueadas).
+  useEffect(() => { if (abaGestor === 'bloqueadas') carregarContasBloqueadas() }, [abaGestor]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  async function carregarContasBloqueadas() {
+    setCarregandoBloq(true)
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      const res = await fetch('/api/gestor/contas-bloqueadas', { headers: { Authorization: `Bearer ${session?.access_token ?? ''}` } })
+      const d = await res.json()
+      setContasBloqueadas(res.ok ? (d.contas ?? []) : [])
+      if (!res.ok) informa('Não foi possível carregar', d.erro ?? 'Tente novamente em instantes.')
+    } catch { setContasBloqueadas([]); informa('Não foi possível carregar', 'Erro de conexão. Tente novamente.') }
+    finally { setCarregandoBloq(false) }
+  }
+
+  function confirmarDesbloqueio(conta: any) {
+    solicita('Desbloquear a conta?',
+      `${conta.nome_inspetor ?? ''} (CPF ${conta.cpf_inspetor}) poderá voltar a usar o aplicativo e a contratar créditos. Confirme que a pendência foi regularizada.`,
+      [
+        { label: 'Desbloquear', acao: () => { fechar(); void desbloquearConta(conta) }, estilo: 'primario' },
+        { label: 'Voltar', acao: fechar, estilo: 'secundario' },
+      ])
+  }
+
+  async function desbloquearConta(conta: any) {
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      const res = await fetch('/api/gestor/desbloquear-conta', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session?.access_token ?? ''}` },
+        body: JSON.stringify({ cpf: conta.cpf_inspetor }),
+      })
+      const d = await res.json()
+      if (!res.ok) { informa('Não foi possível desbloquear', d.erro ?? 'Tente novamente.'); return }
+      informa('Conta liberada', `${conta.nome_inspetor ?? 'O inspetor'} foi avisado por e-mail e já pode voltar a usar o aplicativo.`)
+      await carregarContasBloqueadas()
+    } catch { informa('Não foi possível desbloquear', 'Erro de conexão. Tente novamente.') }
+  }
+
   async function carregarEstabelecimentos() {
     setCarregandoEstab(true)
     try {
@@ -348,14 +392,15 @@ export default function GestorPage() {
         </div>
         <div style={{ height:'2px', backgroundColor:'#1E3A8A' }} />
 
+        <Banner {...bannerProps} />
         {/* Navegação principal */}
         <div style={{ display:'flex', gap:'0', borderBottom:'2px solid #1E3A8A', flexWrap:'wrap' as const }}>
-          {(['inspetores','estabelecimentos','visao-geral','suporte','configuracoes'] as const).map(ab => (
+          {(['inspetores','estabelecimentos','visao-geral','suporte','bloqueadas','configuracoes'] as const).map(ab => (
             <button key={ab} onClick={() => { setAbaGestor(ab); if(ab==='estabelecimentos') carregarEstabelecimentos(); if(ab==='visao-geral') carregarResumo(); if(ab==='suporte') carregarMensagensSuporte() }}
               style={{ padding:'8px 20px', border:'none', cursor:'pointer', fontSize:'12px', fontWeight:700,
                 borderBottom: abaGestor===ab ? '3px solid #1E3A8A' : '3px solid transparent',
                 color: abaGestor===ab ? '#1E3A8A' : '#6B7280', backgroundColor:'white' }}>
-              {ab === 'inspetores' ? '👤 Inspetores' : ab === 'estabelecimentos' ? '🏢 Estabelecimentos' : ab === 'visao-geral' ? '📊 Painel Geral' : ab === 'suporte' ? '💬 Fale Conosco' : '⚙️ Configurações'}
+              {ab === 'inspetores' ? '👤 Inspetores' : ab === 'estabelecimentos' ? '🏢 Estabelecimentos' : ab === 'visao-geral' ? '📊 Painel Geral' : ab === 'suporte' ? '💬 Fale Conosco' : ab === 'bloqueadas' ? '🔒 Contas bloqueadas' : '⚙️ Configurações'}
             </button>
           ))}
         </div>
@@ -853,7 +898,31 @@ export default function GestorPage() {
             )}
           </div>
           </>)}
-          {abaGestor === 'suporte' && (
+          {abaGestor === 'bloqueadas' && (
+          <div style={{ padding: '12px' }}>
+            <div style={{ fontSize: '13px', fontWeight: 700, color: '#1E3A8A', marginBottom: '4px' }}>Contas bloqueadas</div>
+            <div style={{ fontSize: '11px', color: '#6B7280', marginBottom: '10px', lineHeight: 1.5 }}>
+              Bloqueio automático por estorno, chargeback ou cartão recusado em 3 cobranças seguidas. Enquanto bloqueada, a conta não inicia serviços nem contrata créditos.
+            </div>
+            {carregandoBloq && <div style={{ fontSize: '12px', color: '#6B7280' }}>Carregando...</div>}
+            {!carregandoBloq && contasBloqueadas.length === 0 && <div data-vazio style={{ fontSize: '12px', color: '#6B7280' }}>Nenhuma conta bloqueada.</div>}
+            {contasBloqueadas.map(cb => (
+              <div key={cb.cpf_inspetor} data-conta-bloqueada style={{ border: '1px solid #E2E8F0', borderRadius: '8px', padding: '10px 12px', marginBottom: '8px', display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' as const }}>
+                <div style={{ flex: 1, minWidth: '200px' }}>
+                  <div style={{ fontWeight: 700, fontSize: '12px' }}>{cb.nome_inspetor} <span style={{ color: '#6B7280', fontWeight: 400 }}>· CPF {cb.cpf_inspetor}</span></div>
+                  <div style={{ fontSize: '11px', color: '#92400E' }}>{cb.texto_motivo}</div>
+                  <div style={{ fontSize: '10px', color: '#6B7280' }}>Bloqueada em {cb.bloqueio_em ? new Date(cb.bloqueio_em).toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' }) : '—'}</div>
+                </div>
+                <button onClick={() => confirmarDesbloqueio(cb)}
+                  style={{ backgroundColor: '#059669', color: 'white', border: 'none', borderRadius: '9999px', padding: '8px 18px', fontSize: '12px', fontWeight: 700, cursor: 'pointer' }}>
+                  Desbloquear
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {abaGestor === 'suporte' && (
           <div style={{ width:'100%', padding:'12px' }}>
             {carregandoSuporte ? (
               <p style={{ fontSize:'12px', color:'#9CA3AF' }}>Carregando...</p>

@@ -15,6 +15,7 @@
 
 import { createClient } from '@supabase/supabase-js'
 import { contratoCorrente } from '@/lib/contratos'
+import { contaBloqueada } from '@/lib/bloqueio'
 import { precoPlanoCentavos, precoAvulsoPacoteCentavos } from '@/lib/precos'
 
 // ───────────────────────── Configuração ─────────────────────────
@@ -120,7 +121,7 @@ export type Verificacao = {
   liberado: boolean
   motivo:
     | 'cobranca_inativa' | 'servico_nao_cobrado' | 'isento_gestor'
-    | 'saldo_ok' | 'saldo_insuficiente' | 'verificacao_indisponivel'
+    | 'saldo_ok' | 'saldo_insuficiente' | 'verificacao_indisponivel' | 'conta_bloqueada'
   necessario?: number
   saldoTotal?: number
   faltam?: number
@@ -242,14 +243,14 @@ export async function temAlgumContrato(cpf: string): Promise<boolean> {
 }
 
 /**
- * Há um pagamento em andamento? = pedido pendente, com cobrança já criada no Asaas, nos últimos 3
- * dias (a validade da cobrança). Quem está nesse estado já ESCOLHEU o plano e está pagando, então
+ * Há um pagamento em andamento? = pedido pendente, com cobrança já criada no Asaas, nos últimos 2
+ * dias (era 3; Celso reduziu em 07/10/2026). Quem está nesse estado já ESCOLHEU o plano e está pagando, então
  * o menu abre: sem créditos nada é consumido (o dashboard barra qualquer serviço sem saldo),
  * exatamente como já acontece com quem tem o plano vencido. Falha de leitura = false.
  */
 export async function temPedidoPendenteRecente(cpf: string): Promise<boolean> {
   try {
-    const corte = new Date(Date.now() - 3 * 86400000).toISOString()
+    const corte = new Date(Date.now() - 2 * 86400000).toISOString()
     const { data, error } = await admin()
       .from('pedidos_credito').select('id,asaas_payment_id')
       .eq('cpf_inspetor', cpf).eq('status', 'aguardando_pagamento').gte('criado_em', corte).limit(5)
@@ -269,6 +270,8 @@ export async function lerSaldo(cpf: string): Promise<Saldo | null> {
 
 /** Pode este CPF INICIAR este serviço? (Gate a ser ligado no dashboard.) */
 export async function verificarDisponibilidade(cpf: string, codigoServico: number): Promise<Verificacao> {
+  // Conta bloqueada (estorno, chargeback ou cartão recusado 3 vezes) não inicia nenhum serviço.
+  if ((await contaBloqueada(cpf)).bloqueada) return { liberado: false, motivo: 'conta_bloqueada' }
   if (!cobrancaAtiva()) return { liberado: true, motivo: 'cobranca_inativa' }
   const necessario = custoParaIniciar(codigoServico)
   if (necessario === null) return { liberado: true, motivo: 'servico_nao_cobrado' }
@@ -306,6 +309,47 @@ export async function consumirCreditos(
     console.error('[creditos] consumir_creditos exceção:', e)
     return { ok: false, cobrado: false, motivo: 'erro', erro: String(e) }
   }
+}
+
+/**
+ * Revoga até `qde` créditos do SALDO RESTANTE do inspetor (estorno ou chargeback). Decisão de Celso,
+ * 07/10/2026: revoga o saldo, ESQUECE o que já foi usado (nunca deixa saldo negativo) e bloqueia a conta.
+ * Tira primeiro de onde o crédito entrou (avulso para compra de avulso, plano para compra de plano) e
+ * depois do resto, começando pelo contrato corrente. `naoRecuperados` = parte que já tinha sido usada.
+ */
+export async function revogarCreditos(
+  cpf: string, qde: number, origem: 'plano' | 'avulso'
+): Promise<{ revogados: number; naoRecuperados: number }> {
+  const supabase = admin()
+  const hoje = new Date().toISOString().slice(0, 10)
+  const { data: vigentes, error } = await supabase.from('contratos_inspetor').select('*')
+    .eq('cpf_inspetor', cpf).gte('data_fim_contrato', hoje)
+  if (error) throw new Error(`não foi possível ler os contratos: ${error.message}`)
+  const lista = (vigentes ?? []) as any[]
+  const corrente = contratoCorrente(lista, hoje)
+  const ordem = [...(corrente ? [corrente] : []), ...lista.filter(v => v !== corrente)
+    .sort((a, b) => (a.data_inicio_contrato < b.data_inicio_contrato ? 1 : -1))]
+  let restante = qde
+  for (const c of ordem) {
+    if (restante <= 0) break
+    let tiraPlano = 0
+    let tiraAvulso = 0
+    if (origem === 'avulso') {
+      tiraAvulso = Math.min(restante, c.saldo_quantidade_avulso)
+      tiraPlano = Math.min(restante - tiraAvulso, c.saldo_quantidade_plano)
+    } else {
+      tiraPlano = Math.min(restante, c.saldo_quantidade_plano)
+      tiraAvulso = Math.min(restante - tiraPlano, c.saldo_quantidade_avulso)
+    }
+    if (tiraPlano + tiraAvulso === 0) continue
+    const { error: erroUp } = await supabase.from('contratos_inspetor').update({
+      saldo_quantidade_plano: c.saldo_quantidade_plano - tiraPlano,
+      saldo_quantidade_avulso: c.saldo_quantidade_avulso - tiraAvulso,
+    }).eq('cpf_inspetor', cpf).eq('tipo_assinatura', c.tipo_assinatura).eq('data_inicio_contrato', c.data_inicio_contrato)
+    if (erroUp) throw new Error(`não foi possível revogar os créditos: ${erroUp.message}`)
+    restante -= tiraPlano + tiraAvulso
+  }
+  return { revogados: qde - restante, naoRecuperados: restante }
 }
 
 /**

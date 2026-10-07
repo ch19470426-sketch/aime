@@ -5,6 +5,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { ehGestor, temAlgumContrato, temPedidoPendenteRecente } from '@/lib/creditos'
+import { contaBloqueada } from '@/lib/bloqueio'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -19,5 +20,10 @@ export async function GET(request: NextRequest) {
   //   foi reconhecido). liberado: contrato OU pagamento em andamento — é o que o portão do
   //   dashboard usa: quem já escolheu o plano e está pagando entra no menu sem esperar.
   const pendente = tem ? false : await temPedidoPendenteRecente(cpf)
-  return NextResponse.json({ temContrato: tem, liberado: tem || pendente, pagamentoPendente: pendente, gestor: gestor === true })
+  // Conta bloqueada (estorno, chargeback ou cartão recusado 3 vezes): o dashboard leva à tela "Conta bloqueada".
+  const bloqueio = gestor === true ? { bloqueada: false, motivo: undefined } : await contaBloqueada(cpf)
+  return NextResponse.json({
+    temContrato: tem, liberado: tem || pendente, pagamentoPendente: pendente, gestor: gestor === true,
+    bloqueada: bloqueio.bloqueada, bloqueioMotivo: bloqueio.motivo ?? null,
+  })
 }

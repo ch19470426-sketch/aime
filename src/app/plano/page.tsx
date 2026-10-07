@@ -7,6 +7,7 @@ import { useSearchParams } from 'next/navigation'
 import Image from 'next/image'
 import Banner from '@/components/Banner'
 import { useBanner } from '@/hooks/useBanner'
+import { validarAgenda } from '@/lib/agenda'
 
 const SUPA_URL = 'https://asgorarunzhiojqioxzq.supabase.co'
 const SUPA_KEY = 'sb_publishable_dH85HYKGxv3X0te627VfOw_OGaPoNMF'
@@ -351,6 +352,10 @@ function PlanoInner() {
   }
 
   async function salvarPlano() {
+    // AGENDA OBRIGATÓRIA (Celso, 07/10/2026): toda atividade do item 1.2 precisa de data de início e de fim
+    // (src/lib/agenda.ts). Antes só havia um aviso amarelo, sem obrigar.
+    const agenda = validarAgenda(planoInfo.atividades.length, datas)
+    if (agenda.ok === false) { informa(agenda.titulo, agenda.mensagem); return }
     setSalvando(true)
     try {
       // Gerar HTML final com datas e docs preenchidos

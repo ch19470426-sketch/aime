@@ -13,6 +13,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { cpfDaSessao } from '@/lib/sessaoServidor'
 import { PLANO_CR, ehGestor, precoCentavos } from '@/lib/creditos'
+import { contaBloqueada } from '@/lib/bloqueio'
 import {
   acharOuCriarCliente, criarAssinatura, listarCobrancasDaAssinatura, cancelarAssinaturaNoAsaas,
 } from '@/lib/asaas'
@@ -52,6 +53,9 @@ export async function POST(request: NextRequest) {
   try {
     const cpf = await cpfDaSessao(request)
     if (!cpf) return NextResponse.json({ erro: 'Sessão inválida ou expirada.' }, { status: 401 })
+
+    // Conta bloqueada (estorno, chargeback ou cartão recusado 3 vezes) não contrata créditos nem assina.
+    if ((await contaBloqueada(cpf)).bloqueada) return NextResponse.json({ erro: 'Conta bloqueada. Entre em contato com o suporte: suporte@aime.eng.br.', bloqueada: true }, { status: 403 })
 
     if ((await ehGestor(cpf)) === true) {
       return NextResponse.json({ isento: true, erro: 'Perfil de gestor: isento de contratação de créditos.' }, { status: 409 })

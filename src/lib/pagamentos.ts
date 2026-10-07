@@ -16,8 +16,9 @@
 //      único por asaas_payment_id protege contra eventos simultâneos.
 
 import { createClient } from '@supabase/supabase-js'
-import { consultarCobranca, consultarAssinatura, STATUS_PAGO } from '@/lib/asaas'
-import { concederCreditos, PLANO_CR } from '@/lib/creditos'
+import { consultarCobranca, consultarAssinatura, cancelarAssinaturaNoAsaas, STATUS_PAGO } from '@/lib/asaas'
+import { concederCreditos, revogarCreditos, PLANO_CR } from '@/lib/creditos'
+import { bloquearConta, avisarSuporte, LIMITE_FALHAS_CARTAO } from '@/lib/bloqueio'
 import { avisarInspetor, dataBR, somarUmMes } from '@/lib/assinaturas'
 
 const supabase = createClient(
@@ -29,17 +30,77 @@ export type ResultadoCobranca = { status: number; corpo: Record<string, unknown>
 const ok = (corpo: Record<string, unknown> = {}): ResultadoCobranca => ({ status: 200, corpo: { ok: true, ...corpo } })
 const naoEncontrada = (e: unknown) => /n[ãa]o encontrad|not found|404/i.test(e instanceof Error ? e.message : String(e))
 
-/** Cobrança de assinatura vencida/recusada: marca 'inadimplente' (só uma vez) e avisa. */
-async function marcarInadimplente(pedido: any, invoiceUrl: string | undefined): Promise<void> {
+/** Encerra a assinatura (Asaas e base) para parar novas cobranças. Melhor esforço no Asaas. */
+async function encerrarAssinaturaPorBloqueio(assinaturaId: number): Promise<void> {
+  const { data: ass } = await supabase.from('assinaturas')
+    .select('id,status,asaas_subscription_id').eq('id', assinaturaId).maybeSingle()
+  if (!ass || ass.status === 'cancelada') return
+  if (ass.asaas_subscription_id) {
+    try { await cancelarAssinaturaNoAsaas(ass.asaas_subscription_id) } catch (e) {
+      if (!naoEncontrada(e)) console.error('[pagamentos] não consegui cancelar a assinatura no Asaas:', e)
+    }
+  }
+  await supabase.from('assinaturas').update({ status: 'cancelada', cancelada_em: new Date().toISOString() }).eq('id', ass.id)
+  await supabase.from('pedidos_credito').update({ status: 'cancelado' }).eq('assinatura_id', ass.id).eq('status', 'aguardando_pagamento')
+}
+
+/**
+ * Cobrança de assinatura vencida/recusada. Conta as falhas SEGUIDAS (por id de cobrança: o mesmo
+ * pagamento gera "recusado" e depois "vencido" e conta uma vez só; um pagamento confirmado zera a
+ * contagem): 1ª e 2ª avisam; na 3ª a assinatura é encerrada e a conta é BLOQUEADA (decisão de Celso,
+ * 07/10/2026).
+ */
+async function marcarInadimplente(pedido: any, invoiceUrl: string | undefined, paymentId: string): Promise<void> {
+  const { data: ass } = await supabase.from('assinaturas')
+    .select('id,status,falhas_payment_ids').eq('id', pedido.assinatura_id).maybeSingle()
   // Se for a PRIMEIRA cobrança que falhou, a assinatura ainda nem começou: o inspetor pode tentar de novo pelo link.
-  const { data: mudou } = await supabase.from('assinaturas')
-    .update({ status: 'inadimplente' }).eq('id', pedido.assinatura_id).eq('status', 'ativa').select('id')
-  if (!mudou || mudou.length === 0) return
+  if (!ass || !['ativa', 'inadimplente'].includes(ass.status)) return
+  const falhas: string[] = Array.isArray(ass.falhas_payment_ids) ? ass.falhas_payment_ids : []
+  if (falhas.includes(paymentId)) return   // a mesma cobrança já foi contada
+  const novas = [...falhas, paymentId]
+  await supabase.from('assinaturas').update({ status: 'inadimplente', falhas_payment_ids: novas })
+    .eq('id', ass.id).in('status', ['ativa', 'inadimplente'])
+
+  if (novas.length >= LIMITE_FALHAS_CARTAO) {
+    await encerrarAssinaturaPorBloqueio(ass.id)
+    await bloquearConta(pedido.cpf_inspetor, 'cartao_recusado',
+      `${novas.length} cobranças seguidas não pagas na assinatura do ${pedido.tipo}. A assinatura foi cancelada.`)
+    return
+  }
+  const proxima = novas.length === 1
+    ? 'Se preferir, você pode cancelar a assinatura em Meu Plano e Créditos, no aplicativo.'
+    : `Atenção: esta é a ${novas.length}ª cobrança seguida que não foi paga. Se a próxima também não for, sua conta será bloqueada e a assinatura cancelada.`
   await avisarInspetor(pedido.cpf_inspetor, 'AIMÊ — Não conseguimos renovar sua assinatura', [
     { tipo: 'p', texto: `O pagamento da sua assinatura do ${pedido.tipo} não foi concluído, e por isso os créditos do mês não foram liberados.` },
     ...(invoiceUrl ? [{ tipo: 'link' as const, rotulo: 'Regularizar o pagamento', url: invoiceUrl, mostrarUrl: true }] : []),
-    { tipo: 'p', texto: 'Se preferir, você pode cancelar a assinatura em Meu Plano e Créditos, no aplicativo.' },
+    { tipo: 'p', texto: proxima },
   ])
+}
+
+/**
+ * Estorno ou chargeback de um pagamento JÁ CONCEDIDO (decisão de Celso, 07/10/2026): revoga o saldo
+ * restante dessa compra, esquece o que já foi usado e bloqueia a conta. Se o pedido era de uma
+ * assinatura, ela é encerrada. Idempotente por pedido (estornado_em). Se algo falhar, desfaz a reserva
+ * e responde 500 para o Asaas reentregar (bloquear é idempotente).
+ */
+async function tratarEstorno(pedido: any, evento: string): Promise<ResultadoCobranca> {
+  if (pedido.status !== 'pago') return ok({ ignorado: true, motivo: 'pedido_nao_pago' })   // nada foi concedido
+  const { data: reservado } = await supabase.from('pedidos_credito')
+    .update({ estornado_em: new Date().toISOString(), motivo_estorno: evento })
+    .eq('id', pedido.id).is('estornado_em', null).select('id')
+  if (!reservado || reservado.length === 0) return ok({ jaProcessado: true })
+  try {
+    const qde = pedido.tipo === 'AVULSO' ? pedido.qde_creditos : (PLANO_CR[pedido.tipo] ?? pedido.qde_creditos)
+    const motivo = evento === 'PAYMENT_REFUNDED' ? 'estorno' : 'chargeback'
+    const rev = await revogarCreditos(pedido.cpf_inspetor, qde, pedido.tipo === 'AVULSO' ? 'avulso' : 'plano')
+    if (pedido.assinatura_id) await encerrarAssinaturaPorBloqueio(pedido.assinatura_id)
+    await bloquearConta(pedido.cpf_inspetor, motivo,
+      `Pedido #${pedido.id} (${pedido.tipo}). Créditos revogados: ${rev.revogados}; já usados e não recuperados: ${rev.naoRecuperados}.`)
+    return ok({ estornado: true, revogados: rev.revogados, naoRecuperados: rev.naoRecuperados })
+  } catch (e) {
+    await supabase.from('pedidos_credito').update({ estornado_em: null, motivo_estorno: null }).eq('id', pedido.id)
+    return { status: 500, corpo: { erro: e instanceof Error ? e.message : String(e) } }
+  }
 }
 
 /**
@@ -86,6 +147,9 @@ async function aposPagamentoDeAssinatura(pedido: any, proximaCalculada: string |
   if (!cancelada) {
     await supabase.from('assinaturas')
       .update({ status: 'ativa', ...(proxima ? { proxima_cobranca: proxima } : {}) }).eq('id', ass.id)
+    // Pagou: as falhas de cartão seguidas recomeçam do zero (comando separado: se a coluna ainda não
+    // existir, a ativação acima não é afetada).
+    await supabase.from('assinaturas').update({ falhas_payment_ids: [] }).eq('id', ass.id)
   }
   await avisarInspetor(pedido.cpf_inspetor, primeira ? 'AIMÊ — Assinatura ativada' : 'AIMÊ — Assinatura renovada', [
     { tipo: 'p', texto: `Recebemos o pagamento da sua assinatura do ${pedido.tipo}. Os ${qde.toLocaleString('pt-BR')} créditos do mês já estão disponíveis.` },
@@ -115,6 +179,19 @@ export async function processarCobranca(paymentId: string, evento = ''): Promise
         .eq('id', pedido.id).eq('status', 'aguardando_pagamento')
     }
     return ok({ ignorado: true, motivo: 'cobranca_removida' })
+  }
+
+  // Estorno ou chargeback: revoga o saldo restante dessa compra, esquece o que foi usado e bloqueia a conta.
+  if (evento === 'PAYMENT_REFUNDED' || evento === 'PAYMENT_CHARGEBACK_REQUESTED') {
+    if (!pedido) return ok({ ignorado: true, motivo: 'pedido_nao_encontrado' })
+    return await tratarEstorno(pedido, evento)
+  }
+  // Estorno PARCIAL: a regra da conta não cobre (quanto revogar?), então só avisa a equipe para decidir.
+  if (evento === 'PAYMENT_PARTIALLY_REFUNDED') {
+    await avisarSuporte('AIMÊ — Estorno PARCIAL de um pagamento (decidir manualmente)', [
+      { tipo: 'p', texto: `A cobrança ${paymentId} foi estornada em parte${pedido ? ` (pedido #${pedido.id}, CPF ${pedido.cpf_inspetor}, ${pedido.tipo})` : ''}. Nada foi revogado nem bloqueado.` },
+    ])
+    return ok({ ignorado: true, motivo: 'estorno_parcial_avisado' })
   }
 
   if (!pedido) {
@@ -174,7 +251,7 @@ export async function processarCobranca(paymentId: string, evento = ''): Promise
   if (!STATUS_PAGO.has(cobranca.status)) {
     // Cobrança de assinatura vencida ou com cartão recusada: avisa o inspetor.
     if (pedido.assinatura_id && (evento === 'PAYMENT_OVERDUE' || evento === 'PAYMENT_CREDIT_CARD_CAPTURE_REFUSED')) {
-      await marcarInadimplente(pedido, cobranca.invoiceUrl)
+      await marcarInadimplente(pedido, cobranca.invoiceUrl, paymentId)
     }
     // Evento que não é de pagamento confirmado (ex.: PAYMENT_CREATED) — nada a conceder ainda.
     return ok({ aguardando: true, statusAtual: cobranca.status })

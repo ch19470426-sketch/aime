@@ -386,6 +386,11 @@ export default function Dashboard() {
               // liberado = tem contrato OU um pagamento em andamento (já escolheu o plano e está pagando).
               // Sem créditos nada é consumido, então o menu abre; "?? temContrato" cobre uma versão
               // antiga da rota durante a publicação.
+              // Conta bloqueada (estorno, chargeback ou cartão recusado 3 vezes): tela própria, sem menu.
+              if (dadosContrato.bloqueada === true) {
+                window.location.href = `/conta-bloqueada?cpf=${cpf}`
+                return
+              }
               if ((dadosContrato.liberado ?? dadosContrato.temContrato) === false) {
                 window.location.href = `/escolher-plano?cpf=${cpf}&proximo=${encodeURIComponent('/dashboard')}`
                 return
@@ -647,6 +652,10 @@ export default function Dashboard() {
       const resSaldo = await fetch(`/api/creditos/verificar-servico?cpf_inspetor=${cpfInspetor}&codigo_servico=${tipoServico}`)
       if (resSaldo.ok) {
         const verificacao = await resSaldo.json()
+        if (verificacao.liberado === false && verificacao.motivo === 'conta_bloqueada') {
+          window.location.href = `/conta-bloqueada?cpf=${cpfInspetor}`
+          return
+        }
         if (verificacao.liberado === false) {
           setEstadoDoc('aguardando')
           solicita('Créditos insuficientes',

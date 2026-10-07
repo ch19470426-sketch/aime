@@ -370,6 +370,7 @@ export async function POST(request: NextRequest) {
 
     const verificacaoLaudo = await verificarDisponibilidade(cpfInspetor, Number(tipoServico))
     if (!verificacaoLaudo.liberado) {
+      if (verificacaoLaudo.motivo === 'conta_bloqueada') return NextResponse.json({ erro: 'Conta bloqueada. Entre em contato com o suporte: suporte@aime.eng.br.', bloqueada: true }, { status: 403 })
       return NextResponse.json({
         erro: 'Créditos insuficientes para gerar este laudo.',
         necessario: verificacaoLaudo.necessario, saldoTotal: verificacaoLaudo.saldoTotal, faltam: verificacaoLaudo.faltam,
