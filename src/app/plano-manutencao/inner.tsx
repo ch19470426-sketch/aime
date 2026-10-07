@@ -4,6 +4,8 @@ import { useState, useEffect, useRef } from 'react'
 import Image from 'next/image'
 import Banner from '@/components/Banner'
 import { useBanner } from '@/hooks/useBanner'
+import { enviarPdfAssinado as enviarPdfAoStorage } from '@/lib/envioPdf'
+import { createClient } from '@/utils/supabase/client'
 
 const SUPA_URL = 'https://asgorarunzhiojqioxzq.supabase.co'
 const SUPA_KEY = 'sb_publishable_dH85HYKGxv3X0te627VfOw_OGaPoNMF'
@@ -82,7 +84,7 @@ export default function PlanoManutencaoInner() {
   const tipoServico = params.get('tipo_servico')   ?? ''
 
   const [etapa,     setEtapa]    = useState<'carregando'|'banner'|'gerando'|'gerado'|'erro'>('carregando')
-  const { bannerProps, solicita, fechar } = useBanner()
+  const { bannerProps, informa, agradece, solicita, fechar } = useBanner()
   const [erro,      setErro]     = useState('')
   const [ncs,       setNcs]      = useState<any[]>([])
   const [estabNome, setEstabNome]= useState('')
@@ -204,6 +206,8 @@ export default function PlanoManutencaoInner() {
       setNomeArq(nome)
       setBlobUrl(URL.createObjectURL(new Blob([data.html], { type: 'text/html;charset=utf-8' })))
       setEtapa('gerado')
+      agradece('Plano de Manutenção gerado',
+        'Revise o documento apresentado abaixo e ajuste-o conforme seu entendimento técnico. Depois, baixe o PDF, assine digitalmente e envie o PDF assinado ao AIMÊ.')
     } catch (err) { setErro(String(err)); setEtapa('erro') }
   }
 
@@ -252,7 +256,7 @@ export default function PlanoManutencaoInner() {
       a.click()
       URL.revokeObjectURL(url)
     } catch (erro) {
-      alert(erro instanceof Error ? erro.message : 'Não foi possível gerar o PDF. Tente novamente.')
+      informa('Erro', erro instanceof Error ? erro.message : 'Não foi possível gerar o PDF. Tente novamente.')
     } finally {
       setGerandoPdf(false)
     }
@@ -260,16 +264,24 @@ export default function PlanoManutencaoInner() {
 
   async function enviarPdfAssinado(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
+    e.target.value = ''   // permite escolher o mesmo arquivo de novo depois de um erro
     if (!file) return
     setEnviando(true)
     try {
-      const { createClient } = await import('@/utils/supabase/client')
-      const supabase = createClient()
       const nomePdf = nomeArq.replace('.html', '_assinado.pdf')
-      await supabase.storage.from('aime').upload(`documentos_inspetor/${nomePdf}`, file, { upsert: true })
-      alert('PDF assinado salvo com sucesso!')
-    } catch (err) { alert('Erro ao enviar: ' + String(err)) }
-    finally { setEnviando(false) }
+      // Mesmo envio da homologação do laudo: o PDF vai DIRETO ao Storage por URL assinada (só o nome passa
+      // pelo servidor). Antes o resultado do upload era ignorado: o aviso de "salvo com sucesso" aparecia
+      // mesmo quando o envio falhava, e qualquer arquivo era aceito como PDF.
+      const envio = await enviarPdfAoStorage(file, nomePdf, {
+        fetchFn: (url, init) => fetch(url, init),
+        enviarAoStorage: (path, token, f) =>
+          createClient().storage.from('aime').uploadToSignedUrl(path, token, f, { contentType: 'application/pdf', upsert: true }),
+      })
+      if (envio.ok === false) throw new Error(envio.erro)
+      agradece('PDF assinado salvo', 'O PDF assinado foi guardado com sucesso em Documentos inspetor.')
+    } catch (err) {
+      informa('Erro', err instanceof Error ? err.message : 'Não foi possível enviar o PDF. Tente novamente.')
+    } finally { setEnviando(false) }
   }
 
   function homologar() {
@@ -373,8 +385,7 @@ export default function PlanoManutencaoInner() {
           <div style={S.formBody}>
             <div style={S.block}>
               <div style={{ padding: '8px 10px', fontSize: '8.5pt', color: '#374151', lineHeight: 1.5, textAlign: 'center' }}>
-                <b style={{ color: '#1E3A8A' }}>✅ Plano de Manutenção gerado com sucesso!</b><br />
-                Revise o documento apresentado abaixo e o ajuste de acordo com seu entendimento técnico; baixe o PDF e o assine digitalmente. Após faça upload para o AIMÊ para armazenamento, rastreabilidade e continuidade do processo.
+                                Revise o documento apresentado abaixo e o ajuste de acordo com seu entendimento técnico; baixe o PDF e o assine digitalmente. Após faça upload para o AIMÊ para armazenamento, rastreabilidade e continuidade do processo.
               </div>
             </div>
 
