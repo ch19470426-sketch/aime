@@ -51,15 +51,19 @@ async function encerrarAssinaturaPorBloqueio(assinaturaId: number): Promise<void
  * 07/10/2026).
  */
 async function marcarInadimplente(pedido: any, invoiceUrl: string | undefined, paymentId: string): Promise<void> {
-  const { data: ass } = await supabase.from('assinaturas')
+  const { data: ass, error: erroAss } = await supabase.from('assinaturas')
     .select('id,status,falhas_payment_ids').eq('id', pedido.assinatura_id).maybeSingle()
+  // Erro de leitura (ex.: coluna falhas_payment_ids ainda não criada) não pode passar como "assinatura sem
+  // problema": lança, o webhook responde 500 e o Asaas reentrega.
+  if (erroAss) throw new Error(`não consegui ler a assinatura: ${erroAss.message}`)
   // Se for a PRIMEIRA cobrança que falhou, a assinatura ainda nem começou: o inspetor pode tentar de novo pelo link.
   if (!ass || !['ativa', 'inadimplente'].includes(ass.status)) return
   const falhas: string[] = Array.isArray(ass.falhas_payment_ids) ? ass.falhas_payment_ids : []
   if (falhas.includes(paymentId)) return   // a mesma cobrança já foi contada
   const novas = [...falhas, paymentId]
-  await supabase.from('assinaturas').update({ status: 'inadimplente', falhas_payment_ids: novas })
+  const { error: erroFalha } = await supabase.from('assinaturas').update({ status: 'inadimplente', falhas_payment_ids: novas })
     .eq('id', ass.id).in('status', ['ativa', 'inadimplente'])
+  if (erroFalha) throw new Error(`não consegui registrar a falha de pagamento: ${erroFalha.message}`)
 
   if (novas.length >= LIMITE_FALHAS_CARTAO) {
     await encerrarAssinaturaPorBloqueio(ass.id)
@@ -85,10 +89,17 @@ async function marcarInadimplente(pedido: any, invoiceUrl: string | undefined, p
  */
 async function tratarEstorno(pedido: any, evento: string): Promise<ResultadoCobranca> {
   if (pedido.status !== 'pago') return ok({ ignorado: true, motivo: 'pedido_nao_pago' })   // nada foi concedido
-  const { data: reservado } = await supabase.from('pedidos_credito')
+  const { data: reservado, error: erroReserva } = await supabase.from('pedidos_credito')
     .update({ estornado_em: new Date().toISOString(), motivo_estorno: evento })
     .eq('id', pedido.id).is('estornado_em', null).select('id')
-  if (!reservado || reservado.length === 0) return ok({ jaProcessado: true })
+  if (erroReserva) {
+    // Um ERRO de banco (ex.: coluna ainda não criada) NUNCA pode virar "já processado": o Asaas daria o
+    // aviso por entregue e o estorno ficaria sem tratamento, em silêncio. Responder 500 faz o Asaas
+    // reentregar e deixa o motivo no log.
+    console.error('[pagamentos] estorno: não consegui registrar o pedido', pedido.id, erroReserva.message)
+    return { status: 500, corpo: { erro: `não foi possível registrar o estorno: ${erroReserva.message}` } }
+  }
+  if (!reservado || reservado.length === 0) return ok({ jaProcessado: true })   // sem erro e sem linha: outro processamento já tratou
   try {
     const qde = pedido.tipo === 'AVULSO' ? pedido.qde_creditos : (PLANO_CR[pedido.tipo] ?? pedido.qde_creditos)
     const motivo = evento === 'PAYMENT_REFUNDED' ? 'estorno' : 'chargeback'
