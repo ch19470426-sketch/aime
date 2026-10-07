@@ -4,6 +4,8 @@ import { Suspense, useEffect, useState } from "react"
 import { useSearchParams } from "next/navigation"
 import Image from "next/image"
 import LinkSair from "@/components/LinkSair"
+import Banner from "@/components/Banner"
+import { useBanner } from "@/hooks/useBanner"
 import { createClient } from "@/utils/supabase/client"
 import { precoPlanoCentavos, formatarReais } from "@/lib/precos"
 
@@ -47,6 +49,22 @@ function EscolherPlano() {
   const [ehAssinatura, setEhAssinatura] = useState(false)
   const [confirmado, setConfirmado] = useState(false)
   const [esperouMuito, setEsperouMuito] = useState(false)
+  // Mensagens no banner do Miê (como no resto do aplicativo), em vez de texto solto na tela.
+  const { bannerProps, informa, agradece, solicita, fechar } = useBanner()
+  useEffect(() => { if (erro) informa('Não foi possível concluir', erro) }, [erro]) // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    if (confirmado) agradece('Pagamento confirmado', 'Seus créditos foram liberados. Levando você ao menu...', continuar)
+  }, [confirmado]) // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    if (esperouMuito && !confirmado) solicita(
+      'Ainda aguardando o pagamento',
+      'Se você já pagou, a confirmação pode levar alguns instantes: seus créditos serão liberados automaticamente. Você pode seguir para o menu e continuar usando o AIMÊ enquanto isso.',
+      [
+        { label: 'Seguir para o menu', acao: continuar, estilo: 'primario' },
+        { label: 'Continuar aguardando', acao: fechar, estilo: 'secundario' },
+      ],
+    )
+  }, [esperouMuito]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     createClient().auth.getSession().then(({ data: { session } }) => {
@@ -180,6 +198,7 @@ function EscolherPlano() {
   if (cortesiaConcedida) {
     return (
       <div style={S.body}>
+      <Banner {...bannerProps} />
         <div style={{ ...S.page, maxWidth: '480px' }}>
           <div style={S.header}>
             <Image src="/logo.png" alt="AIMÊ" width={80} height={32} priority style={{ filter: "brightness(0) invert(1)" }} />
@@ -201,6 +220,7 @@ function EscolherPlano() {
 
   return (
     <div style={S.body}>
+      <Banner {...bannerProps} />
       <div style={S.page}>
         <div style={S.header}>
           <Image src="/logo.png" alt="AIMÊ" width={80} height={32} priority style={{ filter: "brightness(0) invert(1)" }} />
@@ -231,7 +251,6 @@ function EscolherPlano() {
             ))}
           </div>
 
-          {erro && <div style={{ padding: "8px 12px", borderRadius: "6px", fontSize: "12px", backgroundColor: "#FEE2E2", color: "#DC2626", marginBottom: "12px" }}>{erro}</div>}
 
           {selecionado === 'PLANO CORTESIA' && (
             <div style={{ textAlign: "center" }}>
@@ -309,24 +328,16 @@ function EscolherPlano() {
                   Digite os dados do cartão na página de pagamento. A assinatura renova todo mês no mesmo cartão e pode ser cancelada em Meu Plano e Créditos.
                 </p>
               )}
-              {confirmado ? (
-                <div style={{ padding: "10px 12px", borderRadius: "6px", fontSize: "12px", fontWeight: 700, backgroundColor: "#ECFDF5", color: "#047857", marginTop: "12px", lineHeight: 1.5 }}>
-                  Pagamento confirmado! Seus créditos foram liberados. Levando você ao menu...
-                </div>
-              ) : (
+              {!confirmado && (
                 <>
                   <p style={{ fontSize: "11px", color: "#6B7280", marginTop: "12px" }}>
                     Aguardando a confirmação do pagamento... Esta tela avança sozinha assim que ele for confirmado.
                   </p>
                   {esperouMuito && (
-                    <div style={{ padding: "10px 12px", borderRadius: "6px", fontSize: "11px", backgroundColor: "#FFFBEB", color: "#92400E", marginTop: "10px", lineHeight: 1.5 }}>
-                      Se você já pagou, a confirmação pode levar alguns instantes: seus créditos serão liberados automaticamente.
-                      Você pode seguir para o menu e continuar usando o AIMÊ enquanto isso.
-                      <button onClick={continuar}
-                        style={{ display: "block", margin: "10px auto 0", backgroundColor: "#1E3A8A", color: "white", fontWeight: 600, padding: "8px 24px", borderRadius: "50px", border: "none", cursor: "pointer", fontSize: "12px" }}>
-                        Seguir para o menu
-                      </button>
-                    </div>
+                    <button onClick={continuar}
+                      style={{ display: "block", margin: "10px auto 0", backgroundColor: "#1E3A8A", color: "white", fontWeight: 600, padding: "8px 24px", borderRadius: "50px", border: "none", cursor: "pointer", fontSize: "12px" }}>
+                      Seguir para o menu
+                    </button>
                   )}
                 </>
               )}

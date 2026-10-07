@@ -6,6 +6,8 @@ import Image from "next/image"
 import { createClient } from "@/utils/supabase/client"
 import BlocoAssinatura, { type AssinaturaStatus } from '@/components/BlocoAssinatura'
 import { rodadaDeEspera } from '@/lib/esperaPagamento'
+import Banner from '@/components/Banner'
+import { useBanner } from '@/hooks/useBanner'
 
 const SUPA_URL = 'https://asgorarunzhiojqioxzq.supabase.co'
 const SUPA_KEY = 'sb_publishable_dH85HYKGxv3X0te627VfOw_OGaPoNMF'
@@ -75,7 +77,17 @@ function CadastroInspetor() {
   const [tipoPedido, setTipoPedido] = useState('PLANO MENSAL')
   const [qdeAvulso, setQdeAvulso] = useState(600)
   const [enviandoPedido, setEnviandoPedido] = useState(false)
-  const [msgPedido, setMsgPedido] = useState('')
+  // Mensagens do fluxo de pagamento e de assinatura vão para o banner do Miê, como no resto do
+  // aplicativo (antes: texto solto na tela e caixas de confirmação do navegador).
+  const { bannerProps, informa, orienta, agradece, solicita, fechar } = useBanner()
+  const setMsgPedido = (texto: string) => {
+    if (!texto) return
+    if (texto.startsWith('Erro')) { informa('Não foi possível concluir', texto.replace(/^Erro:\s*/, '')); return }
+    if (texto.startsWith('Pagamento confirmado')) { agradece('Pagamento confirmado', 'Seu pagamento foi confirmado e os créditos já estão na sua conta.'); return }
+    if (texto.startsWith('Assinatura cancelada')) { informa('Assinatura cancelada', texto); return }
+    if (texto.startsWith('Assinatura criada') || texto.includes('aguardando o primeiro pagamento')) { orienta('Assinatura', texto); return }
+    orienta('Pedido', texto)
+  }
   const [formaPagamento, setFormaPagamento] = useState<'PIX' | 'CREDIT_CARD'>('PIX')
   const [pagamentoInfo, setPagamentoInfo] = useState<{ invoiceUrl: string; forma?: string; assinatura?: boolean; pixQrCode?: string; pixCopiaECola?: string } | null>(null)
 
@@ -315,10 +327,15 @@ function CadastroInspetor() {
   }
 
   // Assinatura mensal (Mensal/Escritório): renovação automática no cartão, pelo Asaas.
-  async function assinarPlano(tipo: string) {
+  async function assinarPlano(tipo: string, confirmado = false) {
     const atual = statusCred?.assinatura
-    if (atual && atual.tipo !== tipo && atual.status !== 'aguardando_primeiro_pagamento'
-        && !window.confirm(`Isto cancela a sua assinatura atual (${atual.tipo}) e começa a do ${tipo}. Os créditos que sobrarem do plano atual ficam com você, como créditos avulsos. Continuar?`)) return
+    if (!confirmado && atual && atual.tipo !== tipo && atual.status !== 'aguardando_primeiro_pagamento') {
+      solicita('Trocar de plano?', `Isto cancela a sua assinatura atual (${atual.tipo}) e começa a do ${tipo}. Os créditos que sobrarem do plano atual ficam com você, como créditos avulsos.`, [
+        { label: 'Continuar', acao: () => { fechar(); void assinarPlano(tipo, true) }, estilo: 'primario' },
+        { label: 'Voltar', acao: fechar, estilo: 'secundario' },
+      ])
+      return
+    }
     setEnviandoPedido(true); setMsgPedido(''); setPagamentoInfo(null)
     try {
       const { data: { session } } = await createClient().auth.getSession()
@@ -343,8 +360,14 @@ function CadastroInspetor() {
     finally { setEnviandoPedido(false) }
   }
 
-  async function cancelarAssinatura() {
-    if (!window.confirm('Cancelar a assinatura? Não haverá novas cobranças, e os créditos do período que você já pagou continuam valendo até o fim dele.')) return
+  async function cancelarAssinatura(confirmado = false) {
+    if (!confirmado) {
+      solicita('Cancelar a assinatura?', 'Não haverá novas cobranças, e os créditos do período que você já pagou continuam valendo até o fim dele.', [
+        { label: 'Cancelar assinatura', acao: () => { fechar(); void cancelarAssinatura(true) }, estilo: 'primario' },
+        { label: 'Voltar', acao: fechar, estilo: 'secundario' },
+      ])
+      return
+    }
     setEnviandoPedido(true); setMsgPedido(''); setPagamentoInfo(null)
     try {
       const { data: { session } } = await createClient().auth.getSession()
@@ -447,6 +470,7 @@ function CadastroInspetor() {
 
   return (
     <div style={{backgroundColor:"#E8EEF7",minHeight:"100vh",display:"flex",alignItems:"flex-start",justifyContent:"center",padding:"16px"}}>
+      <Banner {...bannerProps} />
       <div style={{backgroundColor:"white",borderRadius:"16px",boxShadow:"0 4px 24px rgba(0,0,0,0.12)",width:"100%",maxWidth:"900px",overflow:"hidden"}}>
 
         <div style={{backgroundColor:"#1E3A8A",padding:"8px 16px",display:"flex",alignItems:"center",gap:"12px"}}>
@@ -706,7 +730,7 @@ function CadastroInspetor() {
                     </div>
                     )}
                     <BlocoAssinatura assinatura={statusCred?.assinatura} ocupado={enviandoPedido}
-                      onCancelar={cancelarAssinatura}
+                      onCancelar={() => cancelarAssinatura()}
                       onRetomar={() => statusCred?.assinatura && assinarPlano(statusCred.assinatura.tipo)} />
                     <div style={{marginTop:'12px'}}>
                       <div style={{...blocoHeaderStyle,borderRadius:'6px 6px 0 0'}}><span style={blocoTituloStyle}>Contratar Créditos</span></div>
@@ -752,7 +776,6 @@ function CadastroInspetor() {
                             </button>
                           )}
                         </div>
-                        {msgPedido&&(<div style={{marginTop:'10px',padding:'8px 12px',borderRadius:'6px',fontSize:'12px',backgroundColor:msgPedido.startsWith('Erro')?'#FEE2E2':'#EFF6FF',color:msgPedido.startsWith('Erro')?'#DC2626':'#1E3A8A'}}>{msgPedido}</div>)}
                         {pagamentoInfo && (
                           <div style={{marginTop:'12px',padding:'14px',borderRadius:'8px',border:'1.5px solid #1E3A8A',backgroundColor:'#F8FAFC',textAlign:'center'}}>
                             {pagamentoInfo.forma && (

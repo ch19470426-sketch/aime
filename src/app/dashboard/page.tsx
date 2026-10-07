@@ -302,7 +302,7 @@ function docValido(v: string): boolean {
 export default function Dashboard() {
   const router = useRouter()
 
-  const { bannerProps, orienta, solicita, fechar } = useBanner()
+  const { bannerProps, orienta, agradece, solicita, fechar } = useBanner()
   const [pagamentoPendente, setPagamentoPendente] = useState(false)
   const [tipoServico, setTipoServico] = useState<number | null>(null)
   const [isGestor, setIsGestor] = useState(false)
@@ -343,7 +343,7 @@ export default function Dashboard() {
         if (ativo && d.temContrato === true) {
           ativo = false
           setPagamentoPendente(false)
-          orienta('Pagamento confirmado', 'Seu pagamento foi confirmado e seus créditos já estão disponíveis.')
+          agradece('Pagamento confirmado', 'Seu pagamento foi confirmado e seus créditos já estão disponíveis.')
         }
       } catch { /* tenta de novo no próximo ciclo */ }
     }
