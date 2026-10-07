@@ -5,6 +5,8 @@ import { useSearchParams } from 'next/navigation'
 import Image from 'next/image'
 import Banner from '@/components/Banner'
 import { useBanner } from '@/hooks/useBanner'
+import { enviarPdfAssinado } from '@/lib/envioPdf'
+import { createClient } from '@/utils/supabase/client'
 
 const SUPA_URL = 'https://asgorarunzhiojqioxzq.supabase.co'
 const SUPA_KEY = 'sb_publishable_dH85HYKGxv3X0te627VfOw_OGaPoNMF'
@@ -370,30 +372,17 @@ function HomologarProdutoInner() {
         throw new Error(`Arquivo muito grande (${(arquivo.size / 1024 / 1024).toFixed(1)}MB). O limite é 50MB.`)
       }
 
-      const base64 = await new Promise<string>((resolve, reject) => {
-        const reader = new FileReader()
-        reader.onload = () => {
-          const resultado = reader.result as string
-          const partes = resultado.split(',')
-          if (partes.length < 2) { reject(new Error('Não foi possível ler o arquivo selecionado.')); return }
-          resolve(partes[1])
-        }
-        reader.onerror = () => reject(new Error('Erro ao ler o arquivo selecionado.'))
-        reader.readAsDataURL(arquivo)
-      })
-
       // Usar o nome original do arquivo enviado pelo inspetor
       const nomePdf = arquivo.name.replace(/[^a-zA-Z0-9._\-]/g, '_')
-      const res = await fetch('/api/upload-pdf-assinado', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ nomeArquivo: nomePdf, base64 })
+      // O PDF vai DIRETO ao Storage por uma URL assinada: só o nome passa pelo servidor. Antes ele ia em
+      // base64 dentro do JSON da rota, e a Vercel recusa corpos acima de 4,5 MB (erro 413: um laudo
+      // assinado com muitas fotos não conseguia ser enviado).
+      const envio = await enviarPdfAssinado(arquivo, nomePdf, {
+        fetchFn: (url, init) => fetch(url, init),
+        enviarAoStorage: (path, token, f) =>
+          createClient().storage.from('aime').uploadToSignedUrl(path, token, f, { contentType: 'application/pdf', upsert: true }),
       })
-      if (!res.ok) {
-        let detalhe = ''
-        try { detalhe = (await res.json())?.erro ?? '' } catch { /* resposta sem JSON */ }
-        throw new Error(`Falha ao enviar o PDF (${res.status}). ${detalhe}`)
-      }
+      if (envio.ok === false) throw new Error(envio.erro)
 
       // Item (h): grupo 4x — soma 1 em qtd_servicos_exec e ajusta saldo do contrato
       if (grupo4x && cpfInspetor) {
