@@ -226,8 +226,16 @@ tr:nth-child(even) td { background: #f7f9ff; }
 .indice-titulo { font-size: 14pt; font-weight: 900; color: #1E3A8A; text-align: center; margin-bottom: 12mm; letter-spacing: 2px; }
 
 .indice-item { display: flex; align-items: baseline; padding: 3pt 0; font-size: 9pt; }
-'.indice-num  { min-width: 30pt; font-weight: 400; color: #000; flex-shrink: 0; }'
-.indice-dots { flex: 1; }
+/* Subitens (1.1.-, 3.2.-...): recuados e em fonte menor. Esta regra existia no desenho original (30/07)
+   e se perdeu; sem ela a hierarquia do indice desaparece. */
+.indice-item.nivel2 { padding-left: 12pt; font-size: 8.5pt; }
+/* Coluna do numero com largura fixa, para os titulos alinharem ("Anexo 1" cabe em 38pt). Desde 17/08 esta
+   regra estava ENTRE ASPAS por engano (o que a invalida, e tambem invalidava a regra seguinte), e o
+   numero colava no titulo ("1.Consideracoes", "Anexo 1Documentacao"). */
+.indice-num  { min-width: 38pt; font-weight: 400; color: #000; flex-shrink: 0; }
+/* Espacador de largura FIXA: o titulo ja tem flex:1 e o numero da pagina margin-left:auto. Com flex:1 aqui
+   o espacador dividia a sobra com o titulo e ele quebrava em duas linhas sem necessidade. */
+.indice-dots { flex: 0 0 6pt; }
 
 /* §3.5 — Item classificado */
 .item-row     { display: flex; align-items: stretch; border-top: 1px solid #1E3A8A; min-height: 48px; }
@@ -1188,7 +1196,7 @@ export async function POST(request: NextRequest) {
       const docsA1 = (Object.keys(complemento?.docsAnexo1 ?? {}).length > 0
         ? Object.keys(complemento.docsAnexo1) : docsAnexo).filter((d:string) => !d.startsWith('⚠️'))
       const A1nr =
-        '<div class="titulo" style="text-align:center">Anexo 1 — ' + (A1_TITULO[tipoServico]??'Documentação Solicitada') + '</div>' +
+        '<div class="titulo" style="text-align:center">Anexo 1 – ' + (A1_TITULO[tipoServico]??'Documentação Solicitada') + '</div>' +
         '<div>' +
         '<table style="width:100%;border-collapse:collapse">' +
         '<tr>' +
@@ -1371,8 +1379,7 @@ export async function POST(request: NextRequest) {
         {n:'7.3.-',pg:'15',t:'Termo de Encerramento',nivel:2},
         {n:'Anexo 1',pg:'16',t:A1_TITULO[tipoServico]??'Documentação Solicitada',nivel:1},
         {n:'Anexo 2',pg:'17',t:'Resultado da Vistoria',nivel:1},
-        {n:'Anexo 3',pg:'19',t:'Relação de Não Conformidades e Soluções',nivel:1},
-        {n:'Anexo 4',pg:'20',t:'Anotação de Responsabilidade Técnica',nivel:1},
+        {n:'Anexo 3',pg:'19',t:'Anotação de Responsabilidade Técnica',nivel:1},
       ]
       const indiceHtmlNR = indiceNR.map(it =>
         '<div class="indice-item' + (it.nivel===2?' nivel2':'') + '">' +

@@ -83,7 +83,8 @@ function descobrirPaginasReais(paginas: string[], itens: ItemIndice[]): Record<s
   for (const { numero, titulo } of itens) {
     const numEscapado = numero.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
     const tituloEscapado = titulo.slice(0, 15).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-    const re = new RegExp(numEscapado + '\\s*[-–]?\\s*' + tituloEscapado, 'i')
+    // [-–—]: hifen, travessao curto OU longo (o Anexo 1 do modelo NR usava o longo e nunca era encontrado)
+    const re = new RegExp(numEscapado + '\\s*[-–—]?\\s*' + tituloEscapado, 'i')
     // Itens "Anexo N" costumam ser citados antes, numa lista dentro da seção
     // 7.1 (ex: "Anexo 2 – Resultado da Vistoria;"), e só têm seu título real
     // (a seção em si) bem mais adiante — usar a ÚLTIMA ocorrência evita
