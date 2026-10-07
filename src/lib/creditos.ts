@@ -14,6 +14,7 @@
 //   * Falha de infraestrutura NUNCA bloqueia o usuário: na dúvida, libera e registra o erro.
 
 import { createClient } from '@supabase/supabase-js'
+import { contratoCorrente } from '@/lib/contratos'
 import { precoPlanoCentavos, precoAvulsoPacoteCentavos } from '@/lib/precos'
 
 // ───────────────────────── Configuração ─────────────────────────
@@ -325,23 +326,45 @@ export async function concederCreditos(
   try {
     if (tipo === 'AVULSO') {
       const hojeAvulso = new Date().toISOString().slice(0, 10)
-      // Validade de 90 dias — so para avulso concedido A PARTIR desta
-      // mudanca (02/10/2026). Avulso concedido antes continua sem
-      // vencimento (data_fim_avulso fica null), por decisao de Celso.
+      // REGRA DE VALIDADE (decisão de Celso, 07/10/2026): o avulso é UM SÓ saldo, que acumula tudo, e
+      // vale 90 dias a partir da ÚLTIMA compra. Antes, avulso de origens diferentes ficava em saldos
+      // separados (um sem vencimento, outro com 90 dias), o que confundia; e o avulso novo podia ir
+      // parar num plano já encerrado pela troca de plano (empate na data de início).
       const fimAvulso = new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
-      const { data: contrato } = await supabase
+      const { data: vigentes } = await supabase
         .from('contratos_inspetor').select('*')
         .eq('cpf_inspetor', cpf).gte('data_fim_contrato', hojeAvulso)
-        .order('data_inicio_contrato', { ascending: false }).limit(1).maybeSingle()
+      const alvo = contratoCorrente(vigentes ?? [], hojeAvulso)
 
-      if (contrato) {
+      if (alvo) {
+        // Acumula: o avulso de OUTROS contratos vigentes (ex.: um contrato só de avulso criado antes) é
+        // trazido para o contrato corrente. Se algo falhar depois de zerar, devolve o que foi zerado.
+        const outros = (vigentes ?? []).filter(v => v !== alvo && (v.qde_contratada_avulso > 0 || v.saldo_quantidade_avulso > 0))
+        let somaQde = 0
+        let somaSaldo = 0
+        for (const v of outros) { somaQde += v.qde_contratada_avulso; somaSaldo += v.saldo_quantidade_avulso }
+        const zerados: typeof outros = []
+        const restaurar = async () => {
+          for (const v of zerados) {
+            await supabase.from('contratos_inspetor').update({
+              qde_contratada_avulso: v.qde_contratada_avulso, saldo_quantidade_avulso: v.saldo_quantidade_avulso,
+            }).eq('cpf_inspetor', cpf).eq('tipo_assinatura', v.tipo_assinatura).eq('data_inicio_contrato', v.data_inicio_contrato)
+          }
+        }
+        for (const v of outros) {
+          const { error: erroZera } = await supabase.from('contratos_inspetor').update({
+            qde_contratada_avulso: 0, saldo_quantidade_avulso: 0,
+          }).eq('cpf_inspetor', cpf).eq('tipo_assinatura', v.tipo_assinatura).eq('data_inicio_contrato', v.data_inicio_contrato)
+          if (erroZera) { await restaurar(); return { ok: false, erro: erroZera.message } }
+          zerados.push(v)
+        }
         const { error } = await supabase.from('contratos_inspetor').update({
-          qde_contratada_avulso: contrato.qde_contratada_avulso + qdeCreditos,
-          saldo_quantidade_avulso: contrato.saldo_quantidade_avulso + qdeCreditos,
+          qde_contratada_avulso: alvo.qde_contratada_avulso + somaQde + qdeCreditos,
+          saldo_quantidade_avulso: alvo.saldo_quantidade_avulso + somaSaldo + qdeCreditos,
           data_fim_avulso: fimAvulso,
-        }).eq('cpf_inspetor', cpf).eq('tipo_assinatura', contrato.tipo_assinatura)
-          .eq('data_inicio_contrato', contrato.data_inicio_contrato)
-        if (error) return { ok: false, erro: error.message }
+        }).eq('cpf_inspetor', cpf).eq('tipo_assinatura', alvo.tipo_assinatura)
+          .eq('data_inicio_contrato', alvo.data_inicio_contrato)
+        if (error) { await restaurar(); return { ok: false, erro: error.message } }
       } else {
         const { error } = await supabase.from('contratos_inspetor').insert({
           cpf_inspetor: cpf, tipo_assinatura: 'PLANO SERVIÇO', // placeholder p/ satisfazer o check
@@ -435,11 +458,15 @@ export async function concederCreditos(
       // Validade do avulso do conjunto (só mexe se algo entrou nele agora). Quem já era SEM vencimento
       // continua sem vencimento — antes, qualquer excedente trocava a validade do avulso inteiro por
       // 90 dias, e crédito permanente passava a vencer.
-      if (excedente > 0 || migSaldo > 0) {
+      if (excedente > 0) {
+        // Crédito PAGO entrou no avulso: o conjunto todo vale 90 dias a partir desta compra (decisão de
+        // Celso, 07/10/2026 — um saldo só, validade renovada a cada compra).
+        atualizacao.data_fim_avulso = fim90
+      } else if (migSaldo > 0) {
+        // Só migrou saldo de outro plano (nenhuma compra nova): preserva a validade, e sem vencimento prevalece.
         const validade = combinarValidade([
           { saldo: jaExiste.saldo_quantidade_avulso, fim: (jaExiste.data_fim_avulso ?? null) as string | null },
           ...entradasMigradas,
-          { saldo: excedente, fim: fim90 },
         ])
         if (validade !== undefined) atualizacao.data_fim_avulso = validade
       }

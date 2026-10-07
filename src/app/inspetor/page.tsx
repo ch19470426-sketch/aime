@@ -6,6 +6,7 @@ import Image from "next/image"
 import { createClient } from "@/utils/supabase/client"
 import BlocoAssinatura, { type AssinaturaStatus } from '@/components/BlocoAssinatura'
 import { rodadaDeEspera } from '@/lib/esperaPagamento'
+import { contratoCorrente } from '@/lib/contratos'
 import Banner from '@/components/Banner'
 import { useBanner } from '@/hooks/useBanner'
 
@@ -660,6 +661,11 @@ function CadastroInspetor() {
                           const idxPlanoAtual = contratos.findIndex(c2 => c2.qde_contratada_plano > 0
                             && new Date(c2.data_fim_contrato) >= new Date()
                             && ['PLANO MENSAL', 'PLANO ESCRITÓRIO'].includes(c2.tipo_assinatura))
+                          // Contrato ENCERRADO pela troca de plano (zerado e já substituído pelo corrente) não
+                          // aparece como plano em aberto (07/10/2026: aparecia "Plano válido até" com 0 de 3.000).
+                          const corrente = contratoCorrente(contratos, new Date().toISOString().slice(0, 10))
+                          if (!vencido && ct !== corrente && ct.saldo_quantidade_plano === 0
+                              && ct.qde_contratada_avulso === 0 && ct.saldo_quantidade_avulso === 0) return []
                           const pct = ct.qde_contratada_plano > 0 ? Math.round((ct.saldo_quantidade_plano/ct.qde_contratada_plano)*100) : 0
                           const COR: Record<string,string> = {'PLANO CORTESIA':'#6B7280','PLANO SERVIÇO':'#0284C7','PLANO MENSAL':'#059669','PLANO ESCRITÓRIO':'#7C3AED'}
                           const cards = []

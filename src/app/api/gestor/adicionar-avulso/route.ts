@@ -1,14 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
 import { exigirGestor } from '@/lib/autorizacao'
+import { concederCreditos } from '@/lib/creditos'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-)
 
 export async function POST(request: NextRequest) {
   try {
@@ -20,43 +15,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ erro: 'Quantidade deve ser múltiplo de 600.' }, { status: 400 })
     }
 
-    // Buscar contrato ativo mais recente para atualizar avulso
-    const { data: contrato } = await supabase
-      .from('contratos_inspetor')
-      .select('*')
-      .eq('cpf_inspetor', cpf)
-      .gte('data_fim_contrato', new Date().toISOString().slice(0,10))
-      .order('data_inicio_contrato', { ascending: false })
-      .limit(1)
-      .maybeSingle()
-
-    if (contrato) {
-      // Acumular avulso no contrato ativo
-      const { error } = await supabase
-        .from('contratos_inspetor')
-        .update({
-          qde_contratada_avulso: contrato.qde_contratada_avulso + qde,
-          saldo_quantidade_avulso: contrato.saldo_quantidade_avulso + qde,
-        })
-        .eq('cpf_inspetor', cpf)
-        .eq('tipo_assinatura', contrato.tipo_assinatura)
-        .eq('data_inicio_contrato', contrato.data_inicio_contrato)
-      if (error) return NextResponse.json({ erro: error.message }, { status: 500 })
-    } else {
-      // Sem contrato ativo — criar registro só de avulso (sem validade)
-      const { error } = await supabase
-        .from('contratos_inspetor')
-        .insert({
-          cpf_inspetor: cpf,
-          tipo_assinatura: 'PLANO SERVIÇO', // placeholder para satisfazer o check
-          data_inicio_contrato: new Date().toISOString().slice(0,10),
-          qde_contratada_plano: 0,
-          saldo_quantidade_plano: 0,
-          qde_contratada_avulso: qde,
-          saldo_quantidade_avulso: qde,
-        })
-      if (error) return NextResponse.json({ erro: error.message }, { status: 500 })
-    }
+    // Mesma regra de qualquer avulso (src/lib/creditos.ts): vai para o contrato CORRENTE, acumula num
+    // saldo só e vale 90 dias a partir desta entrada. Antes esta rota tinha uma cópia da lógica, com o
+    // mesmo problema de escolher "o mais recente" só pela data de início.
+    const r = await concederCreditos(cpf, 'AVULSO', qde)
+    if (!r.ok) return NextResponse.json({ erro: r.erro ?? 'Não foi possível adicionar o avulso.' }, { status: 500 })
 
     return NextResponse.json({ ok: true })
   } catch (err) {
