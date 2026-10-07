@@ -131,6 +131,9 @@ export default function GestorPage() {
   const { bannerProps, informa, solicita, fechar } = useBanner()
   const [contasBloqueadas, setContasBloqueadas] = useState<any[]>([])
   const [carregandoBloq, setCarregandoBloq] = useState(false)
+  const [cpfConferencia, setCpfConferencia] = useState('')
+  const [conferindo, setConferindo] = useState(false)
+  const [resultadoConferencia, setResultadoConferencia] = useState<{ conferidos: number; tratados: number; itens: any[] } | null>(null)
   const [aba, setAba] = useState<'dados'|'plano'|'info'>('dados')
   const searchParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null
   const abaInicial = (searchParams?.get('aba') as any) || 'inspetores'
@@ -292,6 +295,33 @@ export default function GestorPage() {
       if (!res.ok) informa('Não foi possível carregar', d.erro ?? 'Tente novamente em instantes.')
     } catch { setContasBloqueadas([]); informa('Não foi possível carregar', 'Erro de conexão. Tente novamente.') }
     finally { setCarregandoBloq(false) }
+  }
+
+  // Consulta o Asaas e trata os estornos/chargebacks das compras pagas recentes (não depende do aviso do Asaas).
+  async function conferirEstornosAsaas() {
+    const cpfLimpo = cpfConferencia.replace(/\D/g, '')
+    if (cpfConferencia.trim() && cpfLimpo.length !== 11) {
+      informa('CPF inválido', 'Informe os 11 dígitos do CPF ou deixe em branco para conferir todas as contas.')
+      return
+    }
+    setConferindo(true); setResultadoConferencia(null)
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      const res = await fetch('/api/gestor/conferir-estornos', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session?.access_token ?? ''}` },
+        body: JSON.stringify(cpfLimpo ? { cpf: cpfLimpo } : {}),
+      })
+      const d = await res.json()
+      if (!res.ok) { informa('Não foi possível conferir', d.erro ?? 'Tente novamente em instantes.'); return }
+      setResultadoConferencia(d)
+      informa(d.tratados > 0 ? 'Estornos tratados' : 'Conferência concluída',
+        d.tratados > 0
+          ? `${d.tratados} estorno(s) tratado(s): créditos revogados e conta bloqueada. O detalhe está abaixo.`
+          : `Conferi ${d.conferidos} compra(s) paga(s) no Asaas e nenhuma estava estornada. O status de cada uma está abaixo.`)
+      await carregarContasBloqueadas()
+    } catch { informa('Não foi possível conferir', 'Erro de conexão. Tente novamente.') }
+    finally { setConferindo(false) }
   }
 
   function confirmarDesbloqueio(conta: any) {
@@ -903,6 +933,35 @@ export default function GestorPage() {
             <div style={{ fontSize: '13px', fontWeight: 700, color: '#1E3A8A', marginBottom: '4px' }}>Contas bloqueadas</div>
             <div style={{ fontSize: '11px', color: '#6B7280', marginBottom: '10px', lineHeight: 1.5 }}>
               Bloqueio automático por estorno, chargeback ou cartão recusado em 3 cobranças seguidas. Enquanto bloqueada, a conta não inicia serviços nem contrata créditos.
+            </div>
+
+            <div data-conferencia style={{ border: '1px solid #E2E8F0', borderRadius: '8px', padding: '10px 12px', marginBottom: '12px', backgroundColor: '#F8FAFC' }}>
+              <div style={{ fontSize: '12px', fontWeight: 700, color: '#1E3A8A', marginBottom: '4px' }}>Conferir estornos no Asaas</div>
+              <div style={{ fontSize: '11px', color: '#6B7280', marginBottom: '8px', lineHeight: 1.5 }}>
+                Consulta o Asaas, mostra o status real de cada compra paga dos últimos 45 dias e trata as estornadas ou em chargeback (revoga o saldo restante da compra, bloqueia a conta). Não depende de o aviso do Asaas ter chegado.
+              </div>
+              <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' as const }}>
+                <input value={cpfConferencia} onChange={e => setCpfConferencia(e.target.value)} placeholder="CPF (opcional — vazio confere todas as contas)" inputMode="numeric"
+                  style={{ flex: 1, minWidth: '220px', border: '1px solid #D1D5DB', borderRadius: '6px', padding: '7px 10px', fontSize: '12px' }} />
+                <button onClick={conferirEstornosAsaas} disabled={conferindo}
+                  style={{ backgroundColor: '#1E3A8A', color: 'white', border: 'none', borderRadius: '9999px', padding: '8px 18px', fontSize: '12px', fontWeight: 700, cursor: conferindo ? 'not-allowed' : 'pointer', opacity: conferindo ? 0.6 : 1 }}>
+                  {conferindo ? 'Conferindo...' : 'Conferir estornos'}
+                </button>
+              </div>
+              {resultadoConferencia && (
+                <div data-resultado-conferencia style={{ marginTop: '10px' }}>
+                  <div style={{ fontSize: '11px', color: '#374151', marginBottom: '4px' }}>
+                    {resultadoConferencia.conferidos} compra(s) paga(s) conferida(s) · {resultadoConferencia.tratados} estorno(s) tratado(s)
+                  </div>
+                  {resultadoConferencia.itens.map((it: any) => (
+                    <div key={it.pedidoId} data-item-conferencia style={{ fontSize: '11px', padding: '4px 0', borderTop: '1px solid #E2E8F0', color: it.acao === 'estornado' ? '#92400E' : it.acao === 'erro' ? '#DC2626' : '#374151' }}>
+                      <b>#{it.pedidoId}</b> · {it.tipo}{it.tipo === 'AVULSO' ? ` ${it.qde} CR` : ''} · CPF {it.cpf} · Asaas: <b>{it.statusAsaas}</b>
+                      {' → '}{it.acao === 'estornado' ? 'ESTORNO TRATADO' : it.acao === 'ja_estornado' ? 'já tratado' : it.acao === 'em_andamento' ? 'estorno em andamento' : it.acao === 'erro' ? 'erro' : 'sem estorno'}
+                      {it.detalhe ? ` (${it.detalhe})` : ''}
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
             {carregandoBloq && <div style={{ fontSize: '12px', color: '#6B7280' }}>Carregando...</div>}
             {!carregandoBloq && contasBloqueadas.length === 0 && <div data-vazio style={{ fontSize: '12px', color: '#6B7280' }}>Nenhuma conta bloqueada.</div>}

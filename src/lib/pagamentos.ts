@@ -30,6 +30,11 @@ export type ResultadoCobranca = { status: number; corpo: Record<string, unknown>
 const ok = (corpo: Record<string, unknown> = {}): ResultadoCobranca => ({ status: 200, corpo: { ok: true, ...corpo } })
 const naoEncontrada = (e: unknown) => /n[ãa]o encontrad|not found|404/i.test(e instanceof Error ? e.message : String(e))
 
+/** Status da cobrança no Asaas que significam estorno concluído / chargeback / estorno em andamento. */
+const STATUS_ESTORNADO = new Set(['REFUNDED'])
+const STATUS_CHARGEBACK = new Set(['CHARGEBACK_REQUESTED', 'CHARGEBACK_DISPUTE', 'AWAITING_CHARGEBACK_REVERSAL'])
+const STATUS_ESTORNO_EM_ANDAMENTO = new Set(['REFUND_REQUESTED', 'REFUND_IN_PROGRESS'])
+
 /** Encerra a assinatura (Asaas e base) para parar novas cobranças. Melhor esforço no Asaas. */
 async function encerrarAssinaturaPorBloqueio(assinaturaId: number): Promise<void> {
   const { data: ass } = await supabase.from('assinaturas')
@@ -175,7 +180,7 @@ async function aposPagamentoDeAssinatura(pedido: any, proximaCalculada: string |
  * quem chama é a conferência do AIMÊ. Erros inesperados SOBEM (o webhook responde 500 para o
  * Asaas reentregar; a conferência conta como falha).
  */
-export async function processarCobranca(paymentId: string, evento = ''): Promise<ResultadoCobranca> {
+export async function processarCobranca(paymentId: string, evento = '', statusNoAviso = ''): Promise<ResultadoCobranca> {
   let { data: pedido } = await supabase
     .from('pedidos_credito').select('*').eq('asaas_payment_id', paymentId).maybeSingle()
   let cobranca: Awaited<ReturnType<typeof consultarCobranca>> | null = null
@@ -193,9 +198,15 @@ export async function processarCobranca(paymentId: string, evento = ''): Promise
   }
 
   // Estorno ou chargeback: revoga o saldo restante dessa compra, esquece o que foi usado e bloqueia a conta.
-  if (evento === 'PAYMENT_REFUNDED' || evento === 'PAYMENT_CHARGEBACK_REQUESTED') {
+  // Vale o NOME do evento OU o STATUS que o aviso traz na cobrança: o Asaas pode avisar o estorno por outro
+  // evento (ex.: PAYMENT_UPDATED), e o status "REFUNDED" no corpo é o mesmo fato.
+  const eventoEstorno =
+    (evento === 'PAYMENT_REFUNDED' || STATUS_ESTORNADO.has(statusNoAviso)) ? 'PAYMENT_REFUNDED'
+    : (evento === 'PAYMENT_CHARGEBACK_REQUESTED' || STATUS_CHARGEBACK.has(statusNoAviso)) ? 'PAYMENT_CHARGEBACK_REQUESTED'
+    : ''
+  if (eventoEstorno) {
     if (!pedido) return ok({ ignorado: true, motivo: 'pedido_nao_encontrado' })
-    return await tratarEstorno(pedido, evento)
+    return await tratarEstorno(pedido, eventoEstorno)
   }
   // Estorno PARCIAL: a regra da conta não cobre (quanto revogar?), então só avisa a equipe para decidir.
   if (evento === 'PAYMENT_PARTIALLY_REFUNDED') {
@@ -301,4 +312,62 @@ export async function processarCobranca(paymentId: string, evento = ''): Promise
   if (pedido.assinatura_id) await aposPagamentoDeAssinatura(pedido, assinatura?.proxima ?? null, qde)
 
   return ok({ creditosConcedidos: qde })
+}
+
+
+// ─────────────────────────────────────────────────────────────────────────────────────────────
+// CONFERÊNCIA DE ESTORNOS (07/10/2026). Não depende de o aviso do Asaas chegar: consulta o status REAL de
+// cada compra paga recente e trata as que estão estornadas ou em chargeback (mesma regra do aviso:
+// revoga o saldo restante dessa compra, esquece o usado, bloqueia a conta). Botão no Painel do Gestor.
+// ─────────────────────────────────────────────────────────────────────────────────────────────
+export type ItemConferencia = {
+  pedidoId: number; cpf: string; tipo: string; qde: number; paymentId: string
+  statusAsaas: string
+  acao: 'estornado' | 'ja_estornado' | 'nenhuma' | 'em_andamento' | 'erro'
+  detalhe?: string
+}
+
+export async function conferirEstornos(opcoes: { cpf?: string; dias?: number; limite?: number } = {}):
+  Promise<{ conferidos: number; tratados: number; itens: ItemConferencia[] }> {
+  const dias = opcoes.dias ?? 45
+  const limite = Math.min(opcoes.limite ?? 40, 100)
+  const corte = new Date(Date.now() - dias * 86400000).toISOString()
+  let consulta = supabase.from('pedidos_credito')
+    .select('id,cpf_inspetor,tipo,qde_creditos,status,asaas_payment_id,assinatura_id,estornado_em,criado_em')
+    .eq('status', 'pago').gte('criado_em', corte).order('id', { ascending: false }).limit(limite)
+  if (opcoes.cpf) consulta = consulta.eq('cpf_inspetor', opcoes.cpf)
+  const { data: pedidos, error } = await consulta
+  if (error) throw new Error(`não consegui listar os pedidos: ${error.message}`)
+  const lista = (pedidos ?? []).filter((p: any) => !!p.asaas_payment_id)
+
+  // 1) consulta o Asaas (só leitura), em lotes
+  const respostas: Record<number, { status: string; erro?: string }> = {}
+  const aConsultar = lista.filter((p: any) => !p.estornado_em)
+  for (let i = 0; i < aConsultar.length; i += 8) {
+    await Promise.all(aConsultar.slice(i, i + 8).map(async (p: any) => {
+      try { respostas[p.id] = { status: String((await consultarCobranca(p.asaas_payment_id)).status ?? '') } }
+      catch (e) { respostas[p.id] = { status: 'INDISPONIVEL', erro: e instanceof Error ? e.message : String(e) } }
+    }))
+  }
+
+  // 2) trata os estornos UM POR VEZ (duas compras da mesma conta mexem nos mesmos saldos)
+  const itens: ItemConferencia[] = []
+  for (const p of lista as any[]) {
+    const base = { pedidoId: p.id, cpf: p.cpf_inspetor, tipo: p.tipo, qde: p.qde_creditos, paymentId: p.asaas_payment_id }
+    if (p.estornado_em) { itens.push({ ...base, statusAsaas: '—', acao: 'ja_estornado', detalhe: 'já tratado pelo AIMÊ' }); continue }
+    const r = respostas[p.id]
+    if (r.erro) { itens.push({ ...base, statusAsaas: r.status, acao: 'erro', detalhe: r.erro }); continue }
+    const eventoEstorno = STATUS_ESTORNADO.has(r.status) ? 'PAYMENT_REFUNDED' : STATUS_CHARGEBACK.has(r.status) ? 'PAYMENT_CHARGEBACK_REQUESTED' : ''
+    if (eventoEstorno) {
+      const res = await tratarEstorno(p, eventoEstorno)
+      if (res.status !== 200) itens.push({ ...base, statusAsaas: r.status, acao: 'erro', detalhe: String(res.corpo?.erro ?? 'falha ao tratar o estorno') })
+      else if (res.corpo?.estornado) itens.push({ ...base, statusAsaas: r.status, acao: 'estornado', detalhe: `${res.corpo.revogados} CR revogados; ${res.corpo.naoRecuperados} já usados (esquecidos)` })
+      else itens.push({ ...base, statusAsaas: r.status, acao: 'ja_estornado', detalhe: 'já tratado pelo AIMÊ' })
+    } else if (STATUS_ESTORNO_EM_ANDAMENTO.has(r.status)) {
+      itens.push({ ...base, statusAsaas: r.status, acao: 'em_andamento', detalhe: 'o estorno ainda não foi concluído no Asaas' })
+    } else {
+      itens.push({ ...base, statusAsaas: r.status, acao: 'nenhuma' })
+    }
+  }
+  return { conferidos: lista.length, tratados: itens.filter(i => i.acao === 'estornado').length, itens }
 }
