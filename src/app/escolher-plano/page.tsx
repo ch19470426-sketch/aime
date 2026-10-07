@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation"
 import Image from "next/image"
 import LinkSair from "@/components/LinkSair"
 import Banner from "@/components/Banner"
+import VersaoBuild from "@/components/VersaoBuild"
 import { useBanner } from "@/hooks/useBanner"
 import { createClient } from "@/utils/supabase/client"
 import { precoPlanoCentavos, formatarReais } from "@/lib/precos"
@@ -199,6 +200,7 @@ function EscolherPlano() {
     return (
       <div style={S.body}>
       <Banner {...bannerProps} />
+      <VersaoBuild />
         <div style={{ ...S.page, maxWidth: '480px' }}>
           <div style={S.header}>
             <Image src="/logo.png" alt="AIMÊ" width={80} height={32} priority style={{ filter: "brightness(0) invert(1)" }} />
@@ -221,6 +223,7 @@ function EscolherPlano() {
   return (
     <div style={S.body}>
       <Banner {...bannerProps} />
+      <VersaoBuild />
       <div style={S.page}>
         <div style={S.header}>
           <Image src="/logo.png" alt="AIMÊ" width={80} height={32} priority style={{ filter: "brightness(0) invert(1)" }} />

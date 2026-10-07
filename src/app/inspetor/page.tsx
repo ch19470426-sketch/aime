@@ -8,6 +8,7 @@ import BlocoAssinatura, { type AssinaturaStatus } from '@/components/BlocoAssina
 import { rodadaDeEspera } from '@/lib/esperaPagamento'
 import { contratoCorrente } from '@/lib/contratos'
 import Banner from '@/components/Banner'
+import VersaoBuild from '@/components/VersaoBuild'
 import { useBanner } from '@/hooks/useBanner'
 
 const SUPA_URL = 'https://asgorarunzhiojqioxzq.supabase.co'
@@ -472,6 +473,7 @@ function CadastroInspetor() {
   return (
     <div style={{backgroundColor:"#E8EEF7",minHeight:"100vh",display:"flex",alignItems:"flex-start",justifyContent:"center",padding:"16px"}}>
       <Banner {...bannerProps} />
+      <VersaoBuild />
       <div style={{backgroundColor:"white",borderRadius:"16px",boxShadow:"0 4px 24px rgba(0,0,0,0.12)",width:"100%",maxWidth:"900px",overflow:"hidden"}}>
 
         <div style={{backgroundColor:"#1E3A8A",padding:"8px 16px",display:"flex",alignItems:"center",gap:"12px"}}>

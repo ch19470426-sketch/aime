@@ -10,6 +10,7 @@ export const dynamic = 'force-dynamic'
 
 import { useState, useEffect } from "react"
 import Banner from "@/components/Banner"
+import VersaoBuild from '@/components/VersaoBuild'
 import { useBanner } from "@/hooks/useBanner"
 import { useRouter } from "next/navigation"
 import Image from "next/image"
@@ -914,6 +915,7 @@ export default function Dashboard() {
       </div>
     </div>
     <Banner {...bannerProps} />
+      <VersaoBuild />
     </>
   )
 }
