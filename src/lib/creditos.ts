@@ -367,80 +367,115 @@ export async function concederCreditos(
     // de valor fixo (só exige múltiplo de 600) — garantindo que o
     // pagamento sempre vira crédito de verdade, nunca se perde.
     const hoje = new Date().toISOString().slice(0, 10)
+    const fim90 = new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
     const { data: jaExiste } = await supabase
-      .from('contratos_inspetor').select('qde_contratada_plano,saldo_quantidade_plano,qde_contratada_avulso,saldo_quantidade_avulso')
+      .from('contratos_inspetor').select('qde_contratada_plano,saldo_quantidade_plano,qde_contratada_avulso,saldo_quantidade_avulso,data_fim_avulso')
       .eq('cpf_inspetor', cpf).eq('tipo_assinatura', tipo).eq('data_inicio_contrato', hoje)
       .maybeSingle()
+
+    // TROCA/RENOVAÇÃO DE PLANO: TODOS os OUTROS contratos vigentes (qualquer tipo, qualquer data, menos
+    // o que está sendo reforçado agora) são ENCERRADOS e TUDO que ainda tinham — saldo de plano não
+    // usado E o avulso que já carregavam — migra para o avulso do contrato que fica. Decisão de
+    // Celso, 01/10/2026: nada se perde, em nenhum dos casos, e só UM plano fica em aberto.
+    //
+    // Corrigido em 07/10/2026 (achado de Celso): antes (1) o atalho "mesmo tipo contratado HOJE" saía
+    // ANTES de encerrar os outros planos — contratar o Mensal no mesmo dia em que já havia um Mensal
+    // deixava o Escritório aberto, com saldo; e (2) só o contrato vigente MAIS RECENTE era migrado,
+    // então com dois vigentes o outro ficava aberto.
+    //
+    // data_fim_contrato NÃO pode ser definida aqui (coluna gerada): "encerrar" = zerar o saldo.
+    const { data: vigentes } = await supabase
+      .from('contratos_inspetor').select('tipo_assinatura,data_inicio_contrato,saldo_quantidade_plano,qde_contratada_avulso,saldo_quantidade_avulso,data_fim_avulso')
+      .eq('cpf_inspetor', cpf).gte('data_fim_contrato', hoje)
+    // Contratos que não têm nada a migrar (já zerados) não são mexidos de novo.
+    const outros = (vigentes ?? [])
+      .filter(v => !(v.tipo_assinatura === tipo && v.data_inicio_contrato === hoje))
+      .filter(v => v.saldo_quantidade_plano + v.qde_contratada_avulso + v.saldo_quantidade_avulso > 0)
+
+    let migQde = 0
+    let migSaldo = 0
+    for (const v of outros) {
+      migQde += v.saldo_quantidade_plano + v.qde_contratada_avulso
+      migSaldo += v.saldo_quantidade_plano + v.saldo_quantidade_avulso
+    }
+    const entradasMigradas = outros.map(v => ({ saldo: v.saldo_quantidade_plano + v.saldo_quantidade_avulso, fim: (v.data_fim_avulso ?? null) as string | null }))
+
+    const chaveDe = (v: { tipo_assinatura: string; data_inicio_contrato: string }) => ({ tipo: v.tipo_assinatura, inicio: v.data_inicio_contrato })
+    const zerados: typeof outros = []
+    // Se algo falhar DEPOIS de zerar, devolve o que foi zerado: sem isso o crédito antigo se perderia
+    // (na nova tentativa o contrato antigo já estaria zerado e não haveria o que migrar).
+    const restaurar = async () => {
+      for (const v of zerados) {
+        const k = chaveDe(v)
+        await supabase.from('contratos_inspetor').update({
+          saldo_quantidade_plano: v.saldo_quantidade_plano,
+          qde_contratada_avulso: v.qde_contratada_avulso,
+          saldo_quantidade_avulso: v.saldo_quantidade_avulso,
+        }).eq('cpf_inspetor', cpf).eq('tipo_assinatura', k.tipo).eq('data_inicio_contrato', k.inicio)
+      }
+    }
+    for (const v of outros) {
+      const k = chaveDe(v)
+      const { error: erroEncerra } = await supabase.from('contratos_inspetor').update({
+        saldo_quantidade_plano: 0, qde_contratada_avulso: 0, saldo_quantidade_avulso: 0,
+      }).eq('cpf_inspetor', cpf).eq('tipo_assinatura', k.tipo).eq('data_inicio_contrato', k.inicio)
+      if (erroEncerra) { await restaurar(); return { ok: false, erro: erroEncerra.message } }
+      zerados.push(v)
+    }
 
     if (jaExiste) {
       const faltaParaEncher = jaExiste.qde_contratada_plano - jaExiste.saldo_quantidade_plano
       const paraPlano = Math.min(faltaParaEncher, qdeCreditos)   // preenche o plano ate o teto antes de sobrar
       const excedente = qdeCreditos - paraPlano                  // o resto vira avulso, nunca se perde
-      const atualizacao: Record<string, number | string> = {
+      const atualizacao: Record<string, number | string | null> = {
         saldo_quantidade_plano: jaExiste.saldo_quantidade_plano + paraPlano,
-        qde_contratada_avulso: jaExiste.qde_contratada_avulso + excedente,
-        saldo_quantidade_avulso: jaExiste.saldo_quantidade_avulso + excedente,
+        qde_contratada_avulso: jaExiste.qde_contratada_avulso + excedente + migQde,
+        saldo_quantidade_avulso: jaExiste.saldo_quantidade_avulso + excedente + migSaldo,
       }
-      // So renova a validade do avulso se algo foi de fato adicionado a ele
-      // agora — nao mexe na data so por reprocessar um pedido sem excedente.
-      if (excedente > 0) {
-        atualizacao.data_fim_avulso = new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
+      // Validade do avulso do conjunto (só mexe se algo entrou nele agora). Quem já era SEM vencimento
+      // continua sem vencimento — antes, qualquer excedente trocava a validade do avulso inteiro por
+      // 90 dias, e crédito permanente passava a vencer.
+      if (excedente > 0 || migSaldo > 0) {
+        const validade = combinarValidade([
+          { saldo: jaExiste.saldo_quantidade_avulso, fim: (jaExiste.data_fim_avulso ?? null) as string | null },
+          ...entradasMigradas,
+          { saldo: excedente, fim: fim90 },
+        ])
+        if (validade !== undefined) atualizacao.data_fim_avulso = validade
       }
       if (opcoes?.fimAssinatura) atualizacao.data_fim_assinatura = opcoes.fimAssinatura
       const { error } = await supabase.from('contratos_inspetor').update(atualizacao)
         .eq('cpf_inspetor', cpf).eq('tipo_assinatura', tipo).eq('data_inicio_contrato', hoje)
-      if (error) return { ok: false, erro: error.message }
+      if (error) { await restaurar(); return { ok: false, erro: error.message } }
       return { ok: true }
-    }
-
-    // TROCA/RENOVAÇÃO DE PLANO: se existe QUALQUER contrato vigente (mesmo
-    // tipo mas de um dia anterior — ex.: comprou Mensal de novo por engano
-    // enquanto o Mensal da semana passada ainda está ativo — ou de um tipo
-    // diferente), o saldo desse contrato antigo é ZERADO (data_fim_contrato
-    // não pode ser alterada — ver nota abaixo) e TUDO que ele ainda tinha —
-    // saldo de plano não usado E qualquer avulso que já carregava — migra
-    // para o avulso do contrato novo (sem vencimento). A colisão de MESMO
-    // tipo + MESMO dia já foi tratada acima (jaExiste) e retorna antes de
-    // chegar aqui, então não há risco de pegar a mesma linha duas vezes.
-    // Decisão de Celso, 01/10/2026: nada se perde, em nenhum dos casos.
-    const { data: planoAntigo } = await supabase
-      .from('contratos_inspetor').select('tipo_assinatura,data_inicio_contrato,saldo_quantidade_plano,qde_contratada_avulso,saldo_quantidade_avulso,data_fim_avulso')
-      .eq('cpf_inspetor', cpf)
-      .gte('data_fim_contrato', hoje)
-      .order('data_inicio_contrato', { ascending: false }).limit(1).maybeSingle()
-
-    let avulsoMigradoQde = 0
-    let avulsoMigradoSaldo = 0
-    if (planoAntigo) {
-      avulsoMigradoQde = planoAntigo.saldo_quantidade_plano + planoAntigo.qde_contratada_avulso
-      avulsoMigradoSaldo = planoAntigo.saldo_quantidade_plano + planoAntigo.saldo_quantidade_avulso
-      // data_fim_contrato NAO pode ser definida diretamente (coluna
-      // controlada por gatilho no banco - so aceita DEFAULT). Zerar o
-      // saldo já atinge o efeito prático: mesmo que a linha antiga
-      // continue "vigente" pela data, sem saldo ela não contribui em
-      // nada numa próxima consulta de disponibilidade/consumo — e a
-      // linha NOVA (data_inicio_contrato de hoje) sempre é escolhida
-      // primeiro por ser mais recente. Achado real de Celso, 01/10/2026.
-      const { error: erroEncerra } = await supabase.from('contratos_inspetor').update({
-        saldo_quantidade_plano: 0, qde_contratada_avulso: 0, saldo_quantidade_avulso: 0,
-      }).eq('cpf_inspetor', cpf).eq('tipo_assinatura', planoAntigo.tipo_assinatura).eq('data_inicio_contrato', planoAntigo.data_inicio_contrato)
-      if (erroEncerra) return { ok: false, erro: erroEncerra.message }
     }
 
     const { error } = await supabase.from('contratos_inspetor').insert({
       cpf_inspetor: cpf, tipo_assinatura: tipo,
       data_inicio_contrato: hoje,
       qde_contratada_plano: qdeCreditos, saldo_quantidade_plano: qdeCreditos,
-      qde_contratada_avulso: avulsoMigradoQde, saldo_quantidade_avulso: avulsoMigradoSaldo,
-      // Preserva a validade que o avulso ja tinha (ou null = sem
-      // vencimento) — isto e realocacao do que ja existia, nao uma nova
-      // concessao, entao NAO renova os 90 dias.
-      data_fim_avulso: planoAntigo?.data_fim_avulso ?? null,
+      qde_contratada_avulso: migQde, saldo_quantidade_avulso: migSaldo,
+      // Preserva a validade que o avulso ja tinha (ou null = sem vencimento) — isto e realocacao do
+      // que ja existia, nao uma nova concessao, entao NAO renova os 90 dias.
+      data_fim_avulso: combinarValidade(entradasMigradas) ?? null,
       ...(opcoes?.fimAssinatura ? { data_fim_assinatura: opcoes.fimAssinatura } : {}),
     })
-    if (error) return { ok: false, erro: error.message }
+    if (error) { await restaurar(); return { ok: false, erro: error.message } }
     return { ok: true }
   } catch (e) {
     return { ok: false, erro: String(e) }
   }
+}
+
+/**
+ * Validade do avulso quando créditos de origens diferentes se juntam num só conjunto: considera só
+ * quem tem saldo; se alguma parte é SEM vencimento (null) o conjunto fica sem vencimento (nada se
+ * perde); senão vale a data mais longa. undefined = ninguém com saldo (nada a definir).
+ */
+function combinarValidade(entradas: Array<{ saldo: number; fim: string | null }>): string | null | undefined {
+  const comSaldo = entradas.filter(e => e.saldo > 0)
+  if (comSaldo.length === 0) return undefined
+  if (comSaldo.some(e => e.fim === null)) return null
+  const datas = comSaldo.map(e => e.fim as string).sort()
+  return datas[datas.length - 1]
 }
