@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation"
 import Image from "next/image"
 import Banner from '@/components/Banner'
 import { useBanner } from '@/hooks/useBanner'
+import { camposFaltantes } from '@/lib/coletaLaudo'
 
 // ─── Tipos ───────────────────────────────────────────────────────────────────
 interface NC {
@@ -89,7 +90,7 @@ function LaudoComplemento() {
   const tipoServico   = params.get('tipo_servico')    ?? '41'
 
   const cfg = LAUDO_CONFIG[tipoServico] ?? LAUDO_CONFIG['41']
-  const { bannerProps, solicita, fechar } = useBanner()
+  const { bannerProps, informa, solicita, fechar } = useBanner()
 
   // ── Sessão ──
   const [sessaoVerificada, setSessaoVerificada] = useState(false)
@@ -181,7 +182,6 @@ function LaudoComplemento() {
   const [docsAnexo1, setDocsAnexo1] = useState<Record<string,{situacao:string,resultado:string}>>({}) // preenchido pelo plano
 
   const SUPA_URL = 'https://asgorarunzhiojqioxzq.supabase.co'
-  const SUPA_SVC = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFzZ29yYXJ1bnpoaW9qcWlveHpxIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0NTI4NTEyNiwiZXhwIjoyMDYwODYxMTI2fQ.GZ7F3ywJLY5S8Q2RYQB_3zVrKzTFCbvqWlXmfwFjdVE'
   const SUPA_KEY = 'sb_publishable_dH85HYKGxv3X0te627VfOw_OGaPoNMF'
 
   // ── Carregar dados ──
@@ -437,9 +437,19 @@ function LaudoComplemento() {
   // ── Gerar laudo ──
   async function gerarLaudo() {
     setErro('')
-    if (!sinteseEdif) { setErro('Gere ou preencha a síntese da edificação (item 1.1).'); return }
-    if (!dadosVistoria) { setErro('Preencha a descrição da vistoria (item 3.1).'); return }
-    // validação 3.3 temporariamente desativada
+    // TODOS os campos da tela são obrigatórios (Celso, 07/10/2026), exceto, no serviço 42, a ART do engenheiro
+    // elétrico e a do mecânico (src/lib/coletaLaudo.ts). Isto religa a validação do item 3.3, que estava
+    // desligada desde 28/07/2026 (commit 063a3f5) por ser errada para os laudos de NR.
+    const faltantes = camposFaltantes({
+      tipoServico, sinteseEdif, nivelInspecao, dadosVistoria,
+      nivel, risco, desempenho, manut, uso, desempGeral,
+      nrManut, nrOp, nrFisico, nrSeg, nrDoc,
+      croqui: croquiBase64, fotoFachada: fotoCapa, artRrt, docs: docsAnexo1,
+    })
+    if (faltantes.length > 0) {
+      informa('Campos obrigatórios', `Preencha todos os campos antes de gerar o laudo. Faltam: ${faltantes.join('; ')}.`)
+      return
+    }
 
     // Exigir que TODOS os ativos tenham sido vistoriados E homologados antes
     // de gerar o laudo — dois problemas possíveis: (a) existem vistorias

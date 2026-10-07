@@ -11,7 +11,6 @@ import { validarAgenda } from '@/lib/agenda'
 
 const SUPA_URL = 'https://asgorarunzhiojqioxzq.supabase.co'
 const SUPA_KEY = 'sb_publishable_dH85HYKGxv3X0te627VfOw_OGaPoNMF'
-const SUPA_SVC = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFzZ29yYXJ1bnpoaW9qcWlveHpxIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0NTI4NTEyNiwiZXhwIjoyMDYwODYxMTI2fQ.GZ7F3ywJLY5S8Q2RYQB_3zVrKzTFCbvqWlXmfwFjdVE'
 
 const TITULO_TIPO: Record<string, string> = {
   '21': 'Plano de Trabalho — Autovistoria',
