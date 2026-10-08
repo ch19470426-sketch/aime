@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
     }
 
     const statusNoAviso: string = corpo?.payment?.status ?? ''
-    const r = await processarCobranca(paymentId, evento, statusNoAviso)
+    const r = await processarCobranca(paymentId, evento, statusNoAviso, corpo?.payment ?? null)
     return NextResponse.json(r.corpo, { status: r.status })
   } catch (err) {
     return NextResponse.json({ erro: String(err) }, { status: 500 })

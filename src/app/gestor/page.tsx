@@ -956,7 +956,7 @@ export default function GestorPage() {
                   {resultadoConferencia.itens.map((it: any) => (
                     <div key={it.pedidoId} data-item-conferencia style={{ fontSize: '11px', padding: '4px 0', borderTop: '1px solid #E2E8F0', color: it.acao === 'estornado' ? '#92400E' : it.acao === 'erro' ? '#DC2626' : '#374151' }}>
                       <b>#{it.pedidoId}</b> · {it.tipo}{it.tipo === 'AVULSO' ? ` ${it.qde} CR` : ''} · CPF {it.cpf} · Asaas: <b>{it.statusAsaas}</b>
-                      {' → '}{it.acao === 'estornado' ? 'ESTORNO TRATADO' : it.acao === 'ja_estornado' ? 'já tratado' : it.acao === 'em_andamento' ? 'estorno em andamento' : it.acao === 'erro' ? 'erro' : 'sem estorno'}
+                      {' → '}{it.acao === 'estornado' ? 'ESTORNO TRATADO' : it.acao === 'ja_estornado' ? 'já tratado' : it.acao === 'em_andamento' ? 'estorno em andamento' : it.acao === 'parcial' ? 'estorno PARCIAL (não tratado)' : it.acao === 'erro' ? 'erro' : 'sem estorno'}
                       {it.detalhe ? ` (${it.detalhe})` : ''}
                     </div>
                   ))}
