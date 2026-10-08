@@ -5,6 +5,7 @@ export const runtime = 'nodejs'
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { verificarDisponibilidade, consumirCreditos } from '@/lib/creditos'
+import { exigirSessao } from '@/lib/autorizacao'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -251,6 +252,9 @@ function numLimpo(num: string): string {
 }
 
 export async function POST(request: NextRequest) {
+  // PORTEIRO (AUTH_API_ATIVA): exige sessão válida. Inerte enquanto a variável não for exatamente "true".
+  const acessoApi = await exigirSessao(request)
+  if (acessoApi.ok === false) return acessoApi.resposta
   try {
     const body = await request.json()
     const { tipoServico, cpfInspetor, cnpjoucpf, razaoSocial, municipioUF, endereco, valor, prazo, chaveInspetor } = body

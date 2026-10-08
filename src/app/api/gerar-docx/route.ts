@@ -4,6 +4,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import HTMLtoDOCX from 'html-to-docx'
 import JSZip from 'jszip'
+import { exigirSessao } from '@/lib/autorizacao'
 
 export const runtime = 'nodejs'
 
@@ -119,6 +120,9 @@ async function corrigirDocx(buffer: Buffer, rodape: string, larguraUtilTwips: nu
 }
 
 export async function POST(request: NextRequest) {
+  // PORTEIRO (AUTH_API_ATIVA): exige sessão válida. Inerte enquanto a variável não for exatamente "true".
+  const acessoApi = await exigirSessao(request)
+  if (acessoApi.ok === false) return acessoApi.resposta
   try {
     const { html, cabecalho, rodape } = await request.json()
     if (!html) {

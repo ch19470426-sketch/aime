@@ -31,6 +31,7 @@ export const dynamic = 'force-dynamic'
 export const maxDuration = 300  // margem para documentos maiores (duas passagens) — ver comentario equivalente em gerar-laudo-pdf-indice-real
 
 import { NextRequest, NextResponse } from 'next/server'
+import { exigirSessao } from '@/lib/autorizacao'
 
 async function extrairTextoPorPagina(pdfBuffer: Uint8Array): Promise<string[]> {
   // pdf-parse@1.1.1 (versão fixa, testada) — versões mais novas mudaram a API
@@ -130,6 +131,9 @@ function corrigirIndiceNoHtml(html: string, pagsReais: Record<string, string>): 
 }
 
 export async function POST(request: NextRequest) {
+  // PORTEIRO (AUTH_API_ATIVA): exige sessão válida. Inerte enquanto a variável não for exatamente "true".
+  const acessoApi = await exigirSessao(request)
+  if (acessoApi.ok === false) return acessoApi.resposta
   const { nomeArquivo, html: htmlPass1 } = await request.json()
   if (!nomeArquivo || !htmlPass1)
     return NextResponse.json({ erro: 'nomeArquivo e html são obrigatórios.' }, { status: 400 })

@@ -9,6 +9,7 @@ export const maxDuration = 60
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import JSZip from 'jszip'
+import { exigirSessao } from '@/lib/autorizacao'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -220,6 +221,9 @@ function graficoPizza(totA: number, totM: number, totB: number): string {
 
 // ─── POST ─────────────────────────────────────────────────────────────────────
 export async function POST(request: NextRequest) {
+  // PORTEIRO (AUTH_API_ATIVA): exige sessão válida. Inerte enquanto a variável não for exatamente "true".
+  const acessoApi = await exigirSessao(request)
+  if (acessoApi.ok === false) return acessoApi.resposta
   try {
     const body = await request.json()
     const { cpfInspetor, chaveInspetor, cnpjoucpf, tipoServico,

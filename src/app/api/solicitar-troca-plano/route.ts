@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { Resend } from 'resend'
 import { REMETENTE_SUPORTE, montarEmailSimples } from '@/lib/emailSuporte'
+import { exigirSessao } from '@/lib/autorizacao'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -12,6 +13,9 @@ const supabase = createClient(
 )
 
 export async function POST(request: NextRequest) {
+  // PORTEIRO (AUTH_API_ATIVA): exige sessão válida. Inerte enquanto a variável não for exatamente "true".
+  const acessoApi = await exigirSessao(request)
+  if (acessoApi.ok === false) return acessoApi.resposta
   try {
     const { cpf, nome, planoDesejado } = await request.json()
 

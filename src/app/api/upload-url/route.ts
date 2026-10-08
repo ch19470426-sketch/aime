@@ -2,6 +2,7 @@
 // Evita trafegar o arquivo pelo servidor, que tem limite de corpo (~4,5 MB).
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { exigirSessao } from '@/lib/autorizacao'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -12,6 +13,9 @@ const supabase = createClient(
 )
 
 export async function POST(request: NextRequest) {
+  // PORTEIRO (AUTH_API_ATIVA): exige sessão válida. Inerte enquanto a variável não for exatamente "true".
+  const acessoApi = await exigirSessao(request)
+  if (acessoApi.ok === false) return acessoApi.resposta
   try {
     const { path } = await request.json()
     if (!path) return NextResponse.json({ erro: 'path ausente' }, { status: 400 })

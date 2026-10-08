@@ -7,6 +7,7 @@ export const maxDuration = 60  // Vercel Pro: até 60s para download de muitos a
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { exigirSessao } from '@/lib/autorizacao'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -15,6 +16,9 @@ const supabase = createClient(
 
 // GET — listar formulários por cnpjoucpf OU ler formulário específico por nome
 export async function GET(request: NextRequest) {
+  // PORTEIRO (AUTH_API_ATIVA): exige sessão válida. Inerte enquanto a variável não for exatamente "true".
+  const acessoApi = await exigirSessao(request)
+  if (acessoApi.ok === false) return acessoApi.resposta
   const { searchParams } = new URL(request.url)
   const nome          = searchParams.get('nome')
   const pasta         = searchParams.get('pasta') ?? 'vistorias'
@@ -107,6 +111,9 @@ export async function GET(request: NextRequest) {
 
 // DELETE — excluir formulário
 export async function DELETE(request: NextRequest) {
+  // PORTEIRO (AUTH_API_ATIVA): exige sessão válida. Inerte enquanto a variável não for exatamente "true".
+  const acessoApi = await exigirSessao(request)
+  if (acessoApi.ok === false) return acessoApi.resposta
   const { searchParams } = new URL(request.url)
   const nome = searchParams.get('nome')
 

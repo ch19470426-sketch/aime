@@ -38,6 +38,7 @@ export const maxDuration = 300
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { exigirSessao } from '@/lib/autorizacao'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -125,6 +126,9 @@ function corrigirIndiceNoHtml(html: string, pagsReais: Record<string, string>): 
 }
 
 export async function POST(request: NextRequest) {
+  // PORTEIRO (AUTH_API_ATIVA): exige sessão válida. Inerte enquanto a variável não for exatamente "true".
+  const acessoApi = await exigirSessao(request)
+  if (acessoApi.ok === false) return acessoApi.resposta
   const { nomeArquivo, html: htmlDireto, htmlSemFotos } = await request.json()
   if (!nomeArquivo)
     return NextResponse.json({ erro: 'nomeArquivo obrigatório.' }, { status: 400 })

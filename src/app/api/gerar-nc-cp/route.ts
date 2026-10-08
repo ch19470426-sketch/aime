@@ -4,6 +4,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import Anthropic from '@anthropic-ai/sdk'
 import type { GerarNcCpRequest, GerarNcCpResponse } from '@/types/vistoria-types'
+import { exigirSessao } from '@/lib/autorizacao'
 
 const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY!,
@@ -14,6 +15,9 @@ function limparSistema(sistema: string): string {
 }
 
 export async function POST(request: NextRequest) {
+  // PORTEIRO (AUTH_API_ATIVA): exige sessão válida. Inerte enquanto a variável não for exatamente "true".
+  const acessoApi = await exigirSessao(request)
+  if (acessoApi.ok === false) return acessoApi.resposta
   try {
     const body: GerarNcCpRequest = await request.json()
     const { sistema, subsistema, anomalia, local, complemento, origem, abrangencia } = body

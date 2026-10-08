@@ -3,8 +3,12 @@
 export const dynamic = 'force-dynamic'
 import { NextRequest, NextResponse } from 'next/server'
 import { gerarCapa } from '@/lib/gerarCapa'
+import { exigirSessao } from '@/lib/autorizacao'
 
 export async function GET(req: NextRequest) {
+  // PORTEIRO (AUTH_API_ATIVA): exige sessão válida. Inerte enquanto a variável não for exatamente "true".
+  const acessoApi = await exigirSessao(req)
+  if (acessoApi.ok === false) return acessoApi.resposta
   const p = req.nextUrl.searchParams
 
   const html = `<!DOCTYPE html>

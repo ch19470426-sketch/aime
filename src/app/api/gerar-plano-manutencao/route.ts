@@ -4,6 +4,7 @@ export const runtime = 'nodejs'
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { verificarDisponibilidade, consumirCreditos } from '@/lib/creditos'
+import { exigirSessao } from '@/lib/autorizacao'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -97,6 +98,9 @@ function paragrafoHtml(txt: string): string {
 const MESES = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro']
 
 export async function POST(request: NextRequest) {
+  // PORTEIRO (AUTH_API_ATIVA): exige sessão válida. Inerte enquanto a variável não for exatamente "true".
+  const acessoApi = await exigirSessao(request)
+  if (acessoApi.ok === false) return acessoApi.resposta
   try {
     const { cpfInspetor, chaveInspetor, cnpjoucpf: cnpjoucpfBruto, tipoServico, nomeArquivo, ncs, pagsReais } = await request.json()
     // Limpa formatacao antes de usar em qualquer consulta — mesmo problema

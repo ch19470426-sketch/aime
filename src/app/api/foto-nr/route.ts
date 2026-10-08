@@ -12,6 +12,7 @@ export const runtime = 'nodejs'
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { exigirSessao } from '@/lib/autorizacao'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -33,6 +34,9 @@ function deveReiniciar(updatedAt: string | null | undefined): boolean {
 // Uso: /api/foto-nr?cpf_inspetor=X&cnpjoucpf=Y&tipo_servico=31
 
 export async function GET(request: NextRequest) {
+  // PORTEIRO (AUTH_API_ATIVA): exige sessão válida. Inerte enquanto a variável não for exatamente "true".
+  const acessoApi = await exigirSessao(request)
+  if (acessoApi.ok === false) return acessoApi.resposta
   const p = request.nextUrl.searchParams
   const cpf_inspetor = p.get('cpf_inspetor')
   const cnpjoucpf    = p.get('cnpjoucpf')
@@ -76,6 +80,9 @@ export async function GET(request: NextRequest) {
 // após um caso de item de vistoria que sumiu sem deixar rastro.
 
 export async function POST(request: NextRequest) {
+  // PORTEIRO (AUTH_API_ATIVA): exige sessão válida. Inerte enquanto a variável não for exatamente "true".
+  const acessoApi = await exigirSessao(request)
+  if (acessoApi.ok === false) return acessoApi.resposta
   const body = await request.json()
   const { cpf_inspetor, cnpjoucpf, tipo_servico } = body
 

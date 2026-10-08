@@ -7,6 +7,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { exigirSessao } from '@/lib/autorizacao'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -78,6 +79,9 @@ function parsearHtml(html: string, nome: string): any {
 }
 
 export async function GET(request: NextRequest) {
+  // PORTEIRO (AUTH_API_ATIVA): exige sessão válida. Inerte enquanto a variável não for exatamente "true".
+  const acessoApi = await exigirSessao(request)
+  if (acessoApi.ok === false) return acessoApi.resposta
   const p = request.nextUrl.searchParams
   const chaveInspetor = p.get('chave_inspetor') ?? ''
   const cnpjoucpf     = p.get('cnpjoucpf')      ?? ''
