@@ -133,7 +133,7 @@ export default function GestorPage() {
   const [carregandoBloq, setCarregandoBloq] = useState(false)
   const [cpfConferencia, setCpfConferencia] = useState('')
   const [conferindo, setConferindo] = useState(false)
-  const [resultadoConferencia, setResultadoConferencia] = useState<{ conferidos: number; tratados: number; itens: any[] } | null>(null)
+  const [resultadoConferencia, setResultadoConferencia] = useState<{ conferidos: number; tratados: number; itens: any[]; sandbox?: boolean } | null>(null)
   const [aba, setAba] = useState<'dados'|'plano'|'info'>('dados')
   const searchParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null
   const abaInicial = (searchParams?.get('aba') as any) || 'inspetores'
@@ -298,7 +298,7 @@ export default function GestorPage() {
   }
 
   // Consulta o Asaas e trata os estornos/chargebacks das compras pagas recentes (não depende do aviso do Asaas).
-  async function conferirEstornosAsaas() {
+  async function conferirEstornosAsaas(silencioso = false) {
     const cpfLimpo = cpfConferencia.replace(/\D/g, '')
     if (cpfConferencia.trim() && cpfLimpo.length !== 11) {
       informa('CPF inválido', 'Informe os 11 dígitos do CPF ou deixe em branco para conferir todas as contas.')
@@ -315,13 +315,39 @@ export default function GestorPage() {
       const d = await res.json()
       if (!res.ok) { informa('Não foi possível conferir', d.erro ?? 'Tente novamente em instantes.'); return }
       setResultadoConferencia(d)
-      informa(d.tratados > 0 ? 'Estornos tratados' : 'Conferência concluída',
+      if (!silencioso) informa(d.tratados > 0 ? 'Estornos tratados' : 'Conferência concluída',
         d.tratados > 0
           ? `${d.tratados} estorno(s) tratado(s): créditos revogados e conta bloqueada. O detalhe está abaixo.`
           : `Conferi ${d.conferidos} compra(s) paga(s) no Asaas e nenhuma estava estornada. O status de cada uma está abaixo.`)
       await carregarContasBloqueadas()
     } catch { informa('Não foi possível conferir', 'Erro de conexão. Tente novamente.') }
     finally { setConferindo(false) }
+  }
+
+  // SÓ NO SANDBOX: simula o aviso de estorno de uma compra, para testar quando o sandbox do Asaas não completa o estorno.
+  function simularEstornoTeste(it: any) {
+    solicita('Simular estorno (teste)?',
+      `Isto simula o aviso de estorno da compra #${it.pedidoId} (${it.tipo}). Os créditos dessa compra serão revogados e a conta do CPF ${it.cpf} será bloqueada. Só existe no ambiente de teste.`,
+      [
+        { label: 'Simular', acao: () => { fechar(); void executarSimulacao(it) }, estilo: 'primario' },
+        { label: 'Voltar', acao: fechar, estilo: 'secundario' },
+      ])
+  }
+
+  async function executarSimulacao(it: any) {
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      const res = await fetch('/api/gestor/simular-estorno', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session?.access_token ?? ''}` },
+        body: JSON.stringify({ pedidoId: it.pedidoId }),
+      })
+      const d = await res.json()
+      if (!res.ok) { informa('Não foi possível simular', d.erro ?? 'Tente novamente.'); return }
+      informa(d.estornado ? 'Estorno simulado' : 'Nada a fazer',
+        d.estornado ? `${d.revogados} CR revogados e conta bloqueada.` : d.jaProcessado ? 'Esse estorno já tinha sido tratado.' : `Não tratado (${d.motivo ?? 'sem motivo informado'}).`)
+      await conferirEstornosAsaas(true)   // refaz a lista sem trocar o aviso "Estorno simulado"
+    } catch { informa('Não foi possível simular', 'Erro de conexão. Tente novamente.') }
   }
 
   function confirmarDesbloqueio(conta: any) {
@@ -943,7 +969,7 @@ export default function GestorPage() {
               <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' as const }}>
                 <input value={cpfConferencia} onChange={e => setCpfConferencia(e.target.value)} placeholder="CPF (opcional — vazio confere todas as contas)" inputMode="numeric"
                   style={{ flex: 1, minWidth: '220px', border: '1px solid #D1D5DB', borderRadius: '6px', padding: '7px 10px', fontSize: '12px' }} />
-                <button onClick={conferirEstornosAsaas} disabled={conferindo}
+                <button onClick={() => conferirEstornosAsaas()} disabled={conferindo}
                   style={{ backgroundColor: '#1E3A8A', color: 'white', border: 'none', borderRadius: '9999px', padding: '8px 18px', fontSize: '12px', fontWeight: 700, cursor: conferindo ? 'not-allowed' : 'pointer', opacity: conferindo ? 0.6 : 1 }}>
                   {conferindo ? 'Conferindo...' : 'Conferir estornos'}
                 </button>
@@ -958,6 +984,13 @@ export default function GestorPage() {
                       <b>#{it.pedidoId}</b> · {it.tipo}{it.tipo === 'AVULSO' ? ` ${it.qde} CR` : ''} · CPF {it.cpf} · Asaas: <b>{it.statusAsaas}</b>
                       {' → '}{it.acao === 'estornado' ? 'ESTORNO TRATADO' : it.acao === 'ja_estornado' ? 'já tratado' : it.acao === 'em_andamento' ? 'estorno em andamento' : it.acao === 'parcial' ? 'estorno PARCIAL (não tratado)' : it.acao === 'erro' ? 'erro' : 'sem estorno'}
                       {it.detalhe ? ` (${it.detalhe})` : ''}
+                      {resultadoConferencia.sandbox && ['nenhuma', 'em_andamento', 'parcial'].includes(it.acao) && (
+                        <button onClick={() => simularEstornoTeste(it)} data-simular
+                          style={{ marginLeft: '8px', backgroundColor: 'white', color: '#92400E', border: '1px solid #92400E', borderRadius: '9999px', padding: '2px 10px', fontSize: '10px', fontWeight: 700, cursor: 'pointer' }}>
+                          Simular estorno (teste)
+                        </button>
+                      )}
+                      {it.dadosAsaas && <div data-dados-asaas style={{ fontSize: '10px', color: '#6B7280', marginTop: '2px', wordBreak: 'break-word' as const }}>Dados do Asaas: {it.dadosAsaas}</div>}
                     </div>
                   ))}
                 </div>

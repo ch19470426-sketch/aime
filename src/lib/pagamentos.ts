@@ -16,7 +16,7 @@
 //      único por asaas_payment_id protege contra eventos simultâneos.
 
 import { createClient } from '@supabase/supabase-js'
-import { consultarCobranca, consultarAssinatura, cancelarAssinaturaNoAsaas, STATUS_PAGO } from '@/lib/asaas'
+import { consultarCobranca, consultarAssinatura, cancelarAssinaturaNoAsaas, ambienteAsaas, STATUS_PAGO } from '@/lib/asaas'
 import { concederCreditos, revogarCreditos, PLANO_CR } from '@/lib/creditos'
 import { bloquearConta, avisarSuporte, LIMITE_FALHAS_CARTAO } from '@/lib/bloqueio'
 import { avisarInspetor, dataBR, somarUmMes } from '@/lib/assinaturas'
@@ -354,6 +354,19 @@ export type ItemConferencia = {
   statusAsaas: string
   acao: 'estornado' | 'ja_estornado' | 'nenhuma' | 'em_andamento' | 'parcial' | 'erro'
   detalhe?: string
+  /** Os campos que o Asaas devolveu para a cobrança (sem links e dados pessoais), para o gestor ver o dado real. */
+  dadosAsaas?: string
+}
+
+function dadosDaCobranca(cob: any): string {
+  const ignora = /url|customer|description|externalReference|object|^id$|paymentLink|installment|creditCard/i
+  const partes: string[] = []
+  for (const [k, v] of Object.entries(cob ?? {})) {
+    if (ignora.test(k)) continue
+    const txt = typeof v === 'object' && v !== null ? JSON.stringify(v) : String(v)
+    partes.push(`${k}=${txt.slice(0, 80)}`)
+  }
+  return partes.join('; ').slice(0, 500)
 }
 
 export async function conferirEstornos(opcoes: { cpf?: string; dias?: number; limite?: number } = {}):
@@ -370,11 +383,11 @@ export async function conferirEstornos(opcoes: { cpf?: string; dias?: number; li
   const lista = (pedidos ?? []).filter((p: any) => !!p.asaas_payment_id)
 
   // 1) consulta o Asaas (só leitura), em lotes
-  const respostas: Record<number, { status: string; estorno?: ReturnType<typeof situacaoDeEstorno>; erro?: string }> = {}
+  const respostas: Record<number, { status: string; estorno?: ReturnType<typeof situacaoDeEstorno>; dados?: string; erro?: string }> = {}
   const aConsultar = lista.filter((p: any) => !p.estornado_em)
   for (let i = 0; i < aConsultar.length; i += 8) {
     await Promise.all(aConsultar.slice(i, i + 8).map(async (p: any) => {
-      try { const cob: any = await consultarCobranca(p.asaas_payment_id); respostas[p.id] = { status: String(cob.status ?? ''), estorno: situacaoDeEstorno(cob) } }
+      try { const cob: any = await consultarCobranca(p.asaas_payment_id); respostas[p.id] = { status: String(cob.status ?? ''), estorno: situacaoDeEstorno(cob), dados: dadosDaCobranca(cob) } }
       catch (e) { respostas[p.id] = { status: 'INDISPONIVEL', erro: e instanceof Error ? e.message : String(e) } }
     }))
   }
@@ -401,5 +414,19 @@ export async function conferirEstornos(opcoes: { cpf?: string; dias?: number; li
       itens.push({ ...base, statusAsaas: r.status, acao: 'nenhuma', ...(resumoEstorno ? { detalhe: resumoEstorno } : {}) })
     }
   }
+  for (const it of itens) { const d = respostas[it.pedidoId]?.dados; if (d) it.dadosAsaas = d }
   return { conferidos: lista.length, tratados: itens.filter(i => i.acao === 'estornado').length, itens }
+}
+
+/**
+ * SÓ NO SANDBOX do Asaas: simula o aviso de estorno de uma compra paga, para testar o AIMÊ (revogar o saldo,
+ * esquecer o usado, bloquear a conta) quando o sandbox não completa o estorno. Na produção é recusado.
+ */
+export async function simularEstorno(pedidoId: number): Promise<ResultadoCobranca> {
+  if (ambienteAsaas() !== 'sandbox') return { status: 403, corpo: { erro: 'A simulação só existe no ambiente de teste (sandbox) do Asaas.' } }
+  const { data: pedido, error } = await supabase.from('pedidos_credito')
+    .select('id,cpf_inspetor,tipo,qde_creditos,status,asaas_payment_id,assinatura_id,estornado_em').eq('id', pedidoId).maybeSingle()
+  if (error) return { status: 500, corpo: { erro: error.message } }
+  if (!pedido) return { status: 404, corpo: { erro: 'Pedido não encontrado.' } }
+  return await tratarEstorno(pedido, 'PAYMENT_REFUNDED')
 }
