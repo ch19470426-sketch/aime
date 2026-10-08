@@ -16,7 +16,7 @@
 //      único por asaas_payment_id protege contra eventos simultâneos.
 
 import { createClient } from '@supabase/supabase-js'
-import { consultarCobranca, consultarAssinatura, cancelarAssinaturaNoAsaas, ambienteAsaas, STATUS_PAGO } from '@/lib/asaas'
+import { consultarCobranca, consultarAssinatura, cancelarAssinaturaNoAsaas, STATUS_PAGO } from '@/lib/asaas'
 import { concederCreditos, revogarCreditos, PLANO_CR } from '@/lib/creditos'
 import { bloquearConta, avisarSuporte, LIMITE_FALHAS_CARTAO } from '@/lib/bloqueio'
 import { avisarInspetor, dataBR, somarUmMes } from '@/lib/assinaturas'
@@ -416,17 +416,4 @@ export async function conferirEstornos(opcoes: { cpf?: string; dias?: number; li
   }
   for (const it of itens) { const d = respostas[it.pedidoId]?.dados; if (d) it.dadosAsaas = d }
   return { conferidos: lista.length, tratados: itens.filter(i => i.acao === 'estornado').length, itens }
-}
-
-/**
- * SÓ NO SANDBOX do Asaas: simula o aviso de estorno de uma compra paga, para testar o AIMÊ (revogar o saldo,
- * esquecer o usado, bloquear a conta) quando o sandbox não completa o estorno. Na produção é recusado.
- */
-export async function simularEstorno(pedidoId: number): Promise<ResultadoCobranca> {
-  if (ambienteAsaas() !== 'sandbox') return { status: 403, corpo: { erro: 'A simulação só existe no ambiente de teste (sandbox) do Asaas.' } }
-  const { data: pedido, error } = await supabase.from('pedidos_credito')
-    .select('id,cpf_inspetor,tipo,qde_creditos,status,asaas_payment_id,assinatura_id,estornado_em').eq('id', pedidoId).maybeSingle()
-  if (error) return { status: 500, corpo: { erro: error.message } }
-  if (!pedido) return { status: 404, corpo: { erro: 'Pedido não encontrado.' } }
-  return await tratarEstorno(pedido, 'PAYMENT_REFUNDED')
 }

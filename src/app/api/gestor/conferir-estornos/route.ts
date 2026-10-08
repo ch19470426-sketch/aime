@@ -8,7 +8,6 @@ import { NextRequest, NextResponse } from 'next/server'
 import { sessaoDaRequisicao } from '@/lib/sessaoServidor'
 import { ehGestor } from '@/lib/creditos'
 import { conferirEstornos } from '@/lib/pagamentos'
-import { ambienteAsaas } from '@/lib/asaas'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -24,7 +23,7 @@ export async function POST(request: NextRequest) {
     const bruto = String(corpo?.cpf ?? '').replace(/\D/g, '')
     if (corpo?.cpf && bruto.length !== 11) return NextResponse.json({ erro: 'CPF inválido.' }, { status: 400 })
     const resultado = await conferirEstornos(bruto ? { cpf: bruto } : {})
-    return NextResponse.json({ ...resultado, sandbox: ambienteAsaas() === 'sandbox' })
+    return NextResponse.json(resultado)
   } catch (err) {
     return NextResponse.json({ erro: err instanceof Error ? err.message : String(err) }, { status: 500 })
   }
