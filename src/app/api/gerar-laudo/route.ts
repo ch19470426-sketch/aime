@@ -11,6 +11,7 @@ import { gerarCapa } from '@/lib/gerarCapa'
 import { createClient } from '@supabase/supabase-js'
 import { verificarDisponibilidade, consumirCreditos } from '@/lib/creditos'
 import { exigirSessao } from '@/lib/autorizacao'
+import { mapaDeDescricoes, descricaoDoSistema } from '@/lib/descSistemas'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -128,7 +129,6 @@ function fmtData(): string {
 }
 function pct(v:number,t:number): string { return t ? Math.round(v*100/t)+'%' : '—' }
 function nomeS(s:string): string { return s.slice(3).replace(/_/g,' ') }
-function descS(s:string): string { return DESC_SISTEMAS[s]||`Sistema: ${nomeS(s)}` }
 
 // ─── CSS — Design System Brief §2–4 (copiado literalmente) ───────────────────
 const CSS = `
@@ -1602,18 +1602,23 @@ export async function POST(request: NextRequest) {
       '43':'33 Vistoria imóvel novo','44':'34 Vistoria fachada',
     }
     let sistemas: string[] = SISTEMAS[tipoServico] ?? []
+    // Descrição de cada sistema: vem do BANCO (coluna descricao_sistema, mantida na tela /sistemas), como já era nos
+    // laudos de NR; o dicionário fixo do código é só o reserva (src/lib/descSistemas.ts).
+    let descSistemasBD: Record<string, string> = {}
     if (tsPredMap[tipoServico]) {
       try {
         const { data: sisDB } = await supabase
           .from('sistemas_construtivos')
-          .select('sistema')
+          .select('sistema,descricao_sistema')
           .eq('tipo_servico', tsPredMap[tipoServico])
           .eq('ativo', true)
           .order('sistema')
         const sisUnicos = [...new Set((sisDB ?? []).map((s:any) => s.sistema).filter(Boolean))]
         if (sisUnicos.length > 0) sistemas = sisUnicos
+        descSistemasBD = mapaDeDescricoes((sisDB ?? []) as any[])
       } catch { /* mantém a lista fixa como fallback se a consulta falhar */ }
     }
+    const descSistema = (s: string): string => descricaoDoSistema(s, descSistemasBD, DESC_SISTEMAS) || '—'
     const dataHoje = fmtData()
     // cl já declarado acima
     const labelEst = tipoServico === '43' ? 'Proprietário' : 'Condomínio / Empresa'
@@ -1869,7 +1874,7 @@ export async function POST(request: NextRequest) {
   <div class="bloco-header">${xe(nomeS(s))}</div>
   <div style="padding:5px 8px;border-bottom:1px solid #1E3A8A">
     <span style="font-size:7pt;font-weight:700;color:#1E3A8A">Descrição do sistema construtivo</span><br>
-    <span style="font-size:8pt;color:#222">${xe(descS(s))}</span>
+    <span style="font-size:8pt;color:#222">${xe(descSistema(s))}</span>
   </div>
   ${rec?`<div style="padding:5px 8px;border-bottom:1px solid #1E3A8A;background:#EEF2FF">
     <span style="font-size:7pt;font-weight:700;color:#1E3A8A">Recomendação para o sistema</span><br>
