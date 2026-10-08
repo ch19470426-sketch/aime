@@ -5,6 +5,7 @@ import { useSearchParams } from 'next/navigation'
 import Image from 'next/image'
 import Banner from '@/components/Banner'
 import { useBanner } from '@/hooks/useBanner'
+import { digitosDoCep, formatarCep } from '@/lib/cep'
 
 const SUPA_URL = 'https://asgorarunzhiojqioxzq.supabase.co'
 const SUPA_KEY = 'sb_publishable_dH85HYKGxv3X0te627VfOw_OGaPoNMF'
@@ -418,9 +419,12 @@ function PropostaInner() {
                 <div style={{ ...S.row, ...S.c3 }}>
                   <Field label="CEP">
                     <input style={modoEdicao ? S.input : S.inputRO}
-                      value={cep} maxLength={8} readOnly={!modoEdicao}
-                      onChange={e => { setCep(e.target.value); if (e.target.value.length === 8) buscarCep(e.target.value, numero, complemento) }}
-                      placeholder={modoEdicao ? '00000000' : ''} />
+                      value={formatarCep(cep)} maxLength={9} readOnly={!modoEdicao} inputMode="numeric"
+                      onChange={e => { const d = digitosDoCep(e.target.value); setCep(d); if (d.length === 8) buscarCep(d, numero, complemento) }}
+                      placeholder={modoEdicao ? '00000-000' : ''} />
+                    {modoEdicao && cep.length > 0 && cep.length < 8 && (
+                      <span style={{ fontSize: '10px', color: '#DC2626' }}>CEP incompleto: informe os 8 dígitos</span>
+                    )}
                   </Field>
                   <Field label="Número">
                     <input style={modoEdicao ? S.input : S.inputRO}
