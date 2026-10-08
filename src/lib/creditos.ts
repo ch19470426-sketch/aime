@@ -304,11 +304,45 @@ export async function consumirCreditos(
       console.error('[creditos] consumir_creditos:', error.message)
       return { ok: false, cobrado: false, motivo: 'erro', erro: error.message }
     }
-    return interpretarConsumo(data)
+    const resultado = interpretarConsumo(data)
+    // Débito recusado (saldo insuficiente, inspetor não encontrado...) NÃO pode passar em silêncio: o documento já foi gerado.
+    if (!resultado.ok) console.error('[creditos] consumo NÃO debitado:', resultado.motivo, '| inspetor', cpf, '| serviço', codigoServico, '| custo', custo)
+    return resultado
   } catch (e) {
     console.error('[creditos] consumir_creditos exceção:', e)
     return { ok: false, cobrado: false, motivo: 'erro', erro: String(e) }
   }
+}
+
+// ─────────────── Ciclo de inspeção (quando um documento cobra DE NOVO) ───────────────
+// DECISÃO de Celso (08/10/2026): o mesmo documento do mesmo estabelecimento cobra de novo a cada NOVO CICLO de
+// inspeção. Antes, a chave de repetição era "estabelecimento_serviço_documento", sem nada que mudasse de um ciclo para o
+// outro: depois da primeira geração NUNCA mais cobrava (nova inspeção do mesmo imóvel, no ano seguinte, saía de graça).
+//
+// O ciclo termina quando suas vistorias são HOMOLOGADAS. O marcador é a data da última homologação do estabelecimento
+// (do mesmo tipo de vistoria): enquanto ela não muda, regerar o documento NÃO cobra de novo (correções); quando uma nova
+// homologação acontece, o ciclo seguinte começa e o documento cobra de novo. Proposta e plano de trabalho abrem o ciclo
+// (ainda sem homologação nova), então usam a homologação do ciclo ANTERIOR ("inicial" se nunca houve); laudo e plano de
+// manutenção usam a do ciclo ATUAL.
+
+/** Código da vistoria correspondente ao serviço: 11–18, 21–28, 41–48 e 51–58 vêm de 31–38. */
+export const codigoDaVistoria = (codigoServico: number): number => 30 + (codigoServico % 10)
+
+/** Chave de repetição do documento: muda a cada ciclo. */
+export function referenciaDoDocumento(cnpjoucpf: string, codigoServico: number | string, documento: string, marcador: string): string {
+  return `${cnpjoucpf}_${codigoServico}_${documento}_c${marcador}`
+}
+
+/** 'AAAA-MM-DD' da última homologação do estabelecimento, 'inicial' se nunca houve, ou 'sem-marcador' se não deu para consultar. */
+export async function marcadorDeCiclo(cpf: string, cnpjoucpf: string, codigoServico: number): Promise<string> {
+  try {
+    const { data, error } = await admin().from('dados_vistoria').select('data_homologacao')
+      .eq('cpf_inspetor', cpf).eq('cnpjoucpf', cnpjoucpf).like('tipo_servico', `${codigoDaVistoria(codigoServico)}%`)
+      .not('data_homologacao', 'is', null).order('data_homologacao', { ascending: false }).limit(1)
+    if (error) { console.error('[creditos] marcador de ciclo:', error.message); return 'sem-marcador' }
+    const ultima = data?.[0]?.data_homologacao
+    return ultima ? String(ultima).slice(0, 10) : 'inicial'
+  } catch (e) { console.error('[creditos] marcador de ciclo exceção:', e); return 'sem-marcador' }
 }
 
 /**

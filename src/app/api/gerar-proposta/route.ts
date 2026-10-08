@@ -4,7 +4,7 @@ export const runtime = 'nodejs'
 // src/app/api/gerar-proposta/route.ts
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { verificarDisponibilidade, consumirCreditos } from '@/lib/creditos'
+import { verificarDisponibilidade, consumirCreditos, referenciaDoDocumento, marcadorDeCiclo } from '@/lib/creditos'
 import { exigirSessao } from '@/lib/autorizacao'
 
 const supabase = createClient(
@@ -493,9 +493,9 @@ ${insp.especializacao ? `<p style="margin:0;line-height:1">Especialista ${insp.e
     if (erroHistorico) console.error('Erro ao gravar historico_valores:', erroHistorico.message)
 
     // Debita créditos por último, só depois que a proposta já foi montada
-    // com sucesso — idempotente por estabelecimento+tipo: regenerar a
-    // mesma proposta não cobra de novo.
-    await consumirCreditos(cpfInspetor, Number(tipoServico), { cnpjoucpf, referencia: `${cnpjoucpf}_${tipoServico}_proposta` })
+    // com sucesso — idempotente por estabelecimento+tipo+CICLO de inspeção (marcadorDeCiclo): regerar no mesmo ciclo
+    // não cobra de novo; um novo ciclo cobra.
+    await consumirCreditos(cpfInspetor, Number(tipoServico), { cnpjoucpf, referencia: referenciaDoDocumento(cnpjoucpf, tipoServico, 'proposta', await marcadorDeCiclo(cpfInspetor, cnpjoucpf, Number(tipoServico))) })
 
     return NextResponse.json({ html })
   } catch (err) {

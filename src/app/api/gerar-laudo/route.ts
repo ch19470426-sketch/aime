@@ -9,7 +9,7 @@ export const maxDuration = 60
 import { NextRequest, NextResponse } from 'next/server'
 import { gerarCapa } from '@/lib/gerarCapa'
 import { createClient } from '@supabase/supabase-js'
-import { verificarDisponibilidade, consumirCreditos } from '@/lib/creditos'
+import { verificarDisponibilidade, consumirCreditos, referenciaDoDocumento, marcadorDeCiclo } from '@/lib/creditos'
 import { exigirSessao } from '@/lib/autorizacao'
 import { mapaDeDescricoes, descricaoDoSistema } from '@/lib/descSistemas'
 import { normalizarPrioridades, ehFamiliaNR, prioridadeDoGrau } from '@/lib/prioridade'
@@ -1590,7 +1590,7 @@ export async function POST(request: NextRequest) {
       const { error: errSave } = await supabase.storage.from('aime')
         .upload('documentos_inspetor/' + nomeArquivo, new Blob([htmlNR], { type:'text/html' }), { upsert: true })
       if (errSave) throw new Error('Erro ao salvar: ' + errSave.message)
-      await consumirCreditos(cpfInspetor, Number(tipoServico), { cnpjoucpf, referencia: `${cnpjoucpf}_${tipoServico}_laudo` })
+      await consumirCreditos(cpfInspetor, Number(tipoServico), { cnpjoucpf, referencia: referenciaDoDocumento(cnpjoucpf, tipoServico, 'laudo', await marcadorDeCiclo(cpfInspetor, cnpjoucpf, Number(tipoServico))) })
       return NextResponse.json({ sucesso: true, nome: nomeArquivo, html: htmlNR })
     }
     // ── FIM GERADOR NR (45-48) ────────────────────────────────────────────────
@@ -2530,7 +2530,7 @@ ${srcArtMecanico ? `<div style="page-break-before:always;page-break-inside:avoid
       )
     } catch {}
 
-    await consumirCreditos(cpfInspetor, Number(tipoServico), { cnpjoucpf, referencia: `${cnpjoucpf}_${tipoServico}_laudo` })
+    await consumirCreditos(cpfInspetor, Number(tipoServico), { cnpjoucpf, referencia: referenciaDoDocumento(cnpjoucpf, tipoServico, 'laudo', await marcadorDeCiclo(cpfInspetor, cnpjoucpf, Number(tipoServico))) })
     return NextResponse.json({ ok:true, nomeArquivo, html })
 
   } catch (err) {

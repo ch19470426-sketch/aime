@@ -3,7 +3,7 @@ export const runtime = 'nodejs'
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { verificarDisponibilidade, consumirCreditos } from '@/lib/creditos'
+import { verificarDisponibilidade, consumirCreditos, referenciaDoDocumento, marcadorDeCiclo } from '@/lib/creditos'
 import { exigirSessao } from '@/lib/autorizacao'
 import { ehFamiliaNR, semaforoDoGrau, prioridadeDoGrau } from '@/lib/prioridade'
 
@@ -601,7 +601,7 @@ ${anx1Rows||'<tr><td colspan="5" style="text-align:center;color:#9a3412;font-sty
       .upload(`documentos_inspetor/${nomeArquivo}`, new Blob([html], { type: 'text/html' }), { upsert: true, contentType: 'text/html' })
     if (error) return NextResponse.json({ erro: error.message }, { status: 400 })
 
-    await consumirCreditos(cpfInspetor, Number(tipoServico), { cnpjoucpf, referencia: `${cnpjoucpf}_${tipoServico}_planomanut` })
+    await consumirCreditos(cpfInspetor, Number(tipoServico), { cnpjoucpf, referencia: referenciaDoDocumento(cnpjoucpf, tipoServico, 'planomanut', await marcadorDeCiclo(cpfInspetor, cnpjoucpf, Number(tipoServico))) })
     return NextResponse.json({ sucesso: true, nome: nomeArquivo, html })
 
   } catch (e) {

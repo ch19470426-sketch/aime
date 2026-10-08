@@ -4,7 +4,7 @@ export const runtime = 'nodejs'
 // src/app/api/gerar-plano/route.ts
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { verificarDisponibilidade, consumirCreditos } from '@/lib/creditos'
+import { verificarDisponibilidade, consumirCreditos, referenciaDoDocumento, marcadorDeCiclo } from '@/lib/creditos'
 import { exigirSessao } from '@/lib/autorizacao'
 
 const supabase = createClient(
@@ -742,8 +742,9 @@ export async function POST(request: NextRequest) {
       inscricao: numLimpo(insp.inscricao_crea_cau)
     }
 
-    // Idempotente por estabelecimento+tipo: regenerar o mesmo plano não cobra de novo.
-    await consumirCreditos(cpfInspetor, Number(tipoServico), { cnpjoucpf, referencia: `${cnpjoucpf}_${tipoServico}_plano` })
+    // Idempotente por estabelecimento+tipo+CICLO de inspeção (src/lib/creditos.ts, marcadorDeCiclo): regerar no mesmo
+    // ciclo não cobra de novo; um novo ciclo (nova homologação) cobra.
+    await consumirCreditos(cpfInspetor, Number(tipoServico), { cnpjoucpf, referencia: referenciaDoDocumento(cnpjoucpf, tipoServico, 'plano', await marcadorDeCiclo(cpfInspetor, cnpjoucpf, Number(tipoServico))) })
 
     return NextResponse.json({ html, planoInfo: { titulo: String(plano.titulo), parceiro: String(plano.parceiro), atividades, documentos }, docInfo, endereco })
   } catch (err) {
