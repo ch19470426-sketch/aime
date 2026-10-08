@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from "react"
 import Image from "next/image"
 import { createClient } from "@/utils/supabase/client"
 import { useRouter } from "next/navigation"
+import { encerrarSessao } from '@/lib/encerrarSessao'
 
 const SUPA_URL = 'https://asgorarunzhiojqioxzq.supabase.co' // ainda usado para busca REST direta
 const SUPA_KEY = 'sb_publishable_dH85HYKGxv3X0te627VfOw_OGaPoNMF'
@@ -30,7 +31,7 @@ export default function LoginPage() {
             router.replace('/dashboard')
           } else {
             // Sessão inválida — limpar e mostrar login
-            supabase.auth.signOut().then(() => {
+            encerrarSessao().then(() => {
               setVerificandoSessao(false)
               setMostrarCapa(true)
             })

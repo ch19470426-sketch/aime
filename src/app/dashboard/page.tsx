@@ -15,6 +15,7 @@ import { useBanner } from "@/hooks/useBanner"
 import { useRouter } from "next/navigation"
 import Image from "next/image"
 import { createClient } from "@/utils/supabase/client"
+import { encerrarSessao } from '@/lib/encerrarSessao'
 
 const SUPA_URL = 'https://asgorarunzhiojqioxzq.supabase.co'
 const SUPA_KEY = 'sb_publishable_dH85HYKGxv3X0te627VfOw_OGaPoNMF'
@@ -416,7 +417,7 @@ export default function Dashboard() {
             // Só redirecionar se tiver internet — offline mantém na tela
             if (navigator.onLine) {
               deveRedirecionar = true
-              await createClient().auth.signOut()
+              await encerrarSessao()
               window.location.href = `/inspetor?cpf=${cpf}&novo=1`
             }
             return
@@ -516,7 +517,7 @@ export default function Dashboard() {
   async function handleSelecionar(codigo: number) {
     if (!permitidos.includes(codigo)) return
     if (codigo === 99) {
-      createClient().auth.signOut().then(() => { window.location.href = "/" })
+      encerrarSessao().then(() => { window.location.href = "/" })
       return
     }
     // 62: Meu Cadastro — vai direto para a tela de edição do inspetor

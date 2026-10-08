@@ -1,17 +1,11 @@
 'use client'
 import { useEffect } from 'react'
-import { createClient } from '@/utils/supabase/client'
+import { encerrarSessao } from '@/lib/encerrarSessao'
 
 export default function LogoutPage() {
   useEffect(() => {
-    createClient().auth.signOut().then(() => {
-      // Limpar localStorage completamente
-      try {
-        const keys = Object.keys(localStorage).filter(k => k.startsWith('sb-'))
-        keys.forEach(k => localStorage.removeItem(k))
-      } catch {}
-      window.location.replace('/')
-    })
+    // Sai pelo servidor e apaga à força a sessão do navegador, mesmo que a saída pelo servidor falhe.
+    encerrarSessao().then(() => { window.location.replace('/') })
   }, [])
 
   return (
