@@ -6,6 +6,7 @@ import Image from "next/image"
 import Banner from '@/components/Banner'
 import { useBanner } from '@/hooks/useBanner'
 import { camposFaltantes } from '@/lib/coletaLaudo'
+import { ehPrioridadeAltaOuMedia } from '@/lib/prioridade'
 
 // ─── Tipos ───────────────────────────────────────────────────────────────────
 interface NC {
@@ -396,7 +397,7 @@ function LaudoComplemento() {
   async function gerarRecomendacoes() {
     setGerandoRec(true)
     try {
-      const ncsAM = ncs.filter((nc: any) => ['Muito alta','Alta','Média','Media'].includes(String(nc.prioridade||'')))
+      const ncsAM = ncs.filter((nc: any) => ehPrioridadeAltaOuMedia(nc.prioridade))
       const ativo = await fetch(`${SUPA_URL}/rest/v1/ativos_a_vistoriar?cpf_inspetor=eq.${cpfInspetor}&cnpjoucpf=eq.${cnpjoucpf}&tipo_servico=ilike.%${cfg.tipoVistoria}%&select=data_inicio_operacao&limit=1`, {
         headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` }
       }).then(r => r.json())
@@ -620,7 +621,7 @@ function LaudoComplemento() {
             tipo: 'recomendacoes',
             dados: {
               tipo_servico: tipoServico,
-              ncs: ncsComSolucao.filter((nc: any) => ['Muito alta','Alta','Média','Media'].includes(String(nc.prioridade||''))),
+              ncs: ncsComSolucao.filter((nc: any) => ehPrioridadeAltaOuMedia(nc.prioridade)),
               classificacao: { nivel: nivelInspecao, risco, desempenho, manut, uso, desempGeral, nrManut, nrOp, nrFisico, nrSeg, nrDoc },
             }
           })

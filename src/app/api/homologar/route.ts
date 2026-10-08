@@ -7,6 +7,7 @@ export const runtime = 'nodejs'
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { exigirSessao } from '@/lib/autorizacao'
+import { corTelaDoGrau } from '@/lib/prioridade'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -45,8 +46,7 @@ export async function POST(request: NextRequest) {
       fotoNr, dataVistoria, nc, cp, dataHomologacao, chaveInspetor, isNR
     } = dadosVistoria
 
-    const corGR = grauRisco >= (isNR ? 75 : 64) ? '#E24B4A'
-      : grauRisco >= (isNR ? 50 : 35) ? '#E8A000' : '#1A7A3C'
+    const corGR = corTelaDoGrau(grauRisco, !!isNR)
 
     const labelDoc = cnpjoucpf?.length === 11 ? 'CPF' : 'CNPJ'
     const labelNome = cnpjoucpf?.length === 11 ? 'Nome' : 'Razão social'

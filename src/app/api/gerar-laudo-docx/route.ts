@@ -10,6 +10,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import JSZip from 'jszip'
 import { exigirSessao } from '@/lib/autorizacao'
+import { normalizarPrioridades, ehFamiliaNR, prioridadeDoGrau } from '@/lib/prioridade'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -227,7 +228,9 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
     const { cpfInspetor, chaveInspetor, cnpjoucpf, tipoServico,
-            estab, inspetor, ncs, complemento } = body
+            estab, inspetor, ncs: ncsBruto, complemento } = body
+    // Prioridade recalculada pelo grau de risco (critério único, src/lib/prioridade.ts), igual ao laudo em HTML.
+    const ncs = normalizarPrioridades(ncsBruto, ehFamiliaNR(tipoServico))
 
     const titulo    = tipoServico === '43' ? 'Laudo de Vistoria de Imóvel Novo'
                     : tipoServico === '44' ? 'Laudo de Inspeção de Fachada'
@@ -474,9 +477,10 @@ export async function POST(request: NextRequest) {
       const nc = (ncsComFoto??[])[idx]
       const ns  = X(nc.sistema).slice(3).replace(/_/g,' ')
       const grN = Number(nc.grauRisco)
-      const corGR   = grN>=64?'DC2626':grN>=35?'D97706':'16A34A'
-      const bgGR    = grN>=64?'FEE2E2':grN>=35?'FEF9C3':'DCFCE7'
-      const priSim  = grN>=64?'▲ Alta':grN>=35?'■ Média':'▼ Baixa'
+      const prD     = grN > 0 ? prioridadeDoGrau(grN, false) : String(nc.prioridade || '')
+      const corGR   = prD==='Alta'?'DC2626':prD==='Média'?'D97706':'16A34A'
+      const bgGR    = prD==='Alta'?'FEE2E2':prD==='Média'?'FEF9C3':'DCFCE7'
+      const priSim  = prD==='Alta'?'▲ Alta':prD==='Média'?'■ Média':'▼ Baixa'
       const AZUL_F  = '0C447C'
       const AZUL_TT = '185FA5'
 

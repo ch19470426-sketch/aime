@@ -12,6 +12,7 @@ import { createClient } from '@supabase/supabase-js'
 import { verificarDisponibilidade, consumirCreditos } from '@/lib/creditos'
 import { exigirSessao } from '@/lib/autorizacao'
 import { mapaDeDescricoes, descricaoDoSistema } from '@/lib/descSistemas'
+import { normalizarPrioridades, ehFamiliaNR, prioridadeDoGrau } from '@/lib/prioridade'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -362,7 +363,10 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
     const { cpfInspetor, chaveInspetor, cnpjoucpf: cnpjoucpfBruto, tipoServico,
-            estab: estabRaw, inspetor, ncs, nomeArquivo, complemento, semCapa } = body
+            estab: estabRaw, inspetor, ncs: ncsBruto, nomeArquivo, complemento, semCapa } = body
+    // Prioridade de TODAS as NCs recalculada pelo grau de risco (critério único, src/lib/prioridade.ts): o item 4.1, as
+    // estatísticas e o Anexo 2 passam a falar a mesma coisa, mesmo para NCs homologadas antes com outras faixas.
+    const ncs = normalizarPrioridades(ncsBruto, ehFamiliaNR(tipoServico))
     // Limpa formatacao antes de usar em qualquer consulta — mesmo problema
     // corrigido em gerar-plano/route.ts (comparacao exata falhava
     // silenciosamente se o valor chegasse formatado)
@@ -2093,9 +2097,11 @@ export async function POST(request: NextRequest) {
       : (ncsComFoto??[]).map((nc:any,idx:number)=>{
           const ns   = xe((nc.sistema||'').slice(3).replace(/_/g,' '))
           const grN  = Number(nc.grauRisco)||0
-          const cor  = grN>=59?'#CC0000':grN>=30?'#E8A000':'#16A34A'
-          const bg   = grN>=59?'#FEE2E2':grN>=30?'#FEF9C3':'#DCFCE7'
-          const pri  = grN>=59?'▲ Alta':grN>=30?'■ Média':'▼ Baixa'
+          // Mesmo critério do item 4.1 e da homologação (src/lib/prioridade.ts); sem grau de risco, vale o rótulo que veio.
+          const prP  = grN > 0 ? prioridadeDoGrau(grN, false) : String(nc.prioridade || '')
+          const cor  = prP==='Alta'?'#CC0000':prP==='Média'?'#E8A000':'#16A34A'
+          const bg   = prP==='Alta'?'#FEE2E2':prP==='Média'?'#FEF9C3':'#DCFCE7'
+          const pri  = prP==='Alta'?'▲ Alta':prP==='Média'?'■ Média':'▼ Baixa'
           const gv = String(nc.descGravidade || nc.gravidade || nc.gravNum || '')
           const gDesc = GRAV_MAP[gv] || gv || '—'
           const uv = String(nc.descUrgencia || nc.urgencia || nc.urgNum || '')

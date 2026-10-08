@@ -6,6 +6,7 @@ import { useSearchParams } from 'next/navigation'
 import Image from 'next/image'
 import Banner from '@/components/Banner'
 import { useBanner } from '@/hooks/useBanner'
+import { prioridadeDoGrau, corTelaDoGrau, fundoTelaDoGrau } from '@/lib/prioridade'
 
 // Mesmo mapeamento usado em src/app/plano/page.tsx — necessário porque o campo tipo_servico
 // salvo em ativos_a_vistoriar é a string completa da vistoria (ex: "33 Vistoria imóvel novo"),
@@ -222,10 +223,16 @@ function Tela40Inner() {
     ? (VALOR_GUT[`exposicaorisco:${descExposicao}`]  ?? 0)
     : (VALOR_GUT[`exposicao:${descExposicao}`]       ?? 0)
   const grauRisco = (gravNum && urgNum && abrNum && expNum) ? calcularGR(gravNum, urgNum, abrNum, expNum, pctGut) : (form?.grauRisco ?? 0)
-  const prioridade = isNR
-    ? (grauRisco >= 75 ? 'Muito alta' : grauRisco >= 50 ? 'Alta' : grauRisco >= 30 ? 'Média' : 'Baixa')
-    : (grauRisco >= 64 ? 'Alta' : grauRisco >= 35 ? 'Média' : 'Baixa')
-  const corGR = grauRisco >= (isNR ? 75 : 64) ? '#E24B4A' : grauRisco >= (isNR ? 50 : 35) ? '#E8A000' : '#1A7A3C'
+  // Critério ÚNICO de prioridade (src/lib/prioridade.ts): o mesmo da vistoria, do item 4.1 e do Anexo 2 do laudo.
+  // Sem grau de risco, fica vazio e vale a prioridade da vistoria (form.prioridade).
+  const prioridade = grauRisco > 0 ? prioridadeDoGrau(grauRisco, isNR) : ''
+  const corGR = corTelaDoGrau(grauRisco, isNR)
+  // O grau de risco só é RECALCULADO quando os 4 descritores casam com a tabela (criticidade_gut); se algum vier
+  // fora da tabela, o grau da vistoria é mantido. Antes isso acontecia sem aviso: agora a tela diz quais são.
+  const descritoresForaDaTabela = ([
+    ['Gravidade', descGravidade, gravNum], ['Urgência', descUrgencia, urgNum],
+    [isNR ? 'Probabilidade' : 'Abrangência', descAbrangencia, abrNum], ['Exposição', descExposicao, expNum],
+  ] as Array<[string, string, number]>).filter(([, valor, peso]) => !!valor && !peso).map(([nome]) => nome)
 
   // Listas filtradas
   const subsistemasFiltrados = [...new Set(subsistemas.filter(s => s.sistema === sistema).map(s => s.subsistema))]
@@ -1027,11 +1034,16 @@ function Tela40Inner() {
                 </div>
                 <div style={{ ...S.metric, borderColor: corGR, justifyContent: 'center' }}>
                   <span style={S.metricLbl}>Prioridade</span>
-                  <span style={{ ...S.badge, background: corGR === '#E24B4A' ? '#FCEBEB' : corGR === '#E8A000' ? '#FFF0C2' : '#E6F5EE', color: corGR }}>
+                  <span style={{ ...S.badge, background: fundoTelaDoGrau(grauRisco || form.grauRisco, isNR), color: corGR }}>
                     {prioridade || form.prioridade}
                   </span>
                 </div>
               </div>
+              {descritoresForaDaTabela.length > 0 && (
+                <div data-fora-da-tabela style={{ marginTop: '6px', padding: '6px 10px', borderRadius: '6px', backgroundColor: '#FFFBEB', border: '1px solid #F59E0B', color: '#92400E', fontSize: '11px', lineHeight: 1.5 }}>
+                  ⚠️ Valor fora da tabela em: <b>{descritoresForaDaTabela.join(', ')}</b>. O grau de risco <b>não foi recalculado</b> e continua o da vistoria. Escolha um valor da lista para recalcular.
+                </div>
+              )}
             </div>
           </div>
 
@@ -1110,8 +1122,7 @@ interface DadosHomologacao {
 }
 
 function gerarHtmlVistoria(form: Formulario, dados: DadosHomologacao): string {
-  const corGR = dados.grauRisco >= (dados.isNR ? 75 : 64) ? '#E24B4A'
-    : dados.grauRisco >= (dados.isNR ? 50 : 35) ? '#E8A000' : '#1A7A3C'
+  const corGR = corTelaDoGrau(dados.grauRisco, dados.isNR)
 
   return `<!DOCTYPE html>
 <html lang="pt-BR">

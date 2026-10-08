@@ -5,6 +5,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { verificarDisponibilidade, consumirCreditos } from '@/lib/creditos'
 import { exigirSessao } from '@/lib/autorizacao'
+import { ehFamiliaNR, semaforoDoGrau, prioridadeDoGrau } from '@/lib/prioridade'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -409,8 +410,10 @@ tr:nth-child(even) td { background: #f7f9ff; }
       const tag   = xe((ativoRow as any).tag_ativo_nr_serie||ncTag||'')
       const ativo = xe((ativoRow as any).tipo_ativo||ncTipo||'')
       const gr  = Number(nc.grau_risco||nc.grauRisco)||0
-      const cor = gr>80?'#CC0000':gr>=50?'#E8A000':gr>=30?'#EAB308':'#16A34A'
-      const pri = gr>80?'Muito Alta':gr>=50?'Alta':gr>=30?'Média':'Baixa'
+      // Critério por família (src/lib/prioridade.ts): predial 51–54 usa Alta/Média/Baixa; NR 55–58 usa 4 níveis.
+      const nrFam = ehFamiliaNR(ts)
+      const cor = ({ vermelho:'#CC0000', ambar:'#E8A000', amarelo:'#EAB308', verde:'#16A34A' } as const)[semaforoDoGrau(gr, nrFam)]
+      const pri = prioridadeDoGrau(gr, nrFam) === '—' ? 'Baixa' : prioridadeDoGrau(gr, nrFam)
       // Novo bloco quando muda local OU tag (2.9.2-n)
       if (local !== curLocal || tag !== curTag) {
         anx1Rows += `<tr style="background:#dbeafe">

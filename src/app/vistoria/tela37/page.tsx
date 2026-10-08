@@ -4,6 +4,7 @@ import { useSearchParams } from 'next/navigation'
 import Image from 'next/image'
 import { salvarOffline } from '@/lib/offlineVistoria'
 import { fetchTimeout } from '@/lib/fetchTimeout'
+import { prioridadeDoGrau, corTelaDoGrau, fundoTelaDoGrau } from '@/lib/prioridade'
 
 // ─── Tipos ───────────────────────────────────────────────────────────────────
 
@@ -190,8 +191,8 @@ function Tela31Inner() {
   const abrNum  = valorGut[`probabilidade:${descProbabilidade}`]   ?? 0
   const expNum  = valorGut[`exposicaorisco:${descExposicaoRisco}`] ?? 0
   const grauRisco = (gravNum && urgNum && abrNum && expNum) ? calcularGR(gravNum, urgNum, abrNum, expNum, pctGut) : 0
-  const prioridade = grauRisco > 80 ? 'Muito Alta' : grauRisco >= 50 ? 'Alta' : grauRisco >= 30 ? 'Média' : 'Baixa'
-  const corGR = grauRisco >= 64 ? '#E24B4A' : grauRisco >= 35 ? '#E8A000' : '#1A7A3C'
+  const prioridade = prioridadeDoGrau(grauRisco, true)
+  const corGR = corTelaDoGrau(grauRisco, true)
 
   // Listas filtradas
   const subsistemasFiltrados = [...new Set(subsistemas.filter(s => s.sistema === sistema).map(s => s.subsistema))]
@@ -740,7 +741,7 @@ function Tela31Inner() {
                 </div>
                 <div style={{ ...S.metric, justifyContent: 'center' }}>
                   <span style={S.metricLbl}>Prioridade</span>
-                  <span style={{ ...S.badge, background: grauRisco >= 64 ? '#FCEBEB' : grauRisco >= 35 ? '#FFF0C2' : '#E6F5EE', color: corGR }}>
+                  <span style={{ ...S.badge, background: fundoTelaDoGrau(grauRisco, true), color: corGR }}>
                     {prioridade}
                   </span>
                 </div>
