@@ -30,14 +30,15 @@ export async function POST(request: NextRequest) {
     }
 
     const sistemaLimpo  = limparSistema(sistema)
-    const localCompleto = complemento ? `${local} – ${complemento}` : local
+    // O complemento do endereço NÃO entra nos prompts de NC, procedimento corretivo e solução da NC (Celso, 08/10/2026):
+    // ele aparece na tabela do plano de manutenção, depois da descrição da NC. Só o Local vai para a IA.
 
-    const promptNC = `Como engenheiro diagnóstico especialista em patologia e atuando nas áreas de edificações; elétrica; máquinas e equipamentos; caldeiras, vasos sob pressão e tubulações, que utilizará apenas critérios previstos em normas técnicas e ao conteúdo das variáveis apresentadas a seguir, descreva, com linguagem técnica a "Não conformidade" correspondente a combinação das variáveis: "Sistema", "Subsistema", "Anomalia", e "Local + Complemento". Entenda que "Não conformidade" descreve objetivamente a manifestação patológica identificada durante a vistoria, sem indicar causa provável, solução ou recomendação. A descrição da "Não conformidade" deve ser objetiva, em até duas frases com o máximo de 200 caracteres, sem justificativa e respeitando as regras sintáticas de português, incluindo pontuação. A resposta deverá ser apresentada na variável "Não conformidade", e esta será revisada por um engenheiro, antes de ser inserida no laudo final.
+    const promptNC = `Como engenheiro diagnóstico especialista em patologia e atuando nas áreas de edificações; elétrica; máquinas e equipamentos; caldeiras, vasos sob pressão e tubulações, que utilizará apenas critérios previstos em normas técnicas e ao conteúdo das variáveis apresentadas a seguir, descreva, com linguagem técnica a "Não conformidade" correspondente a combinação das variáveis: "Sistema", "Subsistema", "Anomalia", e "Local". Entenda que "Não conformidade" descreve objetivamente a manifestação patológica identificada durante a vistoria, sem indicar causa provável, solução ou recomendação. A descrição da "Não conformidade" deve ser objetiva, em até duas frases com o máximo de 200 caracteres, sem justificativa e respeitando as regras sintáticas de português, incluindo pontuação. A resposta deverá ser apresentada na variável "Não conformidade", e esta será revisada por um engenheiro, antes de ser inserida no laudo final.
 
 Sistema: ${sistemaLimpo}
 Subsistema: ${subsistema}
 Anomalia: ${anomalia}
-Local + Complemento: ${localCompleto}
+Local: ${local}
 
 Responda APENAS com JSON válido, sem markdown, sem texto adicional:
 {"nao_conformidade": "texto aqui"}`

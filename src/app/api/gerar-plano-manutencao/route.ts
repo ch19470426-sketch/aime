@@ -414,6 +414,8 @@ tr:nth-child(even) td { background: #f7f9ff; }
       const nrFam = ehFamiliaNR(ts)
       const cor = ({ vermelho:'#CC0000', ambar:'#E8A000', amarelo:'#EAB308', verde:'#16A34A' } as const)[semaforoDoGrau(gr, nrFam)]
       const pri = prioridadeDoGrau(gr, nrFam) === '—' ? 'Baixa' : prioridadeDoGrau(gr, nrFam)
+      // Anexo 1: a coluna "Local ocorrência" mostra SÓ o Local; o complemento do endereço vai na coluna "Não Conformidade",
+      // depois da descrição da NC (pedido de Celso, 08/10/2026), e é o complemento de CADA NC.
       // Novo bloco quando muda local OU tag (2.9.2-n)
       if (local !== curLocal || tag !== curTag) {
         anx1Rows += `<tr style="background:#dbeafe">
@@ -422,7 +424,7 @@ tr:nth-child(even) td { background: #f7f9ff; }
 <td rowspan="2" style="font-size:8pt;font-weight:700;color:#1E3A8A;padding:3pt;text-align:center;vertical-align:middle;border:1px solid #1E3A8A">Foto Laudo</td>
 </tr>
 <tr style="background:#eff6ff">
-<td colspan="2" style="font-size:7.5pt;padding:2pt 5pt">${local}${compl ? ' / ' + compl : ''}</td>
+<td colspan="2" style="font-size:7.5pt;padding:2pt 5pt">${local}</td>
 <td colspan="2" style="font-size:7.5pt;padding:2pt 5pt">${tag} — ${ativo}</td>
 
 </tr>`
@@ -430,7 +432,7 @@ tr:nth-child(even) td { background: #f7f9ff; }
       }
       anx1Rows += `<tr>
 <td style="text-align:center">${idx+1}</td>
-<td>${xe(nc.descricao_nao_conformidade||nc.nc||'')}</td>
+<td>${xe(nc.descricao_nao_conformidade||nc.nc||'')}${compl ? `<div style="margin-top:2pt;font-size:7pt;color:#374151"><b>Complemento:</b> ${compl}</div>` : ''}</td>
 <td style="text-align:center;font-weight:700;color:${cor}">${pri}</td>
 <td>${xe(nc.procedimento_corretivo||'')}</td>
 <td style="text-align:center;border:1px solid #1E3A8A">${xe(String(nc.fotoNr||nc.numero_foto||""))}</td>
