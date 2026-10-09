@@ -121,7 +121,7 @@ export type Verificacao = {
   liberado: boolean
   motivo:
     | 'cobranca_inativa' | 'servico_nao_cobrado' | 'isento_gestor'
-    | 'saldo_ok' | 'saldo_insuficiente' | 'verificacao_indisponivel' | 'conta_bloqueada' | 'ja_cobrado_no_ciclo'
+    | 'saldo_ok' | 'saldo_insuficiente' | 'verificacao_indisponivel' | 'conta_bloqueada'
   necessario?: number
   saldoTotal?: number
   faltam?: number
@@ -268,44 +268,17 @@ export async function lerSaldo(cpf: string): Promise<Saldo | null> {
   } catch (e) { console.error('[creditos] saldo_creditos exceção:', e); return null }
 }
 
-/** Qual documento cada serviço gera: é o mesmo nome usado na chave de repetição do consumo. */
-export function documentoDoServico(codigo: number): 'proposta' | 'plano' | 'laudo' | 'planomanut' | null {
-  if (codigo >= 11 && codigo <= 19) return 'proposta'
-  if (codigo >= 21 && codigo <= 29) return 'plano'
-  if (codigo >= 41 && codigo <= 48) return 'laudo'
-  if (codigo >= 51 && codigo <= 58) return 'planomanut'
-  return null
-}
-
-/**
- * O documento deste serviço, para este estabelecimento, JÁ foi cobrado no ciclo de inspeção atual? Então regerá-lo não
- * cobra de novo (correções) e NÃO pode ser barrado por falta de crédito. Em caso de dúvida (erro de consulta), devolve
- * false: vale a regra normal de saldo.
- */
-export async function jaCobradoNoCiclo(cpf: string, cnpjoucpf: string, codigoServico: number): Promise<boolean> {
-  const doc = documentoDoServico(codigoServico)
-  if (!doc || !cnpjoucpf) return false
-  try {
-    const marcador = await marcadorDeCiclo(cpf, cnpjoucpf, codigoServico)
-    const ref = referenciaDoDocumento(cnpjoucpf, codigoServico, doc, marcador)
-    const { data, error } = await admin().from('consumo_creditos').select('id').eq('cpf_inspetor', cpf).eq('referencia', ref).limit(1)
-    if (error) { console.error('[creditos] jaCobradoNoCiclo:', error.message); return false }
-    return (data?.length ?? 0) > 0
-  } catch (e) { console.error('[creditos] jaCobradoNoCiclo exceção:', e); return false }
-}
-
 /**
  * Pode este CPF INICIAR este serviço? O Painel consulta ao aceitar o CNPJ/CPF, ANTES de abrir a tela (decisão de Celso,
- * 08/10/2026: avisar da falta de crédito logo no início, e não depois de o inspetor preencher tudo). Com `cnpjoucpf`,
- * um documento já cobrado neste ciclo é liberado mesmo sem saldo.
+ * 08/10/2026: avisar da falta de crédito logo no início, e não depois de o inspetor preencher tudo). Como toda geração
+ * debita, vale sempre a regra de saldo contra custo.
  */
-export async function verificarDisponibilidade(cpf: string, codigoServico: number, opcoes: { cnpjoucpf?: string } = {}): Promise<Verificacao> {
+export async function verificarDisponibilidade(cpf: string, codigoServico: number): Promise<Verificacao> {
   // Conta bloqueada (estorno, chargeback ou cartão recusado 3 vezes) não inicia nenhum serviço.
   if ((await contaBloqueada(cpf)).bloqueada) return { liberado: false, motivo: 'conta_bloqueada' }
   if (!cobrancaAtiva()) return { liberado: true, motivo: 'cobranca_inativa' }
   const necessario = custoParaIniciar(codigoServico)
   if (necessario === null) return { liberado: true, motivo: 'servico_nao_cobrado' }
-  if (opcoes.cnpjoucpf && await jaCobradoNoCiclo(cpf, opcoes.cnpjoucpf, codigoServico)) return { liberado: true, motivo: 'ja_cobrado_no_ciclo' }
   return decidirVerificacao(await lerSaldo(cpf), necessario)
 }
 
@@ -345,35 +318,19 @@ export async function consumirCreditos(
   }
 }
 
-// ─────────────── Ciclo de inspeção (quando um documento cobra DE NOVO) ───────────────
-// DECISÃO de Celso (08/10/2026): o mesmo documento do mesmo estabelecimento cobra de novo a cada NOVO CICLO de
-// inspeção. Antes, a chave de repetição era "estabelecimento_serviço_documento", sem nada que mudasse de um ciclo para o
-// outro: depois da primeira geração NUNCA mais cobrava (nova inspeção do mesmo imóvel, no ano seguinte, saía de graça).
+// ─────────────── Chave de cobrança de cada GERAÇÃO de documento ───────────────
+// DECISÃO de Celso (09/10/2026): TODA geração concluída de proposta, plano de trabalho, laudo e plano de manutenção debita
+// os créditos, inclusive ao regerar o mesmo documento, porque cada geração consome IA e armazenamento. (A regra anterior,
+// de uma cobrança por ciclo de inspeção, foi substituída: regerar o mesmo documento saía de graça.)
 //
-// O ciclo termina quando suas vistorias são HOMOLOGADAS. O marcador é a data da última homologação do estabelecimento
-// (do mesmo tipo de vistoria): enquanto ela não muda, regerar o documento NÃO cobra de novo (correções); quando uma nova
-// homologação acontece, o ciclo seguinte começa e o documento cobra de novo. Proposta e plano de trabalho abrem o ciclo
-// (ainda sem homologação nova), então usam a homologação do ciclo ANTERIOR ("inicial" se nunca houve); laudo e plano de
-// manutenção usam a do ciclo ATUAL.
+// A função SQL consumir_creditos só cobra UMA vez por inspetor e chave de repetição; por isso cada geração recebe uma chave
+// ÚNICA. Chamadas que só consultam (plano de manutenção "_info_", prévia do plano de trabalho) não geram documento e não
+// cobram. Limite conhecido: se uma geração terminar no servidor mas o cliente não receber a resposta (tempo esgotado) e o
+// inspetor gerar de novo, as duas cobram.
 
-/** Código da vistoria correspondente ao serviço: 11–18, 21–28, 41–48 e 51–58 vêm de 31–38. */
-export const codigoDaVistoria = (codigoServico: number): number => 30 + (codigoServico % 10)
-
-/** Chave de repetição do documento: muda a cada ciclo. */
-export function referenciaDoDocumento(cnpjoucpf: string, codigoServico: number | string, documento: string, marcador: string): string {
-  return `${cnpjoucpf}_${codigoServico}_${documento}_c${marcador}`
-}
-
-/** 'AAAA-MM-DD' da última homologação do estabelecimento, 'inicial' se nunca houve, ou 'sem-marcador' se não deu para consultar. */
-export async function marcadorDeCiclo(cpf: string, cnpjoucpf: string, codigoServico: number): Promise<string> {
-  try {
-    const { data, error } = await admin().from('dados_vistoria').select('data_homologacao')
-      .eq('cpf_inspetor', cpf).eq('cnpjoucpf', cnpjoucpf).like('tipo_servico', `${codigoDaVistoria(codigoServico)}%`)
-      .not('data_homologacao', 'is', null).order('data_homologacao', { ascending: false }).limit(1)
-    if (error) { console.error('[creditos] marcador de ciclo:', error.message); return 'sem-marcador' }
-    const ultima = data?.[0]?.data_homologacao
-    return ultima ? String(ultima).slice(0, 10) : 'inicial'
-  } catch (e) { console.error('[creditos] marcador de ciclo exceção:', e); return 'sem-marcador' }
+/** Chave única da geração: cnpj_serviço_documento_g<instante><sorteio>. */
+export function referenciaDaGeracao(cnpjoucpf: string, codigoServico: number | string, documento: string): string {
+  return `${cnpjoucpf}_${codigoServico}_${documento}_g${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`
 }
 
 /**

@@ -9,7 +9,7 @@ export const maxDuration = 60
 import { NextRequest, NextResponse } from 'next/server'
 import { gerarCapa } from '@/lib/gerarCapa'
 import { createClient } from '@supabase/supabase-js'
-import { verificarDisponibilidade, consumirCreditos, referenciaDoDocumento, marcadorDeCiclo } from '@/lib/creditos'
+import { verificarDisponibilidade, consumirCreditos, referenciaDaGeracao } from '@/lib/creditos'
 import { exigirSessao } from '@/lib/autorizacao'
 import { mapaDeDescricoes, descricaoDoSistema } from '@/lib/descSistemas'
 import { normalizarPrioridades, ehFamiliaNR, prioridadeDoGrau } from '@/lib/prioridade'
@@ -378,7 +378,7 @@ export async function POST(request: NextRequest) {
     if (!cpfInspetor || !tipoServico || !nomeArquivo)
       return NextResponse.json({ erro: 'Parâmetros obrigatórios ausentes.' }, { status: 400 })
 
-    const verificacaoLaudo = await verificarDisponibilidade(cpfInspetor, Number(tipoServico), { cnpjoucpf })
+    const verificacaoLaudo = await verificarDisponibilidade(cpfInspetor, Number(tipoServico))
     if (!verificacaoLaudo.liberado) {
       if (verificacaoLaudo.motivo === 'conta_bloqueada') return NextResponse.json({ erro: 'Conta bloqueada. Entre em contato com o suporte: suporte@aime.eng.br.', bloqueada: true }, { status: 403 })
       return NextResponse.json({
@@ -1592,7 +1592,7 @@ export async function POST(request: NextRequest) {
       const { error: errSave } = await supabase.storage.from('aime')
         .upload('documentos_inspetor/' + nomeArquivo, new Blob([htmlNR], { type:'text/html' }), { upsert: true })
       if (errSave) throw new Error('Erro ao salvar: ' + errSave.message)
-      await consumirCreditos(cpfInspetor, Number(tipoServico), { cnpjoucpf, referencia: referenciaDoDocumento(cnpjoucpf, tipoServico, 'laudo', await marcadorDeCiclo(cpfInspetor, cnpjoucpf, Number(tipoServico))) })
+      await consumirCreditos(cpfInspetor, Number(tipoServico), { cnpjoucpf, referencia: referenciaDaGeracao(cnpjoucpf, tipoServico, 'laudo') })
       return NextResponse.json({ sucesso: true, nome: nomeArquivo, html: htmlNR })
     }
     // ── FIM GERADOR NR (45-48) ────────────────────────────────────────────────
@@ -2532,7 +2532,7 @@ ${srcArtMecanico ? `<div style="page-break-before:always;page-break-inside:avoid
       )
     } catch {}
 
-    await consumirCreditos(cpfInspetor, Number(tipoServico), { cnpjoucpf, referencia: referenciaDoDocumento(cnpjoucpf, tipoServico, 'laudo', await marcadorDeCiclo(cpfInspetor, cnpjoucpf, Number(tipoServico))) })
+    await consumirCreditos(cpfInspetor, Number(tipoServico), { cnpjoucpf, referencia: referenciaDaGeracao(cnpjoucpf, tipoServico, 'laudo') })
     return NextResponse.json({ ok:true, nomeArquivo, html })
 
   } catch (err) {

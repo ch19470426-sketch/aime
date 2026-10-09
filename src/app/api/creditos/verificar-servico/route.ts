@@ -20,7 +20,6 @@ export async function GET(request: NextRequest) {
   if (!cpf || !codigo) {
     return NextResponse.json({ erro: 'cpf_inspetor e codigo_servico são obrigatórios' }, { status: 400 })
   }
-  const cnpjoucpf = (url.searchParams.get('cnpjoucpf') ?? '').replace(/\D/g, '')
-  const verificacao = await verificarDisponibilidade(cpf, Number(codigo), cnpjoucpf ? { cnpjoucpf } : {})
+  const verificacao = await verificarDisponibilidade(cpf, Number(codigo))
   return NextResponse.json(verificacao)
 }

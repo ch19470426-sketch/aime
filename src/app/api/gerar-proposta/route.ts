@@ -4,7 +4,7 @@ export const runtime = 'nodejs'
 // src/app/api/gerar-proposta/route.ts
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { verificarDisponibilidade, consumirCreditos, referenciaDoDocumento, marcadorDeCiclo } from '@/lib/creditos'
+import { verificarDisponibilidade, consumirCreditos, referenciaDaGeracao } from '@/lib/creditos'
 import { exigirSessao } from '@/lib/autorizacao'
 
 const supabase = createClient(
@@ -264,7 +264,7 @@ export async function POST(request: NextRequest) {
       .eq('cpf_inspetor', cpfInspetor).single()
     if (!insp) return NextResponse.json({ erro: 'Inspetor não encontrado' }, { status: 404 })
 
-    const verificacao = await verificarDisponibilidade(cpfInspetor, Number(tipoServico), { cnpjoucpf })
+    const verificacao = await verificarDisponibilidade(cpfInspetor, Number(tipoServico))
     if (!verificacao.liberado) {
       return NextResponse.json({
         erro: 'Créditos insuficientes para gerar esta proposta.',
@@ -493,9 +493,8 @@ ${insp.especializacao ? `<p style="margin:0;line-height:1">Especialista ${insp.e
     if (erroHistorico) console.error('Erro ao gravar historico_valores:', erroHistorico.message)
 
     // Debita créditos por último, só depois que a proposta já foi montada
-    // com sucesso — idempotente por estabelecimento+tipo+CICLO de inspeção (marcadorDeCiclo): regerar no mesmo ciclo
-    // não cobra de novo; um novo ciclo cobra.
-    await consumirCreditos(cpfInspetor, Number(tipoServico), { cnpjoucpf, referencia: referenciaDoDocumento(cnpjoucpf, tipoServico, 'proposta', await marcadorDeCiclo(cpfInspetor, cnpjoucpf, Number(tipoServico))) })
+    // com sucesso — TODA geração debita, inclusive ao regerar (decisão de Celso, 09/10/2026; chave única por geração).
+    await consumirCreditos(cpfInspetor, Number(tipoServico), { cnpjoucpf, referencia: referenciaDaGeracao(cnpjoucpf, tipoServico, 'proposta') })
 
     return NextResponse.json({ html })
   } catch (err) {

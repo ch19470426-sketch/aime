@@ -4,7 +4,7 @@ export const runtime = 'nodejs'
 // src/app/api/gerar-plano/route.ts
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { verificarDisponibilidade, consumirCreditos, referenciaDoDocumento, marcadorDeCiclo } from '@/lib/creditos'
+import { verificarDisponibilidade, consumirCreditos, referenciaDaGeracao } from '@/lib/creditos'
 import { exigirSessao } from '@/lib/autorizacao'
 
 const supabase = createClient(
@@ -482,7 +482,7 @@ export async function POST(request: NextRequest) {
     // para classificar o custo. tipoVistoria (usado mais abaixo) e so para
     // localizar os ativos da vistoria ASSOCIADA, uma coisa diferente — nao
     // confundir os dois aqui.
-    const verificacaoPlano = await verificarDisponibilidade(cpfInspetor, Number(tipoServico), { cnpjoucpf })
+    const verificacaoPlano = await verificarDisponibilidade(cpfInspetor, Number(tipoServico))
     if (!verificacaoPlano.liberado) {
       return NextResponse.json({
         erro: 'Créditos insuficientes para gerar este plano de trabalho.',
@@ -742,9 +742,12 @@ export async function POST(request: NextRequest) {
       inscricao: numLimpo(insp.inscricao_crea_cau)
     }
 
-    // Idempotente por estabelecimento+tipo+CICLO de inspeção (src/lib/creditos.ts, marcadorDeCiclo): regerar no mesmo
-    // ciclo não cobra de novo; um novo ciclo (nova homologação) cobra.
-    await consumirCreditos(cpfInspetor, Number(tipoServico), { cnpjoucpf, referencia: referenciaDoDocumento(cnpjoucpf, tipoServico, 'plano', await marcadorDeCiclo(cpfInspetor, cnpjoucpf, Number(tipoServico))) })
+    // TODA geração final debita (decisão de Celso, 09/10/2026; chave única em src/lib/creditos.ts). A tela chama esta rota
+    // DUAS vezes: a prévia (sem `datas`, para o inspetor preencher datas e documentos) NÃO gera o documento e não cobra;
+    // a geração final (com `datas`) cobra.
+    if (Array.isArray(datas)) {
+      await consumirCreditos(cpfInspetor, Number(tipoServico), { cnpjoucpf, referencia: referenciaDaGeracao(cnpjoucpf, tipoServico, 'plano') })
+    }
 
     return NextResponse.json({ html, planoInfo: { titulo: String(plano.titulo), parceiro: String(plano.parceiro), atividades, documentos }, docInfo, endereco })
   } catch (err) {

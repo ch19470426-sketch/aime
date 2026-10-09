@@ -564,10 +564,10 @@ export default function Dashboard() {
 
   // Confere o crédito ANTES de abrir a tela do serviço (decisão de Celso, 08/10/2026). Antes, só as vistorias passavam por
   // aqui: proposta, plano de trabalho, laudo e plano de manutenção avisavam da falta de crédito apenas na hora de GERAR o
-  // documento, depois de o inspetor preencher tudo. Um documento já cobrado neste ciclo não é barrado (regerar é grátis).
+  // documento, depois de o inspetor preencher tudo. Um como toda geração debita, vale sempre saldo contra custo.
   async function creditosOk(codigo: number, doc: string): Promise<boolean> {
     try {
-      const r = await fetch(`/api/creditos/verificar-servico?cpf_inspetor=${cpfInspetor}&codigo_servico=${codigo}&cnpjoucpf=${doc}`)
+      const r = await fetch(`/api/creditos/verificar-servico?cpf_inspetor=${cpfInspetor}&codigo_servico=${codigo}`)
       if (r.ok) {
         const v = await r.json()
         if (v.liberado === false && v.motivo === 'conta_bloqueada') { window.location.href = `/conta-bloqueada?cpf=${cpfInspetor}`; return false }

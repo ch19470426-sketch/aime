@@ -3,7 +3,7 @@ export const runtime = 'nodejs'
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { verificarDisponibilidade, consumirCreditos, referenciaDoDocumento, marcadorDeCiclo } from '@/lib/creditos'
+import { verificarDisponibilidade, consumirCreditos, referenciaDaGeracao } from '@/lib/creditos'
 import { exigirSessao } from '@/lib/autorizacao'
 import { ehFamiliaNR, semaforoDoGrau, prioridadeDoGrau } from '@/lib/prioridade'
 
@@ -122,7 +122,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ estabNome: estabNomeVal, cabInspetor: cabInsVal, _debug: { e, i } })
     }
 
-    const verificacaoManut = await verificarDisponibilidade(cpfInspetor, Number(tipoServico), { cnpjoucpf })
+    const verificacaoManut = await verificarDisponibilidade(cpfInspetor, Number(tipoServico))
     if (!verificacaoManut.liberado) {
       if (verificacaoManut.motivo === 'conta_bloqueada') return NextResponse.json({ erro: 'Conta bloqueada. Entre em contato com o suporte: suporte@aime.eng.br.', bloqueada: true }, { status: 403 })
       return NextResponse.json({
@@ -603,7 +603,7 @@ ${anx1Rows||'<tr><td colspan="5" style="text-align:center;color:#9a3412;font-sty
       .upload(`documentos_inspetor/${nomeArquivo}`, new Blob([html], { type: 'text/html' }), { upsert: true, contentType: 'text/html' })
     if (error) return NextResponse.json({ erro: error.message }, { status: 400 })
 
-    await consumirCreditos(cpfInspetor, Number(tipoServico), { cnpjoucpf, referencia: referenciaDoDocumento(cnpjoucpf, tipoServico, 'planomanut', await marcadorDeCiclo(cpfInspetor, cnpjoucpf, Number(tipoServico))) })
+    await consumirCreditos(cpfInspetor, Number(tipoServico), { cnpjoucpf, referencia: referenciaDaGeracao(cnpjoucpf, tipoServico, 'planomanut') })
     return NextResponse.json({ sucesso: true, nome: nomeArquivo, html })
 
   } catch (e) {
