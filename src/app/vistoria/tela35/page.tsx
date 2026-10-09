@@ -5,6 +5,7 @@ import Image from 'next/image'
 import { salvarOffline } from '@/lib/offlineVistoria'
 import { fetchTimeout } from '@/lib/fetchTimeout'
 import { prioridadeDoGrau, corTelaDoGrau, fundoTelaDoGrau } from '@/lib/prioridade'
+import { guardarFotoDoRascunho, lerFotoDoRascunho, apagarFotoDoRascunho } from '@/lib/rascunhoFoto'
 
 // ─── Tipos ───────────────────────────────────────────────────────────────────
 
@@ -125,6 +126,32 @@ function Tela31Inner() {
   const draftKey = `aime_rascunho_${chaveInspetor}_${cnpjoucpf}_${tipoServico}`
   const [rascunhoRecuperado, setRascunhoRecuperado] = useState(false)
   const suprimirProximoSalvamentoRef = useRef(false)
+
+  // ── Foto do rascunho (src/lib/rascunhoFoto.ts) ──
+  // Abrir a câmera costuma derrubar a aba por falta de memória: a tela recarrega e a foto sumia (era preciso tirá-la de
+  // novo e salvar de novo, a cada vistoria). Agora a foto é guardada no aparelho e restaurada junto com o rascunho.
+  const [fotoRecuperada, setFotoRecuperada] = useState(false)
+  const fotoAnteriorRef = useRef('')
+  useEffect(() => {
+    let vivo = true
+    lerFotoDoRascunho(draftKey, sessaoToken).then(f => {
+      if (vivo && f) { setFotoBase64(f); setFotoRecuperada(true); setRascunhoRecuperado(true) }
+    })
+    return () => { vivo = false }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+  useEffect(() => {
+    if (fotoBase64) guardarFotoDoRascunho(draftKey, sessaoToken, fotoBase64)
+    else if (fotoAnteriorRef.current) apagarFotoDoRascunho(draftKey)   // só apaga quando a foto SAI (salvou ou removeu)
+    fotoAnteriorRef.current = fotoBase64
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fotoBase64])
+  // O aviso de recarregamento some sozinho: não fica de uma vistoria para a outra.
+  useEffect(() => {
+    if (!rascunhoRecuperado) return
+    const t = setTimeout(() => { setRascunhoRecuperado(false); setFotoRecuperada(false) }, 20000)
+    return () => clearTimeout(t)
+  }, [rascunhoRecuperado])
 
   useEffect(() => {
     try {
@@ -581,7 +608,9 @@ function Tela31Inner() {
           {rascunhoRecuperado && (
             <div style={{ background: '#FFF7ED', border: '1px solid #FED7AA', borderRadius: '6px',
               padding: '8px 12px', fontSize: '8pt', color: '#92400E', textAlign: 'center' }}>
-              ⚠️ Ocorreu problema de salvamento de dados de preenchimento anterior ou atual. Revise e complemente antes de salvar.
+              {fotoRecuperada
+                ? 'ℹ️ A tela foi recarregada (isso pode acontecer ao usar a câmera). Recuperamos o que você tinha preenchido e a foto. Revise antes de salvar.'
+                : 'ℹ️ A tela foi recarregada (isso pode acontecer ao usar a câmera). Recuperamos o que você tinha preenchido; tire a foto novamente.'}
             </div>
           )}
 
