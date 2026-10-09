@@ -264,7 +264,7 @@ export async function POST(request: NextRequest) {
       .eq('cpf_inspetor', cpfInspetor).single()
     if (!insp) return NextResponse.json({ erro: 'Inspetor não encontrado' }, { status: 404 })
 
-    const verificacao = await verificarDisponibilidade(cpfInspetor, Number(tipoServico))
+    const verificacao = await verificarDisponibilidade(cpfInspetor, Number(tipoServico), { cnpjoucpf })
     if (!verificacao.liberado) {
       return NextResponse.json({
         erro: 'Créditos insuficientes para gerar esta proposta.',

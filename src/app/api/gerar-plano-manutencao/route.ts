@@ -122,7 +122,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ estabNome: estabNomeVal, cabInspetor: cabInsVal, _debug: { e, i } })
     }
 
-    const verificacaoManut = await verificarDisponibilidade(cpfInspetor, Number(tipoServico))
+    const verificacaoManut = await verificarDisponibilidade(cpfInspetor, Number(tipoServico), { cnpjoucpf })
     if (!verificacaoManut.liberado) {
       if (verificacaoManut.motivo === 'conta_bloqueada') return NextResponse.json({ erro: 'Conta bloqueada. Entre em contato com o suporte: suporte@aime.eng.br.', bloqueada: true }, { status: 403 })
       return NextResponse.json({

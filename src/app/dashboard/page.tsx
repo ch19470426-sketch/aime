@@ -562,6 +562,30 @@ export default function Dashboard() {
     setEstadoDoc("aguardando")
   }
 
+  // Confere o crédito ANTES de abrir a tela do serviço (decisão de Celso, 08/10/2026). Antes, só as vistorias passavam por
+  // aqui: proposta, plano de trabalho, laudo e plano de manutenção avisavam da falta de crédito apenas na hora de GERAR o
+  // documento, depois de o inspetor preencher tudo. Um documento já cobrado neste ciclo não é barrado (regerar é grátis).
+  async function creditosOk(codigo: number, doc: string): Promise<boolean> {
+    try {
+      const r = await fetch(`/api/creditos/verificar-servico?cpf_inspetor=${cpfInspetor}&codigo_servico=${codigo}&cnpjoucpf=${doc}`)
+      if (r.ok) {
+        const v = await r.json()
+        if (v.liberado === false && v.motivo === 'conta_bloqueada') { window.location.href = `/conta-bloqueada?cpf=${cpfInspetor}`; return false }
+        if (v.liberado === false) {
+          setEstadoDoc('aguardando')
+          solicita('Créditos insuficientes',
+            `Créditos insuficientes para iniciar este serviço. São necessários ${v.necessario} CR (faltam ${v.faltam ?? '—'}).`,
+            [
+              { label: 'Comprar Créditos', acao: () => { fechar(); window.location.href = `/inspetor?cpf=${cpfInspetor}&aba=plano` }, estilo: 'primario' },
+              { label: 'Cancelar', acao: () => fechar(), estilo: 'secundario' },
+            ])
+          return false
+        }
+      }
+    } catch { /* falha na verificação: libera normalmente (o portão do gerador confere de novo) */ }
+    return true
+  }
+
   async function handleIniciarVistoria() {
     const docLimpo = documentoSemMascara(documento)
     // Código 39: Vistoria Elétrica — navega direto sem coletar CNPJ aqui
@@ -583,6 +607,7 @@ export default function Dashboard() {
         setMsgErro(`CNPJ ou CPF incompleto (${docLimpo.length} dígitos — informe 11 para CPF ou 14 para CNPJ)`)
         return
       }
+      if (!(await creditosOk(Number(tipoServico), docLimpo))) return
       window.location.href = `/plano-manutencao?cpf_inspetor=${cpfInspetor}&chave_inspetor=${chaveInspetor}&cnpjoucpf=${docLimpo}&tipo_servico=${tipoServico}`
       return
     }
@@ -605,16 +630,19 @@ export default function Dashboard() {
     }
     // Códigos 21-29: Planos de Trabalho
     if (Number(tipoServico) >= 21 && Number(tipoServico) <= 29) {
+      if (!(await creditosOk(Number(tipoServico), docLimpo))) return
       window.location.href = `/plano?cpf_inspetor=${cpfInspetor}&chave_inspetor=${chaveInspetor}&cnpjoucpf=${docLimpo}&tipo_servico=${tipoServico}`
       return
     }
     // Códigos 11-19: Propostas
     if (Number(tipoServico) >= 11 && Number(tipoServico) <= 19) {
+      if (!(await creditosOk(Number(tipoServico), docLimpo))) return
       window.location.href = `/proposta?cpf_inspetor=${cpfInspetor}&chave_inspetor=${chaveInspetor}&cnpjoucpf=${docLimpo}&tipo_servico=${tipoServico}`
       return
     }
     // Códigos 41-48: Laudos (Autovistoria, Inspeção, Imóvel Novo, Fachada, Elevador, NR-10, NR-12, NR-13)
     if (Number(tipoServico) >= 41 && Number(tipoServico) <= 48) {
+      if (!(await creditosOk(Number(tipoServico), docLimpo))) return
       window.location.href = `/laudo?cpf_inspetor=${cpfInspetor}&chave_inspetor=${chaveInspetor}&cnpjoucpf=${docLimpo}&tipo_servico=${tipoServico}`
       return
     }

@@ -482,7 +482,7 @@ export async function POST(request: NextRequest) {
     // para classificar o custo. tipoVistoria (usado mais abaixo) e so para
     // localizar os ativos da vistoria ASSOCIADA, uma coisa diferente — nao
     // confundir os dois aqui.
-    const verificacaoPlano = await verificarDisponibilidade(cpfInspetor, Number(tipoServico))
+    const verificacaoPlano = await verificarDisponibilidade(cpfInspetor, Number(tipoServico), { cnpjoucpf })
     if (!verificacaoPlano.liberado) {
       return NextResponse.json({
         erro: 'Créditos insuficientes para gerar este plano de trabalho.',

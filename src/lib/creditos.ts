@@ -121,7 +121,7 @@ export type Verificacao = {
   liberado: boolean
   motivo:
     | 'cobranca_inativa' | 'servico_nao_cobrado' | 'isento_gestor'
-    | 'saldo_ok' | 'saldo_insuficiente' | 'verificacao_indisponivel' | 'conta_bloqueada'
+    | 'saldo_ok' | 'saldo_insuficiente' | 'verificacao_indisponivel' | 'conta_bloqueada' | 'ja_cobrado_no_ciclo'
   necessario?: number
   saldoTotal?: number
   faltam?: number
@@ -268,13 +268,44 @@ export async function lerSaldo(cpf: string): Promise<Saldo | null> {
   } catch (e) { console.error('[creditos] saldo_creditos exceção:', e); return null }
 }
 
-/** Pode este CPF INICIAR este serviço? (Gate a ser ligado no dashboard.) */
-export async function verificarDisponibilidade(cpf: string, codigoServico: number): Promise<Verificacao> {
+/** Qual documento cada serviço gera: é o mesmo nome usado na chave de repetição do consumo. */
+export function documentoDoServico(codigo: number): 'proposta' | 'plano' | 'laudo' | 'planomanut' | null {
+  if (codigo >= 11 && codigo <= 19) return 'proposta'
+  if (codigo >= 21 && codigo <= 29) return 'plano'
+  if (codigo >= 41 && codigo <= 48) return 'laudo'
+  if (codigo >= 51 && codigo <= 58) return 'planomanut'
+  return null
+}
+
+/**
+ * O documento deste serviço, para este estabelecimento, JÁ foi cobrado no ciclo de inspeção atual? Então regerá-lo não
+ * cobra de novo (correções) e NÃO pode ser barrado por falta de crédito. Em caso de dúvida (erro de consulta), devolve
+ * false: vale a regra normal de saldo.
+ */
+export async function jaCobradoNoCiclo(cpf: string, cnpjoucpf: string, codigoServico: number): Promise<boolean> {
+  const doc = documentoDoServico(codigoServico)
+  if (!doc || !cnpjoucpf) return false
+  try {
+    const marcador = await marcadorDeCiclo(cpf, cnpjoucpf, codigoServico)
+    const ref = referenciaDoDocumento(cnpjoucpf, codigoServico, doc, marcador)
+    const { data, error } = await admin().from('consumo_creditos').select('id').eq('cpf_inspetor', cpf).eq('referencia', ref).limit(1)
+    if (error) { console.error('[creditos] jaCobradoNoCiclo:', error.message); return false }
+    return (data?.length ?? 0) > 0
+  } catch (e) { console.error('[creditos] jaCobradoNoCiclo exceção:', e); return false }
+}
+
+/**
+ * Pode este CPF INICIAR este serviço? O Painel consulta ao aceitar o CNPJ/CPF, ANTES de abrir a tela (decisão de Celso,
+ * 08/10/2026: avisar da falta de crédito logo no início, e não depois de o inspetor preencher tudo). Com `cnpjoucpf`,
+ * um documento já cobrado neste ciclo é liberado mesmo sem saldo.
+ */
+export async function verificarDisponibilidade(cpf: string, codigoServico: number, opcoes: { cnpjoucpf?: string } = {}): Promise<Verificacao> {
   // Conta bloqueada (estorno, chargeback ou cartão recusado 3 vezes) não inicia nenhum serviço.
   if ((await contaBloqueada(cpf)).bloqueada) return { liberado: false, motivo: 'conta_bloqueada' }
   if (!cobrancaAtiva()) return { liberado: true, motivo: 'cobranca_inativa' }
   const necessario = custoParaIniciar(codigoServico)
   if (necessario === null) return { liberado: true, motivo: 'servico_nao_cobrado' }
+  if (opcoes.cnpjoucpf && await jaCobradoNoCiclo(cpf, opcoes.cnpjoucpf, codigoServico)) return { liberado: true, motivo: 'ja_cobrado_no_ciclo' }
   return decidirVerificacao(await lerSaldo(cpf), necessario)
 }
 

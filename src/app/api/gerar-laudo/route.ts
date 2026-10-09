@@ -13,6 +13,7 @@ import { verificarDisponibilidade, consumirCreditos, referenciaDoDocumento, marc
 import { exigirSessao } from '@/lib/autorizacao'
 import { mapaDeDescricoes, descricaoDoSistema } from '@/lib/descSistemas'
 import { normalizarPrioridades, ehFamiliaNR, prioridadeDoGrau } from '@/lib/prioridade'
+import { normalizarDatas } from '@/lib/dataBR'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -366,7 +367,8 @@ export async function POST(request: NextRequest) {
             estab: estabRaw, inspetor, ncs: ncsBruto, nomeArquivo, complemento, semCapa } = body
     // Prioridade de TODAS as NCs recalculada pelo grau de risco (critério único, src/lib/prioridade.ts): o item 4.1, as
     // estatísticas e o Anexo 2 passam a falar a mesma coisa, mesmo para NCs homologadas antes com outras faixas.
-    const ncs = normalizarPrioridades(ncsBruto, ehFamiliaNR(tipoServico))
+    // A data da vistoria sai em dd/mm/aaaa, qualquer que seja o formato de origem (src/lib/dataBR.ts).
+    const ncs = normalizarDatas(normalizarPrioridades(ncsBruto, ehFamiliaNR(tipoServico)))
     // Limpa formatacao antes de usar em qualquer consulta — mesmo problema
     // corrigido em gerar-plano/route.ts (comparacao exata falhava
     // silenciosamente se o valor chegasse formatado)
@@ -376,7 +378,7 @@ export async function POST(request: NextRequest) {
     if (!cpfInspetor || !tipoServico || !nomeArquivo)
       return NextResponse.json({ erro: 'Parâmetros obrigatórios ausentes.' }, { status: 400 })
 
-    const verificacaoLaudo = await verificarDisponibilidade(cpfInspetor, Number(tipoServico))
+    const verificacaoLaudo = await verificarDisponibilidade(cpfInspetor, Number(tipoServico), { cnpjoucpf })
     if (!verificacaoLaudo.liberado) {
       if (verificacaoLaudo.motivo === 'conta_bloqueada') return NextResponse.json({ erro: 'Conta bloqueada. Entre em contato com o suporte: suporte@aime.eng.br.', bloqueada: true }, { status: 403 })
       return NextResponse.json({

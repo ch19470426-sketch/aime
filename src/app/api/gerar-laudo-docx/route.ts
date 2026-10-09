@@ -11,6 +11,7 @@ import { createClient } from '@supabase/supabase-js'
 import JSZip from 'jszip'
 import { exigirSessao } from '@/lib/autorizacao'
 import { normalizarPrioridades, ehFamiliaNR, prioridadeDoGrau } from '@/lib/prioridade'
+import { normalizarDatas } from '@/lib/dataBR'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -230,7 +231,8 @@ export async function POST(request: NextRequest) {
     const { cpfInspetor, chaveInspetor, cnpjoucpf, tipoServico,
             estab, inspetor, ncs: ncsBruto, complemento } = body
     // Prioridade recalculada pelo grau de risco (critério único, src/lib/prioridade.ts), igual ao laudo em HTML.
-    const ncs = normalizarPrioridades(ncsBruto, ehFamiliaNR(tipoServico))
+    // A data da vistoria sai em dd/mm/aaaa, qualquer que seja o formato de origem (src/lib/dataBR.ts).
+    const ncs = normalizarDatas(normalizarPrioridades(ncsBruto, ehFamiliaNR(tipoServico)))
 
     const titulo    = tipoServico === '43' ? 'Laudo de Vistoria de Imóvel Novo'
                     : tipoServico === '44' ? 'Laudo de Inspeção de Fachada'
