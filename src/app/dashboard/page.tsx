@@ -16,6 +16,7 @@ import { useRouter } from "next/navigation"
 import Image from "next/image"
 import { createClient } from "@/utils/supabase/client"
 import { encerrarSessao } from '@/lib/encerrarSessao'
+import { tokenDaSessao, novaSessaoToken } from '@/lib/sessaoVistoria'
 
 const SUPA_URL = 'https://asgorarunzhiojqioxzq.supabase.co'
 const SUPA_KEY = 'sb_publishable_dH85HYKGxv3X0te627VfOw_OGaPoNMF'
@@ -544,7 +545,7 @@ export default function Dashboard() {
     }
     // Item 39: navegar direto sem coletar CNPJ
     if (codigo === 39) {
-      window.location.href = `/vistoria-eletrica?cpf_inspetor=${cpfInspetor}&chave_inspetor=${chaveInspetor}`
+      window.location.href = `/vistoria-eletrica?cpf_inspetor=${cpfInspetor}&chave_inspetor=${chaveInspetor}&sessao=${novaSessaoToken()}`
       return
     }
     // Item 40 para Eng Elétrico: sempre vai para a tela de seleção, que tem
@@ -565,7 +566,7 @@ export default function Dashboard() {
     const docLimpo = documentoSemMascara(documento)
     // Código 39: Vistoria Elétrica — navega direto sem coletar CNPJ aqui
     if (Number(tipoServico) === 39) {
-      window.location.href = `/vistoria-eletrica?cpf_inspetor=${cpfInspetor}&chave_inspetor=${chaveInspetor}`
+      window.location.href = `/vistoria-eletrica?cpf_inspetor=${cpfInspetor}&chave_inspetor=${chaveInspetor}&sessao=${novaSessaoToken()}`
       return
     }
     // Validação de CPF/CNPJ pelas regras da Receita Federal — cobre todos os

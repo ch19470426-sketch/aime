@@ -68,3 +68,29 @@ export async function apagarFotoDoRascunho(chave: string): Promise<void> {
   await idb('readwrite', loja => loja.delete(chave))
   try { localStorage.removeItem(chaveReserva(chave)) } catch { /* */ }
 }
+
+// ── Marca de "câmera aberta" ──────────────────────────────────────────────────────────────────────────────────
+// Se a aba cair com a câmera aberta, a foto nunca chega à tela e, quando a foto é tirada ANTES de preencher o resto,
+// não existe rascunho: a tela voltava vazia e muda. A marca grava que a câmera foi aberta; na recarga, a tela avisa o
+// que houve. É limpa quando a foto chega, ou quando a página sobrevive à câmera.
+export const VALIDADE_MARCA_CAMERA_MS = 15 * 60 * 1000
+const chaveCamera = (chave: string) => `${chave}__camera`
+
+export function marcarCameraAberta(chave: string, sessao: string): void {
+  try { localStorage.setItem(chaveCamera(chave), JSON.stringify({ sessao, quando: Date.now() })) } catch { /* sem espaço: segue */ }
+}
+
+export function limparMarcaCamera(chave: string): void {
+  try { localStorage.removeItem(chaveCamera(chave)) } catch { /* */ }
+}
+
+/** A câmera ficou aberta e a aba recarregou? (mesma sessão, até 15 min). Lê e APAGA a marca. */
+export function cameraFicouAberta(chave: string, sessao: string): boolean {
+  try {
+    const r = localStorage.getItem(chaveCamera(chave))
+    if (!r) return false
+    localStorage.removeItem(chaveCamera(chave))
+    const m = JSON.parse(r) as { sessao?: string; quando?: number }
+    return !!m.sessao && m.sessao === sessao && Date.now() - (m.quando || 0) <= VALIDADE_MARCA_CAMERA_MS
+  } catch { return false }
+}

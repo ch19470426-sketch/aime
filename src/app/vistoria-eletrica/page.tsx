@@ -6,6 +6,7 @@ import React from "react"
 import Image from "next/image"
 import Banner from '@/components/Banner'
 import { useBanner } from '@/hooks/useBanner'
+import { tokenDaSessao, novaSessaoToken } from '@/lib/sessaoVistoria'
 
 const S: Record<string, React.CSSProperties> = {
   body:       { background:'#E8EEF7', display:'flex', justifyContent:'center', padding:'24px', fontFamily:'Arial, Helvetica, sans-serif', minHeight:'100vh' },
@@ -32,7 +33,7 @@ function VistoriaEletricaInner() {
   const router        = useRouter()
   const cpfEletrico   = params.get('cpf_inspetor')   ?? ''
   const chaveEletrico = params.get('chave_inspetor') ?? ''
-  const sessaoToken    = params.get('sessao')         ?? ''
+  const sessaoToken    = tokenDaSessao(params.get('sessao'))
 
   const [cnpj,      setCnpj]      = useState('')
   const [cpfCivil,  setCpfCivil]  = useState('')

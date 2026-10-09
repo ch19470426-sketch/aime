@@ -5,7 +5,9 @@ import Image from 'next/image'
 import { salvarOffline } from '@/lib/offlineVistoria'
 import { fetchTimeout } from '@/lib/fetchTimeout'
 import { prioridadeDoGrau, corTelaDoGrau, fundoTelaDoGrau } from '@/lib/prioridade'
-import { guardarFotoDoRascunho, lerFotoDoRascunho, apagarFotoDoRascunho } from '@/lib/rascunhoFoto'
+import { guardarFotoDoRascunho, lerFotoDoRascunho, apagarFotoDoRascunho, marcarCameraAberta, cameraFicouAberta, limparMarcaCamera } from '@/lib/rascunhoFoto'
+import { reduzirFoto } from '@/lib/fotoLeve'
+import { tokenDaSessao, novaSessaoToken } from '@/lib/sessaoVistoria'
 
 // ─── Tipos ───────────────────────────────────────────────────────────────────
 
@@ -73,7 +75,7 @@ function Tela31Inner() {
   const chaveInspetor = params.get('chave_inspetor') ?? cpfInspetor
   const cnpjoucpf     = params.get('cnpjoucpf')      ?? ''
   const tipoServico   = String(params.get('tipo_servico') ?? '31')
-  const sessaoToken   = params.get('sessao')          ?? ''
+  const sessaoToken   = tokenDaSessao(params.get('sessao'))
   const tipoServicoBanco = TIPO_SERVICO_BANCO[tipoServico] ?? `${tipoServico} Autovistoria`
   const tagObrigatorio   = ['35', '37', '38'].includes(tipoServico)
 
@@ -131,6 +133,7 @@ function Tela31Inner() {
   // Abrir a câmera costuma derrubar a aba por falta de memória: a tela recarrega e a foto sumia (era preciso tirá-la de
   // novo e salvar de novo, a cada vistoria). Agora a foto é guardada no aparelho e restaurada junto com o rascunho.
   const [fotoRecuperada, setFotoRecuperada] = useState(false)
+  const [cameraInterrompida, setCameraInterrompida] = useState(false)
   const fotoAnteriorRef = useRef('')
   useEffect(() => {
     let vivo = true
@@ -146,10 +149,19 @@ function Tela31Inner() {
     fotoAnteriorRef.current = fotoBase64
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fotoBase64])
+  // A câmera ficou aberta e a aba recarregou: a foto nunca chegou. Avisa, mesmo sem rascunho (foto tirada antes de preencher).
+  useEffect(() => {
+    if (cameraFicouAberta(draftKey, sessaoToken)) { setCameraInterrompida(true); setRascunhoRecuperado(true) }
+    // Se a página SOBREVIVE à câmera, a marca é limpa pouco depois de a tela voltar a ficar visível.
+    const aoVoltar = () => { if (document.visibilityState === 'visible') setTimeout(() => limparMarcaCamera(draftKey), 5000) }
+    document.addEventListener('visibilitychange', aoVoltar)
+    return () => document.removeEventListener('visibilitychange', aoVoltar)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
   // O aviso de recarregamento some sozinho: não fica de uma vistoria para a outra.
   useEffect(() => {
     if (!rascunhoRecuperado) return
-    const t = setTimeout(() => { setRascunhoRecuperado(false); setFotoRecuperada(false) }, 20000)
+    const t = setTimeout(() => { setRascunhoRecuperado(false); setFotoRecuperada(false); setCameraInterrompida(false) }, 20000)
     return () => clearTimeout(t)
   }, [rascunhoRecuperado])
 
@@ -370,18 +382,8 @@ function Tela31Inner() {
   function handleFotoChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file) return
-    const img = new window.Image()
-    const url = URL.createObjectURL(file)
-    img.onload = () => {
-      const MAX_W = 900, MAX_H = 675
-      let w = img.width, h = img.height
-      if (w > MAX_W) { h = Math.round(h * MAX_W / w); w = MAX_W }
-      if (h > MAX_H) { w = Math.round(w * MAX_H / h); h = MAX_H }
-      const canvas = document.createElement('canvas')
-      canvas.width = w; canvas.height = h
-      canvas.getContext('2d')?.drawImage(img, 0, 0, w, h)
-      URL.revokeObjectURL(url)
-      const compressed = canvas.toDataURL('image/jpeg', 0.65)
+    limparMarcaCamera(draftKey)   // a foto chegou: a câmera não ficou pendurada
+    reduzirFoto(file).then((compressed) => {
       setFotoBase64(compressed)
       setDataVistoria(new Date().toLocaleDateString('pt-BR'))
       fetch('/api/foto-nr?cpf_inspetor=' + cpfInspetor + '&cnpjoucpf=' + cnpjoucpf + '&tipo_servico=' + tipoServico)
@@ -389,8 +391,13 @@ function Tela31Inner() {
         .then(d => { if (d?.formatado) setFotoNr(d.formatado) })
         .catch(() => {})
       if (resultado === 'Não conforme') gerarNcCp(compressed)
-    }
-    img.src = url
+    }).catch(() => { /* foto não processada: a tela segue como está e o usuário pode tirá-la de novo */ })
+  }
+
+  // Abrir a câmera registra a marca: se a aba cair com ela aberta, a recarga avisa o que houve (src/lib/rascunhoFoto.ts).
+  function abrirCamera() {
+    marcarCameraAberta(draftKey, sessaoToken)
+    fileInputRef.current?.click()
   }
 
   async function gerarNcCp(foto: string) {
@@ -610,7 +617,9 @@ function Tela31Inner() {
               padding: '8px 12px', fontSize: '8pt', color: '#92400E', textAlign: 'center' }}>
               {fotoRecuperada
                 ? 'ℹ️ A tela foi recarregada (isso pode acontecer ao usar a câmera). Recuperamos o que você tinha preenchido e a foto. Revise antes de salvar.'
-                : 'ℹ️ A tela foi recarregada (isso pode acontecer ao usar a câmera). Recuperamos o que você tinha preenchido; tire a foto novamente.'}
+                : cameraInterrompida
+                  ? 'ℹ️ A tela foi recarregada enquanto a câmera estava aberta e a foto não chegou (isso pode acontecer em aparelhos com pouca memória). O que você preencheu foi mantido; tire a foto novamente.'
+                  : 'ℹ️ A tela foi recarregada (isso pode acontecer ao usar a câmera). Recuperamos o que você tinha preenchido; tire a foto novamente.'}
             </div>
           )}
 
@@ -813,7 +822,7 @@ function Tela31Inner() {
                     if (!descExposicaoRisco) faltando.push('Exposição ao risco')
                     if (faltando.length > 0) { setErroValidacao('Preencha antes de tirar a foto: ' + faltando.join(', ')); return }
                     setErroValidacao('')
-                    fileInputRef.current?.click()
+                    abrirCamera()
                   }}
                   disabled={!sistema || !subsistema || !anomalia}
                 >
@@ -837,7 +846,7 @@ function Tela31Inner() {
                 if (!descExposicaoRisco) faltando.push('Exposição ao risco')
                 if (faltando.length > 0) { setErroValidacao('Preencha antes de tirar a foto: ' + faltando.join(', ')); return }
                 setErroValidacao('')
-                fileInputRef.current?.click()
+                abrirCamera()
               }}>
                 {fotoBase64 && <img src={fotoBase64} alt="" style={{ display: 'block', width: '100%', maxHeight: '600px', objectFit: 'contain', margin: '0 auto', padding: '4px' }} />}
                 {!fotoBase64 && <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#8aa3c4', fontSize: '8pt' }}>Clique para adicionar a foto da anomalia</div>}
