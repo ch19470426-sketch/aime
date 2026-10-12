@@ -358,15 +358,22 @@ export type ItemConferencia = {
   dadosAsaas?: string
 }
 
-function dadosDaCobranca(cob: any): string {
+/**
+ * Texto "Dados do Asaas" do painel do gestor. Os campos de ESTORNO e de STATUS vêm primeiro e com mais espaço: antes o texto
+ * era cortado em 500 caracteres na ordem em que o Asaas os envia, e um estorno informado no fim da resposta ficava de fora
+ * (teste real de 09/10/2026: o painel mostrava status=RECEIVED e cortava onde poderiam estar os estornos).
+ */
+export function dadosDaCobranca(cob: any): string {
   const ignora = /url|customer|description|externalReference|object|^id$|paymentLink|installment|creditCard/i
-  const partes: string[] = []
+  const importante = /refund|estorn|chargeback|^status$|^value$|^netValue$|^deleted$/i
+  const prioritarios: string[] = [], demais: string[] = []
   for (const [k, v] of Object.entries(cob ?? {})) {
     if (ignora.test(k)) continue
     const txt = typeof v === 'object' && v !== null ? JSON.stringify(v) : String(v)
-    partes.push(`${k}=${txt.slice(0, 80)}`)
+    if (importante.test(k)) prioritarios.push(`${k}=${txt.slice(0, 300)}`)
+    else demais.push(`${k}=${txt.slice(0, 80)}`)
   }
-  return partes.join('; ').slice(0, 500)
+  return [...prioritarios, ...demais].join('; ').slice(0, 1200)
 }
 
 export async function conferirEstornos(opcoes: { cpf?: string; dias?: number; limite?: number } = {}):
