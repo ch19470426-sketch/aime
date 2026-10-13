@@ -18,6 +18,7 @@ Cada chamada ao banco e ao armazenamento fica registrada, então um teste de seg
 | `seguranca/demais-rotas.test.ts` | gravar, ler e enviar arquivos: 14 rotas, upload assinado, fluxo do eletricista (etapa 3) |
 | `estornos.test.ts` | estorno do valor líquido (pago menos a taxa do Asaas) vale como total; estorno parcial só avisa |
 | `seguranca/leitura-por-nome.test.ts` | leituras de arquivo por nome ou caminho do pedido (vistorias/[nome], PDFs e DOCX do laudo, imagens e ART) só do dono; o arquivo baixado não leva o CPF no nome |
+| `offline-duplicidade.test.ts` | vistoria offline interrompida não é gravada nem cobrada duas vezes; app e service worker (o `sw.js` real, num ambiente isolado) não percorrem a fila ao mesmo tempo (usa `fake-indexeddb`) |
 | `offline-sincronizacao.test.ts` | vistoria salva offline antes da migração (chave INS-nnn) sincroniza com o CPF; as duas cópias da regra (fila do app e service worker) coincidem |
 | `seguranca/chave-inspetor.test.ts` | a chave do inspetor é o CPF, decidida no servidor; nenhuma rota grava chave vinda do navegador |
 | `seguranca/migrar-chave-para-cpf.test.ts` | migração única dos arquivos da chave antiga (INS-nnn) para o CPF: só gestor, simulação por padrão, idempotente |

@@ -52,7 +52,43 @@ export async function removerPendente(id: number): Promise<void> {
   })
 }
 
+/**
+ * Guarda no item da fila o número da foto obtido na sincronização. Se o app for interrompido depois de o servidor gravar a vistoria e
+ * antes de apagar o item, a próxima tentativa REAPROVEITA este número: reenvia o mesmo arquivo (sobrescreve) e o débito, que usa o
+ * número como referência, não se repete. Sem isso, cada tentativa pedia um número novo, gravava um segundo arquivo e cobrava de novo.
+ */
+async function guardarNumeroDaFoto(id: number, nr: string): Promise<void> {
+  try {
+    const db = await abrirDB()
+    await new Promise<void>(resolve => {
+      const tx  = db.transaction(STORE_NAME, 'readwrite')
+      const str = tx.objectStore(STORE_NAME)
+      const get = str.get(id)
+      get.onsuccess = () => { const registro = get.result; if (registro) { registro.nrSincronizacao = nr; str.put(registro) } }
+      tx.oncomplete = () => resolve()
+      tx.onerror    = () => resolve()
+      tx.onabort    = () => resolve()
+    })
+  } catch { /* se não conseguir guardar, segue como antes */ }
+}
+
+/**
+ * Só um sincronizador por vez (o app e o service worker, em segundo plano, percorrem a MESMA fila): o segundo que chegar não faz nada.
+ * Usa o Web Locks, compartilhado entre janelas e service worker da mesma origem; sem suporte, segue sem trava (como antes).
+ */
+async function comTrava<T>(fn: () => Promise<T>, quandoOcupado: T): Promise<T> {
+  const locks = typeof navigator !== 'undefined' ? (navigator as any).locks : undefined
+  if (!locks?.request) return fn()
+  return locks.request('aime-sync-vistorias', { ifAvailable: true }, async (lock: unknown) => (lock ? fn() : quandoOcupado))
+}
+
 export async function sincronizarPendentes(
+  onProgresso?: (msg: string) => void
+): Promise<{ ok: number; erro: number }> {
+  return comTrava(() => sincronizarSemTrava(onProgresso), { ok: 0, erro: 0 })
+}
+
+async function sincronizarSemTrava(
   onProgresso?: (msg: string) => void
 ): Promise<{ ok: number; erro: number }> {
   const pendentes = await listarPendentes()
@@ -92,18 +128,22 @@ export async function sincronizarPendentes(
         } catch {}
       }
 
-      // Obter número da foto
-      const nrRes = await fetch('/api/foto-nr', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          cpf_inspetor: item.cpfInspetor ?? item.payload?.cpfInspetor,
-          cnpjoucpf:    item.cnpjoucpf   ?? item.payload?.cnpjoucpf,
-          tipo_servico: item.tipoServico  ?? item.payload?.tipoServico,
+      // Obter número da foto: reaproveita o da tentativa anterior, se houve (ver guardarNumeroDaFoto)
+      let nrFinal = item.nrSincronizacao as string | undefined
+      if (!nrFinal) {
+        const nrRes = await fetch('/api/foto-nr', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            cpf_inspetor: item.cpfInspetor ?? item.payload?.cpfInspetor,
+            cnpjoucpf:    item.cnpjoucpf   ?? item.payload?.cnpjoucpf,
+            tipo_servico: item.tipoServico  ?? item.payload?.tipoServico,
+          })
         })
-      })
-      const nrData = await nrRes.json()
-      const nrFinal = nrData?.formatado ?? item.payload?.fotoNr ?? item.fotoNr
+        const nrData = await nrRes.json()
+        nrFinal = nrData?.formatado ?? item.payload?.fotoNr ?? item.fotoNr
+        if (nrFinal) await guardarNumeroDaFoto(item.id, String(nrFinal))
+      }
 
       // Chave INS-nnn guardada antes da migração para o CPF vira o CPF do dono (senão o servidor recusa o arquivo e ele fica preso na fila)
       const chave  = chaveParaSincronizar(
