@@ -26,5 +26,12 @@ END $$;
 -- 3) A chave de todos passa a ser o CPF
 UPDATE public.inspetor SET chave_inspetor = regexp_replace(cpf_inspetor, '\D', '', 'g') WHERE chave_inspetor IS DISTINCT FROM regexp_replace(cpf_inspetor, '\D', '', 'g');
 
--- 4) Índice único (o CPF já é único, mas o banco passa a garantir também para a chave)
-CREATE UNIQUE INDEX IF NOT EXISTS ux_inspetor_chave_inspetor ON public.inspetor (chave_inspetor) WHERE chave_inspetor IS NOT NULL;
+-- 4) Garantia de chave única: só cria o índice se o banco ainda não tiver um (em produção já existe a regra
+--    inspetor_chave_inspetor_key, UNIQUE (chave_inspetor), e criar outro seria repetição)
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_indexes WHERE schemaname = 'public' AND tablename = 'inspetor'
+                  AND indexdef ILIKE 'CREATE UNIQUE INDEX%(chave_inspetor)%') THEN
+    CREATE UNIQUE INDEX ux_inspetor_chave_inspetor ON public.inspetor (chave_inspetor) WHERE chave_inspetor IS NOT NULL;
+  END IF;
+END $$;
