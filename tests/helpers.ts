@@ -23,6 +23,11 @@ export const estado = {
   insercaoContrato: 'ok' as 'ok' | 'duplicada' | 'outro',
   inserts: [] as any[],                    // corpos enviados em POST para contratos_inspetor
   vinculos: [[E, A]] as [string, string][], // [eletricista, civil] em art_profissional
+  chaves: { ...CHAVES } as Record<string, string | null>, // chave INS-nnn de cada CPF (null = cadastro antigo, sem chave)
+  chavesExistentes: [] as string[],        // todas as chaves do banco (usado no cálculo de reserva, sem a sequência)
+  proximaChave: 'INS-010',                 // o que a sequência do banco devolve
+  rpcChaveAusente: false,                  // a função proxima_chave_inspetor ainda não existe no banco
+  cadastroExiste: true,                    // o inspetor existe (false = novo cadastro)
 }
 
 export const jr = (b: unknown, s = 200, h: Record<string, string> = {}) =>
@@ -34,8 +39,11 @@ export function mundo(u: URL, m: string, init: any): Response {
   if (u.host.includes('asaas')) return estado.asaasFora ? jr({ errors: [{ description: 'erro' }] }, 500) : jr(estado.cobrancaAsaas)
   if (p.includes('/rest/v1/inspetor')) {
     if (estado.falhaChave) return jr({ message: 'boom' }, 500)
+    if (m !== 'GET') return jr([{ chave_inspetor: null }])   // update(...).select() e insert devolvem lista
+    if (!u.searchParams.has('cpf_inspetor')) return jr(estado.chavesExistentes.map(c => ({ chave_inspetor: c })))   // lista de chaves
+    if (!estado.cadastroExiste) return jr({ code: 'PGRST116', message: 'JSON object requested, multiple (or no) rows returned', details: 'The result contains 0 rows' }, 406)
     const cpf = (u.searchParams.get('cpf_inspetor') || '').replace('eq.', '')
-    return jr({ chave_inspetor: CHAVES[cpf] ?? null, is_gestor: estado.gestor, email_inspetor: 'g@x.com', nome_inspetor: 'G', conta_bloqueada: false })
+    return jr({ chave_inspetor: estado.chaves[cpf] ?? null, is_gestor: estado.gestor, email_inspetor: 'g@x.com', nome_inspetor: 'G', conta_bloqueada: false })
   }
   if (p.includes('/rest/v1/art_profissional')) {
     const q = decodeURIComponent(u.search)
@@ -53,6 +61,9 @@ export function mundo(u: URL, m: string, init: any): Response {
     return jr([{}])
   }
   if (p.includes('/rest/v1/pedidos_credito')) return m === 'GET' ? jr(estado.pedido ?? []) : jr([{ id: estado.pedido?.id ?? 1 }])
+  if (p.includes('/rpc/proxima_chave_inspetor')) {
+    return estado.rpcChaveAusente ? jr({ code: 'PGRST202', message: 'Could not find the function public.proxima_chave_inspetor without parameters' }, 404) : jr(estado.proximaChave)
+  }
   if (p.includes('/rpc/')) return jr({ ok: true, liberado: true, saldo: 9999 })
   if (p.includes('/storage/v1/object/upload/sign')) return jr({ url: '/object/upload/sign/aime/x?token=t', token: 't' })
   if (p.includes('/storage/v1/object/list')) return jr([])
@@ -71,7 +82,7 @@ export function reiniciar() {
   sessao(A)
   ligarPorteiro(true)
   process.env.COBRANCA_CREDITOS_ATIVA = 'true'
-  Object.assign(estado, { falhaChave: false, gestor: false, asaasFora: false, cobrancaAsaas: null, pedido: null, contratos: [], insercaoContrato: 'ok', inserts: [], vinculos: [[E, A]] })
+  Object.assign(estado, { chaves: { ...CHAVES }, chavesExistentes: [], proximaChave: 'INS-010', rpcChaveAusente: false, cadastroExiste: true, falhaChave: false, gestor: false, asaasFora: false, cobrancaAsaas: null, pedido: null, contratos: [], insercaoContrato: 'ok', inserts: [], vinculos: [[E, A]] })
 }
 
 export const req = (url: string, method = 'GET', body?: unknown) =>

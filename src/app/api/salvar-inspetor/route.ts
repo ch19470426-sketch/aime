@@ -7,6 +7,7 @@ export const runtime = 'nodejs'
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { exigirProprio } from '@/lib/autorizacao'
+import { garantirChaveDoInspetor, proximaChaveInspetor } from '@/lib/chaveInspetor'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -19,16 +20,13 @@ export async function POST(request: NextRequest) {
     const acesso = await exigirProprio(request, body.cpf)
     if (acesso.ok === false) return acesso.resposta
 
-    // Caso especial: só atualizar a chave_inspetor (chamado pelo dashboard
-    // quando detecta um registro antigo sem chave)
-    if (body.soAtualizarChave && body.cpf && body.chave) {
-      const { error } = await supabase
-        .from('inspetor')
-        .update({ chave_inspetor: body.chave })
-        .eq('cpf_inspetor', body.cpf)
-        .is('chave_inspetor', null)
-      if (error) return NextResponse.json({ erro: error.message }, { status: 500 })
-      return NextResponse.json({ ok: true })
+    // Caso especial: cadastro antigo sem chave (chamado pelo dashboard). A chave NUNCA vem do navegador: antes este caminho
+    // gravava body.chave, e quem tivesse a chave vazia podia gravar a de outro inspetor e passar a ser dono dos arquivos dele.
+    // Agora o servidor atribui a chave da sequência (ou devolve a que o cadastro já tem), e body.chave é ignorada.
+    if (body.soAtualizarChave && body.cpf) {
+      const chave = await garantirChaveDoInspetor(supabase, body.cpf)
+      if (!chave) return NextResponse.json({ erro: 'Cadastro de inspetor não encontrado.' }, { status: 404 })
+      return NextResponse.json({ ok: true, chave })
     }
 
     const {
@@ -68,21 +66,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ ok: true, chave: existente.chave_inspetor })
     }
 
-    // Novo cadastro: gera a chave sequencial (direto, sem chamar outra rota via HTTP —
-    // fazer uma rota chamar a outra por fetch pode travar/pendurar na Vercel)
-    const { data: ultimo } = await supabase
-      .from('inspetor')
-      .select('chave_inspetor')
-      .not('chave_inspetor', 'is', null)
-      .order('chave_inspetor', { ascending: false })
-      .limit(1)
-
-    let proximoNumero = 1
-    if (ultimo && ultimo.length > 0 && ultimo[0].chave_inspetor) {
-      const match = String(ultimo[0].chave_inspetor).match(/(\d+)$/)
-      if (match) proximoNumero = parseInt(match[1], 10) + 1
-    }
-    const chave = 'INS-' + String(proximoNumero).padStart(3, '0')
+    // Novo cadastro: chave da sequência do banco (direto, sem chamar outra rota via HTTP: fazer uma rota chamar a outra
+    // por fetch pode travar/pendurar na Vercel). A sequência não repete número, nem o de inspetor apagado.
+    const chave = await proximaChaveInspetor(supabase)
 
     const { error: errInsert } = await supabase.from('inspetor').insert({
       cpf_inspetor: cpf,
