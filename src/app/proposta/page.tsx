@@ -158,7 +158,7 @@ function PropostaInner() {
 
   // Campos da proposta
   const [valor,  setValor]  = useState('')
-  const [prazo,  setPrazo]  = useState('5')
+  const [prazo,  setPrazo]  = useState('8')   // prazo padrão de entrega: 8 dias úteis (decisão de Celso, 13/10/2026)
 
   // Conteúdo HTML da proposta
   const [htmlProposta, setHtmlProposta] = useState('')
@@ -184,7 +184,7 @@ function PropostaInner() {
     setEst(null); setInsp(null)
     setRazaoSocial(''); setCep(''); setNumero(''); setComplemento('')
     setUsoEstab(''); setEndereco(''); setMunicipioUF(''); setLogradouro('')
-    setValor(''); setPrazo('15'); setHtmlProposta('')
+    setValor(''); setPrazo('8'); setHtmlProposta('')
     setModoEdicao(false); setEtapa('cadastro')
     try {
       // Buscar inspetor
@@ -523,7 +523,7 @@ function PropostaInner() {
                     </Field>
                     <Field label="Prazo de entrega (dias úteis) *">
                       <input style={S.input} value={prazo} onChange={e => setPrazo(e.target.value)}
-                        placeholder="Ex: 15" type="number" min="1" />
+                        placeholder="Ex: 8" type="number" min="1" />
                     </Field>
                   </div>
                   {valor && <div style={{ fontSize: '7pt', color: '#1E3A8A', marginTop: '2px' }}>
