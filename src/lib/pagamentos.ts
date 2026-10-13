@@ -46,6 +46,13 @@ const STATUS_ESTORNO_EM_ANDAMENTO = new Set(['REFUND_REQUESTED', 'REFUND_IN_PROG
  *  - nenhum: sem estorno válido (cancelados/recusados não contam).
  * `resumo` mostra o que o Asaas informou, para o gestor conferir.
  */
+/**
+ * Folga (em reais) no estorno do LÍQUIDO: quem estorna no painel do Asaas costuma arredondar para baixo (caso real de
+ * 13/10/2026: líquido R$ 80,01, estornado R$ 80,00). Vale só quando há taxa (líquido menor que o valor); sem taxa, o
+ * estorno total continua exigindo o valor inteiro. Estorno menor que o líquido por mais que isso segue como PARCIAL.
+ */
+const FOLGA_ESTORNO_LIQUIDO = 1.0
+
 export function situacaoDeEstorno(cob: any): { tipo: 'total' | 'parcial' | 'andamento' | 'nenhum'; resumo: string } {
   const lista: any[] = Array.isArray(cob?.refunds) ? cob.refunds : []
   const status = (r: any) => String(r?.status ?? '').toUpperCase()
@@ -56,14 +63,16 @@ export function situacaoDeEstorno(cob: any): { tipo: 'total' | 'parcial' | 'anda
   const valor = Number(cob?.value ?? 0)
   // Alvo do estorno total: o líquido (descontada a taxa) quando vier e for menor que o valor; senão o valor.
   const liquido = Number(cob?.netValue ?? 0)
-  const alvo = liquido > 0 && liquido < valor ? liquido : valor
+  const comTaxa = liquido > 0 && liquido < valor
+  const alvo = comTaxa ? liquido : valor
+  const folga = comTaxa ? FOLGA_ESTORNO_LIQUIDO : 0
   // Se a lista `refunds` não existir, mostra qualquer outro campo de estorno que o Asaas tenha informado
   // (para o gestor ver o dado real e não depender de suposição sobre o formato).
   const outros = lista.length > 0 ? '' : Object.entries(cob ?? {})
     .filter(([k, v]) => /refund|estorn/i.test(k) && v != null && v !== '' && !(Array.isArray(v) && v.length === 0))
     .map(([k, v]) => `${k}=${JSON.stringify(v).slice(0, 60)}`).join(', ')
   const resumo = lista.length === 0 ? (outros ? `campos de estorno informados pelo Asaas: ${outros}` : '') : `${lista.length} estorno(s) no Asaas: ${lista.map(r => `${status(r) || '?'} R$ ${Number(r?.value ?? 0).toFixed(2)}`).join(', ')}; cobrança de R$ ${valor.toFixed(2)}`
-  if (alvo > 0 && soma + 0.005 >= alvo) return { tipo: 'total', resumo }
+  if (alvo > 0 && soma + folga + 0.005 >= alvo) return { tipo: 'total', resumo }
   if (soma > 0) return { tipo: 'parcial', resumo }
   if (validos.length > 0) return { tipo: 'andamento', resumo }
   return { tipo: 'nenhum', resumo }
