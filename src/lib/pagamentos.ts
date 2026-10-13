@@ -38,7 +38,9 @@ const STATUS_ESTORNO_EM_ANDAMENTO = new Set(['REFUND_REQUESTED', 'REFUND_IN_PROG
 /**
  * Lê a lista de estornos (`refunds`) que o Asaas devolve na cobrança. No sandbox, um estorno TOTAL de PIX
  * aparece nos detalhes com a cobrança ainda no status RECEIVED; por isso o status sozinho não basta.
- *  - total: a soma dos estornos CONCLUÍDOS (DONE) cobre o valor da cobrança;
+ *  - total: a soma dos estornos CONCLUÍDOS (DONE) cobre o valor LÍQUIDO da cobrança (`netValue`: o pago menos a taxa do
+ *    Asaas) ou, se o Asaas não informar o líquido, o valor da cobrança. DECISÃO de Celso (13/10/2026): a taxa do Asaas
+ *    fica por conta do usuário, então o estorno é do valor líquido e vale como estorno total;
  *  - parcial: há estorno concluído, mas menor que o valor;
  *  - andamento: há estorno pedido, ainda não concluído;
  *  - nenhum: sem estorno válido (cancelados/recusados não contam).
@@ -52,13 +54,16 @@ export function situacaoDeEstorno(cob: any): { tipo: 'total' | 'parcial' | 'anda
   const concluidos = validos.filter(r => ['DONE', 'COMPLETED', 'REFUNDED'].includes(status(r)))
   const soma = concluidos.reduce((s, r) => s + Number(r?.value ?? 0), 0)
   const valor = Number(cob?.value ?? 0)
+  // Alvo do estorno total: o líquido (descontada a taxa) quando vier e for menor que o valor; senão o valor.
+  const liquido = Number(cob?.netValue ?? 0)
+  const alvo = liquido > 0 && liquido < valor ? liquido : valor
   // Se a lista `refunds` não existir, mostra qualquer outro campo de estorno que o Asaas tenha informado
   // (para o gestor ver o dado real e não depender de suposição sobre o formato).
   const outros = lista.length > 0 ? '' : Object.entries(cob ?? {})
     .filter(([k, v]) => /refund|estorn/i.test(k) && v != null && v !== '' && !(Array.isArray(v) && v.length === 0))
     .map(([k, v]) => `${k}=${JSON.stringify(v).slice(0, 60)}`).join(', ')
   const resumo = lista.length === 0 ? (outros ? `campos de estorno informados pelo Asaas: ${outros}` : '') : `${lista.length} estorno(s) no Asaas: ${lista.map(r => `${status(r) || '?'} R$ ${Number(r?.value ?? 0).toFixed(2)}`).join(', ')}; cobrança de R$ ${valor.toFixed(2)}`
-  if (valor > 0 && soma + 0.005 >= valor) return { tipo: 'total', resumo }
+  if (alvo > 0 && soma + 0.005 >= alvo) return { tipo: 'total', resumo }
   if (soma > 0) return { tipo: 'parcial', resumo }
   if (validos.length > 0) return { tipo: 'andamento', resumo }
   return { tipo: 'nenhum', resumo }
@@ -239,6 +244,18 @@ export async function processarCobranca(paymentId: string, evento = '', statusNo
   }
   // Estorno PARCIAL: a regra da conta não cobre (quanto revogar?), então só avisa a equipe para decidir.
   if (evento === 'PAYMENT_PARTIALLY_REFUNDED') {
+    // O Asaas avisa como PARCIAL o estorno do valor líquido (a taxa não volta). Pela decisão de Celso (13/10/2026) esse
+    // estorno vale como TOTAL. O corpo do aviso pode não trazer o líquido nem a lista de estornos: confirma na API do
+    // Asaas. Sem confirmação (erro de consulta, ou estorno menor que o líquido), cai no aviso para decisão manual.
+    try {
+      const consultada: any = await consultarCobranca(paymentId)
+      if (situacaoDeEstorno(consultada).tipo === 'total') {
+        if (!pedido) return ok({ ignorado: true, motivo: 'pedido_nao_encontrado' })
+        return await tratarEstorno(pedido, 'PAYMENT_REFUNDED')
+      }
+    } catch (e) {
+      if (!naoEncontrada(e)) console.error('[pagamentos] estorno parcial: não consegui consultar o Asaas:', e)
+    }
     await avisarSuporte('AIMÊ — Estorno PARCIAL de um pagamento (decidir manualmente)', [
       { tipo: 'p', texto: `A cobrança ${paymentId} foi estornada em parte${pedido ? ` (pedido #${pedido.id}, CPF ${pedido.cpf_inspetor}, ${pedido.tipo})` : ''}. Nada foi revogado nem bloqueado.` },
     ])
