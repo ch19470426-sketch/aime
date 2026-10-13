@@ -5,7 +5,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { verificarDisponibilidade } from '@/lib/creditos'
-import { exigirSessao } from '@/lib/autorizacao'
+import { exigirSessao, exigirProprio } from '@/lib/autorizacao'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -20,6 +20,9 @@ export async function GET(request: NextRequest) {
   if (!cpf || !codigo) {
     return NextResponse.json({ erro: 'cpf_inspetor e codigo_servico são obrigatórios' }, { status: 400 })
   }
+  // DONO (AUTH_API_ATIVA): cada um consulta só o próprio saldo (o eletricista envia o CPF dele).
+  const acessoDono = await exigirProprio(request, cpf)
+  if (acessoDono.ok === false) return acessoDono.resposta
   const verificacao = await verificarDisponibilidade(cpf, Number(codigo))
   return NextResponse.json(verificacao)
 }

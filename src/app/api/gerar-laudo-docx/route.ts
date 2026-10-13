@@ -9,7 +9,7 @@ export const maxDuration = 60
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import JSZip from 'jszip'
-import { exigirSessao } from '@/lib/autorizacao'
+import { exigirSessao, exigirDonoDaGeracao } from '@/lib/autorizacao'
 import { normalizarPrioridades, ehFamiliaNR, prioridadeDoGrau } from '@/lib/prioridade'
 import { normalizarDatas } from '@/lib/dataBR'
 
@@ -230,6 +230,9 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { cpfInspetor, chaveInspetor, cnpjoucpf, tipoServico,
             estab, inspetor, ncs: ncsBruto, complemento } = body
+    // DONO (AUTH_API_ATIVA): o laudo é gerado só para o próprio usuário logado.
+    const acessoDono = await exigirDonoDaGeracao(request, cpfInspetor, chaveInspetor)
+    if (acessoDono.ok === false) return acessoDono.resposta
     // Prioridade recalculada pelo grau de risco (critério único, src/lib/prioridade.ts), igual ao laudo em HTML.
     // A data da vistoria sai em dd/mm/aaaa, qualquer que seja o formato de origem (src/lib/dataBR.ts).
     const ncs = normalizarDatas(normalizarPrioridades(ncsBruto, ehFamiliaNR(tipoServico)))

@@ -128,3 +128,16 @@ export async function exigirArquivoDoProprio(request: NextRequest, nome: unknown
   if (!chave || !n.toUpperCase().startsWith(`${chave.toUpperCase()}_`)) return negar(403, SEM_PERMISSAO)
   return { ok: true, ativa: true, cpf: s.cpf, gestor: false }
 }
+
+/**
+ * Rotas que GERAM documento e DEBITAM créditos: o CPF que paga (cpfInspetor do corpo) tem de ser o do usuário logado e,
+ * se a chave de inspetor vier no corpo, também. Sem isso, quem soubesse o CPF de outro inspetor gastava os créditos dele
+ * e gravava documentos no nome dele. Desligada (AUTH_API_ATIVA diferente de "true"): não bloqueia nada.
+ */
+export async function exigirDonoDaGeracao(request: NextRequest, cpfInspetor: unknown, chaveInspetor?: unknown): Promise<Acesso> {
+  const a = await exigirProprio(request, cpfInspetor)
+  if (a.ok === false) return a
+  const chave = String(chaveInspetor ?? '').trim()
+  if (!chave) return a
+  return exigirChaveDoProprio(request, chave)
+}

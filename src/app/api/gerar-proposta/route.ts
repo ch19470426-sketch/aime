@@ -5,7 +5,7 @@ export const runtime = 'nodejs'
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { verificarDisponibilidade, consumirCreditos, referenciaDaGeracao } from '@/lib/creditos'
-import { exigirSessao } from '@/lib/autorizacao'
+import { exigirSessao, exigirDonoDaGeracao } from '@/lib/autorizacao'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -264,6 +264,9 @@ export async function POST(request: NextRequest) {
       .eq('cpf_inspetor', cpfInspetor).single()
     if (!insp) return NextResponse.json({ erro: 'Inspetor não encontrado' }, { status: 404 })
 
+    // DONO (AUTH_API_ATIVA): o CPF que paga é o do usuário logado.
+    const acessoDono = await exigirDonoDaGeracao(request, cpfInspetor, chaveInspetor)
+    if (acessoDono.ok === false) return acessoDono.resposta
     const verificacao = await verificarDisponibilidade(cpfInspetor, Number(tipoServico))
     if (!verificacao.liberado) {
       return NextResponse.json({

@@ -4,7 +4,7 @@ export const runtime = 'nodejs'
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { verificarDisponibilidade, consumirCreditos, referenciaDaGeracao } from '@/lib/creditos'
-import { exigirSessao } from '@/lib/autorizacao'
+import { exigirSessao, exigirDonoDaGeracao } from '@/lib/autorizacao'
 import { ehFamiliaNR, semaforoDoGrau, prioridadeDoGrau } from '@/lib/prioridade'
 
 const supabase = createClient(
@@ -122,6 +122,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ estabNome: estabNomeVal, cabInspetor: cabInsVal, _debug: { e, i } })
     }
 
+    // DONO (AUTH_API_ATIVA): o CPF que paga é o do usuário logado.
+    const acessoDono = await exigirDonoDaGeracao(request, cpfInspetor, chaveInspetor)
+    if (acessoDono.ok === false) return acessoDono.resposta
     const verificacaoManut = await verificarDisponibilidade(cpfInspetor, Number(tipoServico))
     if (!verificacaoManut.liberado) {
       if (verificacaoManut.motivo === 'conta_bloqueada') return NextResponse.json({ erro: 'Conta bloqueada. Entre em contato com o suporte: suporte@aime.eng.br.', bloqueada: true }, { status: 403 })

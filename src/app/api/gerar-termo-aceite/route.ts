@@ -6,7 +6,7 @@ export const runtime = 'nodejs'
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { exigirSessao } from '@/lib/autorizacao'
+import { exigirSessao, exigirDonoDaGeracao } from '@/lib/autorizacao'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -28,6 +28,9 @@ export async function POST(request: NextRequest) {
     if (!cpfInspetor || !chaveInspetor) {
       return NextResponse.json({ erro: 'cpfInspetor e chaveInspetor são obrigatórios' }, { status: 400 })
     }
+    // DONO (AUTH_API_ATIVA): o termo é gerado só para o próprio usuário logado.
+    const acessoDono = await exigirDonoDaGeracao(request, cpfInspetor, chaveInspetor)
+    if (acessoDono.ok === false) return acessoDono.resposta
 
     const agora = new Date()
     const dataBR = `${String(agora.getDate()).padStart(2,'0')}/${String(agora.getMonth()+1).padStart(2,'0')}/${agora.getFullYear()}`

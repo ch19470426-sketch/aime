@@ -10,7 +10,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { gerarCapa } from '@/lib/gerarCapa'
 import { createClient } from '@supabase/supabase-js'
 import { verificarDisponibilidade, consumirCreditos, referenciaDaGeracao } from '@/lib/creditos'
-import { exigirSessao } from '@/lib/autorizacao'
+import { exigirSessao, exigirDonoDaGeracao } from '@/lib/autorizacao'
 import { mapaDeDescricoes, descricaoDoSistema } from '@/lib/descSistemas'
 import { normalizarPrioridades, ehFamiliaNR, prioridadeDoGrau } from '@/lib/prioridade'
 import { normalizarDatas } from '@/lib/dataBR'
@@ -378,6 +378,9 @@ export async function POST(request: NextRequest) {
     if (!cpfInspetor || !tipoServico || !nomeArquivo)
       return NextResponse.json({ erro: 'Parâmetros obrigatórios ausentes.' }, { status: 400 })
 
+    // DONO (AUTH_API_ATIVA): o CPF que paga é o do usuário logado.
+    const acessoDono = await exigirDonoDaGeracao(request, cpfInspetor, chaveInspetor)
+    if (acessoDono.ok === false) return acessoDono.resposta
     const verificacaoLaudo = await verificarDisponibilidade(cpfInspetor, Number(tipoServico))
     if (!verificacaoLaudo.liberado) {
       if (verificacaoLaudo.motivo === 'conta_bloqueada') return NextResponse.json({ erro: 'Conta bloqueada. Entre em contato com o suporte: suporte@aime.eng.br.', bloqueada: true }, { status: 403 })

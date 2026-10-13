@@ -15,7 +15,7 @@ export const runtime = 'nodejs'
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { consumirCreditos } from '@/lib/creditos'
-import { exigirSessao } from '@/lib/autorizacao'
+import { exigirSessao, exigirArquivoDoProprio, exigirProprio } from '@/lib/autorizacao'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -39,11 +39,27 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ erro: 'nomeArquivo e payload são obrigatórios' }, { status: 400 })
     }
 
+    // Só as duas pastas que as telas usam (vistorias e documentos_inspetor): antes aceitava qualquer pasta do bucket.
+    if (!['vistorias', 'documentos_inspetor'].includes(pasta ?? 'vistorias')) {
+      return NextResponse.json({ erro: 'pasta inválida' }, { status: 400 })
+    }
+    // DONO (AUTH_API_ATIVA): o arquivo (gravado com upsert, sobrescreve) tem de ser do usuário logado; o nome começa com a chave dele.
+    const acessoArquivo = await exigirArquivoDoProprio(request, nomeArquivo)
+    if (acessoArquivo.ok === false) return acessoArquivo.resposta
+
     const folder   = pasta ?? 'vistorias'
     const mimeType = contentType ?? 'application/json'
     const isHtml   = mimeType === 'text/html'
     const conteudo = isHtml ? payload : JSON.stringify(payload, null, 2)
     const blob     = new Blob([conteudo], { type: mimeType })
+
+    // DONO (AUTH_API_ATIVA): quem paga a foto é o usuário logado (eletricista no fluxo 39, inspetor nos demais).
+    // Conferido ANTES de gravar: uma recusa não pode deixar o arquivo gravado sem o débito.
+    const cpfParaDebito = payload?.cpfEletrico || payload?.cpfInspetor
+    if (folder === 'vistorias' && !isHtml && cpfParaDebito && payload?.tipoServico) {
+      const acessoDebito = await exigirProprio(request, cpfParaDebito)
+      if (acessoDebito.ok === false) return acessoDebito.resposta
+    }
 
     const { error } = await supabase.storage
       .from('aime')
@@ -69,7 +85,6 @@ export async function POST(request: NextRequest) {
     // inspetor CIVIL (cpfInspetor), mas quem deve ser debitado é o
     // ELETRICISTA que de fato executou essa parte (cpfEletrico, presente
     // no payload só nesse fluxo) — decisão de Celso, 01/10/2026.
-    const cpfParaDebito = payload?.cpfEletrico || payload?.cpfInspetor
     if (folder === 'vistorias' && !isHtml && cpfParaDebito && payload?.tipoServico) {
       try {
         await consumirCreditos(cpfParaDebito, Number(payload.tipoServico), {
