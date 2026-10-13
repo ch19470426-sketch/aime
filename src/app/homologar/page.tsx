@@ -350,10 +350,10 @@ function Tela40Inner() {
           } else {
             const diag = data._diag
             if (diag) {
-              alert('DIAGNÓSTICO:\n\nArquivos encontrados na busca: ' + diag.totalArquivosEncontrados +
-                '\nChave usada: ' + diag.chaveInspetorUsada +
-                '\nCNPJ usado: "' + diag.cnpjoucpfUsado + '"' +
-                '\n\nPrimeiros nomes:\n' + diag.primeirosNomes.join('\n'))
+              // Diagnóstico técnico da busca: vai para o console (o inspetor vê só o banner abaixo).
+              console.warn('[homologar] nenhuma vistoria encontrada. Arquivos na busca:', diag.totalArquivosEncontrados,
+                '| chave usada:', diag.chaveInspetorUsada, '| CNPJ usado:', diag.cnpjoucpfUsado,
+                '| primeiros nomes:', diag.primeirosNomes)
             }
             informa('Nenhuma vistoria encontrada',
               'Para que seja efetuada a homologação é necessário que exista uma vistoria concluída para a edificação/instituição. Nada encontrado, o processo será suspenso.',
@@ -670,8 +670,15 @@ function Tela40Inner() {
       if (!resDadosVistoria.ok) {
         const erroTexto = await resDadosVistoria.text()
         console.error('Falha ao salvar dados_vistoria:', erroTexto)
-        // Alerta visível — não depender do console do navegador para diagnosticar
-        alert('⚠️ FALHA AO SALVAR dados_vistoria (status ' + resDadosVistoria.status + '):\n\n' + erroTexto)
+        // Aviso visível, e o fluxo ESPERA o inspetor tocar em OK (como o alert fazia): sem isso, o banner de
+        // "Homologação concluída" que vem no fim do fluxo apagaria este aviso antes de ser lido.
+        const detalhe = erroTexto.length > 300 ? erroTexto.slice(0, 300) + '…' : erroTexto
+        await new Promise<void>(resolve => informa(
+          'Falha ao gravar os dados da vistoria',
+          'Não foi possível gravar os dados desta vistoria no banco (status ' + resDadosVistoria.status + '). ' +
+          'Anote esta mensagem e avise o suporte: ' + detalhe,
+          () => resolve()
+        ))
       }
       // O debito de 1 CR pela foto NAO acontece mais aqui — foi movido para
       // o salvamento da vistoria em si (/api/salvar-vistoria), momento em

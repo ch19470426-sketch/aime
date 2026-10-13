@@ -2,6 +2,8 @@
 export const dynamic = 'force-dynamic'
 import { useState, useEffect, Suspense } from "react"
 import { useSearchParams } from "next/navigation"
+import Banner from "@/components/Banner"
+import { useBanner } from "@/hooks/useBanner"
 import React from "react"
 import Image from "next/image"
 
@@ -27,6 +29,7 @@ const S: Record<string, React.CSSProperties> = {
 
 function SelecaoInner() {
   const params        = useSearchParams()
+  const { bannerProps, orienta } = useBanner()
   const cpfEletrico   = params.get('cpf_inspetor')   ?? ''
   const chaveEletrico = params.get('chave_inspetor') ?? ''
   const cnpjoucpfUrl  = params.get('cnpjoucpf')      ?? ''
@@ -83,7 +86,7 @@ function SelecaoInner() {
 
   function irNR10() {
     const cnpjFinal = (cnpjNR10 || cnpjoucpfUrl).replace(/\D/g, '')
-    if (!cnpjFinal) { alert('Informe o CNPJ ou CPF do estabelecimento.'); return }
+    if (!cnpjFinal) { orienta('Falta o CNPJ ou CPF', 'Informe o CNPJ ou CPF do estabelecimento.'); return }
     window.location.href =
       `/homologar?cpf_inspetor=${cpfEletrico}&chave_inspetor=${chaveEletrico}&cnpjoucpf=${cnpjFinal}`
   }
@@ -94,6 +97,7 @@ function SelecaoInner() {
 
   return (
     <div style={S.body}>
+      <Banner {...bannerProps} />
       <div style={S.page}>
         {/* Cabeçalho */}
         <div style={S.header}>

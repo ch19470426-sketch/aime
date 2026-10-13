@@ -1,6 +1,8 @@
 "use client"
 import { Suspense, useEffect, useRef, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
+import Banner from '@/components/Banner'
+import { useBanner } from '@/hooks/useBanner'
 import Image from 'next/image'
 import { salvarOffline } from '@/lib/offlineVistoria'
 import { fetchTimeout } from '@/lib/fetchTimeout'
@@ -71,6 +73,7 @@ export default function Tela31Page() {
 
 function Tela31Inner() {
   const params        = useSearchParams()
+  const { bannerProps, orienta } = useBanner()
   const cpfInspetor   = params.get('cpf_inspetor')   ?? ''
   const chaveInspetor = params.get('chave_inspetor') ?? cpfInspetor
   const cnpjoucpf     = params.get('cnpjoucpf')      ?? ''
@@ -461,11 +464,11 @@ function Tela31Inner() {
       setFeedbackIA('⚠️ Aguarde a IA terminar de gerar a NC e a CP antes de salvar.')
       return
     }
-    if (!tipoAtivo) { alert('Selecione o Tipo de Ativo antes de salvar.'); return }
-    if (!tagNrSerie) { alert('Selecione o TAG / Nº Série antes de salvar.'); return }
-    if (!fotoBase64) { alert('Adicione a foto antes de salvar.'); return }
-    if (!local) { alert('Informe o Local/Instalação/Setor/Área antes de salvar.'); return }
-    if (!resultado) { alert('Selecione o Resultado antes de salvar.'); return }
+    if (!tipoAtivo) { orienta('Falta o tipo de ativo', 'Selecione o Tipo de Ativo antes de salvar.'); return }
+    if (!tagNrSerie) { orienta('Falta o TAG / Nº Série', 'Selecione o TAG / Nº Série antes de salvar.'); return }
+    if (!fotoBase64) { orienta('Falta a foto', 'Adicione a foto antes de salvar.'); return }
+    if (!local) { orienta('Falta o local', 'Informe o Local/Instalação/Setor/Área antes de salvar.'); return }
+    if (!resultado) { orienta('Falta o resultado', 'Selecione o Resultado antes de salvar.'); return }
     setSalvando(true); setErroSave('')
     // Declarado aqui (fora do try) para continuar acessivel la embaixo, no
     // caminho de SUCESSO, que roda depois que o try/catch termina — estava
@@ -607,6 +610,7 @@ function Tela31Inner() {
 
   return (
     <div style={S.body}>
+      <Banner {...bannerProps} />
       <div style={S.page}>
         <CabecalhoHTML tipoServico={tipoServico} />
         <div style={S.divider} />
