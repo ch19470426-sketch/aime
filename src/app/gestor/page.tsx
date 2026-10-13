@@ -156,6 +156,7 @@ export default function GestorPage() {
   const [dataReferencia, setDataReferencia] = useState('')
   // Novo plano
   const [novoPlano, setNovoPlano] = useState('PLANO MENSAL')
+  const [msgPlano, setMsgPlano] = useState('')
 
   const supabase = createClient()
 
@@ -200,6 +201,7 @@ export default function GestorPage() {
 
   async function selecionarInspetor(insp: Inspetor) {
     setSelecionado(insp)
+    setMsgPlano('')
     setAba('dados')
     setMsg('')
     try {
@@ -209,21 +211,34 @@ export default function GestorPage() {
     } catch { setContratos([]) }
   }
 
+  // Atribuir plano (botão recolocado em 13/10/2026): cria um contrato NOVO hoje, sem cobrança, para quem está sem saldo
+  // (conta de teste, cortesia, suporte). A rota NÃO soma o saldo do contrato anterior, e o aviso de confirmação diz isso.
+  function pedirAtribuicao() {
+    if (!selecionado) return
+    solicita(`Atribuir ${novoPlano}?`,
+      `Cria hoje um contrato novo com ${PLANO_CR[novoPlano].toLocaleString('pt-BR')} CR para ${selecionado.nome_inspetor ?? ''} (CPF ${selecionado.cpf_inspetor}), sem cobrança. O saldo do contrato anterior NÃO é somado a este.`,
+      [
+        { label: 'Atribuir', acao: () => { fechar(); void atribuirPlano() }, estilo: 'primario' },
+        { label: 'Voltar', acao: fechar, estilo: 'secundario' },
+      ])
+  }
+
   async function atribuirPlano() {
     if (!selecionado) return
-    setSalvando(true); setMsg('')
+    setSalvando(true); setMsgPlano('')
     try {
+      const { data: { session } } = await supabase.auth.getSession()
       const res = await fetch('/api/gestor/atribuir-plano', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ cpf: selecionado.cpf_inspetor, tipo: novoPlano, qde: PLANO_CR[novoPlano] })
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session?.access_token ?? ''}` },
+        body: JSON.stringify({ cpf: selecionado.cpf_inspetor, tipo: novoPlano })
       })
       const d = await res.json()
-      if (!res.ok) { setMsg(`Erro: ${d.erro}`); return }
-      setMsg('Plano atribuído com sucesso!')
+      if (!res.ok) { setMsgPlano(`Erro: ${d.erro ?? 'não foi possível atribuir o plano.'}`); return }
       await selecionarInspetor(selecionado)
       setAba('plano')
-    } catch (e) { setMsg('Erro ao atribuir plano.') }
+      setMsgPlano(`${novoPlano} atribuído com sucesso.`)
+    } catch (e) { setMsgPlano('Erro de conexão ao atribuir o plano.') }
     finally { setSalvando(false) }
   }
 
@@ -605,7 +620,20 @@ export default function GestorPage() {
                       </div>
                     )}
 
-                    {/* Novo plano */}
+                    {/* Atribuir plano */}
+                    <div style={S.secaoTitulo}>Atribuir plano</div>
+                    <p style={{ fontSize:'11px', color:'#6B7280', margin:'0 0 8px' }}>
+                      Cria um contrato novo hoje, sem cobrança. O saldo do contrato anterior não é somado: use para inspetor sem saldo (teste, cortesia, suporte).
+                    </p>
+                    <div style={{ display:'flex', gap:'8px', alignItems:'center' }}>
+                      <select style={{ ...S.select, flex:1 }} value={novoPlano} onChange={e => setNovoPlano(e.target.value)}>
+                        {Object.keys(PLANO_CR).map(p => <option key={p} value={p}>{p} — {PLANO_CR[p].toLocaleString('pt-BR')} CR</option>)}
+                      </select>
+                      <button style={S.btnPri} onClick={pedirAtribuicao} disabled={salvando}>Atribuir</button>
+                    </div>
+                    {msgPlano && (
+                      <p style={{ fontSize:'12px', fontWeight:700, margin:'10px 0 0', color: msgPlano.startsWith('Erro') ? '#DC2626' : '#059669' }}>{msgPlano}</p>
+                    )}
 
                   </div>
                 )}
