@@ -12,7 +12,7 @@ export const runtime = 'nodejs'
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { exigirSessao } from '@/lib/autorizacao'
+import { exigirSessao, exigirProprioOuVinculado } from '@/lib/autorizacao'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -41,6 +41,9 @@ export async function GET(request: NextRequest) {
   const cpf_inspetor = p.get('cpf_inspetor')
   const cnpjoucpf    = p.get('cnpjoucpf')
   const tipo_servico = p.get('tipo_servico')
+  // DONO (AUTH_API_ATIVA): o titular do CPF, ou o eletricista vinculado a ele (fluxo elétrico).
+  const acessoDono = await exigirProprioOuVinculado(request, cpf_inspetor)
+  if (acessoDono.ok === false) return acessoDono.resposta
 
   if (!cpf_inspetor || !cnpjoucpf || !tipo_servico) {
     return NextResponse.json(
@@ -85,6 +88,9 @@ export async function POST(request: NextRequest) {
   if (acessoApi.ok === false) return acessoApi.resposta
   const body = await request.json()
   const { cpf_inspetor, cnpjoucpf, tipo_servico } = body
+  // DONO (AUTH_API_ATIVA): o titular do CPF, ou o eletricista vinculado a ele (fluxo elétrico).
+  const acessoDono = await exigirProprioOuVinculado(request, cpf_inspetor)
+  if (acessoDono.ok === false) return acessoDono.resposta
 
   if (!cpf_inspetor || !cnpjoucpf || !tipo_servico) {
     return NextResponse.json(

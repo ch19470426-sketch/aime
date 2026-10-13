@@ -6,7 +6,7 @@ export const runtime = 'nodejs'
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { exigirSessao } from '@/lib/autorizacao'
+import { exigirSessao, exigirProprio } from '@/lib/autorizacao'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -19,6 +19,9 @@ export async function POST(request: NextRequest) {
   if (acessoApi.ok === false) return acessoApi.resposta
   try {
     const { cpf_inspetor, cnpjoucpf, tipo_servico, foto_nr, descricao_solucao_nc } = await request.json()
+    // DONO (AUTH_API_ATIVA): só o titular do CPF altera a solução das não conformidades dele.
+    const acessoDono = await exigirProprio(request, cpf_inspetor)
+    if (acessoDono.ok === false) return acessoDono.resposta
 
     if (!cpf_inspetor || !cnpjoucpf || !tipo_servico || !foto_nr || !descricao_solucao_nc) {
       return NextResponse.json({ erro: 'Campos obrigatórios ausentes.' }, { status: 400 })

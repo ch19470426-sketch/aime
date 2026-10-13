@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { Resend } from 'resend'
 import { REMETENTE_SUPORTE, montarEmailSimples } from '@/lib/emailSuporte'
-import { exigirSessao } from '@/lib/autorizacao'
+import { exigirSessao, exigirProprio } from '@/lib/autorizacao'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -18,6 +18,9 @@ export async function POST(request: NextRequest) {
   if (acessoApi.ok === false) return acessoApi.resposta
   try {
     const { cpf, nome, planoDesejado } = await request.json()
+    // DONO (AUTH_API_ATIVA): o pedido de troca é sempre em nome do próprio usuário logado (vai por e-mail ao gestor).
+    const acessoDono = await exigirProprio(request, cpf)
+    if (acessoDono.ok === false) return acessoDono.resposta
 
     // Buscar e-mail do gestor
     const { data: gestores } = await supabase

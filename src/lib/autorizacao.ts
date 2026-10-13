@@ -141,3 +141,39 @@ export async function exigirDonoDaGeracao(request: NextRequest, cpfInspetor: unk
   if (!chave) return a
   return exigirChaveDoProprio(request, chave)
 }
+
+/**
+ * O próprio titular do CPF OU o eletricista VINCULADO a ele: no fluxo elétrico (código 39) o registro pertence ao
+ * contrato do inspetor CIVIL, e o eletricista logado chama algumas rotas (numeração de foto) com o CPF do civil. O vínculo
+ * é a linha de art_profissional (cpf_eletrico = sessão, cpf_inspetor = alvo), criada em /api/upload-art-eletrico.
+ */
+export async function exigirProprioOuVinculado(request: NextRequest, cpfAlvo: unknown): Promise<Acesso> {
+  const alvo = soDigitos(cpfAlvo)
+  if (!autorizacaoAtiva()) return { ok: true, ativa: false, cpf: alvo || null, gestor: false }
+  const s = await sessaoDaRequisicao(request)
+  if (!s) return negar(401, SEM_SESSAO)
+  if (!alvo) return negar(403, SEM_PERMISSAO)
+  if (s.cpf === alvo) return { ok: true, ativa: true, cpf: s.cpf, gestor: false }
+  try {
+    const sb = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
+    const { data, error } = await sb.from('art_profissional').select('cpf_inspetor')
+      .eq('cpf_eletrico', s.cpf).eq('cpf_inspetor', alvo).limit(1)
+    if (!error && data && data.length > 0) return { ok: true, ativa: true, cpf: s.cpf, gestor: false }
+    if (error) console.error('[autorizacao] vínculo elétrico:', error.message)
+  } catch (e) { console.error('[autorizacao] vínculo elétrico exceção:', e) }
+  return negar(403, SEM_PERMISSAO)
+}
+
+/**
+ * Caminho "pasta/nome" de arquivo (upload assinado): a pasta tem de ser uma das permitidas e o nome, do dono (começa
+ * com a chave dele). Qualquer outro caminho é recusado.
+ */
+export async function exigirCaminhoDoProprio(request: NextRequest, caminho: unknown, pastas: string[]): Promise<Acesso> {
+  if (!autorizacaoAtiva()) return { ok: true, ativa: false, cpf: null, gestor: false }
+  const partes = String(caminho ?? '').split('/')
+  if (partes.length !== 2 || !pastas.includes(partes[0])) {
+    const s = await sessaoDaRequisicao(request)
+    return s ? negar(403, SEM_PERMISSAO) : negar(401, SEM_SESSAO)
+  }
+  return exigirArquivoDoProprio(request, partes[1])
+}

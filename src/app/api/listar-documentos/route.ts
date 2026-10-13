@@ -6,7 +6,7 @@ export const runtime = 'nodejs'
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { exigirSessao } from '@/lib/autorizacao'
+import { exigirSessao, exigirChaveDoProprio } from '@/lib/autorizacao'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -20,6 +20,9 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
     const chaveInspetor = searchParams.get('chave_inspetor') ?? ''
+    // DONO (AUTH_API_ATIVA): cada um lista (e recebe link de) só os próprios documentos.
+    const acessoDono = await exigirChaveDoProprio(request, chaveInspetor)
+    if (acessoDono.ok === false) return acessoDono.resposta
     const cnpjoucpf     = searchParams.get('cnpjoucpf') ?? ''
 
     if (!chaveInspetor || !cnpjoucpf) {

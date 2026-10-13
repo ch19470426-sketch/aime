@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { exigirSessao } from '@/lib/autorizacao'
+import { exigirSessao, exigirProprio } from '@/lib/autorizacao'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -15,6 +15,9 @@ export async function GET(request: NextRequest) {
   const acessoApi = await exigirSessao(request)
   if (acessoApi.ok === false) return acessoApi.resposta
   const cpf = new URL(request.url).searchParams.get('cpf')
+  // DONO (AUTH_API_ATIVA): cada um lista só os próprios estabelecimentos.
+  const acessoDono = await exigirProprio(request, cpf)
+  if (acessoDono.ok === false) return acessoDono.resposta
   if (!cpf) return NextResponse.json({ erro: 'CPF obrigatório' }, { status: 400 })
 
   try {

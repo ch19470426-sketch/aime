@@ -1,7 +1,7 @@
 export const dynamic = 'force-dynamic'
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { exigirSessao } from '@/lib/autorizacao'
+import { exigirSessao, exigirProprio } from '@/lib/autorizacao'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -20,6 +20,9 @@ export async function POST(request: NextRequest) {
 
     if (!cpf_inspetor || !cnpjoucpf || !tipo_servico || !nome_responsavel)
       return NextResponse.json({ erro: 'Campos obrigatórios ausentes.' }, { status: 400 })
+    // DONO (AUTH_API_ATIVA): só o titular do CPF grava o contato do cliente dele.
+    const acessoDono = await exigirProprio(request, cpf_inspetor)
+    if (acessoDono.ok === false) return acessoDono.resposta
 
     const { error } = await supabase.from('contato_cliente').insert({
       cpf_inspetor, cnpjoucpf, tipo_servico,
@@ -46,6 +49,9 @@ export async function GET(request: NextRequest) {
     const cpf_inspetor = searchParams.get('cpf_inspetor')
     const cnpjoucpf    = searchParams.get('cnpjoucpf')
     const tipo_servico = searchParams.get('tipo_servico')
+    // DONO (AUTH_API_ATIVA): só o titular do CPF lê o contato do cliente dele.
+    const acessoDono = await exigirProprio(request, cpf_inspetor)
+    if (acessoDono.ok === false) return acessoDono.resposta
 
     if (!cpf_inspetor || !cnpjoucpf)
       return NextResponse.json({ erro: 'Parâmetros obrigatórios ausentes.' }, { status: 400 })

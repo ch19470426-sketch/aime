@@ -3,7 +3,7 @@ export const runtime = 'nodejs'
 // Endpoint temporário — serve HTML puro para visualização direta no browser (diagnóstico)
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { exigirSessao } from '@/lib/autorizacao'
+import { exigirSessao, exigirArquivoDoProprio } from '@/lib/autorizacao'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -16,6 +16,11 @@ export async function GET(request: NextRequest) {
   if (acessoApi.ok === false) return acessoApi.resposta
   const nome  = request.nextUrl.searchParams.get('nome')
   const pasta = request.nextUrl.searchParams.get('pasta') ?? 'documentos_inspetor'
+  // Só as pastas de documentos que as telas usam: antes lia qualquer arquivo do armazenamento.
+  if (!['documentos_inspetor', 'vistorias_homologadas'].includes(pasta)) return NextResponse.json({ erro: 'pasta inválida' }, { status: 400 })
+  // DONO (AUTH_API_ATIVA): o documento (nome começa com a chave do usuário) é do usuário logado.
+  const acessoDono = await exigirArquivoDoProprio(request, nome)
+  if (acessoDono.ok === false) return acessoDono.resposta
   if (!nome) return new NextResponse('nome obrigatório', { status: 400 })
 
   const { data, error } = await supabase.storage.from('aime').download(`${pasta}/${nome}`)

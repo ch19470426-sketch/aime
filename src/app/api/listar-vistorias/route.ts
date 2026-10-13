@@ -7,7 +7,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { exigirSessao } from '@/lib/autorizacao'
+import { exigirSessao, exigirChaveDoProprio } from '@/lib/autorizacao'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -90,6 +90,9 @@ export async function GET(request: NextRequest) {
 
   if (!chaveInspetor || !cnpjoucpf || !tipoServico)
     return NextResponse.json({ erro: 'Parâmetros obrigatórios ausentes' }, { status: 400 })
+  // DONO (AUTH_API_ATIVA): só a chave do próprio usuário (o vínculo com o eletricista é resolvido aqui no servidor).
+  const acessoDono = await exigirChaveDoProprio(request, chaveInspetor)
+  if (acessoDono.ok === false) return acessoDono.resposta
 
   const tipoVistoria = LAUDO_PARA_VISTORIA[tipoServico] ?? tipoServico
   const ehNR = ['35','36','37','38'].includes(tipoVistoria)

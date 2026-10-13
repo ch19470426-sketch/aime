@@ -2,7 +2,7 @@ export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { exigirSessao } from '@/lib/autorizacao'
+import { exigirSessao, exigirProprio } from '@/lib/autorizacao'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -14,6 +14,9 @@ export async function GET(request: NextRequest) {
   const acessoApi = await exigirSessao(request)
   if (acessoApi.ok === false) return acessoApi.resposta
   const cpfEletrico = request.nextUrl.searchParams.get('cpf_eletrico') ?? ''
+  // DONO (AUTH_API_ATIVA): o eletricista lê só os próprios vínculos.
+  const acessoDono = await exigirProprio(request, cpfEletrico)
+  if (acessoDono.ok === false) return acessoDono.resposta
   if (!cpfEletrico) return NextResponse.json({ erro: 'cpf_eletrico obrigatório' }, { status: 400 })
 
   const { data, error } = await supabase
