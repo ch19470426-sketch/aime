@@ -55,7 +55,16 @@ export async function POST(request: NextRequest) {
         saldo_quantidade_avulso: 0,
       })
 
-    if (error) return NextResponse.json({ erro: error.message }, { status: 500 })
+    if (error) {
+      // Chave primária da tabela = (cpf_inspetor, tipo_assinatura, data_inicio_contrato): o MESMO plano não pode ser
+      // atribuído duas vezes no mesmo dia. Em vez do texto técnico do banco, explica o motivo.
+      if (error.code === '23505') {
+        return NextResponse.json({
+          erro: `Este inspetor já tem um ${tipo} iniciado hoje, e o mesmo plano não pode ser atribuído duas vezes no mesmo dia. Escolha outro plano ou repita amanhã.`,
+        }, { status: 409 })
+      }
+      return NextResponse.json({ erro: error.message }, { status: 500 })
+    }
     return NextResponse.json({ ok: true })
   } catch (err) {
     return NextResponse.json({ erro: String(err) }, { status: 500 })
