@@ -3,7 +3,7 @@ export const runtime = 'nodejs'
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { exigirSessao } from '@/lib/autorizacao'
+import { exigirSessao, exigirProprio } from '@/lib/autorizacao'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -19,6 +19,9 @@ export async function POST(request: NextRequest) {
     if (!cpfEletrico || !cnpjoucpf || !cpfInspetor) {
       return NextResponse.json({ erro: 'Dados obrigatórios ausentes' }, { status: 400 })
     }
+    // DONO (AUTH_API_ATIVA): quem registra o vínculo e o próprio eletricista (CPF do eletricista = o da sessão).
+    const acessoDono = await exigirProprio(request, cpfEletrico)
+    if (acessoDono.ok === false) return acessoDono.resposta
 
     // ART nao e mais anexada aqui — passou a ser inserida direto no laudo 42
     // pelo civil/arquiteto (Anexo 3). Esse registro serve so como vinculo

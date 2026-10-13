@@ -6,7 +6,7 @@ export const runtime = 'nodejs'
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { exigirSessao } from '@/lib/autorizacao'
+import { exigirSessao, exigirProprio } from '@/lib/autorizacao'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -22,6 +22,9 @@ export async function DELETE(request: NextRequest) {
   if (!cpf_inspetor || !cnpjoucpf || !tipo_servico || !data_cadastro) {
     return NextResponse.json({ erro: 'Parâmetros obrigatórios ausentes' }, { status: 400 })
   }
+  // DONO (AUTH_API_ATIVA): só o titular do CPF apaga os ativos dele.
+  const acessoDono = await exigirProprio(request, cpf_inspetor)
+  if (acessoDono.ok === false) return acessoDono.resposta
 
   const { error, count } = await supabase
     .from('ativos_a_vistoriar')

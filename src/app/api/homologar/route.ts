@@ -6,7 +6,7 @@ export const runtime = 'nodejs'
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { exigirSessao } from '@/lib/autorizacao'
+import { exigirSessao, exigirArquivoDoProprio } from '@/lib/autorizacao'
 import { corTelaDoGrau } from '@/lib/prioridade'
 
 const supabase = createClient(
@@ -25,6 +25,9 @@ export async function POST(request: NextRequest) {
     if (!nomeArquivo || !dadosVistoria) {
       return NextResponse.json({ erro: 'nomeArquivo e dadosVistoria são obrigatórios' }, { status: 400 })
     }
+    // DONO (AUTH_API_ATIVA): só o dono do arquivo de vistoria pode homologá-lo (a homologação lê, grava e APAGA o JSON).
+    const acessoDono = await exigirArquivoDoProprio(request, nomeArquivo)
+    if (acessoDono.ok === false) return acessoDono.resposta
 
     // 1. Ler JSON original do Storage para obter fotoBase64
     const { data: fileData, error: readError } = await supabase.storage

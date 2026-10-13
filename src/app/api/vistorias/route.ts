@@ -7,7 +7,7 @@ export const maxDuration = 60  // Vercel Pro: até 60s para download de muitos a
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { exigirSessao } from '@/lib/autorizacao'
+import { exigirSessao, exigirChaveDoProprio, exigirArquivoDoProprio } from '@/lib/autorizacao'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -25,6 +25,11 @@ export async function GET(request: NextRequest) {
   const chaveInspetor = searchParams.get('chave_inspetor')
   const cnpjoucpf     = searchParams.get('cnpjoucpf')
   const tipoServico   = searchParams.get('tipo_servico') // opcional — filtra por tipo quando informado
+
+  // DONO (AUTH_API_ATIVA): só o dono lê o arquivo ou lista a chave. A pasta é limitada às de vistoria.
+  if (nome && !['vistorias', 'vistorias_homologadas'].includes(pasta)) return NextResponse.json({ erro: 'pasta inválida' }, { status: 400 })
+  const acessoDono = nome ? await exigirArquivoDoProprio(request, nome) : await exigirChaveDoProprio(request, chaveInspetor)
+  if (acessoDono.ok === false) return acessoDono.resposta
 
   // Ler formulário específico
   if (nome) {
@@ -118,6 +123,9 @@ export async function DELETE(request: NextRequest) {
   const nome = searchParams.get('nome')
 
   if (!nome) return NextResponse.json({ erro: 'nome é obrigatório' }, { status: 400 })
+  // DONO (AUTH_API_ATIVA): só o dono apaga o arquivo.
+  const acessoDono = await exigirArquivoDoProprio(request, nome)
+  if (acessoDono.ok === false) return acessoDono.resposta
 
   const { error } = await supabase.storage
     .from('aime')
