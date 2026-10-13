@@ -162,31 +162,7 @@ async function abrirDB() {
   })
 }
 
-// Guarda no item da fila o número da foto obtido (ver guardarNumeroDaFoto em src/lib/offlineVistoria.ts): se a sincronização for
-// interrompida depois de o servidor gravar e antes de apagar o item, a próxima tentativa reaproveita o número, em vez de gravar e cobrar de novo.
-async function guardarNrSincronizacao(db, id, nr) {
-  return new Promise((resolve) => {
-    try {
-      const tx  = db.transaction('vistorias_pendentes', 'readwrite')
-      const str = tx.objectStore('vistorias_pendentes')
-      const get = str.get(id)
-      get.onsuccess = () => { const registro = get.result; if (registro) { registro.nrSincronizacao = nr; str.put(registro) } }
-      tx.oncomplete = () => resolve()
-      tx.onerror    = () => resolve()
-      tx.onabort    = () => resolve()
-    } catch { resolve() }
-  })
-}
-
-// Só um sincronizador por vez: o app (src/lib/offlineVistoria.ts) e este service worker percorrem a MESMA fila. Web Locks é
-// compartilhado entre janelas e service worker da mesma origem; sem suporte, segue sem trava (como antes).
 async function sincronizarVistorias() {
-  const locks = (typeof navigator !== 'undefined' && navigator.locks) ? navigator.locks : null
-  if (!locks || !locks.request) return sincronizarVistoriasSemTrava()
-  return locks.request('aime-sync-vistorias', { ifAvailable: true }, async (lock) => (lock ? sincronizarVistoriasSemTrava() : undefined))
-}
-
-async function sincronizarVistoriasSemTrava() {
   const db      = await abrirDB()
   const tx      = db.transaction('vistorias_pendentes', 'readwrite')
   const store   = tx.objectStore('vistorias_pendentes')
@@ -218,22 +194,18 @@ async function sincronizarVistoriasSemTrava() {
         } catch {}
       }
 
-      // Obter número da foto: reaproveita o da tentativa anterior, se houve
-      let nrFinal = item.nrSincronizacao
-      if (!nrFinal) {
-        const nrRes = await fetch('/api/foto-nr', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            cpf_inspetor: payload.cpfInspetor,
-            cnpjoucpf:    payload.cnpjoucpf,
-            tipo_servico: payload.tipoServico,
-          })
+      // Obter número da foto
+      const nrRes = await fetch('/api/foto-nr', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          cpf_inspetor: payload.cpfInspetor,
+          cnpjoucpf:    payload.cnpjoucpf,
+          tipo_servico: payload.tipoServico,
         })
-        const nrData = await nrRes.json()
-        nrFinal = nrData?.formatado ?? payload.fotoNr
-        if (nrFinal) await guardarNrSincronizacao(db, item.id, String(nrFinal))
-      }
+      })
+      const nrData  = await nrRes.json()
+      const nrFinal = nrData?.formatado ?? payload.fotoNr
 
       // Chave INS-nnn guardada antes da migração para o CPF vira o CPF do dono (cópia de chaveParaSincronizar em src/lib/nomeArquivo.ts)
       const chaveSalva = String(payload.chaveInspetor ?? '')
