@@ -6,6 +6,7 @@ import Banner from '@/components/Banner'
 import { useBanner } from '@/hooks/useBanner'
 import { enviarPdfAssinado as enviarPdfAoStorage } from '@/lib/envioPdf'
 import { createClient } from '@/utils/supabase/client'
+import { nomeSemChave } from '@/lib/nomeArquivo'
 
 const SUPA_URL = 'https://asgorarunzhiojqioxzq.supabase.co'
 const SUPA_KEY = 'sb_publishable_dH85HYKGxv3X0te627VfOw_OGaPoNMF'
@@ -249,7 +250,7 @@ export default function PlanoManutencaoInner() {
       }
       const blob = await res.blob()
       const url = URL.createObjectURL(blob)
-      const nomeBase = nomeArq.replace('.html','') + '.pdf'
+      const nomeBase = nomeSemChave(nomeArq).replace('.html','') + '.pdf'   // sem a chave (o CPF) no nome do arquivo baixado
       const a = document.createElement('a')
       a.href = url
       a.download = nomeBase

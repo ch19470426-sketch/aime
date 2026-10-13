@@ -10,7 +10,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { gerarCapa } from '@/lib/gerarCapa'
 import { createClient } from '@supabase/supabase-js'
 import { verificarDisponibilidade, consumirCreditos, referenciaDaGeracao } from '@/lib/creditos'
-import { exigirSessao, exigirDonoDaGeracao } from '@/lib/autorizacao'
+import { exigirSessao, exigirDonoDaGeracao, exigirCaminhosDoProprio } from '@/lib/autorizacao'
 import { mapaDeDescricoes, descricaoDoSistema } from '@/lib/descSistemas'
 import { normalizarPrioridades, ehFamiliaNR, prioridadeDoGrau } from '@/lib/prioridade'
 import { normalizarDatas } from '@/lib/dataBR'
@@ -389,6 +389,11 @@ export async function POST(request: NextRequest) {
         necessario: verificacaoLaudo.necessario, saldoTotal: verificacaoLaudo.saldoTotal, faltam: verificacaoLaudo.faltam,
       }, { status: 402 })
     }
+
+    // DONO (AUTH_API_ATIVA): croqui, foto e ART/RRT vêm do pedido como caminhos do armazenamento. Antes, qualquer caminho era baixado e
+    // embutido no laudo, e o da ART ganhava um link assinado de 30 dias. Agora só aceita laudos_imagens/<arquivo do próprio usuário>.
+    const donoImagens = await exigirCaminhosDoProprio(request, [complemento?.pathCroqui, complemento?.pathFoto, complemento?.pathArt, complemento?.pathArtEletrico, complemento?.pathArtMecanico], ['laudos_imagens'])
+    if (donoImagens.ok === false) return donoImagens.resposta
 
     // Imagens/documentos do storage — usado por 41-44 e 45-48
     async function imgSrc(path: string): Promise<string> {

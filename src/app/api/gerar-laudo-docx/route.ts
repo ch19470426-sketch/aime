@@ -9,7 +9,7 @@ export const maxDuration = 60
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import JSZip from 'jszip'
-import { exigirSessao, exigirDonoDaGeracao } from '@/lib/autorizacao'
+import { exigirSessao, exigirDonoDaGeracao, exigirArquivosDoProprio, exigirCaminhosDoProprio } from '@/lib/autorizacao'
 import { normalizarPrioridades, ehFamiliaNR, prioridadeDoGrau } from '@/lib/prioridade'
 import { normalizarDatas } from '@/lib/dataBR'
 
@@ -263,6 +263,13 @@ export async function POST(request: NextRequest) {
     const totM = stat.reduce((t,s)=>t+s.m,0)
     const totB = stat.reduce((t,s)=>t+s.b,0)
     const totT = totA+totM+totB
+
+    // DONO (AUTH_API_ATIVA): os arquivos de vistoria citados em cada não conformidade (_arquivo) e as imagens do croqui e da fachada vêm
+    // do pedido; todos têm de ser do usuário logado (a chave dele é consultada uma só vez, mesmo com centenas de não conformidades).
+    const donoArquivos = await exigirArquivosDoProprio(request, (ncs ?? []).map((n: any) => n?._arquivo))
+    if (donoArquivos.ok === false) return donoArquivos.resposta
+    const donoImagens = await exigirCaminhosDoProprio(request, [complemento?.pathCroqui, complemento?.pathFoto], ['laudos_imagens'])
+    if (donoImagens.ok === false) return donoImagens.resposta
 
     // Buscar fotos das vistorias
     const ncsComFoto = await Promise.all((ncs ?? []).map(async (nc: any) => {

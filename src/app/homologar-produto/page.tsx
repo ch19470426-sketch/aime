@@ -7,6 +7,7 @@ import Banner from '@/components/Banner'
 import { useBanner } from '@/hooks/useBanner'
 import { enviarPdfAssinado } from '@/lib/envioPdf'
 import { createClient } from '@/utils/supabase/client'
+import { nomeSemChave } from '@/lib/nomeArquivo'
 
 const SUPA_URL = 'https://asgorarunzhiojqioxzq.supabase.co'
 const SUPA_KEY = 'sb_publishable_dH85HYKGxv3X0te627VfOw_OGaPoNMF'
@@ -226,7 +227,7 @@ function HomologarProdutoInner() {
       ? html.replace(/(<body[^>]*>)[\s\S]*(<\/body>)/i, (_m, ab, fb) => ab + inner + fb)
       : html
 
-    const nomeBase = nomeArquivo.replace(/\.html$/i, '.pdf')
+    const nomeBase = nomeSemChave(nomeArquivo).replace(/\.html$/i, '.pdf')   // sem a chave (o CPF) no nome do arquivo baixado
 
     try {
       // Fotos em base64 estouram o limite de 4.5MB do Vercel para o corpo da

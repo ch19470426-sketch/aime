@@ -32,6 +32,7 @@ export const maxDuration = 300  // margem para documentos maiores (duas passagen
 
 import { NextRequest, NextResponse } from 'next/server'
 import { exigirSessao } from '@/lib/autorizacao'
+import { nomeSemChave } from '@/lib/nomeArquivo'
 
 async function extrairTextoPorPagina(pdfBuffer: Uint8Array): Promise<string[]> {
   // pdf-parse@1.1.1 (versão fixa, testada) — versões mais novas mudaram a API
@@ -193,7 +194,7 @@ export async function POST(request: NextRequest) {
     return new NextResponse(pdfFinal, {
       headers: {
         'Content-Type': 'application/pdf',
-        'Content-Disposition': `attachment; filename="${nomeArquivo.replace(/\.html$/i, '.pdf')}"`,
+        'Content-Disposition': `attachment; filename="${nomeSemChave(nomeArquivo).replace(/\.html$/i, '.pdf')}"`,
         'Content-Length': String(pdfFinal.length),
         'X-Indice-Corrigido': String(indiceCorrigido),
         'X-Indice-Diagnostico': encodeURIComponent(diagnostico),

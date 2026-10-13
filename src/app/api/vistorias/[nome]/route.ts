@@ -3,7 +3,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { exigirSessao } from '@/lib/autorizacao'
+import { exigirSessao, exigirArquivoDoProprio } from '@/lib/autorizacao'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -18,6 +18,9 @@ export async function GET(
   const acessoApi = await exigirSessao(request)
   if (acessoApi.ok === false) return acessoApi.resposta
   const { nome } = await params
+  // DONO (AUTH_API_ATIVA): só o dono lê a vistoria (com as fotos). Esta rota dinâmica ficou fora da primeira auditoria.
+  const acessoDono = await exigirArquivoDoProprio(request, nome)
+  if (acessoDono.ok === false) return acessoDono.resposta
 
   try {
     const { data, error } = await supabase.storage

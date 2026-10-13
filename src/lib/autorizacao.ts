@@ -177,3 +177,42 @@ export async function exigirCaminhoDoProprio(request: NextRequest, caminho: unkn
   }
   return exigirArquivoDoProprio(request, partes[1])
 }
+
+/**
+ * VÁRIOS arquivos de uma vez (por exemplo, os arquivos citados em cada não conformidade de um laudo): todos têm de ser do usuário
+ * logado. A chave dele é consultada no máximo UMA vez, mesmo com centenas de nomes. Nomes vazios são ignorados.
+ */
+export async function exigirArquivosDoProprio(request: NextRequest, nomes: unknown[]): Promise<Acesso> {
+  if (!autorizacaoAtiva()) return { ok: true, ativa: false, cpf: null, gestor: false }
+  const s = await sessaoDaRequisicao(request)
+  if (!s) return negar(401, SEM_SESSAO)
+  const lista = [...new Set(nomes.map(n => String(n ?? '')).filter(Boolean))]
+  let chave: string | null | undefined
+  for (const n of lista) {
+    if (n.includes('/') || n.includes('\\') || n.includes('..')) return negar(403, SEM_PERMISSAO)
+    if (n.toUpperCase().startsWith(`${s.cpf}_`)) continue
+    if (chave === undefined) chave = await chaveDoInspetor(s.cpf)
+    if (!chave || !n.toUpperCase().startsWith(`${chave.toUpperCase()}_`)) return negar(403, SEM_PERMISSAO)
+  }
+  return { ok: true, ativa: true, cpf: s.cpf, gestor: false }
+}
+
+/**
+ * VÁRIOS caminhos "pasta/nome" (imagens e ART do laudo): a pasta tem de ser uma das permitidas e o nome, do dono. Antes, o laudo
+ * baixava e embutia qualquer caminho vindo do pedido (e criava um link assinado de 30 dias para ele). Vazios são ignorados.
+ */
+export async function exigirCaminhosDoProprio(request: NextRequest, caminhos: unknown[], pastas: string[]): Promise<Acesso> {
+  if (!autorizacaoAtiva()) return { ok: true, ativa: false, cpf: null, gestor: false }
+  const nomes: string[] = []
+  for (const caminho of caminhos) {
+    const texto = String(caminho ?? '')
+    if (!texto) continue
+    const partes = texto.split('/')
+    if (partes.length !== 2 || !pastas.includes(partes[0])) {
+      const s = await sessaoDaRequisicao(request)
+      return s ? negar(403, SEM_PERMISSAO) : negar(401, SEM_SESSAO)
+    }
+    nomes.push(partes[1])
+  }
+  return exigirArquivosDoProprio(request, nomes)
+}

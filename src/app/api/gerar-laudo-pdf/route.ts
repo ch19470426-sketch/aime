@@ -5,7 +5,8 @@ export const maxDuration = 120  // Chromium cold-start pode levar 20-40s; margem
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { exigirSessao } from '@/lib/autorizacao'
+import { exigirSessao, exigirArquivoDoProprio } from '@/lib/autorizacao'
+import { nomeSemChave } from '@/lib/nomeArquivo'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -20,6 +21,9 @@ export async function POST(request: NextRequest) {
     const { nomeArquivo, html: htmlDireto, htmlSemFotos } = await request.json()
     if (!nomeArquivo)
       return NextResponse.json({ erro: 'nomeArquivo obrigatório.' }, { status: 400 })
+    // DONO (AUTH_API_ATIVA): o laudo lido (documentos_inspetor/<nomeArquivo>) é do usuário logado.
+    const acessoDono = await exigirArquivoDoProprio(request, nomeArquivo)
+    if (acessoDono.ok === false) return acessoDono.resposta
 
     let html: string
     if (htmlSemFotos) {
@@ -131,7 +135,7 @@ export async function POST(request: NextRequest) {
       return new NextResponse(new Uint8Array(pdf), {
         headers: {
           'Content-Type': 'application/pdf',
-          'Content-Disposition': `attachment; filename="${nomeArquivo.replace(/\.html$/i, '.pdf')}"`,
+          'Content-Disposition': `attachment; filename="${nomeSemChave(nomeArquivo).replace(/\.html$/i, '.pdf')}"`,
           // Sem Content-Length explícito, o navegador pode não reconhecer o fim
           // da transferência mesmo com o servidor tendo terminado com sucesso —
           // o download fica preso em .crdownload indefinidamente.

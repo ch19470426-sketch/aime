@@ -3,6 +3,7 @@ export const dynamic = 'force-dynamic'
 import { useState, useEffect, Suspense } from "react"
 import { useSearchParams } from "next/navigation"
 import Image from "next/image"
+import { nomeSemChave } from '@/lib/nomeArquivo'
 
 export default function BaixarDocumentosPage() {
   return (
@@ -89,7 +90,7 @@ function BaixarDocumentos() {
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
-      a.download = doc.nome
+      a.download = nomeSemChave(doc.nome)   // sem o prefixo da chave (o CPF): o arquivo vai para o cliente
       document.body.appendChild(a)
       a.click()
       document.body.removeChild(a)

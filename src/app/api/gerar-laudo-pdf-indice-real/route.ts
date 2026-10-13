@@ -38,7 +38,8 @@ export const maxDuration = 300
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { exigirSessao } from '@/lib/autorizacao'
+import { exigirSessao, exigirArquivoDoProprio } from '@/lib/autorizacao'
+import { nomeSemChave } from '@/lib/nomeArquivo'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -132,6 +133,9 @@ export async function POST(request: NextRequest) {
   const { nomeArquivo, html: htmlDireto, htmlSemFotos } = await request.json()
   if (!nomeArquivo)
     return NextResponse.json({ erro: 'nomeArquivo obrigatório.' }, { status: 400 })
+  // DONO (AUTH_API_ATIVA): o laudo lido (documentos_inspetor/<nomeArquivo>) é do usuário logado.
+  const acessoDono = await exigirArquivoDoProprio(request, nomeArquivo)
+  if (acessoDono.ok === false) return acessoDono.resposta
 
   let htmlPass1: string
   if (htmlSemFotos) {
@@ -222,7 +226,7 @@ export async function POST(request: NextRequest) {
     return new NextResponse(pdfFinal, {
       headers: {
         'Content-Type': 'application/pdf',
-        'Content-Disposition': `attachment; filename="${nomeArquivo.replace(/\.html$/i, '.pdf')}"`,
+        'Content-Disposition': `attachment; filename="${nomeSemChave(nomeArquivo).replace(/\.html$/i, '.pdf')}"`,
         'Content-Length': String(pdfFinal.length),
         'X-Indice-Corrigido': String(indiceCorrigido),
         'X-Indice-Diagnostico': encodeURIComponent(diagnostico),
