@@ -207,8 +207,12 @@ async function sincronizarVistorias() {
       const nrData  = await nrRes.json()
       const nrFinal = nrData?.formatado ?? payload.fotoNr
 
-      const nomeArquivo = `${payload.chaveInspetor}_${payload.cnpjoucpf}_${payload.tipoServico}_${nrFinal}.json`
-      const dadosFinal  = { ...payload, nc, cp, fotoNr: nrFinal, savedAt: new Date().toISOString() }
+      // Chave INS-nnn guardada antes da migração para o CPF vira o CPF do dono (cópia de chaveParaSincronizar em src/lib/nomeArquivo.ts)
+      const chaveSalva = String(payload.chaveInspetor ?? '')
+      const cpfDono    = String(payload.cpfEletrico || payload.cpfInspetor || '').replace(/\D/g, '')
+      const chave      = /^INS-\d+$/i.test(chaveSalva) && cpfDono ? cpfDono : chaveSalva
+      const nomeArquivo = `${chave}_${payload.cnpjoucpf}_${payload.tipoServico}_${nrFinal}.json`
+      const dadosFinal  = { ...payload, nc, cp, fotoNr: nrFinal, chaveInspetor: chave, savedAt: new Date().toISOString() }
       delete dadosFinal.nc_pendente
 
       const res = await fetch('/api/salvar-vistoria', {

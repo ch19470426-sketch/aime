@@ -1,3 +1,4 @@
+import { chaveParaSincronizar } from '@/lib/nomeArquivo'
 // Utilitário para salvar/recuperar vistorias offline via IndexedDB
 
 const DB_NAME    = 'aime-offline'
@@ -104,12 +105,16 @@ export async function sincronizarPendentes(
       const nrData = await nrRes.json()
       const nrFinal = nrData?.formatado ?? item.payload?.fotoNr ?? item.fotoNr
 
-      const chave  = item.chaveInspetor ?? item.payload?.chaveInspetor
+      // Chave INS-nnn guardada antes da migração para o CPF vira o CPF do dono (senão o servidor recusa o arquivo e ele fica preso na fila)
+      const chave  = chaveParaSincronizar(
+        item.chaveInspetor ?? item.payload?.chaveInspetor,
+        item.cpfEletrico ?? item.payload?.cpfEletrico ?? item.cpfInspetor ?? item.payload?.cpfInspetor,
+      )
       const cnpj   = item.cnpjoucpf    ?? item.payload?.cnpjoucpf
       const tipo   = item.tipoServico  ?? item.payload?.tipoServico
       const nomeArquivo = `${chave}_${cnpj}_${tipo}_${nrFinal}.json`
 
-      const payload = { ...(item.payload ?? item), nc, cp, fotoNr: nrFinal }
+      const payload = { ...(item.payload ?? item), nc, cp, fotoNr: nrFinal, chaveInspetor: chave }
       delete payload.id
       delete payload.savedOfflineAt
 

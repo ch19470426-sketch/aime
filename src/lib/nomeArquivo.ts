@@ -7,3 +7,16 @@
 //   "05491239704_12345678000190_proposta.html"  ->  "12345678000190_proposta.html"
 //   "05491239704_termo_de_aceite.html"          ->  "termo_de_aceite.html"
 export const nomeSemChave = (nome: string): string => String(nome ?? '').replace(/^[^_]+_/, '')
+
+/**
+ * Chave a usar no NOME do arquivo ao sincronizar uma vistoria salva SEM internet. Até 13/10/2026 a chave do inspetor era um código
+ * sequencial (INS-001...); agora é o CPF. Uma vistoria salva offline antes da migração (ou num aparelho que não atualizou o cadastro)
+ * carrega a chave antiga, e o servidor recusa arquivo cujo nome não comece pela chave atual (o CPF): sem esta troca, ela ficaria
+ * presa na fila para sempre. A chave antiga INS-nnn vira o CPF do DONO da chave (o eletricista, no fluxo elétrico; senão o inspetor);
+ * qualquer outra chave é mantida. Há uma cópia desta regra em public/sw.js, que não importa módulos: manter as duas iguais.
+ */
+export function chaveParaSincronizar(chaveSalva: unknown, cpfDoDono: unknown): string {
+  const chave = String(chaveSalva ?? '')
+  const cpf = String(cpfDoDono ?? '').replace(/\D/g, '')
+  return /^INS-\d+$/i.test(chave) && cpf ? cpf : chave
+}
