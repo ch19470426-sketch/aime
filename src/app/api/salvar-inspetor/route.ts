@@ -7,7 +7,7 @@ export const runtime = 'nodejs'
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { exigirProprio } from '@/lib/autorizacao'
-import { garantirChaveDoInspetor, proximaChaveInspetor } from '@/lib/chaveInspetor'
+import { garantirChaveDoInspetor, chaveDoCpf } from '@/lib/chaveInspetor'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
 
     // Caso especial: cadastro antigo sem chave (chamado pelo dashboard). A chave NUNCA vem do navegador: antes este caminho
     // gravava body.chave, e quem tivesse a chave vazia podia gravar a de outro inspetor e passar a ser dono dos arquivos dele.
-    // Agora o servidor atribui a chave da sequência (ou devolve a que o cadastro já tem), e body.chave é ignorada.
+    // Agora o servidor grava o CPF como chave (ou devolve a que o cadastro já tem), e body.chave é ignorada.
     if (body.soAtualizarChave && body.cpf) {
       const chave = await garantirChaveDoInspetor(supabase, body.cpf)
       if (!chave) return NextResponse.json({ erro: 'Cadastro de inspetor não encontrado.' }, { status: 404 })
@@ -66,9 +66,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ ok: true, chave: existente.chave_inspetor })
     }
 
-    // Novo cadastro: chave da sequência do banco (direto, sem chamar outra rota via HTTP: fazer uma rota chamar a outra
-    // por fetch pode travar/pendurar na Vercel). A sequência não repete número, nem o de inspetor apagado.
-    const chave = await proximaChaveInspetor(supabase)
+    // Novo cadastro: a chave é o CPF (src/lib/chaveInspetor.ts), nunca um valor vindo do navegador.
+    const chave = chaveDoCpf(cpf)
 
     const { error: errInsert } = await supabase.from('inspetor').insert({
       cpf_inspetor: cpf,

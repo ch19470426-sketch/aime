@@ -28,6 +28,10 @@ export const estado = {
   proximaChave: 'INS-010',                 // o que a sequência do banco devolve
   rpcChaveAusente: false,                  // a função proxima_chave_inspetor ainda não existe no banco
   cadastroExiste: true,                    // o inspetor existe (false = novo cadastro)
+  arquivos: {} as Record<string, string[]>, // nomes de arquivo por pasta do armazenamento
+  legadas: [] as { cpf_inspetor: string; chave_legada: string }[], // cadastros com a chave INS-nnn antiga (migração para o CPF)
+  colunaLegadaAusente: false,              // o SQL de migração ainda não foi executado
+  destinosExistentes: [] as string[],      // destinos de move que já existem no armazenamento
 }
 
 export const jr = (b: unknown, s = 200, h: Record<string, string> = {}) =>
@@ -39,6 +43,9 @@ export function mundo(u: URL, m: string, init: any): Response {
   if (u.host.includes('asaas')) return estado.asaasFora ? jr({ errors: [{ description: 'erro' }] }, 500) : jr(estado.cobrancaAsaas)
   if (p.includes('/rest/v1/inspetor')) {
     if (estado.falhaChave) return jr({ message: 'boom' }, 500)
+    if ((u.searchParams.get('select') ?? '').includes('chave_legada')) {
+      return estado.colunaLegadaAusente ? jr({ code: '42703', message: 'column inspetor.chave_legada does not exist' }, 400) : jr(estado.legadas)
+    }
     if (m !== 'GET') return jr([{ chave_inspetor: null }])   // update(...).select() e insert devolvem lista
     if (!u.searchParams.has('cpf_inspetor')) return jr(estado.chavesExistentes.map(c => ({ chave_inspetor: c })))   // lista de chaves
     if (!estado.cadastroExiste) return jr({ code: 'PGRST116', message: 'JSON object requested, multiple (or no) rows returned', details: 'The result contains 0 rows' }, 406)
@@ -66,7 +73,14 @@ export function mundo(u: URL, m: string, init: any): Response {
   }
   if (p.includes('/rpc/')) return jr({ ok: true, liberado: true, saldo: 9999 })
   if (p.includes('/storage/v1/object/upload/sign')) return jr({ url: '/object/upload/sign/aime/x?token=t', token: 't' })
-  if (p.includes('/storage/v1/object/list')) return jr([])
+  if (p.includes('/storage/v1/object/list')) {
+    const corpo = JSON.parse(String(init?.body ?? '{}'))
+    return jr(Number(corpo.offset ?? 0) > 0 ? [] : (estado.arquivos[corpo.prefix] ?? []).map(name => ({ name })))
+  }
+  if (p.includes('/storage/v1/object/move')) {
+    const corpo = JSON.parse(String(init?.body ?? '{}'))
+    return estado.destinosExistentes.includes(corpo.destinationKey) ? jr({ statusCode: '409', error: 'Duplicate', message: 'The resource already exists' }, 409) : jr({ message: 'Successfully moved' })
+  }
   if (p.includes('/storage/v1/object')) return m === 'GET' ? jr({ ok: true }) : jr({ Key: 'aime/x' })
   if (p.includes('/rest/v1/')) return jr([], 200, { 'content-range': '*/0' })
   return jr({})
@@ -82,7 +96,7 @@ export function reiniciar() {
   sessao(A)
   ligarPorteiro(true)
   process.env.COBRANCA_CREDITOS_ATIVA = 'true'
-  Object.assign(estado, { chaves: { ...CHAVES }, chavesExistentes: [], proximaChave: 'INS-010', rpcChaveAusente: false, cadastroExiste: true, falhaChave: false, gestor: false, asaasFora: false, cobrancaAsaas: null, pedido: null, contratos: [], insercaoContrato: 'ok', inserts: [], vinculos: [[E, A]] })
+  Object.assign(estado, { chaves: { ...CHAVES }, chavesExistentes: [], proximaChave: 'INS-010', rpcChaveAusente: false, cadastroExiste: true, arquivos: {}, legadas: [], colunaLegadaAusente: false, destinosExistentes: [], falhaChave: false, gestor: false, asaasFora: false, cobrancaAsaas: null, pedido: null, contratos: [], insercaoContrato: 'ok', inserts: [], vinculos: [[E, A]] })
 }
 
 export const req = (url: string, method = 'GET', body?: unknown) =>

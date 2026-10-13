@@ -38,7 +38,7 @@ export default function HomologarProdutoPage() {
 function HomologarProdutoInner() {
   const params         = useSearchParams()
   const cpfInspetor    = params.get('cpf_inspetor')    ?? ''
-  const chaveInspetor  = params.get('chave_inspetor')  ?? 'INS-001'
+  const chaveInspetor  = params.get('chave_inspetor')  ?? cpfInspetor   // sem chave na URL, vale o CPF (como nas demais telas)
   const cnpjoucpf      = params.get('cnpjoucpf')       ?? ''
 
 

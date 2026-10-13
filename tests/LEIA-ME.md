@@ -17,7 +17,8 @@ Cada chamada ao banco e ao armazenamento fica registrada, então um teste de seg
 | `seguranca/debito-e-gravacao.test.ts` | só o dono gasta créditos e grava arquivos; `salvar-vistoria` não sobrescreve arquivo de outro (etapa 2) |
 | `seguranca/demais-rotas.test.ts` | gravar, ler e enviar arquivos: 14 rotas, upload assinado, fluxo do eletricista (etapa 3) |
 | `estornos.test.ts` | estorno do valor líquido (pago menos a taxa do Asaas) vale como total; estorno parcial só avisa |
-| `seguranca/chave-inspetor.test.ts` | a chave INS-nnn é decidida no servidor, pela sequência do banco; nenhuma rota grava chave vinda do navegador |
+| `seguranca/chave-inspetor.test.ts` | a chave do inspetor é o CPF, decidida no servidor; nenhuma rota grava chave vinda do navegador |
+| `seguranca/migrar-chave-para-cpf.test.ts` | migração única dos arquivos da chave antiga (INS-nnn) para o CPF: só gestor, simulação por padrão, idempotente |
 | `gestor-atribuir-plano.test.ts` | botão Atribuir plano: contrato novo hoje, e o erro de plano repetido no mesmo dia é explicado |
 
 ## Regras para quem mexe no código
