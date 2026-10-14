@@ -32,3 +32,12 @@ export function contratoCorrente<T extends ContratoBasico>(lista: T[], hoje: str
     || maisNovoPrimeiro(a.data_inicio_contrato, b.data_inicio_contrato)
     || maisNovoPrimeiro(a.data_fim_contrato, b.data_fim_contrato))[0]
 }
+
+/**
+ * Saldo de PLANO do inspetor: a SOMA dos saldos de todos os contratos VIGENTES (data_fim_contrato >= hoje), e não só o do mais recente. É a mesma
+ * regra das funções saldo_creditos e consumir_creditos do banco (sql/2026-10-14_saldo_soma_planos_vigentes.sql): um inspetor com Cortesia (66 CR)
+ * e Serviço (50 CR) vigentes ao mesmo tempo dispõe de 116. As telas do gestor usam esta função para mostrar o mesmo número que a cobrança usa.
+ */
+export function saldoPlanoVigente(lista: { data_fim_contrato: string | null; saldo_quantidade_plano: number | null }[], hoje: string): number {
+  return lista.reduce((soma, c) => ((c.data_fim_contrato ?? '') >= hoje ? soma + (c.saldo_quantidade_plano ?? 0) : soma), 0)
+}

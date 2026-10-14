@@ -4,6 +4,7 @@ import { useSearchParams } from 'next/navigation'
 import { createClient } from '@/utils/supabase/client'
 import Banner from '@/components/Banner'
 import { useBanner } from '@/hooks/useBanner'
+import { saldoPlanoVigente } from '@/lib/contratos'
 
 const SUPA_URL = 'https://asgorarunzhiojqioxzq.supabase.co'
 const SUPA_KEY = 'sb_publishable_dH85HYKGxv3X0te627VfOw_OGaPoNMF'
@@ -413,7 +414,8 @@ export default function GestorPage() {
   )
 
   const contratoAtivo = contratos.find(c => new Date(c.data_fim_contrato) >= new Date())
-  const saldoTotal = (contratoAtivo?.saldo_quantidade_plano ?? 0) + (contratos[0]?.saldo_quantidade_avulso ?? 0)
+  // Plano: SOMA dos contratos vigentes (a mesma regra da cobrança), não só o primeiro; avulso: o do contrato mais recente
+  const saldoTotal = saldoPlanoVigente(contratos, new Date().toISOString().slice(0, 10)) + (contratos[0]?.saldo_quantidade_avulso ?? 0)
 
   if (autorizado === null) return (
     <div style={{ ...S.page, display:'flex', alignItems:'center', justifyContent:'center' }}>

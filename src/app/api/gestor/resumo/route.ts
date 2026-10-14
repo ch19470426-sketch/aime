@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { exigirGestor } from '@/lib/autorizacao'
 import { baseDoDocumento } from '@/lib/nomeArquivo'
+import { saldoPlanoVigente } from '@/lib/contratos'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -117,8 +118,9 @@ export async function GET(request: NextRequest) {
       : null
     // Disponivel e sempre o saldo ATUAL (estoque) — nao existe "saldo de uma data passada" no banco, so o presente.
     let creditosDisponiveis = 0
+    // Plano: SOMA dos contratos vigentes de cada inspetor (a mesma regra da cobrança); avulso: o do contrato mais recente de cada um
+    creditosDisponiveis += saldoPlanoVigente(contratos, hoje)
     for (const cpf of new Set(contratos.map(c => c.cpf_inspetor))) {
-      creditosDisponiveis += contratoVigentePorCpf.get(cpf)?.saldo_quantidade_plano ?? 0
       creditosDisponiveis += contratoAtualPorCpf.get(cpf)?.saldo_quantidade_avulso ?? 0
     }
 
