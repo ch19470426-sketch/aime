@@ -32,6 +32,7 @@ export const estado = {
   legadas: [] as { cpf_inspetor: string; chave_legada: string }[], // cadastros com a chave INS-nnn antiga (migração para o CPF)
   colunaLegadaAusente: false,              // o SQL de migração ainda não foi executado
   destinosExistentes: [] as string[],      // destinos de move que já existem no armazenamento
+  contatos: [] as Record<string, unknown>[], // linhas de contato_cliente
 }
 
 export const jr = (b: unknown, s = 200, h: Record<string, string> = {}) =>
@@ -67,6 +68,12 @@ export function mundo(u: URL, m: string, init: any): Response {
     }
     return jr([{}])
   }
+  if (p.includes('/rest/v1/contato_cliente') && m === 'GET') {
+    // como o banco: .eq('cnpjoucpf').eq('cpf_inspetor') e, se vier, .eq('tipo_servico')
+    const igual = (campo: string) => { const v = u.searchParams.get(campo); return v?.startsWith('eq.') ? v.slice(3) : null }
+    const [cpf, cnpj, tipo] = [igual('cpf_inspetor'), igual('cnpjoucpf'), igual('tipo_servico')]
+    return jr(estado.contatos.filter(r => (!cpf || r.cpf_inspetor === cpf) && (!cnpj || r.cnpjoucpf === cnpj) && (!tipo || r.tipo_servico === tipo)))
+  }
   if (p.includes('/rest/v1/pedidos_credito')) return m === 'GET' ? jr(estado.pedido ?? []) : jr([{ id: estado.pedido?.id ?? 1 }])
   if (p.includes('/rpc/proxima_chave_inspetor')) {
     return estado.rpcChaveAusente ? jr({ code: 'PGRST202', message: 'Could not find the function public.proxima_chave_inspetor without parameters' }, 404) : jr(estado.proximaChave)
@@ -100,7 +107,7 @@ export function reiniciar() {
   sessao(A)
   ligarPorteiro(true)
   process.env.COBRANCA_CREDITOS_ATIVA = 'true'
-  Object.assign(estado, { chaves: { ...CHAVES }, chavesExistentes: [], proximaChave: 'INS-010', rpcChaveAusente: false, cadastroExiste: true, arquivos: {}, legadas: [], colunaLegadaAusente: false, destinosExistentes: [], falhaChave: false, gestor: false, asaasFora: false, cobrancaAsaas: null, pedido: null, contratos: [], insercaoContrato: 'ok', inserts: [], vinculos: [[E, A]] })
+  Object.assign(estado, { chaves: { ...CHAVES }, chavesExistentes: [], proximaChave: 'INS-010', rpcChaveAusente: false, cadastroExiste: true, arquivos: {}, legadas: [], colunaLegadaAusente: false, destinosExistentes: [], contatos: [], falhaChave: false, gestor: false, asaasFora: false, cobrancaAsaas: null, pedido: null, contratos: [], insercaoContrato: 'ok', inserts: [], vinculos: [[E, A]] })
 }
 
 export const req = (url: string, method = 'GET', body?: unknown) =>
