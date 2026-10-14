@@ -11,15 +11,18 @@ beforeEach(reiniciar)
 const enviar = (corpo: unknown) => upload.POST(req('/api/upload-pdf-assinado', 'POST', corpo))
 
 describe('nomePdfAssinado', () => {
-  it('troca .html por _assinado.pdf e mantém a chave na frente', () => {
-    expect(nomePdfAssinado(`${A}_39262886000187_laudo.html`, A, '39262886000187')).toBe(`${A}_39262886000187_laudo_assinado.pdf`)
+  it('troca .html por _assinado.pdf e mantém a chave na frente, para cada documento', () => {
+    for (const doc of ['proposta_nr12', 'plano_nr12', 'laudo_nr12', 'plano_manut_nr12']) {
+      expect(nomePdfAssinado(`${A}_39262886000187_${doc}.html`)).toBe(`${A}_39262886000187_${doc}_assinado.pdf`)
+    }
   })
-  it('sem o nome do documento, monta com chave, CNPJ e tipo', () => {
-    expect(nomePdfAssinado('', A, '123')).toBe(`${A}_123_laudo_assinado.pdf`)
-    expect(nomePdfAssinado(null, A, '123', 'plano')).toBe(`${A}_123_plano_assinado.pdf`)
+  it('SEM o nome do documento NÃO inventa nome (o nome padrão laudo gravou o PDF do plano de manutenção por cima do laudo)', () => {
+    expect(nomePdfAssinado('')).toBeNull()
+    expect(nomePdfAssinado(null)).toBeNull()
+    expect(nomePdfAssinado('   ')).toBeNull()
   })
   it('o PDF assinado, depois de baixado sem a chave, volta ao sistema com a chave (o ciclo completo)', () => {
-    const noSistema = nomePdfAssinado(`${A}_123_laudo.html`, A, '123')
+    const noSistema = nomePdfAssinado(`${A}_123_laudo.html`)!
     expect(nomeSemChave(noSistema)).toBe('123_laudo_assinado.pdf')       // o que o usuário recebe
     expect(noSistema.startsWith(`${A}_`)).toBe(true)                      // o que o sistema grava
   })
@@ -60,10 +63,27 @@ describe('upload-pdf-assinado (URL de envio com upsert)', () => {
 describe('as telas que enviam PDF assinado usam o nome do sistema', () => {
   it('homologar-produto (laudo) não usa mais o nome do arquivo escolhido no aparelho', () => {
     const codigo = readFileSync('src/app/homologar-produto/page.tsx', 'utf-8')
-    expect(codigo).toMatch(/nomePdf = nomePdfAssinado\(/)
+    expect(codigo).toMatch(/nomePdf = nomePdfAssinado\(nomeArquivo\)/)
+    expect(codigo).toMatch(/if \(!nomePdf\) throw/)                       // sem o documento, recusa em vez de adivinhar
     expect(codigo).not.toMatch(/nomePdf = arquivo\.name/)
   })
   it('plano-manutencao monta o nome a partir do documento (já era assim)', () => {
     expect(readFileSync('src/app/plano-manutencao/inner.tsx', 'utf-8')).toMatch(/nomePdf = nomeArq\.replace\('\.html', '_assinado\.pdf'\)/)
+  })
+})
+
+describe('todas as telas abrem Homologar produto com um nome de documento que ela entende', () => {
+  const telas = ['src/app/proposta/page.tsx', 'src/app/plano/page.tsx', 'src/app/laudo/page.tsx', 'src/app/plano-manutencao/inner.tsx']
+  it.each(telas)('%s passa o documento por nome_arquivo ou nome', (arquivo) => {
+    const linhas = readFileSync(arquivo, 'utf-8').split('\n')
+    const links = linhas.map((l, i) => (l.includes('/homologar-produto?') ? i : -1)).filter(i => i >= 0)
+    expect(links.length).toBeGreaterThan(0)
+    for (const i of links) {
+      const trecho = linhas.slice(i, i + 4).join(' ')
+      expect(trecho).toMatch(/[&?](nome_arquivo|nome)=/)
+    }
+  })
+  it('Homologar produto lê os dois parâmetros (o plano de manutenção usa nome)', () => {
+    expect(readFileSync('src/app/homologar-produto/page.tsx', 'utf-8')).toMatch(/params\.get\('nome_arquivo'\)\s*\?\?\s*params\.get\('nome'\)/)
   })
 })

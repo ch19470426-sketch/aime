@@ -44,7 +44,8 @@ function HomologarProdutoInner() {
 
 
   const tipoServico    = params.get('tipo_servico')    ?? ''
-  const nomeArquivo    = params.get('nome_arquivo')    ?? ''
+  // O nome do documento vem como nome_arquivo (proposta, plano e laudo) ou como nome (plano de manutenção, que abre esta tela com esse parâmetro)
+  const nomeArquivo    = params.get('nome_arquivo')    ?? params.get('nome') ?? ''
   const titulo         = params.get('titulo')          ?? 'Documento'
   // URL para onde voltar ao terminar (ou desistir). Se não informado, vai para o dashboard.
   const retorno        = params.get('retorno')          ?? '/dashboard'
@@ -375,7 +376,8 @@ function HomologarProdutoInner() {
 
       // O nome é montado pelo SISTEMA (começa pela chave do inspetor, o CPF), e não vem do arquivo escolhido no aparelho: assim o PDF assinado
       // aparece em Baixar documentos e não sobrescreve o de outro inspetor com o mesmo CNPJ (ver nomePdfAssinado em src/lib/nomeArquivo.ts)
-      const nomePdf = nomePdfAssinado(nomeArquivo, chaveInspetor, cnpjoucpf)
+      const nomePdf = nomePdfAssinado(nomeArquivo)
+      if (!nomePdf) throw new Error('Documento não identificado. Volte ao documento e abra a homologação de novo antes de enviar o PDF.')
       // O PDF vai DIRETO ao Storage por uma URL assinada: só o nome passa pelo servidor. Antes ele ia em
       // base64 dentro do JSON da rota, e a Vercel recusa corpos acima de 4,5 MB (erro 413: um laudo
       // assinado com muitas fotos não conseguia ser enviado).

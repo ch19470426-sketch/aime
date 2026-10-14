@@ -25,9 +25,10 @@ export function chaveParaSincronizar(chaveSalva: unknown, cpfDoDono: unknown): s
  * Nome do PDF ASSINADO, montado pelo SISTEMA a partir do nome do documento (HTML) que ele assina: "<chave>_<cnpj>_laudo.html" vira
  * "<chave>_<cnpj>_laudo_assinado.pdf". O nome NÃO vem do arquivo que o usuário escolhe no aparelho: o nome do arquivo baixado já não leva a chave
  * (o CPF), e um PDF gravado sem a chave não aparece em Baixar documentos (a lista só mostra nomes que começam pela chave do inspetor) e ainda
- * poderia sobrescrever o de outro inspetor com o mesmo CNPJ. Sem o nome do documento, usa chave + CNPJ + tipo.
+ * poderia sobrescrever o de outro inspetor com o mesmo CNPJ. SEM o nome do documento devolve null: nunca adivinha um nome (um nome padrão
+ * "laudo" gravou o PDF do plano de manutenção por cima do PDF assinado do laudo).
  */
-export function nomePdfAssinado(nomeDocumento: string | null | undefined, chave: string, cnpjoucpf: string, tipo = 'laudo'): string {
+export function nomePdfAssinado(nomeDocumento: string | null | undefined): string | null {
   const base = String(nomeDocumento ?? '').trim().replace(/\.html$/i, '')
-  return (base || `${chave}_${cnpjoucpf}_${tipo}`) + '_assinado.pdf'
+  return base ? base + '_assinado.pdf' : null
 }
