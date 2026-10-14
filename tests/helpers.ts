@@ -74,8 +74,12 @@ export function mundo(u: URL, m: string, init: any): Response {
   if (p.includes('/rpc/')) return jr({ ok: true, liberado: true, saldo: 9999 })
   if (p.includes('/storage/v1/object/upload/sign')) return jr({ url: '/object/upload/sign/aime/x?token=t', token: 't' })
   if (p.includes('/storage/v1/object/list')) {
+    // Como o armazenamento real: filtra pelo trecho do nome (search), ordena por nome e pagina (limit e offset)
     const corpo = JSON.parse(String(init?.body ?? '{}'))
-    return jr(Number(corpo.offset ?? 0) > 0 ? [] : (estado.arquivos[corpo.prefix] ?? []).map(name => ({ name })))
+    const busca = String(corpo.search ?? '').toLowerCase()
+    const todos = (estado.arquivos[corpo.prefix] ?? []).filter(n => !busca || n.toLowerCase().includes(busca)).sort()
+    const inicio = Number(corpo.offset ?? 0)
+    return jr(todos.slice(inicio, inicio + Number(corpo.limit ?? 100)).map(name => ({ name, created_at: '2026-10-13T12:00:00Z' })))
   }
   if (p.includes('/storage/v1/object/move')) {
     const corpo = JSON.parse(String(init?.body ?? '{}'))

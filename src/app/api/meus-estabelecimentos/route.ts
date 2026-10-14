@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { exigirSessao, exigirProprio } from '@/lib/autorizacao'
+import { listarArquivosComPrefixo } from '@/lib/armazenamento'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -50,11 +51,9 @@ export async function GET(request: NextRequest) {
 
     if (inspData?.chave_inspetor) {
       const chave = inspData.chave_inspetor
-      const { data: arquivos } = await supabase.storage
-        .from('aime')
-        .list('documentos_inspetor', { limit: 1000 })
-      for (const arq of arquivos ?? []) {
-        if (!arq.name.startsWith(chave + '_')) continue
+      // Só os arquivos deste inspetor, TODAS as páginas (antes: as primeiras 1000 entradas da pasta de todos os inspetores)
+      const arquivos = await listarArquivosComPrefixo(supabase, 'documentos_inspetor', chave + '_').catch(() => [])
+      for (const arq of arquivos) {
         const partes = arq.name.split('_')
         if (partes.length >= 2 && /^\d{11,14}$/.test(partes[1])) {
           cnpjsSet.add(partes[1])

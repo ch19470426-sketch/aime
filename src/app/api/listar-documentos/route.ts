@@ -7,6 +7,7 @@ export const runtime = 'nodejs'
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { exigirSessao, exigirChaveDoProprio } from '@/lib/autorizacao'
+import { listarArquivosComPrefixo } from '@/lib/armazenamento'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -29,12 +30,11 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ erro: 'chave_inspetor e cnpjoucpf são obrigatórios' }, { status: 400 })
     }
 
-    // Listamos todos os arquivos da pasta documentos_inspetor
-    const { data, error } = await supabase.storage
-      .from('aime')
-      .list('documentos_inspetor', { limit: 500, offset: 0 })
-
-    if (error) return NextResponse.json({ erro: error.message }, { status: 500 })
+    // Só os arquivos deste inspetor, TODAS as páginas (antes: as primeiras 500 entradas da pasta de todos os inspetores; passado o limite,
+    // os documentos de alguns inspetores sumiam da lista sem erro)
+    let data: Awaited<ReturnType<typeof listarArquivosComPrefixo>>
+    try { data = await listarArquivosComPrefixo(supabase, 'documentos_inspetor', chaveInspetor) }
+    catch (e) { return NextResponse.json({ erro: e instanceof Error ? e.message : String(e) }, { status: 500 }) }
 
     // Filtrar: arquivo deve conter chaveInspetor E cnpjoucpf no nome
     // Exclui fotos de vistoria (nome termina com _foto_NNN.jpg ou _NNN.jpg)

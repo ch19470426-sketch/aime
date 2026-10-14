@@ -8,6 +8,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { exigirSessao, exigirChaveDoProprio } from '@/lib/autorizacao'
+import { listarArquivosComPrefixo } from '@/lib/armazenamento'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -177,10 +178,11 @@ export async function GET(request: NextRequest) {
   } catch { /* segue para o método antigo se a consulta falhar */ }
 
   try {
-    const { data: homologados } = await supabase.storage
-      .from('aime').list('vistorias_homologadas', { limit: 1000 })
+    // Só os arquivos deste inspetor, TODAS as páginas (antes: as primeiras 1000 entradas da pasta de todos os inspetores: passado o limite,
+    // as não conformidades de alguns inspetores sumiam e o laudo saía sem elas)
+    const homologados = await listarArquivosComPrefixo(supabase, 'vistorias_homologadas', chaveInspetor).catch(() => [])
 
-    for (const arq of (homologados ?? [])) {
+    for (const arq of homologados) {
       if (!arq.name.endsWith('.html')) continue
 
       const isNovo   = arq.name.startsWith(`${chaveInspetor}_${cnpjoucpf}_${tipoVistoria}_`) ||
@@ -236,10 +238,9 @@ export async function GET(request: NextRequest) {
       } catch { continue }
     }
 
-    const { data: pendentes } = await supabase.storage
-      .from('aime').list('vistorias', { limit: 1000 })
+    const pendentes = await listarArquivosComPrefixo(supabase, 'vistorias', chaveInspetor).catch(() => [])
 
-    for (const arq of (pendentes ?? [])) {
+    for (const arq of pendentes) {
       if (!arq.name.endsWith('.json') || arq.name.includes('emptyFolder')) continue
 
       const isNovo   = arq.name.startsWith(`${chaveInspetor}_${cnpjoucpf}_${tipoServico}_`) ||
