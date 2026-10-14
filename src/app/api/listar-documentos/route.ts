@@ -49,8 +49,9 @@ export async function GET(request: NextRequest) {
         // Excluir fotos de vistoria (terminam com número antes da extensão)
         if (/\d+\.(jpg|jpeg|png|webp)$/i.test(nome)) return false
         const ehPdf  = nome.endsWith('.pdf')
-        // HTML é arquivo de trabalho interno — não deve aparecer para download
-        return ehPdf
+        // HTML é arquivo de trabalho interno — não deve aparecer para download. EXCEÇÃO: o Termo de Aceite é gravado como HTML e o inspetor
+        // precisa poder baixar o que aceitou (antes só aparecia se houvesse um PDF assinado).
+        return ehPdf || ehTermo
       })
 
     // Gerar URLs assinadas e rótulos para cada arquivo

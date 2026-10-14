@@ -84,3 +84,22 @@ describe('listar-vistorias (alimenta o laudo)', () => {
     expect(quantas(new RegExp(`GET .*vistorias/${A}_123_33_7\\.json`))).toBeGreaterThanOrEqual(1)
   })
 })
+
+describe('Baixar documentos: o Termo de Aceite aparece', () => {
+  const listar = async () => (await listdoc.GET(req(`/api/listar-documentos?chave_inspetor=${A}&cnpjoucpf=123`))).json()
+
+  it('o termo (gravado como HTML) aparece com o rótulo próprio, junto com os PDFs', async () => {
+    estado.arquivos.documentos_inspetor = [`${A}_termo_de_aceite.html`, `${A}_123_laudo.pdf`]
+    const j = await listar()
+    expect(j.docs.map((d: any) => d.nome).sort()).toEqual([`${A}_123_laudo.pdf`, `${A}_termo_de_aceite.html`])
+    expect(j.docs.find((d: any) => d.nome.includes('termo_de_aceite')).label).toBe('Termo de Aceite dos Serviços')
+  })
+  it('os outros HTML (proposta, plano, laudo em trabalho) continuam fora da lista', async () => {
+    estado.arquivos.documentos_inspetor = [`${A}_123_proposta.html`, `${A}_123_plano.html`, `${A}_123_laudo.html`, `${A}_termo_de_aceite.html`]
+    expect((await listar()).docs.map((d: any) => d.nome)).toEqual([`${A}_termo_de_aceite.html`])
+  })
+  it('o termo de outro inspetor não aparece', async () => {
+    estado.arquivos.documentos_inspetor = [`${OUTROS}_termo_de_aceite.html`]
+    expect((await listar()).docs).toEqual([])
+  })
+})
