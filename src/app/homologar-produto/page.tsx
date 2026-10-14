@@ -7,7 +7,7 @@ import Banner from '@/components/Banner'
 import { useBanner } from '@/hooks/useBanner'
 import { enviarPdfAssinado } from '@/lib/envioPdf'
 import { createClient } from '@/utils/supabase/client'
-import { nomeSemChave } from '@/lib/nomeArquivo'
+import { nomeSemChave, nomePdfAssinado } from '@/lib/nomeArquivo'
 
 const SUPA_URL = 'https://asgorarunzhiojqioxzq.supabase.co'
 const SUPA_KEY = 'sb_publishable_dH85HYKGxv3X0te627VfOw_OGaPoNMF'
@@ -373,8 +373,9 @@ function HomologarProdutoInner() {
         throw new Error(`Arquivo muito grande (${(arquivo.size / 1024 / 1024).toFixed(1)}MB). O limite é 50MB.`)
       }
 
-      // Usar o nome original do arquivo enviado pelo inspetor
-      const nomePdf = arquivo.name.replace(/[^a-zA-Z0-9._\-]/g, '_')
+      // O nome é montado pelo SISTEMA (começa pela chave do inspetor, o CPF), e não vem do arquivo escolhido no aparelho: assim o PDF assinado
+      // aparece em Baixar documentos e não sobrescreve o de outro inspetor com o mesmo CNPJ (ver nomePdfAssinado em src/lib/nomeArquivo.ts)
+      const nomePdf = nomePdfAssinado(nomeArquivo, chaveInspetor, cnpjoucpf)
       // O PDF vai DIRETO ao Storage por uma URL assinada: só o nome passa pelo servidor. Antes ele ia em
       // base64 dentro do JSON da rota, e a Vercel recusa corpos acima de 4,5 MB (erro 413: um laudo
       // assinado com muitas fotos não conseguia ser enviado).

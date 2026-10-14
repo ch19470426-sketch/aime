@@ -19,6 +19,7 @@ export const runtime = 'nodejs'
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { cpfDaSessao } from '@/lib/sessaoServidor'
+import { exigirArquivoDoProprio } from '@/lib/autorizacao'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -44,6 +45,10 @@ export async function POST(request: NextRequest) {
     const corpo = await request.json().catch(() => ({}))
     const nome = limparNomePdf(corpo?.nomeArquivo)
     if (!nome) return NextResponse.json({ erro: 'nomeArquivo é obrigatório.' }, { status: 400 })
+    // DONO (AUTH_API_ATIVA): a URL de envio permite sobrescrever (upsert); o nome do PDF tem de começar pela chave do usuário logado. Antes,
+    // qualquer usuário logado sobrescrevia o PDF assinado de outro. Esta rota ficou fora da auditoria de dono.
+    const acessoDono = await exigirArquivoDoProprio(request, nome)
+    if (acessoDono.ok === false) return acessoDono.resposta
     const caminho = `documentos_inspetor/${nome}`
 
     // Formato antigo (tela em cache): o PDF vem em base64 no corpo.
