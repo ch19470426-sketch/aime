@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { exigirGestor } from '@/lib/autorizacao'
+import { baseDoDocumento } from '@/lib/nomeArquivo'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -51,7 +52,7 @@ async function listarTodosArquivos(pasta: string): Promise<{ name: string; creat
 function agruparDocumentos(arquivos: { name: string; created_at: string }[]) {
   const porBase = new Map<string, { categoria: 'laudo' | 'plano_manut' | null; primeiraData: string }>()
   for (const f of arquivos) {
-    const base = f.name.replace(/(_assinado)?\.(html|pdf|json)$/i, '')
+    const base = baseDoDocumento(f.name)     // as versões do PDF assinado e o HTML contam como UM documento
     const categoria = base.includes('_laudo_') ? 'laudo' : base.includes('_plano_manut_') ? 'plano_manut' : null
     if (!categoria) continue
     const atual = porBase.get(base)

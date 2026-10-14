@@ -20,6 +20,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { cpfDaSessao } from '@/lib/sessaoServidor'
 import { exigirArquivoDoProprio } from '@/lib/autorizacao'
+import { versaoPdfAssinado } from '@/lib/nomeArquivo'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -49,14 +50,15 @@ export async function POST(request: NextRequest) {
     // qualquer usuário logado sobrescrevia o PDF assinado de outro. Esta rota ficou fora da auditoria de dono.
     const acessoDono = await exigirArquivoDoProprio(request, nome)
     if (acessoDono.ok === false) return acessoDono.resposta
-    const caminho = `documentos_inspetor/${nome}`
+    // Cada envio vira uma VERSÃO nova (data e hora de Brasília, relógio do servidor no nome): um novo envio não sobrescreve o PDF assinado anterior
+    const caminho = `documentos_inspetor/${versaoPdfAssinado(nome)}`
 
     // Formato antigo (tela em cache): o PDF vem em base64 no corpo.
     if (typeof corpo?.base64 === 'string' && corpo.base64) {
       const buffer = Buffer.from(corpo.base64, 'base64')
       const { error } = await supabase.storage.from('aime').upload(caminho, buffer, { contentType: 'application/pdf', upsert: true })
       if (error) return NextResponse.json({ erro: error.message }, { status: 500 })
-      return NextResponse.json({ ok: true })
+      return NextResponse.json({ ok: true, path: caminho })
     }
 
     // Formato novo: devolve a URL de envio assinada; o navegador envia o PDF direto ao Storage.

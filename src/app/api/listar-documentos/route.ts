@@ -8,6 +8,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { exigirSessao, exigirChaveDoProprio } from '@/lib/autorizacao'
 import { listarArquivosComPrefixo } from '@/lib/armazenamento'
+import { lerVersaoPdfAssinado } from '@/lib/nomeArquivo'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -58,12 +59,15 @@ export async function GET(request: NextRequest) {
     const docs = await Promise.all(
       arquivos.map(async (f) => {
         const nome = f.name
+        // Versão do PDF assinado: o rótulo usa o nome SEM a versão, e a data e a hora vêm do próprio nome
+        const versao = lerVersaoPdfAssinado(nome)
+        const nomeRotulo = versao ? versao.nomeSemVersao : nome
         const { data: urlData } = await supabase.storage
           .from('aime')
           .createSignedUrl(`documentos_inspetor/${nome}`, 3600)
 
         // Rótulo amigável
-        let label = nome
+        let label = nomeRotulo
           .replace(new RegExp('^' + chaveInspetor + '_'), '')
           .replace(new RegExp('_?' + cnpjoucpf + '_?'), '_')
           .replace(/^_|_$/g, '')
@@ -74,11 +78,11 @@ export async function GET(request: NextRequest) {
 
         // Casos especiais
         if (nome.includes('termo_de_aceite'))    label = 'Termo de Aceite dos Serviços'
-        else if (nome.endsWith('_assinado.pdf')) label = label.replace(/\s*assinado\s*/i, '').trim() + ' — PDF assinado'
+        else if (nomeRotulo.endsWith('_assinado.pdf')) label = label.replace(/\s*assinado\s*/i, '').trim() + ' — PDF assinado'
         else if (nome.endsWith('.pdf'))          label = label + ' — PDF'
 
         const dataUpload = f.created_at ? new Date(f.created_at) : null
-        const dataFmt = dataUpload
+        const dataFmt = versao ? versao.exibicao : dataUpload
           ? `${String(dataUpload.getDate()).padStart(2,'0')}/${String(dataUpload.getMonth()+1).padStart(2,'0')}/${dataUpload.getFullYear()}`
           : ''
 
@@ -87,7 +91,7 @@ export async function GET(request: NextRequest) {
           label: label.charAt(0).toUpperCase() + label.slice(1),
           url: urlData?.signedUrl ?? null,
           data: dataFmt,
-          dataISO: f.created_at ?? '',
+          dataISO: versao ? versao.iso : (f.created_at ?? ''),
         }
       })
     )

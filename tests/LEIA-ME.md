@@ -19,6 +19,7 @@ Cada chamada ao banco e ao armazenamento fica registrada, então um teste de seg
 | `estornos.test.ts` | estorno do valor líquido (pago menos a taxa do Asaas) vale como total; estorno parcial só avisa |
 | `seguranca/leitura-por-nome.test.ts` | leituras de arquivo por nome ou caminho do pedido (vistorias/[nome], PDFs e DOCX do laudo, imagens e ART) só do dono; o arquivo baixado não leva o CPF no nome |
 | `listagens-completas.test.ts` | as listagens de documentos, estabelecimentos e vistorias leem TODAS as páginas do inspetor, mesmo com mais arquivos de outros do que o limite antigo (500 e 1000) |
+| `versoes-pdf-assinado.test.ts` | cada envio do PDF assinado é uma versão com data e hora de Brasília no nome; a lista mostra todas e o resumo do gestor conta um documento só |
 | `upload-pdf-assinado.test.ts` | o PDF assinado tem nome montado pelo sistema (começa pela chave) e a rota de envio só grava arquivo do próprio usuário |
 | `contato-cliente.test.ts` | o contato do cliente (responsável e finalidade) é gravado e lido como a vistoria e o laudo esperam |
 | `offline-sincronizacao.test.ts` | vistoria salva offline antes da migração (chave INS-nnn) sincroniza com o CPF; as duas cópias da regra (fila do app e service worker) coincidem |
