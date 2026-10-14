@@ -87,3 +87,12 @@ describe('todas as telas abrem Homologar produto com um nome de documento que el
     expect(readFileSync('src/app/homologar-produto/page.tsx', 'utf-8')).toMatch(/params\.get\('nome_arquivo'\)\s*\?\?\s*params\.get\('nome'\)/)
   })
 })
+
+describe('depois de enviar o PDF assinado, o OK volta ao menu em todas as telas de documento', () => {
+  it.each([
+    ['src/app/plano-manutencao/inner.tsx', /agradece\('PDF assinado salvo'[^\n]*window\.location\.href = retorno/],
+    ['src/app/homologar-produto/page.tsx', /agradece\('Homologação concluída',[\s\S]{0,160}window\.location\.href = retorno/],
+  ])('%s', (arquivo, regra) => {
+    expect(readFileSync(arquivo, 'utf-8')).toMatch(regra)
+  })
+})

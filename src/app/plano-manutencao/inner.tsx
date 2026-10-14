@@ -279,7 +279,8 @@ export default function PlanoManutencaoInner() {
           createClient().storage.from('aime').uploadToSignedUrl(path, token, f, { contentType: 'application/pdf', upsert: true }),
       })
       if (envio.ok === false) throw new Error(envio.erro)
-      agradece('PDF assinado salvo', 'O PDF assinado foi guardado com sucesso em Documentos inspetor.')
+      // Ao tocar OK volta ao menu, como nas demais telas de documento (Homologar produto e Homologar)
+      agradece('PDF assinado salvo', 'O PDF assinado foi guardado com sucesso em Documentos inspetor.', () => { window.location.href = retorno })
     } catch (err) {
       informa('Erro', err instanceof Error ? err.message : 'Não foi possível enviar o PDF. Tente novamente.')
     } finally { setEnviando(false) }
