@@ -46,7 +46,7 @@ describe.each([['gerar-laudo-pdf', pdfLaudo], ['gerar-laudo-pdf-indice-real', pd
 
 describe('gerar-laudo: imagens e ART do pedido', () => {
   const corpo = (complemento: Record<string, string>) =>
-    ({ cpfInspetor: A, chaveInspetor: 'INS-001', cnpjoucpf: '123', tipoServico: '43', razaoSocial: 'X', ativos: [], datas: {}, docs: [], ncs: [], nomeArquivo: 'x.json', complemento })
+    ({ cpfInspetor: A, chaveInspetor: 'INS-001', cnpjoucpf: '123', tipoServico: '43', razaoSocial: 'X', ativos: [], datas: {}, docs: [], ncs: [], nomeArquivo: 'INS-001_123_x.html', complemento })
   const gerar = (complemento: Record<string, string>) => status(laudo.POST(req('/api/gerar-laudo', 'POST', corpo(complemento))))
 
   it('imagens PRÓPRIAS em laudos_imagens passam pelo porteiro', async () => {

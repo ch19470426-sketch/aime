@@ -4,7 +4,7 @@ export const runtime = 'nodejs'
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { verificarDisponibilidade, consumirCreditos, referenciaDaGeracao } from '@/lib/creditos'
-import { exigirSessao, exigirDonoDaGeracao } from '@/lib/autorizacao'
+import { exigirSessao, exigirDonoDaGeracao, exigirArquivoDoProprio } from '@/lib/autorizacao'
 import { ehFamiliaNR, semaforoDoGrau, prioridadeDoGrau } from '@/lib/prioridade'
 
 const supabase = createClient(
@@ -125,6 +125,10 @@ export async function POST(request: NextRequest) {
     // DONO (AUTH_API_ATIVA): o CPF que paga é o do usuário logado.
     const acessoDono = await exigirDonoDaGeracao(request, cpfInspetor, chaveInspetor)
     if (acessoDono.ok === false) return acessoDono.resposta
+    // DONO (AUTH_API_ATIVA): o documento só é gravado (com upsert) com nome que começa pela chave do usuário logado. Antes, qualquer nome
+    // enviado pelo navegador era gravado, e dava para sobrescrever o documento de outro inspetor.
+    const acessoArquivo = await exigirArquivoDoProprio(request, nomeArquivo)
+    if (acessoArquivo.ok === false) return acessoArquivo.resposta
     const verificacaoManut = await verificarDisponibilidade(cpfInspetor, Number(tipoServico))
     if (!verificacaoManut.liberado) {
       if (verificacaoManut.motivo === 'conta_bloqueada') return NextResponse.json({ erro: 'Conta bloqueada. Entre em contato com o suporte: suporte@aime.eng.br.', bloqueada: true }, { status: 403 })

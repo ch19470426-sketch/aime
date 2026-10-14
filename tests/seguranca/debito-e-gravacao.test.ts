@@ -99,7 +99,7 @@ describe('geradores de documento: gastar crédito e gravar documento em nome de 
     ['gerar-termo-aceite', termo, '43', true],
   ] as const
   const corpo = (cpf: string, chave: string, ts: string) =>
-    ({ cpfInspetor: cpf, chaveInspetor: chave, cnpjoucpf: '123', tipoServico: ts, razaoSocial: 'X', ativos: [], datas: {}, docs: [], ncs: [], nomeArquivo: 'x.json' })
+    ({ cpfInspetor: cpf, chaveInspetor: chave, cnpjoucpf: '123', tipoServico: ts, razaoSocial: 'X', ativos: [], datas: {}, docs: [], ncs: [], nomeArquivo: `${chave}_123_x.html` })
 
   it.each(geradores)('%s: CPF de OUTRO dá 403 e não consulta saldo nem debita', async (nome, rota, ts) => {
     expect(await status(rota.POST(req(`/api/${nome}`, 'POST', corpo(B, 'INS-002', ts))))).toBe(403)

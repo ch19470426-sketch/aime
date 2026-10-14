@@ -23,6 +23,7 @@ Cada chamada ao banco e ao armazenamento fica registrada, então um teste de seg
 | `upload-pdf-assinado.test.ts` | o PDF assinado tem nome montado pelo sistema (começa pela chave) e a rota de envio só grava arquivo do próprio usuário |
 | `contato-cliente.test.ts` | o contato do cliente (responsável e finalidade) é gravado e lido como a vistoria e o laudo esperam |
 | `offline-sincronizacao.test.ts` | vistoria salva offline antes da migração (chave INS-nnn) sincroniza com o CPF; as duas cópias da regra (fila do app e service worker) coincidem |
+| `seguranca/gerar-nome-do-arquivo.test.ts` | gerar-laudo e gerar-plano-manutencao só gravam o HTML com nome que começa pela chave do usuário logado (o modo _info_ segue livre) |
 | `seguranca/chave-inspetor.test.ts` | a chave do inspetor é o CPF, decidida no servidor; nenhuma rota grava chave vinda do navegador |
 | `seguranca/migrar-chave-para-cpf.test.ts` | migração única dos arquivos da chave antiga (INS-nnn) para o CPF: só gestor, simulação por padrão, idempotente |
 | `gestor-atribuir-plano.test.ts` | botão Atribuir plano: contrato novo hoje, e o erro de plano repetido no mesmo dia é explicado |
