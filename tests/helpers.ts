@@ -33,6 +33,8 @@ export const estado = {
   colunaLegadaAusente: false,              // o SQL de migração ainda não foi executado
   destinosExistentes: [] as string[],      // destinos de move que já existem no armazenamento
   contatos: [] as Record<string, unknown>[], // linhas de contato_cliente
+  contatosGravados: [] as Record<string, unknown>[], // linhas que as rotas gravaram (POST) em contato_cliente
+  erroContato: '' as string,               // se preenchido, a gravação em contato_cliente falha com esta mensagem
 }
 
 export const jr = (b: unknown, s = 200, h: Record<string, string> = {}) =>
@@ -67,6 +69,11 @@ export function mundo(u: URL, m: string, init: any): Response {
       return jr([], 201)
     }
     return jr([{}])
+  }
+  if (p.includes('/rest/v1/contato_cliente') && m === 'POST') {
+    if (estado.erroContato) return jr({ code: '23514', message: estado.erroContato }, 400)
+    estado.contatosGravados.push(JSON.parse(String(init?.body ?? '{}')))
+    return jr([], 201)
   }
   if (p.includes('/rest/v1/contato_cliente') && m === 'GET') {
     // como o banco: .eq('cnpjoucpf').eq('cpf_inspetor') e, se vier, .eq('tipo_servico')
@@ -107,7 +114,7 @@ export function reiniciar() {
   sessao(A)
   ligarPorteiro(true)
   process.env.COBRANCA_CREDITOS_ATIVA = 'true'
-  Object.assign(estado, { chaves: { ...CHAVES }, chavesExistentes: [], proximaChave: 'INS-010', rpcChaveAusente: false, cadastroExiste: true, arquivos: {}, legadas: [], colunaLegadaAusente: false, destinosExistentes: [], contatos: [], falhaChave: false, gestor: false, asaasFora: false, cobrancaAsaas: null, pedido: null, contratos: [], insercaoContrato: 'ok', inserts: [], vinculos: [[E, A]] })
+  Object.assign(estado, { chaves: { ...CHAVES }, chavesExistentes: [], proximaChave: 'INS-010', rpcChaveAusente: false, cadastroExiste: true, arquivos: {}, legadas: [], colunaLegadaAusente: false, destinosExistentes: [], contatos: [], contatosGravados: [], erroContato: '', falhaChave: false, gestor: false, asaasFora: false, cobrancaAsaas: null, pedido: null, contratos: [], insercaoContrato: 'ok', inserts: [], vinculos: [[E, A]] })
 }
 
 export const req = (url: string, method = 'GET', body?: unknown) =>

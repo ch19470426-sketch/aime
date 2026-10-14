@@ -35,3 +35,48 @@ describe('contato-cliente GET', () => {
     expect(await status(contato.GET(req(`/api/contato-cliente?cpf_inspetor=${B}&cnpjoucpf=${CNPJ}&tipo_servico=37`)))).toBe(403)
   })
 })
+
+// O que a tela do Plano ("Salvar contato") envia: tela/plano/page.tsx, botão Salvar contato.
+const doPlano = (extra: Record<string, unknown> = {}) => ({
+  cpf_inspetor: A, cnpjoucpf: CNPJ, tipo_servico: '37 Vistoria nr-12',
+  nome_responsavel: 'Maria Responsável', funcao_responsavel: 'Gerente', cpf_responsavel: '12345678909',
+  whatsapp_responsavel: '27999990000', email_responsavel: 'maria@cliente.com', finalidade_vistoria: 'Manutenção preventiva', ...extra,
+})
+const gravar = (corpo: unknown) => contato.POST(req('/api/contato-cliente', 'POST', corpo))
+
+describe('contato-cliente POST (botão "Salvar contato" do Plano)', () => {
+  it('grava UMA linha com todos os campos, no CPF e no CNPJ certos e com o tipo de serviço da tela', async () => {
+    const r = await gravar(doPlano())
+    expect(r.status).toBe(200)
+    expect((await r.json()).ok).toBe(true)
+    expect(estado.contatosGravados).toEqual([{
+      cpf_inspetor: A, cnpjoucpf: CNPJ, tipo_servico: '37 Vistoria nr-12', nome_responsavel: 'Maria Responsável', funcao_responsavel: 'Gerente',
+      cpf_responsavel: '12345678909', whatsapp_responsavel: '27999990000', email_responsavel: 'maria@cliente.com', finalidade_vistoria: 'Manutenção preventiva',
+    }])
+  })
+  it('campos opcionais vazios são gravados como nulos, e só o nome é obrigatório', async () => {
+    const r = await gravar(doPlano({ funcao_responsavel: '', cpf_responsavel: '', whatsapp_responsavel: '', email_responsavel: '', finalidade_vistoria: '' }))
+    expect(r.status).toBe(200)
+    expect(estado.contatosGravados[0]).toMatchObject({ nome_responsavel: 'Maria Responsável', funcao_responsavel: null, cpf_responsavel: null, whatsapp_responsavel: null, email_responsavel: null, finalidade_vistoria: null })
+  })
+  it('sem o nome do responsável: 400 e NADA é gravado', async () => {
+    expect(await status(gravar(doPlano({ nome_responsavel: '' })))).toBe(400)
+    expect(estado.contatosGravados).toHaveLength(0)
+  })
+  it('em nome de OUTRO inspetor: 403 e nada é gravado', async () => {
+    expect(await status(gravar(doPlano({ cpf_inspetor: B })))).toBe(403)
+    expect(estado.contatosGravados).toHaveLength(0)
+  })
+  it('o banco recusa a gravação: a tela recebe 400 com o motivo (o aviso "Não foi possível salvar" mostra a mensagem)', async () => {
+    estado.erroContato = 'new row violates check constraint'
+    const r = await gravar(doPlano())
+    expect(r.status).toBe(400)
+    expect((await r.json()).erro).toMatch(/check constraint/)
+  })
+  it('SALVAR e depois LER: o contato gravado no Plano é o que a vistoria 37 e o laudo recebem', async () => {
+    await gravar(doPlano())
+    estado.contatos = estado.contatosGravados.map(l => ({ ...l, data_cadastro: '2026-10-14T10:00:00Z' }))   // o banco guarda a linha
+    const j = await buscar('37 Vistoria nr-12')
+    expect(j.data[0]).toMatchObject({ nome_responsavel: 'Maria Responsável', finalidade_vistoria: 'Manutenção preventiva' })
+  })
+})
