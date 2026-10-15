@@ -166,7 +166,7 @@ export default function LoginPage() {
             <span style={{ display: "block", color: "white", fontWeight: "bold", fontSize: "12px", lineHeight: "1.3" }}>
               Mapeamento Inteligente de Edificacoes e Equipamentos
             </span>
-            <span style={{ display: "block", color: "white", fontWeight: "bold", fontSize: "16px", lineHeight: "1.3", marginTop: "14px", position: "relative", top: "4px" }}>
+            <span style={{ display: "block", color: "white", fontWeight: "bold", fontSize: "16px", lineHeight: "1.3", marginTop: "14px", position: "relative", top: "8px" }}>
               Efetue Login e Cadastro
             </span>
           </div>

@@ -15,12 +15,12 @@ describe('tela de login', () => {
     expect(bloco).toMatch(/textAlign: "center"/)                                        // centralizado
     expect(codigo.match(/fontSize: "16px"[^}]*marginTop: "14px"[^>]*>\s*Efetue Login e Cadastro/)).not.toBeNull()   // 16px (maior que os 12px do texto de cima) e com 14px de espaço acima (o espaço não muda)
   })
-  it('o título foi BAIXADO sem aumentar nenhum espaço: margem e padding ficam em 14px e só o texto é deslocado 4px para baixo', () => {
+  it('o título foi BAIXADO sem aumentar nenhum espaço: margem e padding ficam em 14px e só o texto é deslocado 8px para baixo', () => {
     const acima = Number(codigo.match(/fontSize: "16px"[^}]*marginTop: "(\d+)px"[^>]*>\s*Efetue Login e Cadastro/)![1])
     const abaixo = Number(codigo.match(/backgroundColor: "#1E3A8A", padding: "\d+px \d+px (\d+)px", display: "flex"/)![1])
     expect(acima).toBe(14)                                                              // os espaços não aumentaram
     expect(abaixo).toBe(14)
-    expect(codigo).toMatch(/fontSize: "16px", lineHeight: "1\.3", marginTop: "14px", position: "relative", top: "4px"/)   // o texto desce 4px
+    expect(codigo).toMatch(/fontSize: "16px", lineHeight: "1\.3", marginTop: "14px", position: "relative", top: "8px"/)   // o texto desce 8px
   })
   it('composição da senha: centralizada, um pouco maior (13px) e em negrito', () => {
     const m = codigo.match(/<p style=\{\{([^}]*)\}\}>\s*Ao criar uma conta: senha com o mínimo de 8 caracteres/)
