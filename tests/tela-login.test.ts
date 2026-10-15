@@ -13,15 +13,18 @@ describe('tela de login', () => {
     expect(efetue).toBeGreaterThan(mapeamento)                                         // vem depois (abaixo) do texto do cabeçalho
     const bloco = codigo.slice(codigo.lastIndexOf('<div style={{ flex: 1, textAlign: "center" }}>', mapeamento), efetue + 40)
     expect(bloco).toMatch(/textAlign: "center"/)                                        // centralizado
-    expect(bloco).toMatch(/fontSize: "12px"[\s\S]*Efetue|Mapeamento[\s\S]*fontSize: "14px"/)
-    expect(codigo.match(/fontSize: "14px"[^}]*marginTop: "4px"[^>]*>\s*Efetue Login e Cadastro/)).not.toBeNull()   // 14px, maior que os 12px do texto de cima
+    expect(codigo.match(/fontSize: "16px"[^}]*marginTop: "10px"[^>]*>\s*Efetue Login e Cadastro/)).not.toBeNull()   // 16px (maior que os 12px do texto de cima) e com 10px de espaço acima
   })
   it('composição da senha: centralizada, um pouco maior (13px) e em negrito', () => {
-    const m = codigo.match(/<p style=\{\{([^}]*)\}\}>\s*Ao criar uma conta nova: mínimo 8 caracteres/)
+    const m = codigo.match(/<p style=\{\{([^}]*)\}\}>\s*Ao criar uma conta nova: senha com o mínimo de 8 caracteres/)
     expect(m).not.toBeNull()
     expect(m![1]).toMatch(/fontSize: "13px"/)
     expect(m![1]).toMatch(/fontWeight: "bold"/)
     expect(m![1]).toMatch(/textAlign: "center"/)
+  })
+  it('o texto da composição da senha é exatamente o pedido', () => {
+    expect(codigo).toContain('Ao criar uma conta nova: senha com o mínimo de 8 caracteres, mínimo de uma letra, um número e um caractere especial.')
+    expect(codigo).not.toContain('mínimo 8 caracteres, com letra, número e caractere especial')
   })
   it('o botão se chama "Acessar Conta" (e não mais "Entrar"); o texto de espera continua', () => {
     expect(codigo).toMatch(/\{loading \? "Aguarde\.\.\." : "Acessar Conta"\}/)
