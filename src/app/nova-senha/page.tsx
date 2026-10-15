@@ -101,8 +101,8 @@ function NovaSenhaForm() {
             </div>
           ) : (
             <>
-              <p style={{fontSize:'13px', color:'#374151', marginBottom:'20px', lineHeight:1.6}}>
-                Digite sua nova senha. Mínimo 8 caracteres, com letra, número e caractere especial.
+              <p style={{fontSize:'13px', fontWeight:'bold', textAlign:'center', color:'#374151', marginBottom:'20px', lineHeight:1.6}}>
+                Digite sua nova senha: senha com o mínimo de 8 caracteres, mínimo de uma letra, um número e um caractere especial.
               </p>
               <label style={S.label}>Nova senha</label>
               <input style={S.input} type="password" placeholder="••••••••"

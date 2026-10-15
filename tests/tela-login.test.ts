@@ -39,3 +39,14 @@ describe('tela de login', () => {
     expect(codigo).not.toMatch(/: "Entrar"\}/)
   })
 })
+
+describe('tela de nova senha', () => {
+  const nova = readFileSync('src/app/nova-senha/page.tsx', 'utf-8')
+  it('usa o mesmo texto da composição da senha do login, centralizado e em negrito', () => {
+    const m = nova.match(/<p style=\{\{([^}]*)\}\}>\s*Digite sua nova senha: senha com o mínimo de 8 caracteres, mínimo de uma letra, um número e um caractere especial\./)
+    expect(m).not.toBeNull()
+    expect(m![1]).toMatch(/fontWeight:'bold'/)
+    expect(m![1]).toMatch(/textAlign:'center'/)
+    expect(nova).not.toContain('Mínimo 8 caracteres, com letra, número e caractere especial')
+  })
+})
