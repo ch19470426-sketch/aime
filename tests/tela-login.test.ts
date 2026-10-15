@@ -13,7 +13,13 @@ describe('tela de login', () => {
     expect(efetue).toBeGreaterThan(mapeamento)                                         // vem depois (abaixo) do texto do cabeçalho
     const bloco = codigo.slice(codigo.lastIndexOf('<div style={{ flex: 1, textAlign: "center" }}>', mapeamento), efetue + 40)
     expect(bloco).toMatch(/textAlign: "center"/)                                        // centralizado
-    expect(codigo.match(/fontSize: "16px"[^}]*marginTop: "10px"[^>]*>\s*Efetue Login e Cadastro/)).not.toBeNull()   // 16px (maior que os 12px do texto de cima) e com 10px de espaço acima
+    expect(codigo.match(/fontSize: "16px"[^}]*marginTop: "14px"[^>]*>\s*Efetue Login e Cadastro/)).not.toBeNull()   // 16px (maior que os 12px do texto de cima) e com 14px de espaço acima
+  })
+  it('o título fica CENTRALIZADO entre o texto Mapeamento e a borda inferior do cabeçalho: espaço acima = espaço abaixo', () => {
+    const acima = Number(codigo.match(/fontSize: "16px"[^}]*marginTop: "(\d+)px"[^>]*>\s*Efetue Login e Cadastro/)![1])
+    const abaixo = Number(codigo.match(/backgroundColor: "#1E3A8A", padding: "\d+px \d+px (\d+)px", display: "flex"/)![1])
+    expect(acima).toBe(abaixo)
+    expect(acima).toBeGreaterThan(10)                                                   // um pouco mais abaixo do que antes (eram 10 e 8)
   })
   it('composição da senha: centralizada, um pouco maior (13px) e em negrito', () => {
     const m = codigo.match(/<p style=\{\{([^}]*)\}\}>\s*Ao criar uma conta nova: senha com o mínimo de 8 caracteres/)
