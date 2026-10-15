@@ -166,7 +166,7 @@ export default function LoginPage() {
             <span style={{ display: "block", color: "white", fontWeight: "bold", fontSize: "12px", lineHeight: "1.3" }}>
               Mapeamento Inteligente de Edificacoes e Equipamentos
             </span>
-            <span style={{ display: "block", color: "white", fontWeight: "bold", fontSize: "16px", lineHeight: "1.3", marginTop: "14px" }}>
+            <span style={{ display: "block", color: "white", fontWeight: "bold", fontSize: "16px", lineHeight: "1.3", marginTop: "14px", position: "relative", top: "4px" }}>
               Efetue Login e Cadastro
             </span>
           </div>
@@ -186,7 +186,7 @@ export default function LoginPage() {
               <input type="password" required value={password} onChange={(e) => setPassword(e.target.value)} placeholder="********"
                 style={{ border: "1px solid #D1D5DB", borderRadius: "8px", padding: "10px 12px", fontSize: "14px", outline: "none" }} />
               <p style={{ fontSize: "13px", fontWeight: "bold", textAlign: "center", color: "#6B7280" }}>
-                Ao criar uma conta nova: senha com o mínimo de 8 caracteres, mínimo de uma letra, um número e um caractere especial.
+                Ao criar uma conta: senha com o mínimo de 8 caracteres, mínimo de uma letra, um número e um caractere especial.
               </p>
             </div>
             {erro && <p style={{ color: "#DC2626", fontSize: "13px", textAlign: "center" }}>{erro}</p>}
