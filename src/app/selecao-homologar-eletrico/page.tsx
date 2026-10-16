@@ -6,6 +6,7 @@ import Banner from "@/components/Banner"
 import { useBanner } from "@/hooks/useBanner"
 import React from "react"
 import Image from "next/image"
+import { PERFIS_APOIO, sistemaFixoDoPerfil, type PerfilApoio } from '@/lib/profissionaisDeApoio'
 
 const SUPA_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? ''
 const SUPA_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? ''
@@ -38,11 +39,15 @@ function SelecaoInner() {
   const [cnpjNR10,   setCnpjNR10]   = useState('')
   const [carregando, setCarregando] = useState(true)
   const [erro,       setErro]       = useState('')
+  // Especialidade do profissional (do servidor); sem resposta, segue como elétrico
+  const [perfil,     setPerfil]     = useState<PerfilApoio>(PERFIS_APOIO['Eng Elétrico'])
 
   useEffect(() => {
     if (!cpfEletrico) { setCarregando(false); return }
     async function carregar() {
       try {
+        fetch(`/api/perfil-apoio?cpf_inspetor=${encodeURIComponent(cpfEletrico)}`)
+          .then(r => (r.ok ? r.json() : null)).then(j => { if (j?.perfil) setPerfil(j.perfil) }).catch(() => {})
         const res = await fetch(`/api/selecao-eletrico?cpf_eletrico=${cpfEletrico}`)
         if (!res.ok) throw new Error(`HTTP ${res.status}`)
         const json = await res.json()
@@ -60,7 +65,7 @@ function SelecaoInner() {
   }, [cpfEletrico])
 
   function irVistoriaEletrica(art: any) {
-    const sistemaEnc = encodeURIComponent('07-Instalações elétricas')
+    const sistemaEnc = encodeURIComponent(sistemaFixoDoPerfil(perfil))
     // Arquivos salvos com chave do elétrico — usar chaveEletrico para buscar no Storage
     // cpf_inspetor do civil apenas para referência no laudo
     window.location.href =
@@ -122,7 +127,7 @@ function SelecaoInner() {
                 <div style={S.blockBody}>
                   {erro && <span style={{ color:'#E24B4A', fontSize:'12px' }}>{erro}</span>}
 
-                  {/* Vistorias elétricas pendentes */}
+                  {/* Vistorias pendentes do profissional de apoio (elétricas ou mecânicas), uma por ART */}
                   {arts.length > 0 && arts.map(art => (
                     <button key={art.id} style={{ ...S.btn, ...S.btnPri }}
                       onClick={() => irVistoriaEletrica(art)}>
@@ -133,7 +138,7 @@ function SelecaoInner() {
 
                   {/* NR-10 */}
                   <div style={{ ...S.btn, ...S.btnSec, cursor:'default' }}>
-                    <span>Vistoria NR-10</span>
+                    <span>{perfil.titulo === 'Eng Mecânico' ? 'Vistoria NR-12 / NR-13 / Elevadores' : 'Vistoria NR-10'}</span>
                     <span style={S.sub2}>Informe o CNPJ/CPF do estabelecimento</span>
                     <input
                       value={cnpjNR10}

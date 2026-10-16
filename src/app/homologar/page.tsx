@@ -7,6 +7,7 @@ import Image from 'next/image'
 import Banner from '@/components/Banner'
 import { useBanner } from '@/hooks/useBanner'
 import { prioridadeDoGrau, corTelaDoGrau, fundoTelaDoGrau } from '@/lib/prioridade'
+import { PERFIS_APOIO, perfilDoSistema, sistemasDoParametro, codigoDoSistema } from '@/lib/profissionaisDeApoio'
 
 // Mesmo mapeamento usado em src/app/plano/page.tsx — necessário porque o campo tipo_servico
 // salvo em ativos_a_vistoriar é a string completa da vistoria (ex: "33 Vistoria imóvel novo"),
@@ -148,7 +149,10 @@ function Tela40Inner() {
   const chaveInspetor = params.get('chave_inspetor') ?? ''
   const cpfInspetor   = params.get('cpf_inspetor')   ?? ''
   const cnpjoucpf     = params.get('cnpjoucpf')      ?? ''
-  const sistemaFixo   = params.get('sistema_fixo')  ?? ''
+  const sistemaFixo   = params.get('sistema_fixo')  ?? ''   // modo profissional de apoio; vários sistemas separados por |
+  const sistemasFixos = sistemasDoParametro(sistemaFixo)
+  const codigosFixos  = sistemasFixos.map(codigoDoSistema)
+  const perfilFaixa    = perfilDoSistema(sistemasFixos[0]) ?? PERFIS_APOIO['Eng Elétrico']
   const cpfEletrico   = params.get('cpf_eletrico')  ?? ''
 
 
@@ -372,7 +376,7 @@ function Tela40Inner() {
             // A listagem rápida não inclui campo sistema — usar tipoServico como proxy
             if (f.tipoServico === '32') return true
             const sis = (f.sistema || f.sistema_vistoria || '').toLowerCase()
-            return sis.includes('07') || sis.includes('elétric') || sis.includes('eletric') ||
+            return sis.includes('07') || codigosFixos.includes(codigoDoSistema(sis)) || sis.includes('elétric') || sis.includes('eletric') ||
                    sis.includes('instalações') || sis.includes('instalacoes')
           })
         : lista
@@ -836,7 +840,7 @@ function Tela40Inner() {
         <HeaderBar subtitulo={`Homologação do Resultado - ${TITULO_TIPO[ts] ?? ts}`} />
         {sistemaFixo && (
           <div style={{ background:'#EFF6FF', borderBottom:'2px solid #1E3A8A', padding:'6px 16px', fontSize:'11px', fontWeight:700, color:'#1E3A8A', textAlign:'center' }}>
-            ⚡ Sistema Elétrico — {sistemaFixo}
+            {perfilFaixa.faixa} — {sistemasFixos.join(' · ')}
           </div>
         )}
         <div style={S.divider} />

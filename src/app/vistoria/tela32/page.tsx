@@ -15,6 +15,7 @@ import { prioridadeDoGrau, corTelaDoGrau, fundoTelaDoGrau } from '@/lib/priorida
 import { guardarFotoDoRascunho, lerFotoDoRascunho, apagarFotoDoRascunho, marcarCameraAberta, cameraFicouAberta, limparMarcaCamera } from '@/lib/rascunhoFoto'
 import { reduzirFoto } from '@/lib/fotoLeve'
 import { tokenDaSessao, novaSessaoToken } from '@/lib/sessaoVistoria'
+import { sistemasDoParametro, codigoDoSistema } from '@/lib/profissionaisDeApoio'
 
 // ─── Tipos ───────────────────────────────────────────────────────────────────
 
@@ -82,7 +83,10 @@ function Tela31Inner() {
   const cnpjoucpf     = params.get('cnpjoucpf')      ?? ''
   const tipoServico   = params.get('tipo_servico')   ?? '31'
   const sessaoToken   = tokenDaSessao(params.get('sessao'))
-  const sistemaFixo   = params.get('sistema_fixo')  ?? ''   // se preenchido: modo elétrico
+  const sistemaFixo   = params.get('sistema_fixo')  ?? ''   // se preenchido: modo profissional de apoio (vistoria 39); vários sistemas separados por |
+  const sistemasFixos = sistemasDoParametro(sistemaFixo)
+  const codigosFixos  = sistemasFixos.map(codigoDoSistema)
+  const sistemaFixoUnico = sistemasFixos.length === 1     // um sistema só (Eng Elétrico): campo travado; vários (Eng Mecânico): escolhe entre eles
   const cpfEletrico   = params.get('cpf_eletrico')  ?? ''
   const tipoServicoBanco = TIPO_SERVICO_BANCO[tipoServico] ?? `${tipoServico} Autovistoria`
   const tagObrigatorio   = ['35', '37', '38'].includes(tipoServico)
@@ -349,12 +353,12 @@ function Tela31Inner() {
         const sis = await comCache('sis', 'sistemas_construtivos', `tipo_servico=eq.${encodeURIComponent(tipoServicoBanco)}&ativo=eq.true&select=sistema&order=sistema`)
         if (Array.isArray(sis)) {
           const lista = [...new Map(sis.map((s: ItemSistema) => [s.sistema, s])).values()]
-          // Modo elétrico: mostrar apenas o sistema fixo
+          // Modo profissional de apoio: mostrar apenas o(s) sistema(s) do título (elétrico: 07; mecânico: 09 e 10)
           const listaFiltrada = sistemaFixo
-            ? lista.filter(s => s.sistema.includes('07') || s.sistema === sistemaFixo)
+            ? lista.filter(s => codigosFixos.includes(codigoDoSistema(s.sistema)) || sistemasFixos.includes(s.sistema) || (codigosFixos.includes('07') && s.sistema.includes('07')))
             : lista
           setSistemas(listaFiltrada)
-          if (sistemaFixo) setSistema(listaFiltrada[0]?.sistema || sistemaFixo)
+          if (sistemaFixo) setSistema(listaFiltrada.length === 1 ? listaFiltrada[0].sistema : (sistemaFixoUnico ? sistemaFixo : ''))
         }
 
         // Subsistemas — busca atual, cache so como reserva offline
@@ -565,7 +569,7 @@ function Tela31Inner() {
       console.warn('Salvo offline 📵')
       setSalvando(false); setSalvoOk(true); setArquivoSalvo(nomeLocal)
       setFeedbackIA('📵 Salvo localmente. Será sincronizado ao reconectar.')
-      setSistema(sistemaFixo || ''); setSubsistema(''); setAnomalia(''); setOrigem(''); setLocal('')
+      setSistema(sistemaFixoUnico ? sistemaFixo : (sistemasFixos.length > 1 ? sistema : '')); setSubsistema(''); setAnomalia(''); setOrigem(''); setLocal('')
       setComplemento(''); setTipoAtivo(''); setTagNrSerie('')
       setDescGravidade(''); setDescUrgencia(''); setDescAbrangencia(''); setDescExposicao('')
       setFotoBase64(''); setNc(''); setCp('')
@@ -579,7 +583,7 @@ function Tela31Inner() {
     }
 
     // Limpa formulário preservando CNPJ/RS
-    setSistema(sistemaFixo || ''); setSubsistema(''); setAnomalia(''); setOrigem(''); setLocal('')
+    setSistema(sistemaFixoUnico ? sistemaFixo : (sistemasFixos.length > 1 ? sistema : '')); setSubsistema(''); setAnomalia(''); setOrigem(''); setLocal('')
     setComplemento(''); setTipoAtivo(''); setTagNrSerie('')
     setDescGravidade(''); setDescUrgencia(''); setDescAbrangencia(''); setDescExposicao('')
     setFotoBase64(''); setNc(''); setCp(''); setFeedbackIA('')
@@ -696,7 +700,7 @@ function Tela31Inner() {
             <div style={S.blockBody}>
               <div style={{ ...S.row, ...S.c3 }}>
                 <Field label="Sistema">
-                  <select style={{...S.input,...(sistemaFixo?{backgroundColor:'#F3F4F6',color:'#6B7280'}:{})}} value={sistema} disabled={!!sistemaFixo} onChange={e => { setSistema(e.target.value); setSubsistema(''); setAnomalia(''); setErroValidacao('') }}>
+                  <select style={{...S.input,...(sistemaFixoUnico?{backgroundColor:'#F3F4F6',color:'#6B7280'}:{})}} value={sistema} disabled={sistemaFixoUnico} onChange={e => { setSistema(e.target.value); setSubsistema(''); setAnomalia(''); setErroValidacao('') }}>
                     <option value="">Selecione...</option>
                     {sistemas.map(s => <option key={s.sistema} value={s.sistema}>{s.sistema}</option>)}
                   </select>

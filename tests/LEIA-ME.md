@@ -23,6 +23,7 @@ Cada chamada ao banco e ao armazenamento fica registrada, então um teste de seg
 | `upload-pdf-assinado.test.ts` | o PDF assinado tem nome montado pelo sistema (começa pela chave) e a rota de envio só grava arquivo do próprio usuário |
 | `contato-cliente.test.ts` | o contato do cliente (responsável e finalidade) é gravado e lido como a vistoria e o laudo esperam |
 | `saldo-planos-vigentes.test.ts` | o saldo de plano soma TODOS os contratos vigentes (Cortesia 66 + Serviço 50 = 116) nas telas do gestor, e a migração do banco tem a regra certa; a regra do banco é testada em `sql/testes/2026-10-14_saldo_soma_planos.sh` (PostgreSQL de teste, 34 conferências) |
+| `profissionais-de-apoio.test.ts` | vistoria 39 para o Eng Elétrico (sistema 07) e o Eng Mecânico (09 e 10): a regra dos perfis, a rota do perfil, o sistema imposto no salvamento, a listagem por especialidade e as telas |
 | `offline-sincronizacao.test.ts` | vistoria salva offline antes da migração (chave INS-nnn) sincroniza com o CPF; as duas cópias da regra (fila do app e service worker) coincidem |
 | `seguranca/gerar-nome-do-arquivo.test.ts` | gerar-laudo e gerar-plano-manutencao só gravam o HTML com nome que começa pela chave do usuário logado (o modo _info_ segue livre) |
 | `seguranca/chave-inspetor.test.ts` | a chave do inspetor é o CPF, decidida no servidor; nenhuma rota grava chave vinda do navegador |

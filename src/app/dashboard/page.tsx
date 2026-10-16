@@ -17,6 +17,7 @@ import Image from "next/image"
 import { createClient } from "@/utils/supabase/client"
 import { encerrarSessao } from '@/lib/encerrarSessao'
 import { tokenDaSessao, novaSessaoToken } from '@/lib/sessaoVistoria'
+import { perfilDoTitulo } from '@/lib/profissionaisDeApoio'
 
 const SUPA_URL = 'https://asgorarunzhiojqioxzq.supabase.co'
 const SUPA_KEY = 'sb_publishable_dH85HYKGxv3X0te627VfOw_OGaPoNMF'
@@ -29,7 +30,7 @@ const permissoes: Record<string, number[]> = {
   "Arquiteto":          [11,12,13,19,21,22,23,29,31,32,33,40,41,42,43,51,52,53,54,55,61,62,63,64,91,99],
   "Eng Civil":          [11,12,13,14,21,22,23,24,31,32,33,34,40,41,42,43,44,51,52,53,54,61,62,63,64,91,99],
   "Eng Elétrico":       [16,26,36,39,40,46,56,61,62,63,64,91,99],
-  "Eng Mecânico":       [15,17,18,25,27,28,35,37,38,40,45,47,48,55,57,58,61,62,63,64,91,99],
+  "Eng Mecânico":       [15,17,18,25,27,28,35,37,38,39,40,45,47,48,55,57,58,61,62,63,64,91,99],
   "Técnico Edificação": [13,23,33,40,43,61,62,63,64,91,99],
   "Corretor Imóvel":    [13,23,33,40,43,53,61,62,63,64,91,99],
 }
@@ -487,7 +488,9 @@ export default function Dashboard() {
   }, [])
 
   const permitidos = permissoes[titulo] || []
-  const itemSelecionado = menuGrupos.flatMap((g) => g.itens).find((i) => i.codigo === tipoServico)
+  // O item 39 se chama Vistoria Inspeção - Elétrica ou - Mecânica, conforme o título profissional
+  const grupos = menuGrupos.map((g) => ({ ...g, itens: g.itens.map((i) => i.codigo === 39 ? { ...i, label: `Vistoria Inspeção - ${perfilDoTitulo(titulo)?.rotulo ?? 'Elétrica'}` } : i) }))
+  const itemSelecionado = grupos.flatMap((g) => g.itens).find((i) => i.codigo === tipoServico)
   const ehVistoria = tipoServico !== null && CODIGOS_VISTORIA.includes(Number(tipoServico))
   const coletaCpf  = tipoServico !== null && CODIGOS_CPF.includes(Number(tipoServico))
   // Código 40 (Homologar) não sabe de antemão se a vistoria é de CPF ou CNPJ: aceita os dois formatos
@@ -548,12 +551,12 @@ export default function Dashboard() {
       window.location.href = `/vistoria-eletrica?cpf_inspetor=${cpfInspetor}&chave_inspetor=${chaveInspetor}&sessao=${novaSessaoToken()}`
       return
     }
-    // Item 40 para Eng Elétrico: sempre vai para a tela de seleção, que tem
+    // Item 40 para Eng Elétrico e Eng Mecânico (profissionais de apoio): sempre vai para a tela de seleção, que tem
     // dois caminhos independentes lado a lado — ARTs elétricas pendentes
     // (complemento de vistoria 32 feita por civil/arquiteto) e NR-10 (campo
     // próprio de CNPJ/CPF, não depende de nada relacionado a ART). Decisão de
     // 10/09/2026.
-    if (codigo === 40 && titulo === 'Eng Elétrico') {
+    if (codigo === 40 && perfilDoTitulo(titulo)) {
       window.location.href = `/selecao-homologar-eletrico?cpf_inspetor=${cpfInspetor}&chave_inspetor=${chaveInspetor}`
       return
     }
@@ -762,7 +765,7 @@ export default function Dashboard() {
               <span style={{ color: "white", fontWeight: "bold", fontSize: "11px" }}>Selecionar Serviço</span>
             </div>
             <div style={{ height: "2px", backgroundColor: "#1E3A8A" }} />
-            {menuGrupos.map((grupo) => (
+            {grupos.map((grupo) => (
               <div key={grupo.grupo}>
                 <button onClick={() => setGrupoAberto(grupoAberto === grupo.grupo ? null : grupo.grupo)}
                   style={{ width: "100%", textAlign: "left", padding: "8px 12px", backgroundColor: "#F1F5F9", color: "#1E3A8A", fontWeight: "bold", fontSize: "11px", border: "none", borderBottom: "1px solid #E2E8F0", cursor: "pointer" }}>

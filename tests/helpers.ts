@@ -11,7 +11,8 @@ const g = globalThis as any
 export const A = '11111111111'
 export const B = '22222222222'
 export const E = '33333333333'
-export const CHAVES: Record<string, string> = { [A]: 'INS-001', [B]: 'INS-002', [E]: 'INS-777' }
+export const M = '44444444444'   // engenheiro MECÂNICO (profissional de apoio da vistoria 39, como o eletricista E)
+export const CHAVES: Record<string, string> = { [A]: 'INS-001', [B]: 'INS-002', [E]: 'INS-777', [M]: 'INS-888' }
 
 export const estado = {
   falhaChave: false,                       // a consulta da chave do inspetor falha (banco fora)
@@ -35,6 +36,9 @@ export const estado = {
   contatos: [] as Record<string, unknown>[], // linhas de contato_cliente
   contatosGravados: [] as Record<string, unknown>[], // linhas que as rotas gravaram (POST) em contato_cliente
   erroContato: '' as string,               // se preenchido, a gravação em contato_cliente falha com esta mensagem
+  titulos: {} as Record<string, string | null>, // titulo_profissional de cada CPF (Eng Elétrico, Eng Mecânico...)
+  falhaTitulo: false,                      // SÓ a consulta do título profissional falha (a da chave e as demais seguem normais)
+  dadosVistoria: [] as Record<string, unknown>[], // linhas de dados_vistoria
 }
 
 export const jr = (b: unknown, s = 200, h: Record<string, string> = {}) =>
@@ -46,17 +50,29 @@ export function mundo(u: URL, m: string, init: any): Response {
   if (u.host.includes('asaas')) return estado.asaasFora ? jr({ errors: [{ description: 'erro' }] }, 500) : jr(estado.cobrancaAsaas)
   if (p.includes('/rest/v1/inspetor')) {
     if (estado.falhaChave) return jr({ message: 'boom' }, 500)
+    if (estado.falhaTitulo && (u.searchParams.get('select') ?? '') === 'titulo_profissional') return jr({ message: 'boom' }, 500)
     if ((u.searchParams.get('select') ?? '').includes('chave_legada')) {
       return estado.colunaLegadaAusente ? jr({ code: '42703', message: 'column inspetor.chave_legada does not exist' }, 400) : jr(estado.legadas)
     }
     if (m !== 'GET') return jr([{ chave_inspetor: null }])   // update(...).select() e insert devolvem lista
+    const filtroCpf = u.searchParams.get('cpf_inspetor') || ''
+    if (filtroCpf.startsWith('in.(')) {   // .in('cpf_inspetor', [...]) devolve uma lista
+      const cpfs = filtroCpf.slice(4, -1).split(',').map(s => s.replace(/"/g, ''))
+      return jr(cpfs.map(cpf => ({ cpf_inspetor: cpf, chave_inspetor: estado.chaves[cpf] ?? null, titulo_profissional: estado.titulos[cpf] ?? null })))
+    }
     if (!u.searchParams.has('cpf_inspetor')) return jr(estado.chavesExistentes.map(c => ({ chave_inspetor: c })))   // lista de chaves
     if (!estado.cadastroExiste) return jr({ code: 'PGRST116', message: 'JSON object requested, multiple (or no) rows returned', details: 'The result contains 0 rows' }, 406)
     const cpf = (u.searchParams.get('cpf_inspetor') || '').replace('eq.', '')
-    return jr({ chave_inspetor: estado.chaves[cpf] ?? null, is_gestor: estado.gestor, email_inspetor: 'g@x.com', nome_inspetor: 'G', conta_bloqueada: false })
+    return jr({ chave_inspetor: estado.chaves[cpf] ?? null, titulo_profissional: estado.titulos[cpf] ?? null, is_gestor: estado.gestor, email_inspetor: 'g@x.com', nome_inspetor: 'G', conta_bloqueada: false })
   }
+  if (p.includes('/rest/v1/dados_vistoria')) return jr(estado.dadosVistoria)
   if (p.includes('/rest/v1/art_profissional')) {
     const q = decodeURIComponent(u.search)
+    const listaCivis = q.match(/cpf_inspetor=in\.\(([^)]*)\)/)
+    if (listaCivis) {   // .in('cpf_inspetor', [...]) devolve os vínculos desses civis
+      const civis = listaCivis[1].split(',').map(s => s.replace(/"/g, ''))
+      return jr(estado.vinculos.filter(([, civil]) => civis.includes(civil)).map(([apoio, civil]) => ({ cpf_inspetor: civil, cpf_eletrico: apoio })))
+    }
     const ok = estado.vinculos.some(([e, c]) => q.includes(`cpf_eletrico=eq.${e}`) && q.includes(`cpf_inspetor=eq.${c}`))
     return jr(ok ? [{ cpf_inspetor: A }] : [])
   }
@@ -114,7 +130,7 @@ export function reiniciar() {
   sessao(A)
   ligarPorteiro(true)
   process.env.COBRANCA_CREDITOS_ATIVA = 'true'
-  Object.assign(estado, { chaves: { ...CHAVES }, chavesExistentes: [], proximaChave: 'INS-010', rpcChaveAusente: false, cadastroExiste: true, arquivos: {}, legadas: [], colunaLegadaAusente: false, destinosExistentes: [], contatos: [], contatosGravados: [], erroContato: '', falhaChave: false, gestor: false, asaasFora: false, cobrancaAsaas: null, pedido: null, contratos: [], insercaoContrato: 'ok', inserts: [], vinculos: [[E, A]] })
+  Object.assign(estado, { chaves: { ...CHAVES }, chavesExistentes: [], proximaChave: 'INS-010', rpcChaveAusente: false, cadastroExiste: true, arquivos: {}, legadas: [], colunaLegadaAusente: false, destinosExistentes: [], contatos: [], contatosGravados: [], erroContato: '', titulos: {}, falhaTitulo: false, dadosVistoria: [], falhaChave: false, gestor: false, asaasFora: false, cobrancaAsaas: null, pedido: null, contratos: [], insercaoContrato: 'ok', inserts: [], vinculos: [[E, A]] })
 }
 
 export const req = (url: string, method = 'GET', body?: unknown) =>

@@ -16,6 +16,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { consumirCreditos } from '@/lib/creditos'
 import { exigirSessao, exigirArquivoDoProprio, exigirProprio } from '@/lib/autorizacao'
+import { perfilDoProfissional } from '@/lib/perfilApoioServidor'
+import { sistemaPermitido } from '@/lib/profissionaisDeApoio'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -59,6 +61,15 @@ export async function POST(request: NextRequest) {
     if (folder === 'vistorias' && !isHtml && cpfParaDebito && payload?.tipoServico) {
       const acessoDebito = await exigirProprio(request, cpfParaDebito)
       if (acessoDebito.ok === false) return acessoDebito.resposta
+    }
+
+    // FLUXO 39 (profissional de apoio): o sistema gravado tem de ser um dos do título profissional de quem grava (Eng Elétrico: 07; Eng Mecânico:
+    // 09 e 10). Sem isso a restrição existia só na tela. Título sem perfil de apoio, ou consulta que falha, segue como antes.
+    if (folder === 'vistorias' && !isHtml && payload?.cpfEletrico && payload?.sistema) {
+      const perfil = await perfilDoProfissional(payload.cpfEletrico)
+      if (perfil && !sistemaPermitido(perfil, payload.sistema)) {
+        return NextResponse.json({ erro: `O sistema "${payload.sistema}" não é permitido para o título ${perfil.titulo}.` }, { status: 403 })
+      }
     }
 
     const { error } = await supabase.storage

@@ -9,6 +9,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { exigirSessao, exigirChaveDoProprio } from '@/lib/autorizacao'
 import { listarArquivosComPrefixo } from '@/lib/armazenamento'
+import { perfilDoSistema } from '@/lib/profissionaisDeApoio'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -119,41 +120,56 @@ export async function GET(request: NextRequest) {
     // de buscar a chave certa.
     const cpfsUnicos = [...new Set((linhas ?? []).map((d:any) => d.cpf_inspetor).filter(Boolean))]
 
-    // Detecta itens elétricos (sistema com prefixo 07 ou contendo "elétric")
-    // e busca o cpf_eletrico vinculado a cada civil, para essa combinação de CNPJ.
-    const civisComEletrico = new Set(
+    // Itens de PROFISSIONAL DE APOIO (vistoria 39): o sistema 07 (ou nome com "elétric") é do Eng Elétrico; nas vistorias PREDIAIS, 09 e 10 são
+    // do Eng Mecânico (nas de NR a numeração dos sistemas é outra). Cada item é buscado com a chave do profissional da especialidade dele.
+    const apoioDoItem = (sistema: unknown): 'eletrico' | 'mecanico' | null => {
+      const s = String(sistema || '')
+      if (!ehNR && perfilDoSistema(s)?.titulo === 'Eng Mecânico') return 'mecanico'
+      return /^0?7[-_]|el[ée]tric/i.test(s) ? 'eletrico' : null
+    }
+    const civisComApoio = new Set(
       (linhas ?? [])
-        .filter((d:any) => /^0?7[-_]|el[ée]tric/i.test(String(d.sistema_vistoria||'')))
+        .filter((d:any) => apoioDoItem(d.sistema_vistoria))
         .map((d:any) => d.cpf_inspetor)
         .filter(Boolean)
     )
-    const cpfEletricoPorCivil = new Map<string, string>()
-    if (civisComEletrico.size > 0) {
+    // vínculos (civil → profissionais de apoio) desta combinação de CNPJ
+    const vinculos: { civil: string; apoio: string }[] = []
+    if (civisComApoio.size > 0) {
       const { data: arts } = await supabase
         .from('art_profissional')
         .select('cpf_inspetor,cpf_eletrico')
         .eq('cnpjoucpf', cnpjoucpf)
-        .in('cpf_inspetor', [...civisComEletrico])
+        .in('cpf_inspetor', [...civisComApoio])
       for (const a of (arts ?? [])) {
-        cpfEletricoPorCivil.set(a.cpf_inspetor, a.cpf_eletrico)
+        vinculos.push({ civil: a.cpf_inspetor, apoio: a.cpf_eletrico })
         cpfsUnicos.push(a.cpf_eletrico) // também precisa da chave deste CPF
       }
     }
 
     const chavePorCpf = new Map<string, string>()
+    const tituloPorCpf = new Map<string, string>()
     if (cpfsUnicos.length > 0) {
       const { data: insps } = await supabase
         .from('inspetor')
-        .select('cpf_inspetor,chave_inspetor')
+        .select('cpf_inspetor,chave_inspetor,titulo_profissional')
         .in('cpf_inspetor', [...new Set(cpfsUnicos)])
-      for (const i of (insps ?? [])) chavePorCpf.set(i.cpf_inspetor, i.chave_inspetor)
+      for (const i of (insps ?? [])) { chavePorCpf.set(i.cpf_inspetor, i.chave_inspetor); tituloPorCpf.set(i.cpf_inspetor, i.titulo_profissional ?? '') }
+    }
+    // Para cada civil, o profissional de cada especialidade: quem tem título Eng Mecânico é o mecânico; qualquer outro vinculado segue como antes (elétrico)
+    const apoioPorCivil = new Map<string, { eletrico?: string; mecanico?: string }>()
+    for (const v of vinculos) {
+      const reg = apoioPorCivil.get(v.civil) ?? {}
+      if (tituloPorCpf.get(v.apoio) === 'Eng Mecânico') reg.mecanico = v.apoio
+      else reg.eletrico = v.apoio
+      apoioPorCivil.set(v.civil, reg)
     }
 
     for (const d of (linhas ?? [])) {
       const fotoNrFmt = normFotoNr(d.numero_foto).padStart(3, '0')
-      const ehEletrico = /^0?7[-_]|el[ée]tric/i.test(String(d.sistema_vistoria||''))
-      const cpfEletricoDoItem = ehEletrico ? cpfEletricoPorCivil.get(d.cpf_inspetor) : undefined
-      const chaveDoItem = (cpfEletricoDoItem && chavePorCpf.get(cpfEletricoDoItem))
+      const apoio = apoioDoItem(d.sistema_vistoria)
+      const cpfApoioDoItem = apoio ? apoioPorCivil.get(d.cpf_inspetor)?.[apoio] : undefined
+      const chaveDoItem = (cpfApoioDoItem && chavePorCpf.get(cpfApoioDoItem))
         || chavePorCpf.get(d.cpf_inspetor)
         || chaveInspetor
       const nc: any = {

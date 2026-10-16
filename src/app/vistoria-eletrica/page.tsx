@@ -1,12 +1,13 @@
 "use client"
 export const dynamic = 'force-dynamic'
-import { useState, Suspense } from "react"
+import { useState, useEffect, Suspense } from "react"
 import { useSearchParams, useRouter } from "next/navigation"
 import React from "react"
 import Image from "next/image"
 import Banner from '@/components/Banner'
 import { useBanner } from '@/hooks/useBanner'
 import { tokenDaSessao, novaSessaoToken } from '@/lib/sessaoVistoria'
+import { PERFIS_APOIO, sistemaFixoDoPerfil, type PerfilApoio } from '@/lib/profissionaisDeApoio'
 
 const S: Record<string, React.CSSProperties> = {
   body:       { background:'#E8EEF7', display:'flex', justifyContent:'center', padding:'24px', fontFamily:'Arial, Helvetica, sans-serif', minHeight:'100vh' },
@@ -41,6 +42,20 @@ function VistoriaEletricaInner() {
   const [erro,      setErro]      = useState('')
   const [credencial,setCredencial]= useState<any>(null)
   const { bannerProps, solicita, fechar } = useBanner()
+
+  // Especialidade do profissional (Eng Elétrico ou Eng Mecânico): vem do SERVIDOR (título profissional do cadastro), não da URL. Os botões
+  // esperam a resposta; se ela falhar, a tela segue como elétrica (o comportamento de sempre).
+  const [perfil, setPerfil] = useState<PerfilApoio>(PERFIS_APOIO['Eng Elétrico'])
+  const [perfilPronto, setPerfilPronto] = useState(false)
+  useEffect(() => {
+    if (!cpfEletrico) { setPerfilPronto(true); return }
+    fetch(`/api/perfil-apoio?cpf_inspetor=${encodeURIComponent(cpfEletrico)}`)
+      .then(r => (r.ok ? r.json() : null))
+      .then(j => { if (j?.perfil) setPerfil(j.perfil) })
+      .catch(() => { /* sem resposta: segue como elétrico */ })
+      .finally(() => setPerfilPronto(true))
+  }, [cpfEletrico])
+  const sistemaFixoUrl = encodeURIComponent(sistemaFixoDoPerfil(perfil))
 
   function fmtCNPJ(v: string) {
     const d = v.replace(/\D/g,'').slice(0,14)
@@ -101,7 +116,7 @@ function VistoriaEletricaInner() {
       // Vai direto para a vistoria — o comando já foi dado ao clicar em
       // "Vistoriar", não precisa de uma tela intermediária com outro botão.
       router.push(
-        `/vistoria/tela32?cpf_inspetor=${cpfLimpo}&chave_inspetor=${chaveEletrico}&cnpjoucpf=${cnpjLimpo}&tipo_servico=32&sistema_fixo=07-Instalações elétricas&cpf_eletrico=${cpfEletrico}&sessao=${sessaoToken}`
+        `/vistoria/tela32?cpf_inspetor=${cpfLimpo}&chave_inspetor=${chaveEletrico}&cnpjoucpf=${cnpjLimpo}&tipo_servico=32&sistema_fixo=${sistemaFixoUrl}&cpf_eletrico=${cpfEletrico}&sessao=${sessaoToken}`
       )
     } catch(e: any) {
       setErro(e.message ?? 'Erro inesperado')
@@ -128,7 +143,7 @@ function VistoriaEletricaInner() {
       }
     } catch { /* falha na verificação — libera normalmente */ }
     router.push(
-      `/vistoria/tela32?cpf_inspetor=${credencial.cpfCivil}&chave_inspetor=${chaveEletrico}&cnpjoucpf=${credencial.cnpj}&tipo_servico=32&sistema_fixo=07-Instalações elétricas&cpf_eletrico=${cpfEletrico}&sessao=${sessaoToken}`
+      `/vistoria/tela32?cpf_inspetor=${credencial.cpfCivil}&chave_inspetor=${chaveEletrico}&cnpjoucpf=${credencial.cnpj}&tipo_servico=32&sistema_fixo=${sistemaFixoUrl}&cpf_eletrico=${cpfEletrico}&sessao=${sessaoToken}`
     )
   }
 
@@ -140,7 +155,7 @@ function VistoriaEletricaInner() {
         <div style={{ ...S.header, alignItems:'center', justifyContent:'space-between' }}>
           <Image src="/logo.png" alt="AIMÊ" width={80} height={36}
             style={{ filter:'brightness(0) invert(1)', objectFit:'contain', flexShrink:0 }} />
-          <div style={{ flex:1, textAlign:'center', fontSize:'16px', color:'#fff', fontWeight:700 }}>39 — Vistoria Inspeção Elétrica</div>
+          <div style={{ flex:1, textAlign:'center', fontSize:'16px', color:'#fff', fontWeight:700 }}>39 — Vistoria Inspeção {perfil.rotulo}</div>
           <div style={{ width:80 }}></div>
         </div>
         <div style={S.divider} />
@@ -180,7 +195,7 @@ function VistoriaEletricaInner() {
                 Voltar
               </button>
               <button style={{ ...S.btn, ...S.btnPri, opacity: salvando ? 0.6 : 1 }}
-                onClick={credenciar} disabled={salvando}>
+                onClick={credenciar} disabled={salvando || !perfilPronto}>
                 {salvando ? 'Registrando...' : 'Vistoriar'}
               </button>
             </div>
@@ -191,9 +206,9 @@ function VistoriaEletricaInner() {
               <div style={S.block}>
                 <div style={S.blockTitle}>Credencial Registrada</div>
                 <div style={S.blockBody}>
-                  <span style={S.ok}>✓ ART registrada — acesso liberado ao sistema elétrico</span>
+                  <span style={S.ok}>✓ ART registrada — acesso liberado {perfil.ao}</span>
                   <p style={{ fontSize:'12px', color:'#4a6480', margin:0 }}>
-                    Clique em <b>Iniciar Vistoria</b> para registrar as não conformidades do sistema elétrico.
+                    Clique em <b>Iniciar Vistoria</b> para registrar as não conformidades {perfil.de}.
                   </p>
                 </div>
               </div>
@@ -204,7 +219,7 @@ function VistoriaEletricaInner() {
                 Dashboard
               </button>
               <button style={{ ...S.btn, ...S.btnPri }}
-                onClick={iniciarVistoriaComCredencial}>
+                onClick={iniciarVistoriaComCredencial} disabled={!perfilPronto}>
                 Iniciar Vistoria
               </button>
             </div>
