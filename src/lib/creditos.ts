@@ -62,6 +62,9 @@ export function precoCentavos(tipo: string, qdeCreditos: number): number | null 
 /** Vistoria só inicia com pelo menos este saldo disponível (especificação). */
 export const MINIMO_INICIAR_VISTORIA = 100
 
+/** Vistoria 39 (Eng Elétrico e Eng Mecânico complementando a vistoria 32 de um civil) inicia com pelo menos 50 CR (decisão de Celso, 14/10/2026). */
+export const MINIMO_INICIAR_VISTORIA_APOIO = 50
+
 // ─────────────────── Custo por serviço (parte pura) ───────────────────
 // Especificação combinada em 05/09/2026:
 //   proposta comercial 25 CR · plano de trabalho 25 CR · vistoria 1 CR
@@ -104,6 +107,7 @@ export function custoDoServico(codigo: number, quantidade = 1): number | null {
 export function custoParaIniciar(codigo: number): number | null {
   const cat = categoriaDoServico(codigo)
   if (!cat) return null
+  if (codigo === 39) return MINIMO_INICIAR_VISTORIA_APOIO     // vistoria do profissional de apoio: 50, para o elétrico e para o mecânico
   return cat === 'vistoria' ? MINIMO_INICIAR_VISTORIA : CUSTO_UNITARIO[cat]
 }
 

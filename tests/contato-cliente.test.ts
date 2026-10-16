@@ -1,7 +1,7 @@
 // Contato do cliente (responsável e finalidade da vistoria): gravado no Plano, lido pela vistoria e pelo laudo. Se não existe contato do TIPO pedido,
 // a rota devolve o mais recente do mesmo inspetor e do mesmo CNPJ, de qualquer tipo.
 import { describe, it, expect, beforeEach } from 'vitest'
-import { A, B, estado, reiniciar, req, status } from './helpers'
+import { A, B, E, M, estado, reiniciar, sessao, req, status } from './helpers'
 import * as contato from '@/app/api/contato-cliente/route'
 
 const CNPJ = '39262886000187'
@@ -78,5 +78,46 @@ describe('contato-cliente POST (botão "Salvar contato" do Plano)', () => {
     estado.contatos = estado.contatosGravados.map(l => ({ ...l, data_cadastro: '2026-10-14T10:00:00Z' }))   // o banco guarda a linha
     const j = await buscar('37 Vistoria nr-12')
     expect(j.data[0]).toMatchObject({ nome_responsavel: 'Maria Responsável', finalidade_vistoria: 'Manutenção preventiva' })
+  })
+})
+
+describe('contato-cliente GET na vistoria 39: o profissional de apoio vinculado lê só a finalidade', () => {
+  const completo = () => linha(A, '32 Vistoria inspeção', { whatsapp_responsavel: '27999990000', email_responsavel: 'maria@cliente.com', cpf_responsavel: '12345678909', funcao_responsavel: 'Gerente' })
+  const lerDoCivil = async (tipo = '32 Vistoria inspeção') => (await contato.GET(req(`/api/contato-cliente?cpf_inspetor=${A}&cnpjoucpf=${CNPJ}&tipo_servico=${encodeURIComponent(tipo)}`)))
+
+  it('o eletricista vinculado ao civil recebe a FINALIDADE da vistoria 32 (antes levava 403 e a tela ficava sem finalidade)', async () => {
+    estado.contatos = [completo()]; sessao(E)
+    const r = await lerDoCivil(); expect(r.status).toBe(200)
+    expect((await r.json()).data[0].finalidade_vistoria).toBe('Manutenção preventiva')
+  })
+  it('o vinculado NÃO recebe nome, telefone, e-mail, CPF nem função do responsável do cliente (só finalidade, tipo e data)', async () => {
+    estado.contatos = [completo()]; sessao(E)
+    const linhaRecebida = (await (await lerDoCivil()).json()).data[0]
+    expect(Object.keys(linhaRecebida).sort()).toEqual(['data_cadastro', 'finalidade_vistoria', 'tipo_servico'])
+    expect(JSON.stringify(linhaRecebida)).not.toMatch(/Fulano|27999990000|maria@cliente|12345678909|Gerente/)
+  })
+  it('o mesmo vale quando o tipo pedido não existe e a rota cai no contato mais recente', async () => {
+    estado.contatos = [completo()]; sessao(E)
+    const linhaRecebida = (await (await lerDoCivil('37 Vistoria nr-12')).json()).data[0]
+    expect(Object.keys(linhaRecebida).sort()).toEqual(['data_cadastro', 'finalidade_vistoria', 'tipo_servico'])
+  })
+  it('o titular (civil) continua recebendo a linha COMPLETA', async () => {
+    estado.contatos = [completo()]; sessao(A)
+    const linhaRecebida = (await (await lerDoCivil()).json()).data[0]
+    expect(linhaRecebida.nome_responsavel).toBe('Fulano')
+    expect(linhaRecebida.whatsapp_responsavel).toBe('27999990000')
+  })
+  it('profissional de apoio NÃO vinculado ao civil (o mecânico M) continua barrado: 403', async () => {
+    estado.contatos = [completo()]; sessao(M)
+    expect((await lerDoCivil()).status).toBe(403)
+  })
+  it('outro civil continua barrado: 403', async () => {
+    estado.contatos = [completo()]; sessao(B)
+    expect((await lerDoCivil()).status).toBe(403)
+  })
+  it('depois de vincular o mecânico ao civil, ele também recebe a finalidade', async () => {
+    estado.vinculos = [[E, A], [M, A]]; estado.contatos = [completo()]; sessao(M)
+    const r = await lerDoCivil(); expect(r.status).toBe(200)
+    expect((await r.json()).data[0].finalidade_vistoria).toBe('Manutenção preventiva')
   })
 })

@@ -38,6 +38,7 @@ export const estado = {
   erroContato: '' as string,               // se preenchido, a gravação em contato_cliente falha com esta mensagem
   titulos: {} as Record<string, string | null>, // titulo_profissional de cada CPF (Eng Elétrico, Eng Mecânico...)
   falhaTitulo: false,                      // SÓ a consulta do título profissional falha (a da chave e as demais seguem normais)
+  saldo: null as null | Record<string, unknown>, // se preenchido, é o que a função saldo_creditos devolve (ex.: { existe: true, saldo_total: 16 })
   dadosVistoria: [] as Record<string, unknown>[], // linhas de dados_vistoria
 }
 
@@ -66,6 +67,7 @@ export function mundo(u: URL, m: string, init: any): Response {
     return jr({ chave_inspetor: estado.chaves[cpf] ?? null, titulo_profissional: estado.titulos[cpf] ?? null, is_gestor: estado.gestor, email_inspetor: 'g@x.com', nome_inspetor: 'G', conta_bloqueada: false })
   }
   if (p.includes('/rest/v1/dados_vistoria')) return jr(estado.dadosVistoria)
+  if (estado.saldo && p.includes('/rest/v1/rpc/saldo_creditos')) return jr(estado.saldo)
   if (p.includes('/rest/v1/art_profissional')) {
     const q = decodeURIComponent(u.search)
     const listaCivis = q.match(/cpf_inspetor=in\.\(([^)]*)\)/)
@@ -130,7 +132,7 @@ export function reiniciar() {
   sessao(A)
   ligarPorteiro(true)
   process.env.COBRANCA_CREDITOS_ATIVA = 'true'
-  Object.assign(estado, { chaves: { ...CHAVES }, chavesExistentes: [], proximaChave: 'INS-010', rpcChaveAusente: false, cadastroExiste: true, arquivos: {}, legadas: [], colunaLegadaAusente: false, destinosExistentes: [], contatos: [], contatosGravados: [], erroContato: '', titulos: {}, falhaTitulo: false, dadosVistoria: [], falhaChave: false, gestor: false, asaasFora: false, cobrancaAsaas: null, pedido: null, contratos: [], insercaoContrato: 'ok', inserts: [], vinculos: [[E, A]] })
+  Object.assign(estado, { chaves: { ...CHAVES }, chavesExistentes: [], proximaChave: 'INS-010', rpcChaveAusente: false, cadastroExiste: true, arquivos: {}, legadas: [], colunaLegadaAusente: false, destinosExistentes: [], contatos: [], contatosGravados: [], erroContato: '', titulos: {}, falhaTitulo: false, saldo: null, dadosVistoria: [], falhaChave: false, gestor: false, asaasFora: false, cobrancaAsaas: null, pedido: null, contratos: [], insercaoContrato: 'ok', inserts: [], vinculos: [[E, A]] })
 }
 
 export const req = (url: string, method = 'GET', body?: unknown) =>

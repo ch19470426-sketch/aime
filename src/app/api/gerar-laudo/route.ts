@@ -23,10 +23,10 @@ const supabase = createClient(
 // ─── Dados estáticos ──────────────────────────────────────────────────────────
 const SISTEMAS: Record<string, string[]> = {
   // 41/42: sistemas do banco agosto/2026
-  '41': ['01-Fundações','02-Estrutura','03-Vedações','04-Revestimentos','05-Instalações hidrossanitárias','06-Impermeabilização','07-Instalações elétricas','08-Combate a Incêndio','09-Climatização','10-Acessibilidade/elvadores','11-Instalações de gás','12-Coberturas','13-Áreas externas','14-Contenção de Encostas e Arrimos'],
-  '42': ['01-Fundações','02-Estrutura','03-Vedações','04-Revestimentos','05-Instalações hidrossanitárias','06-Impermeabilização','07-Instalações elétricas','08-Combate a Incêndio','09-Climatização','10-Acessibilidade/elvadores','11-Instalações de gás','12-Coberturas','13-Áreas externas','14-Contenção de Encostas e Arrimos'],
-  '43': ['01-Fundações','02-Estrutura','03-Vedações','04-Revestimentos','05-Instalações hidrossanitárias','06-Impermeabilização','07-Instalações elétricas','08-Combate a Incêndio','09-Climatização','10-Acessibilidade/elvadores','11-Instalações de gás','12-Coberturas','13-Áreas externas','14-Contenção de Encostas e Arrimos'],
-  '44': ['01-Fundações','02-Estrutura','03-Vedações','04-Revestimentos','05-Instalações hidrossanitárias','06-Impermeabilização','07-Instalações elétricas','08-Combate a Incêndio','09-Climatização','10-Acessibilidade/elvadores','11-Instalações de gás','12-Coberturas','13-Áreas externas','14-Contenção de Encostas e Arrimos'],
+  '41': ['01-Fundações','02-Estrutura','03-Vedações','04-Revestimentos','05-Instalações hidrossanitárias','06-Impermeabilização','07-Instalações elétricas','08-Combate a Incêndio','09-Climatização','10-Acessibilidade/elevadores','11-Instalações de gás','12-Coberturas','13-Áreas externas','14-Contenção de Encostas e Arrimos'],
+  '42': ['01-Fundações','02-Estrutura','03-Vedações','04-Revestimentos','05-Instalações hidrossanitárias','06-Impermeabilização','07-Instalações elétricas','08-Combate a Incêndio','09-Climatização','10-Acessibilidade/elevadores','11-Instalações de gás','12-Coberturas','13-Áreas externas','14-Contenção de Encostas e Arrimos'],
+  '43': ['01-Fundações','02-Estrutura','03-Vedações','04-Revestimentos','05-Instalações hidrossanitárias','06-Impermeabilização','07-Instalações elétricas','08-Combate a Incêndio','09-Climatização','10-Acessibilidade/elevadores','11-Instalações de gás','12-Coberturas','13-Áreas externas','14-Contenção de Encostas e Arrimos'],
+  '44': ['01-Fundações','02-Estrutura','03-Vedações','04-Revestimentos','05-Instalações hidrossanitárias','06-Impermeabilização','07-Instalações elétricas','08-Combate a Incêndio','09-Climatização','10-Acessibilidade/elevadores','11-Instalações de gás','12-Coberturas','13-Áreas externas','14-Contenção de Encostas e Arrimos'],
 }
 
 const TITULO: Record<string, string> = {
@@ -76,7 +76,7 @@ const DESC_SISTEMAS: Record<string, string> = {
   "07-Instalações elétricas": "Conjunto de componentes destinados à entrada, distribuição, comando, proteção e utilização da energia elétrica na edificação.",
   "08-Combate a Incêndio": "Conjunto de sistemas, equipamentos e dispositivos destinados à prevenção, detecção, alarme e combate a incêndios.",
   "09-Climatização": "Conjunto de equipamentos, componentes e redes destinados ao controle das condições de temperatura, umidade e qualidade do ar nos ambientes.",
-  "10-Acessibilidade/elvadores": "Conjunto de elementos e equipamentos destinados à acessibilidade, circulação e transporte vertical de pessoas na edificação.",
+  "10-Acessibilidade/elevadores": "Conjunto de elementos e equipamentos destinados à acessibilidade, circulação e transporte vertical de pessoas na edificação.",
   "11-Instalações de gás": "Conjunto de tubulações, equipamentos, dispositivos de controle e componentes destinados ao recebimento, armazenamento, distribuição e utilização de gases combustíveis.",
   "12-Coberturas": "Conjunto de elementos que constitui o fechamento superior da edificação, destinado à proteção dos ambientes contra as intempéries e ao encaminhamento das águas pluviais.",
   "13-Áreas externas": "Conjunto de elementos construtivos e componentes localizados nas áreas externas e nos espaços de uso comum do empreendimento.",
@@ -1654,7 +1654,8 @@ export async function POST(request: NextRequest) {
     // vs "02-Pisos", vinda de sessões de teste diferentes) faziam o item cair
     // no sistema errado (o primeiro da lista) via o fallback antigo de prefixo,
     // que só comparava dígitos exatos sem considerar zeros à esquerda.
-    const normSisPredial = (s: string) => String(s||'').trim().replace(/^\d+[-_]\s*/, '').replace(/_/g, ' ').trim().toLowerCase()
+    // ("elvadores" era um erro de digitação do nome do sistema 10: o dado antigo, gravado assim, continua casando com o nome certo)
+    const normSisPredial = (s: string) => String(s||'').trim().replace(/^\d+[-_]\s*/, '').replace(/_/g, ' ').replace(/elvadores/gi, 'elevadores').trim().toLowerCase()
     const chaveNormalizadaParaReal = new Map<string, string>()
     sistemas.forEach(s => chaveNormalizadaParaReal.set(normSisPredial(s), s))
     ncsOrd41.forEach((nc: any) => {

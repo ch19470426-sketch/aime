@@ -1,7 +1,7 @@
 export const dynamic = 'force-dynamic'
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { exigirSessao, exigirProprio } from '@/lib/autorizacao'
+import { exigirSessao, exigirProprio, exigirProprioOuVinculado } from '@/lib/autorizacao'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -49,9 +49,15 @@ export async function GET(request: NextRequest) {
     const cpf_inspetor = searchParams.get('cpf_inspetor')
     const cnpjoucpf    = searchParams.get('cnpjoucpf')
     const tipo_servico = searchParams.get('tipo_servico')
-    // DONO (AUTH_API_ATIVA): só o titular do CPF lê o contato do cliente dele.
-    const acessoDono = await exigirProprio(request, cpf_inspetor)
+    // DONO (AUTH_API_ATIVA): o titular do CPF lê o contato do cliente dele; o profissional de apoio VINCULADO a ele (vistoria 39: Eng Elétrico ou
+    // Eng Mecânico, pela ART registrada) lê só a FINALIDADE da vistoria, que a tela 32 dele mostra. Antes só o titular passava, e o profissional
+    // levava 403 e ficava sem a finalidade. Nome, CPF, telefone e e-mail do responsável do cliente seguem só com o titular.
+    const acessoDono = await exigirProprioOuVinculado(request, cpf_inspetor)
     if (acessoDono.ok === false) return acessoDono.resposta
+    const soFinalidade = acessoDono.ativa && acessoDono.cpf !== String(cpf_inspetor ?? '').replace(/\D/g, '')
+    const entregar = (linhas: any[]) => NextResponse.json({
+      data: soFinalidade ? linhas.map(({ finalidade_vistoria, tipo_servico, data_cadastro }) => ({ finalidade_vistoria, tipo_servico, data_cadastro })) : linhas,
+    })
 
     if (!cpf_inspetor || !cnpjoucpf)
       return NextResponse.json({ erro: 'Parâmetros obrigatórios ausentes.' }, { status: 400 })
@@ -65,7 +71,7 @@ export async function GET(request: NextRequest) {
         .order('data_cadastro', { ascending: false })
         .limit(1)
       if (!error && data && data.length > 0)
-        return NextResponse.json({ data })
+        return entregar(data)
     }
 
     // Fallback: buscar sem filtro de tipo (mais recente do CPF+CNPJ)
@@ -76,7 +82,7 @@ export async function GET(request: NextRequest) {
       .limit(1)
 
     if (error) return NextResponse.json({ erro: error.message }, { status: 400 })
-    return NextResponse.json({ data: data ?? [] })
+    return entregar(data ?? [])
   } catch (e) {
     return NextResponse.json({ erro: String(e) }, { status: 500 })
   }
