@@ -4,6 +4,7 @@ import { useState, Suspense } from "react"
 import { useSearchParams } from "next/navigation"
 import Image from "next/image"
 import LinkSair from "@/components/LinkSair"
+import { TERMO_BLOCOS, partesComNegrito, dataDoAceite, type BlocoTermo } from "@/lib/termoAceite"
 
 export default function TermoAceitePage() {
   return (
@@ -96,6 +97,16 @@ function TermoAceite() {
   }
 
 
+  // Recuos do documento (1,2 cm): parágrafo numerado com a primeira linha à esquerda; itens a), b), c) mais recuados
+  const RECUO = 34
+  const estiloDoBloco = (b: BlocoTermo): React.CSSProperties => {
+    if (b.t === 'clausula') return S.h2
+    if (b.t === 'abertura') return { ...S.texto, marginBottom: '10pt' }
+    if (b.nivel === 2) return { ...S.texto, paddingLeft: RECUO * 2, textIndent: -RECUO }
+    if (b.nivel === 1) return { ...S.texto, paddingLeft: RECUO, textIndent: -RECUO }
+    return S.texto
+  }
+
   return (
     <div style={S.body}>
       <div style={S.page}>
@@ -109,45 +120,13 @@ function TermoAceite() {
         <div style={S.divider} />
         <div style={S.body2}>
 
-          <p style={{ ...S.texto, marginBottom: "10pt" }}>
-            <strong>Pelo presente instrumento particular</strong>, de um lado, a <strong>PLATAFORMA AIMÊ</strong>, doravante denominada <strong>"CONTRATADA"</strong>, e, de outro, o usuário devidamente cadastrado no sistema, doravante denominado <strong>"USUÁRIO"</strong>, têm entre si justo e acordado o presente <strong>Termo de Aceite dos Serviços</strong>, que se regerá pelas cláusulas e condições abaixo.
-          </p>
-
-          <p style={S.h2}>1. OBJETO</p>
-          <p style={S.texto}>1.1. O presente Termo tem por objeto a disponibilização, pela CONTRATADA ao USUÁRIO, de plataforma digital em modelo <strong>Software as a Service (SaaS)</strong> destinada ao apoio à execução de atividades relacionadas à <strong>engenharia diagnóstica</strong>, incluindo, mas não se limitando, à coleta, organização, processamento e emissão de dados técnicos oriundos de vistorias, inspeções e avaliações de edificações e de equipamentos.</p>
-          <p style={S.texto}>1.2. A plataforma AIMÊ constitui ferramenta de apoio técnico-operacional, não substituindo a atuação profissional especializada, nem assumindo responsabilidade técnica pelos serviços executados.</p>
-
-          <p style={S.h2}>2. CONDIÇÕES DE USO E RESPONSABILIDADE PROFISSIONAL</p>
-          <p style={S.texto}>2.1. O USUÁRIO declara estar ciente de que a utilização da plataforma para execução de atividades técnicas na área de engenharia diagnóstica <strong>exige obrigatoriamente a atuação de profissionais legalmente habilitados</strong>.</p>
-          <p style={S.texto}>2.2. O USUÁRIO compromete-se a: a) Utilizar a plataforma apenas quando possuir ou estiver vinculado a profissional devidamente habilitado e registrado no respectivo conselho profissional competente (CREA, CAU, CRECI ou equivalente); b) Assegurar que todos os serviços técnicos executados por meio da plataforma sejam conduzidos com observância às normas técnicas aplicáveis, legislação vigente e princípios éticos profissionais; c) Emitir os documentos técnicos (laudos, relatórios, pareceres) sob responsabilidade de profissional habilitado, com a devida <strong>Anotação de Responsabilidade Técnica (ART)</strong> ou <strong>Registro de Responsabilidade Técnica (RRT)</strong>, quando aplicável.</p>
-          <p style={S.texto}>2.3. O USUÁRIO reconhece que a responsabilidade técnica pelos serviços realizados é exclusiva do profissional habilitado responsável, o qual responderá civil, administrativa e criminalmente pelos atos praticados.</p>
-          <p style={S.texto}>2.4. A CONTRATADA não se responsabiliza por: a) Interpretações técnicas realizadas pelo USUÁRIO; b) Decisões profissionais baseadas nos dados inseridos na plataforma; c) Eventuais erros, omissões ou inconsistências decorrentes do uso inadequado da ferramenta.</p>
-
-          <p style={S.h2}>3. ÉTICA E CONFORMIDADE</p>
-          <p style={S.texto}>3.1. O USUÁRIO compromete-se a atuar em conformidade com os princípios éticos de sua profissão, observando as normas dos respectivos conselhos profissionais e a legislação vigente.</p>
-          <p style={S.texto}>3.2. É vedado o uso da plataforma para: a) Execução de serviços técnicos por profissionais não habilitados; b) Emissão de documentos técnicos sem responsabilidade formal; c) Inserção de dados falsos, incompletos ou que possam induzir terceiros a erro.</p>
-
-          <p style={S.h2}>4. PROPRIEDADE DOS DADOS</p>
-          <p style={S.texto}>4.1. O USUÁRIO reconhece e concorda que: a) Todos os dados, informações, registros de vistoria, relatórios, laudos e demais documentos técnicos gerados por meio da plataforma são de <strong>propriedade exclusiva dos condomínios, instituições ou contratantes</strong> para os quais os serviços foram realizados; b) A CONTRATADA não detém qualquer direito de propriedade sobre tais dados, atuando apenas como processadora e armazenadora das informações.</p>
-          <p style={S.texto}>4.2. Compete exclusivamente ao contratante dos serviços técnicos: a) Definir os critérios de acesso, compartilhamento e utilização dos dados; b) Autorizar ou restringir a divulgação dos documentos gerados; c) Garantir a conformidade com a legislação aplicável à proteção de dados.</p>
-          <p style={S.texto}>4.3. O USUÁRIO compromete-se a: a) Utilizar os dados apenas para os fins contratados; b) Respeitar as restrições impostas pelos proprietários das informações; c) Não divulgar, compartilhar ou comercializar os dados sem autorização expressa.</p>
-
-          <p style={S.h2}>5. PROTEÇÃO DE DADOS</p>
-          <p style={S.texto}>5.1. A CONTRATADA compromete-se a adotar boas práticas de segurança da informação, visando a proteção dos dados armazenados na plataforma, pelo prazo mínimo de 12 (doze) meses.</p>
-          <p style={S.texto}>5.2. O USUÁRIO é responsável pela veracidade, integridade e legalidade dos dados inseridos no sistema.</p>
-
-          <p style={S.h2}>6. LIMITAÇÃO DE RESPONSABILIDADE</p>
-          <p style={S.texto}>6.1. A CONTRATADA não responde por quaisquer danos diretos ou indiretos decorrentes: a) Do uso inadequado da plataforma; b) Da atuação profissional do USUÁRIO ou de terceiros; c) Da utilização dos dados gerados para finalidades diversas das previstas.</p>
-          <p style={S.texto}>6.2. A responsabilidade da CONTRATADA limita-se à disponibilização da plataforma em condições operacionais adequadas, conforme os níveis de serviço estabelecidos.</p>
-
-          <p style={S.h2}>7. ACEITE</p>
-          <p style={S.texto}>7.1. Ao acessar e utilizar a plataforma <strong>AIMÊ</strong>, o USUÁRIO declara que leu, compreendeu e concorda integralmente com os termos deste documento.</p>
-          <p style={S.texto}>7.2. O aceite eletrônico possui validade jurídica plena, nos termos da legislação vigente.</p>
-
-          <p style={S.h2}>8. DISPOSIÇÕES GERAIS</p>
-          <p style={S.texto}>8.1. Este Termo poderá ser atualizado pela CONTRATADA a qualquer tempo, sendo as alterações comunicadas ao USUÁRIO por meio da própria plataforma.</p>
-          <p style={S.texto}>8.2. O uso continuado da plataforma após alterações implica concordância com os novos termos.</p>
-          <p style={S.texto}>8.3. Fica eleito o foro da comarca do domicílio da CONTRATADA para dirimir quaisquer controvérsias oriundas deste Termo, com renúncia a qualquer outro, por mais privilegiado que seja.</p>
+          {TERMO_BLOCOS.map((b, i) => (
+            <p key={i} style={estiloDoBloco(b)}>
+              {partesComNegrito(b.texto).map((parte, j) => (parte.b ? <strong key={j}>{parte.t}</strong> : <span key={j}>{parte.t}</span>))}
+            </p>
+          ))}
+          <p style={{ ...S.texto, textAlign: "right", fontWeight: "bold", marginTop: "16pt", marginBottom: "2pt" }}>Data do aceite: {dataDoAceite()}.</p>
+          <p style={{ fontSize: "8pt", color: "#6B7280", textAlign: "right", margin: 0 }}>(a data é registrada automaticamente ao aceitar)</p>
 
           {erro && <p style={{ color: "#DC2626", fontSize: "12px", marginTop: "8pt" }}>{erro}</p>}
 
