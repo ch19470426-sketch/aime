@@ -10,6 +10,7 @@ import { contratoCorrente } from '@/lib/contratos'
 import Banner from '@/components/Banner'
 import VersaoBuild from '@/components/VersaoBuild'
 import { useBanner } from '@/hooks/useBanner'
+import { TEXTO_AUTORIZACAO_MARKETING } from '@/lib/autorizacaoMarketing'
 
 const SUPA_URL = 'https://asgorarunzhiojqioxzq.supabase.co'
 const SUPA_KEY = 'sb_publishable_dH85HYKGxv3X0te627VfOw_OGaPoNMF'
@@ -64,6 +65,10 @@ function CadastroInspetor() {
   })
   const [erro, setErro] = useState("")
   const [sucesso, setSucesso] = useState(false)
+  // Autorização de uso dos dados para publicidade e promoções: opcional, começa desmarcada; em Meu Cadastro (item 6.2) grava ao marcar ou desmarcar
+  const [autorizaMarketing, setAutorizaMarketing] = useState(false)
+  const [salvandoAutorizacao, setSalvandoAutorizacao] = useState(false)
+  const [msgAutorizacao, setMsgAutorizacao] = useState('')
   const [salvando, setSalvando] = useState(false)
   const [carregando, setCarregando] = useState(true)
   const [buscandoCep, setBuscandoCep] = useState(false)
@@ -130,6 +135,8 @@ function CadastroInspetor() {
                 cabecalho: d.cabecalho_documentos ?? "",
                 rodape: d.rodape_documentos ?? "",
               }))
+              setAutorizaMarketing(!!d.autoriza_marketing)
+              if (d.autoriza_marketing_em) setMsgAutorizacao(`${d.autoriza_marketing ? 'Autorização registrada' : 'Autorização retirada'} em ${new Date(d.autoriza_marketing_em).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })}.`)
               // Buscar endereço pelo CEP após carregar dados
               const cepLimpo = (d.cep_inspetor ?? '').replace(/\D/g, '')
               if (cepLimpo.length === 8) buscarCep(cepLimpo)
@@ -200,6 +207,27 @@ function CadastroInspetor() {
     setBuscandoCep(false)
   }
 
+  // Caixa de autorização. No Cadastro Inicial só marca (vai junto com o cadastro); em Meu Cadastro (item 6.2) grava na hora, por rota própria,
+  // para que retirar a autorização não dependa de o resto do formulário estar válido.
+  async function alternarAutorizacao(valor: boolean) {
+    if (!ehConsulta) { setAutorizaMarketing(valor); return }
+    const anterior = autorizaMarketing
+    setAutorizaMarketing(valor); setSalvandoAutorizacao(true); setMsgAutorizacao('')
+    try {
+      const res = await fetch('/api/autorizacao-marketing', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ cpf: form.cpf.replace(/\D/g, ''), autoriza: valor }),
+      })
+      const data = await res.json()
+      if (!res.ok || data.erro) { setAutorizaMarketing(anterior); setMsgAutorizacao(data.erro ?? 'Não foi possível registrar. Tente novamente.'); return }
+      setMsgAutorizacao(`${valor ? 'Autorização registrada' : 'Autorização retirada'} em ${new Date(data.em).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })}.`)
+    } catch {
+      setAutorizaMarketing(anterior); setMsgAutorizacao('Não foi possível conectar. Tente novamente.')
+    } finally {
+      setSalvandoAutorizacao(false)
+    }
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setErro("")
@@ -232,6 +260,7 @@ function CadastroInspetor() {
           complemento: form.complemento,
           cabecalho: form.cabecalho,
           rodape: form.rodape,
+          ...(ehNovo && autorizaMarketing ? { autoriza_marketing: true } : {}),   // só no Cadastro Inicial, e só se marcou
         })
       })
       clearTimeout(timeoutId)
@@ -620,6 +649,23 @@ function CadastroInspetor() {
                   </div>
                 </div>
               </div>
+
+              {(ehNovo || ehConsulta) && (
+                <div style={blocoStyle}>
+                  <div style={blocoHeaderStyle}>
+                    <span style={blocoTituloStyle}>Autorização de Uso dos Dados</span>
+                  </div>
+                  <div style={{height:"2px",backgroundColor:"#1E3A8A"}} />
+                  <div style={blocoBodyStyle}>
+                    <label style={{display:"flex",gap:"8px",alignItems:"flex-start",fontSize:"12px",color:"#374151",lineHeight:1.5,cursor:"pointer"}}>
+                      <input type="checkbox" name="autoriza_marketing" checked={autorizaMarketing} disabled={salvandoAutorizacao}
+                        onChange={(e) => alternarAutorizacao(e.target.checked)} style={{marginTop:"2px"}} />
+                      <span>{TEXTO_AUTORIZACAO_MARKETING}</span>
+                    </label>
+                    {ehConsulta && msgAutorizacao && <p style={{fontSize:"11px",color:"#6B7280",margin:"6px 0 0 22px"}}>{msgAutorizacao}</p>}
+                  </div>
+                </div>
+              )}
 
               {erro && <p style={{color:"#DC2626",fontSize:"13px",textAlign:"center",marginBottom:"12px"}}>{erro}</p>}
 

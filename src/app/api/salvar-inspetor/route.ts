@@ -8,6 +8,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { exigirProprio } from '@/lib/autorizacao'
 import { garantirChaveDoInspetor, chaveDoCpf } from '@/lib/chaveInspetor'
+import { camposDaAutorizacao } from '@/lib/autorizacaoMarketing'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -55,6 +56,9 @@ export async function POST(request: NextRequest) {
       nr_ap_sala: complemento || '',  // coluna tem NOT NULL, sem valor default — string vazia, nao null
       cabecalho_documentos: cabecalho || null,
       rodape_documentos: rodape || null,
+      // Autorização de uso dos dados para publicidade (opcional): só entra quando a tela a envia como verdadeiro/falso (Cadastro Inicial, caixa marcada).
+      // Em Meu Cadastro a decisão tem rota própria (/api/autorizacao-marketing), e este salvamento não a toca.
+      ...(typeof body.autoriza_marketing === 'boolean' ? camposDaAutorizacao(body.autoriza_marketing) : {}),
     }
 
     if (existente) {

@@ -38,6 +38,7 @@ export const estado = {
   erroContato: '' as string,               // se preenchido, a gravação em contato_cliente falha com esta mensagem
   titulos: {} as Record<string, string | null>, // titulo_profissional de cada CPF (Eng Elétrico, Eng Mecânico...)
   falhaTitulo: false,                      // SÓ a consulta do título profissional falha (a da chave e as demais seguem normais)
+  gravacoesInspetor: [] as { metodo: string; corpo: Record<string, unknown>; consulta: string }[], // POST e PATCH em inspetor
   saldo: null as null | Record<string, unknown>, // se preenchido, é o que a função saldo_creditos devolve (ex.: { existe: true, saldo_total: 16 })
   dadosVistoria: [] as Record<string, unknown>[], // linhas de dados_vistoria
 }
@@ -55,7 +56,11 @@ export function mundo(u: URL, m: string, init: any): Response {
     if ((u.searchParams.get('select') ?? '').includes('chave_legada')) {
       return estado.colunaLegadaAusente ? jr({ code: '42703', message: 'column inspetor.chave_legada does not exist' }, 400) : jr(estado.legadas)
     }
-    if (m !== 'GET') return jr([{ chave_inspetor: null }])   // update(...).select() e insert devolvem lista
+    if (m !== 'GET') {
+      estado.gravacoesInspetor.push({ metodo: m, corpo: JSON.parse(String(init?.body ?? '{}')), consulta: u.search })
+      if (m === 'PATCH' && !estado.cadastroExiste) return jr([])                       // update sem nenhuma linha atingida
+      return jr([{ chave_inspetor: null, cpf_inspetor: (u.searchParams.get('cpf_inspetor') || '').replace('eq.', '') }])   // update(...).select() e insert devolvem lista
+    }
     const filtroCpf = u.searchParams.get('cpf_inspetor') || ''
     if (filtroCpf.startsWith('in.(')) {   // .in('cpf_inspetor', [...]) devolve uma lista
       const cpfs = filtroCpf.slice(4, -1).split(',').map(s => s.replace(/"/g, ''))
@@ -132,7 +137,7 @@ export function reiniciar() {
   sessao(A)
   ligarPorteiro(true)
   process.env.COBRANCA_CREDITOS_ATIVA = 'true'
-  Object.assign(estado, { chaves: { ...CHAVES }, chavesExistentes: [], proximaChave: 'INS-010', rpcChaveAusente: false, cadastroExiste: true, arquivos: {}, legadas: [], colunaLegadaAusente: false, destinosExistentes: [], contatos: [], contatosGravados: [], erroContato: '', titulos: {}, falhaTitulo: false, saldo: null, dadosVistoria: [], falhaChave: false, gestor: false, asaasFora: false, cobrancaAsaas: null, pedido: null, contratos: [], insercaoContrato: 'ok', inserts: [], vinculos: [[E, A]] })
+  Object.assign(estado, { chaves: { ...CHAVES }, chavesExistentes: [], proximaChave: 'INS-010', rpcChaveAusente: false, cadastroExiste: true, arquivos: {}, legadas: [], colunaLegadaAusente: false, destinosExistentes: [], contatos: [], contatosGravados: [], erroContato: '', titulos: {}, falhaTitulo: false, gravacoesInspetor: [], saldo: null, dadosVistoria: [], falhaChave: false, gestor: false, asaasFora: false, cobrancaAsaas: null, pedido: null, contratos: [], insercaoContrato: 'ok', inserts: [], vinculos: [[E, A]] })
 }
 
 export const req = (url: string, method = 'GET', body?: unknown) =>
