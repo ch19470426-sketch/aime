@@ -9,8 +9,8 @@
 // Os arquivos de vistoria e de documentos têm o nome começando pela chave ("<cpf>_<cnpj>_<serviço>_<nº>.json"), e a auditoria
 // de dono (src/lib/autorizacao.ts) só deixa o usuário mexer em arquivo cujo nome começa com a chave dele. Por isso:
 //  - nenhuma rota grava uma chave vinda do navegador (antes, quem tivesse a chave vazia podia gravar a de outro inspetor);
-//  - cadastros que ainda têm uma chave INS-nnn (de antes da migração, ver sql/2026-10-13_chave_inspetor_igual_cpf.sql e
-//    /api/gestor/migrar-chave-para-cpf) mantêm essa chave até a migração; depois dela, a chave de todos é o CPF.
+//  - a chave de todos é o CPF (a migração da chave INS-nnn para o CPF foi feita em 13/10/2026, ver sql/2026-10-13_chave_inspetor_igual_cpf.sql;
+//    a rota temporária e a coluna chave_legada foram removidas em 20/10/2026).
 import type { SupabaseClient } from '@supabase/supabase-js'
 
 /** A chave de um CPF: o próprio CPF, só dígitos. */
