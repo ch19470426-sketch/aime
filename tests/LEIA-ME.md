@@ -11,7 +11,7 @@ Os testes existem para **proteger o que não pode quebrar**: dinheiro (créditos
 
 
 Rodar tudo: `npm test` (uma vez) ou `npm run test:watch` (reexecuta ao salvar).
-Antes de publicar qualquer mudança em `src/app/api` ou `src/lib`, rode `npm test`.
+Antes de publicar uma mudança de **lógica** em `src/app/api` ou `src/lib` (cobrança, segurança, arquivos, dados), rode `npm test`. **Mudança só de texto, cor, espaço ou botão, mesmo dentro de `src/lib`, não roda a suíte nem o build: só `npx tsc --noEmit`.**
 
 ## Como funcionam
 Os testes chamam as **rotas reais** de `src/app/api` com o banco, o armazenamento, a API do Asaas e o e-mail **simulados**
