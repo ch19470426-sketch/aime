@@ -26,6 +26,7 @@ Cada chamada ao banco e ao armazenamento fica registrada, então um teste de seg
 | `profissionais-de-apoio.test.ts` | vistoria 39 para o Eng Elétrico (sistema 07) e o Eng Mecânico (09 e 10): a regra dos perfis, a rota do perfil, o sistema imposto no salvamento, a listagem por especialidade e as telas |
 | `ajustes-vistoria-39.test.ts` | vistoria 39 inicia com 50 CR (as outras vistorias, 100); "elvadores" corrigido para "elevadores" (código e SQL); manual operacional em PDF de 7 páginas |
 | `autorizacao-marketing.test.ts` | autorização do inspetor para uso dos dados em publicidade e promoções: opt-in, rota de retirada só do titular, cadastro inicial, tela (Meu Cadastro, item 6.2) e SQL |
+| `download-documentos.test.ts` | botão Baixar do item 61: a URL assinada entrega o arquivo como download com o nome sem a chave (CPF) e o botão só abre o link, sem fetch, blob nem nova aba |
 | `offline-sincronizacao.test.ts` | vistoria salva offline antes da migração (chave INS-nnn) sincroniza com o CPF; as duas cópias da regra (fila do app e service worker) coincidem |
 | `seguranca/gerar-nome-do-arquivo.test.ts` | gerar-laudo e gerar-plano-manutencao só gravam o HTML com nome que começa pela chave do usuário logado (o modo _info_ segue livre) |
 | `seguranca/chave-inspetor.test.ts` | a chave do inspetor é o CPF, decidida no servidor; nenhuma rota grava chave vinda do navegador |

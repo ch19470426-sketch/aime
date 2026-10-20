@@ -110,6 +110,7 @@ export function mundo(u: URL, m: string, init: any): Response {
   }
   if (p.includes('/rpc/')) return jr({ ok: true, liberado: true, saldo: 9999 })
   if (p.includes('/storage/v1/object/upload/sign')) return jr({ url: '/object/upload/sign/aime/x?token=t', token: 't' })
+  if (p.includes('/storage/v1/object/sign/')) return jr({ signedURL: `/object/sign/aime/${p.split('/object/sign/aime/')[1] ?? ''}?token=t` })   // URL assinada de download
   if (p.includes('/storage/v1/object/list')) {
     // Como o armazenamento real: filtra pelo trecho do nome (search), ordena por nome e pagina (limit e offset)
     const corpo = JSON.parse(String(init?.body ?? '{}'))

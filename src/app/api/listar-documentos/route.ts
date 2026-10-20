@@ -8,7 +8,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { exigirSessao, exigirChaveDoProprio } from '@/lib/autorizacao'
 import { listarArquivosComPrefixo } from '@/lib/armazenamento'
-import { lerVersaoPdfAssinado } from '@/lib/nomeArquivo'
+import { lerVersaoPdfAssinado, nomeSemChave } from '@/lib/nomeArquivo'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -64,7 +64,9 @@ export async function GET(request: NextRequest) {
         const nomeRotulo = versao ? versao.nomeSemVersao : nome
         const { data: urlData } = await supabase.storage
           .from('aime')
-          .createSignedUrl(`documentos_inspetor/${nome}`, 3600)
+          // O parâmetro download faz o armazenamento entregar o arquivo COMO DOWNLOAD (Content-Disposition: attachment), com o nome sem a chave (o CPF):
+          // o botão Baixar só abre o link, sem buscar o arquivo para a memória do navegador.
+          .createSignedUrl(`documentos_inspetor/${nome}`, 3600, { download: nomeSemChave(nome) })
 
         // Rótulo amigável
         let label = nomeRotulo

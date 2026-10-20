@@ -82,23 +82,18 @@ function BaixarDocumentos() {
     }
   }
 
-  async function baixar(doc: Doc) {
-    try {
-      // Fetch do arquivo e força download via blob — evita o navegador abrir HTMLs
-      const res = await fetch(doc.url)
-      const blob = await res.blob()
-      const url = URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = url
-      a.download = nomeSemChave(doc.nome)   // sem o prefixo da chave (o CPF): o arquivo vai para o cliente
-      document.body.appendChild(a)
-      a.click()
-      document.body.removeChild(a)
-      URL.revokeObjectURL(url)
-    } catch {
-      // Fallback: abre em nova aba
-      window.open(doc.url, '_blank')
-    }
+  function baixar(doc: Doc) {
+    setErro('')
+    if (!doc.url) { setErro('Não foi possível iniciar o download deste documento. Atualize a lista e tente de novo.'); return }
+    // A URL assinada já entrega o arquivo COMO DOWNLOAD, com o nome sem a chave (o CPF) (ver listar-documentos): o botão só abre o link. Antes o
+    // arquivo era buscado para a memória (fetch + blob) e, se algo falhasse, abria uma nova aba, que tablet e aplicativo instalado bloqueiam sem avisar.
+    const a = document.createElement('a')
+    a.href = doc.url
+    a.download = nomeSemChave(doc.nome)
+    a.rel = 'noopener'
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
   }
 
   const S = {
