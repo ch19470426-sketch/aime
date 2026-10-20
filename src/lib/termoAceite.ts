@@ -11,7 +11,7 @@ export const VERSAO_TERMO = '2026-10-16'
 
 export const TERMO_TITULO = "Termo de Aceite dos Serviços – Plataforma AIMÊ (SaaS)"
 export const TERMO_CABECALHO = 'SAAS – ENGENHARIA DIAGNÓSTICA INOVA SIMPLES (IS)'
-export const TERMO_RODAPE = 'Rua Francisco Rubim, 188/102, Bento Ferreira, Vitória/ES – CNPJ 69.190.214/0001/74 – WhatsApp (27) 99954 4362'
+export const TERMO_RODAPE = 'Rua Francisco Rubim, 188/102, Bento Ferreira, Vitória/ES – CNPJ 69.190.214/0001-74 – WhatsApp (27) 99954 4362'
 
 export interface BlocoTermo { t: 'abertura' | 'clausula' | 'paragrafo'; nivel: 0 | 1 | 2; texto: string }
 
@@ -19,7 +19,7 @@ export const TERMO_BLOCOS: BlocoTermo[] = [
   { t: "abertura", nivel: 0, texto: "**Pelo presente instrumento particular**, de um lado, a **PLATAFORMA AIMÊ**, doravante denominada **“CONTRATADA”**, e, de outro, o usuário devidamente cadastrado no sistema, doravante denominado **“USUÁRIO”**, têm entre si justo e acordado o presente **Termo de Aceite dos Serviços**, que se regerá pelas cláusulas e condições abaixo." },
   { t: "clausula", nivel: 0, texto: "1. OBJETO." },
   { t: "paragrafo", nivel: 1, texto: "1.1. O presente Termo tem por objeto a disponibilização, pela CONTRATADA ao USUÁRIO, de plataforma digital em modelo **Software as a Service (SaaS)** destinada ao apoio à execução de atividades relacionadas à **engenharia diagnóstica**, incluindo, mas não se limitando, à coleta, organização, processamento e emissão de dados técnicos oriundos de vistorias, inspeções e avaliações de edificações e de equipamentos." },
-  { t: "paragrafo", nivel: 1, texto: "1.2. A plataforma AIME constitui ferramenta de apoio técnico-operacional, não substituindo a atuação profissional especializado, nem assumindo responsabilidade técnica pelos serviços executados." },
+  { t: "paragrafo", nivel: 1, texto: "1.2. A plataforma AIMÊ constitui ferramenta de apoio técnico-operacional, não substituindo a atuação profissional especializada, nem assumindo responsabilidade técnica pelos serviços executados." },
   { t: "clausula", nivel: 0, texto: "2. CONDIÇÕES DE USO E RESPONSABILIDADE PROFISSIONAL." },
   { t: "paragrafo", nivel: 1, texto: "2.1. O USUÁRIO declara estar ciente de que a utilização da plataforma para execução de atividades técnicas na área de engenharia diagnóstica **exige obrigatoriamente a atuação de profissionais legalmente habilitados**." },
   { t: "paragrafo", nivel: 1, texto: "2.2. O USUÁRIO compromete-se a:" },
@@ -58,7 +58,7 @@ export const TERMO_BLOCOS: BlocoTermo[] = [
   { t: "clausula", nivel: 0, texto: "6. PROTEÇÃO DE DADOS." },
   { t: "paragrafo", nivel: 1, texto: "6.1. A CONTRATADA compromete-se a adotar boas práticas de segurança da informação, visando a proteção dos dados armazenados na plataforma." },
   { t: "paragrafo", nivel: 1, texto: "6.2. O USUÁRIO é responsável pela veracidade, integridade e legalidade dos dados inseridos no sistema." },
-  { t: "paragrafo", nivel: 0, texto: "6.3.- Os dados e produtos gerados na plataforma pela execução dos serviços armazenados na base de dados poderão ser eliminados ou anonimizados após o prazo de 6 (seis) meses, observadas as obrigações legais de conservação." },
+  { t: "paragrafo", nivel: 0, texto: "6.3. Os dados e produtos gerados na plataforma pela execução dos serviços armazenados na base de dados poderão ser eliminados ou anonimizados após o prazo de 6 (seis) meses, observadas as obrigações legais de conservação." },
   { t: "clausula", nivel: 0, texto: "7. LIMITAÇÃO DE RESPONSABILIDADE." },
   { t: "paragrafo", nivel: 1, texto: "7.1. A CONTRATADA não responde por quaisquer danos diretos ou indiretos decorrentes:" },
   { t: "paragrafo", nivel: 2, texto: "a) Do uso inadequado da plataforma;" },
