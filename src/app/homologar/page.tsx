@@ -318,11 +318,12 @@ function Tela40Inner() {
         let jaHomologada = false
         let dataUltima = ''
         try {
-          const jaFeitas = await query('dados_vistoria',
-            `cpf_inspetor=eq.${cpfInspetor}&cnpjoucpf=eq.${cnpjoucpf}&select=data_homologacao&order=data_homologacao.desc&limit=1`)
-          if (Array.isArray(jaFeitas) && jaFeitas.length > 0) {
+          // Pelo servidor (a tabela dados_vistoria não é mais acessível direto do navegador)
+          const rUltima = await fetch(`/api/dados-vistoria?cpf_inspetor=${encodeURIComponent(cpfInspetor)}&cnpjoucpf=${encodeURIComponent(cnpjoucpf)}`)
+          const jaFeitas = await rUltima.json()
+          if (jaFeitas?.ultima) {
             jaHomologada = true
-            dataUltima = jaFeitas[0].data_homologacao ?? ''
+            dataUltima = jaFeitas.ultima.data_homologacao ?? ''
           }
         } catch {}
 
@@ -632,12 +633,10 @@ function Tela40Inner() {
       // com o schema real (numero_foto, sistema_vistoria, subsistema_vistoria,
       // descricao_nao_conformidade, descricao_causa_provavel — não existem
       // colunas "gravidade"/"urgencia"/"abrangencia"/"exposicao" nesta tabela).
-      const resDadosVistoria = await fetch(`${SUPA_URL}/rest/v1/dados_vistoria`, {
+      // Gravação PELO SERVIDOR (confere de quem é o dado e só aceita as colunas conhecidas); antes ia direto ao banco com a chave pública.
+      const resDadosVistoria = await fetch('/api/dados-vistoria', {
         method: 'POST',
-        headers: {
-          'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}`,
-          'Content-Type': 'application/json', 'Prefer': 'resolution=merge-duplicates'
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           cpf_inspetor: form.cpfInspetor,
           cnpjoucpf: form.cnpjoucpf,
