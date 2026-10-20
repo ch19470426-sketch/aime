@@ -15,6 +15,10 @@
     "src/app/api/gerar-plano-manutencao-pdf/route.ts": {
       "memory": 3009,
       "maxDuration": 300
+    },
+    "src/app/api/gerar-termo-aceite/route.ts": {
+      "memory": 3009,
+      "maxDuration": 120
     }
   },
   "crons": [

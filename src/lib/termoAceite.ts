@@ -89,8 +89,8 @@ export function dataDoAceite(agora: Date = new Date()): string {
 const escapar = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
 const comNegritoHtml = (texto: string) => partesComNegrito(texto).map(p => (p.b ? `<strong>${escapar(p.t)}</strong>` : escapar(p.t))).join('')
 
-/** O arquivo HTML que registra o aceite (salvo em documentos_inspetor), com a data do aceite no fim. */
-export function termoEmHtml(dataAceite: string): string {
+/** O arquivo HTML que registra o aceite (salvo em documentos_inspetor), com a data do aceite no fim. paraPdf: sem cabeçalho e rodapé no corpo (o PDF os repete em todas as páginas). */
+export function termoEmHtml(dataAceite: string, opcoes: { paraPdf?: boolean } = {}): string {
   const corpo = TERMO_BLOCOS.map(b => {
     if (b.t === 'clausula') return `<h2>${escapar(b.texto)}</h2>`
     if (b.t === 'abertura') return `<p class="abertura">${comNegritoHtml(b.texto)}</p>`
@@ -103,7 +103,7 @@ export function termoEmHtml(dataAceite: string): string {
   <meta name="versao-termo" content="${VERSAO_TERMO}">
   <title>Termo de Aceite dos Serviços – AIMÊ</title>
   <style>
-    body { font-family: Arial, sans-serif; font-size: 10pt; line-height: 1.6; color: #000; padding: 24px 32px; max-width: 800px; margin: 0 auto; }
+    body { font-family: Arial, sans-serif; font-size: 10pt; line-height: 1.6; color: #000; ${opcoes.paraPdf ? 'padding: 0; margin: 0;' : 'padding: 24px 32px; max-width: 800px; margin: 0 auto;'} }
     .cab { text-align: center; font-weight: bold; font-size: 9pt; padding-bottom: 4pt; border-bottom: 1px solid #000; }
     .titulo { text-align: center; font-weight: bold; font-size: 11pt; margin: 18pt 0; }
     h2 { font-size: 10pt; font-weight: bold; margin: 14pt 0 4pt; }
@@ -116,11 +116,11 @@ export function termoEmHtml(dataAceite: string): string {
   </style>
 </head>
 <body>
-  <div class="cab">${escapar(TERMO_CABECALHO)}</div>
+  ${opcoes.paraPdf ? '' : `<div class="cab">${escapar(TERMO_CABECALHO)}</div>`}
   <div class="titulo">${escapar(TERMO_TITULO)}</div>
   ${corpo}
   <p class="data">Data do aceite: ${dataAceite}.</p>
-  <div class="rod">${escapar(TERMO_RODAPE)}</div>
+  ${opcoes.paraPdf ? '' : `<div class="rod">${escapar(TERMO_RODAPE)}</div>`}
 </body>
 </html>`
 }

@@ -39,6 +39,7 @@ export async function GET(request: NextRequest) {
 
     // Filtrar: arquivo deve conter chaveInspetor E cnpjoucpf no nome
     // Exclui fotos de vistoria (nome termina com _foto_NNN.jpg ou _NNN.jpg)
+    const nomesExistentes = new Set((data ?? []).map(f => f.name))
     const arquivos = (data ?? [])
       .filter(f => {
         const nome = f.name
@@ -52,6 +53,9 @@ export async function GET(request: NextRequest) {
         const ehPdf  = nome.endsWith('.pdf')
         // HTML é arquivo de trabalho interno — não deve aparecer para download. EXCEÇÃO: o Termo de Aceite é gravado como HTML e o inspetor
         // precisa poder baixar o que aceitou (antes só aparecia se houvesse um PDF assinado).
+        // Quando o PDF do termo existe (gravado no aceite), aparece só ele; o HTML do termo, que o painel usa para saber que o aceite foi feito, fica escondido.
+        // Termos aceitos antes do PDF existir continuam aparecendo em HTML.
+        if (ehTermo && nome.endsWith('.html') && nomesExistentes.has(nome.replace(/\.html$/, '.pdf'))) return false
         return ehPdf || ehTermo
       })
 

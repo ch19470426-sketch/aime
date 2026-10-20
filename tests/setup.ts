@@ -11,6 +11,9 @@ process.env.ASAAS_API_KEY_PRODUCAO = 'ak'
 
 const g = globalThis as any
 
+// O PDF do termo de aceite usa o Chromium: nos testes é simulado (nada de navegador de verdade).
+vi.mock('@/lib/htmlParaPdf', () => ({ htmlParaPdf: vi.fn(async () => Buffer.from('%PDF-1.4 teste')) }))
+
 // A sessão do servidor (cookie ou Bearer reais) é substituída por uma sessão de teste: sessao(cpf) em helpers.ts.
 vi.mock('@/lib/sessaoServidor', () => ({
   sessaoDaRequisicao: async () => (g.__SESSAO ? { cpf: g.__SESSAO, via: 'bearer' } : null),

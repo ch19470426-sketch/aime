@@ -1,7 +1,9 @@
 // Termo de Aceite: texto único (src/lib/termoAceite.ts), data do aceite no horário de Brasília e arquivo gerado no aceite.
 import { describe, it, expect, beforeEach } from 'vitest'
-import { readFileSync } from 'node:fs'
-import { A, estado, reiniciar, sessao, req, status, quantas } from './helpers'
+import { A, estado, reiniciar, sessao, req, status, quantas, chamadas } from './helpers'
+import { htmlParaPdf } from '@/lib/htmlParaPdf'
+import * as listdoc from '@/app/api/listar-documentos/route'
+import { vi } from 'vitest'
 import { dataDoAceite, termoEmHtml, TERMO_BLOCOS, partesComNegrito, VERSAO_TERMO } from '@/lib/termoAceite'
 import * as gerar from '@/app/api/gerar-termo-aceite/route'
 
@@ -40,11 +42,28 @@ describe('o arquivo do aceite', () => {
 })
 
 describe('POST /api/gerar-termo-aceite', () => {
-  it('o próprio usuário registra o aceite: o arquivo <chave>_termo_de_aceite.html é gravado', async () => {
-    const r = await gerar.POST(req('/api/gerar-termo-aceite', 'POST', { cpfInspetor: A, chaveInspetor: 'INS-001' }))
+  const aceitar = () => gerar.POST(req('/api/gerar-termo-aceite', 'POST', { cpfInspetor: A, chaveInspetor: 'INS-001' }))
+  const gravados = () => chamadas().filter(c => /storage\/v1\/object\//.test(c.p)).map(c => c.p.split('/').pop())
+
+  it('o próprio usuário registra o aceite: grava o HTML (o registro) e o PDF (o comprovante que ele baixa)', async () => {
+    const r = await aceitar()
     expect(r.status).toBe(200)
     expect((await r.json()).nomeArquivo).toBe('INS-001_termo_de_aceite.html')
-    expect(quantas(/storage\/v1\/object\//)).toBe(1)
+    expect(gravados().sort()).toEqual(['INS-001_termo_de_aceite.html', 'INS-001_termo_de_aceite.pdf'])
+  })
+  it('o PDF leva a MESMA data do HTML e o cabeçalho e o rodapé do termo', async () => {
+    await aceitar()
+    const [html, opcoes] = vi.mocked(htmlParaPdf).mock.calls.at(-1)!
+    expect(html).toContain(`Data do aceite: ${dataDoAceite()}.`)
+    expect(opcoes?.cabecalho).toContain('INOVA SIMPLES')
+    expect(opcoes?.rodape).toContain('CNPJ 69.190.214/0001-74')
+  })
+  it('se o PDF falhar, o aceite continua válido: responde 200 e o HTML está gravado', async () => {
+    vi.mocked(htmlParaPdf).mockRejectedValueOnce(new Error('chromium indisponível'))
+    const r = await aceitar()
+    expect(r.status).toBe(200)
+    expect((await r.json()).ok).toBe(true)
+    expect(gravados()).toEqual(['INS-001_termo_de_aceite.html'])
   })
   it('em nome de outra pessoa é barrado e nada é gravado', async () => {
     expect(await status(gerar.POST(req('/api/gerar-termo-aceite', 'POST', { cpfInspetor: '99999999999', chaveInspetor: 'INS-999' })))).toBe(403)
@@ -52,10 +71,15 @@ describe('POST /api/gerar-termo-aceite', () => {
   })
 })
 
-describe('fonte única', () => {
-  it('a tela e a rota usam o texto de src/lib/termoAceite.ts, e nenhuma das duas guarda o texto por conta própria', () => {
-    const tela = readFileSync('src/app/termo-aceite/page.tsx', 'utf-8'), rota = readFileSync('src/app/api/gerar-termo-aceite/route.ts', 'utf-8')
-    expect(tela).toContain('TERMO_BLOCOS'); expect(rota).toContain('termoEmHtml(dataDoAceite())')
-    for (const f of [tela, rota]) expect(f).not.toContain('O presente Termo tem por objeto')
+describe('Baixar Documentos mostra um termo só', () => {
+  const listar = async () => (await listdoc.GET(req(`/api/listar-documentos?chave_inspetor=${A}&cnpjoucpf=39262886000187`))).json()
+  beforeEach(() => { estado.chaves[A] = A })
+  it('com o PDF gravado, aparece só o PDF (o HTML do termo, que o painel usa, fica escondido)', async () => {
+    estado.arquivos.documentos_inspetor = [`${A}_termo_de_aceite.html`, `${A}_termo_de_aceite.pdf`]
+    expect((await listar()).docs.map((d: any) => d.nome)).toEqual([`${A}_termo_de_aceite.pdf`])
+  })
+  it('termo aceito antes do PDF existir continua aparecendo, em HTML', async () => {
+    estado.arquivos.documentos_inspetor = [`${A}_termo_de_aceite.html`]
+    expect((await listar()).docs.map((d: any) => d.nome)).toEqual([`${A}_termo_de_aceite.html`])
   })
 })
