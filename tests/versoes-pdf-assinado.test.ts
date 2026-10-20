@@ -81,10 +81,3 @@ describe('listar-documentos mostra todas as versões', () => {
   })
 })
 
-describe('resumo do gestor', () => {
-  it('conta as versões do PDF assinado e o HTML como UM documento (usa baseDoDocumento)', () => {
-    const codigo = readFileSync('src/app/api/gestor/resumo/route.ts', 'utf-8')
-    expect(codigo).toMatch(/const base = baseDoDocumento\(f\.name\)/)
-    expect(codigo).not.toMatch(/f\.name\.replace\(\/\(_assinado\)\?/)
-  })
-})

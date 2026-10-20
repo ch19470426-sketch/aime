@@ -36,38 +36,3 @@ describe('crédito mínimo para iniciar a vistoria 39', () => {
   })
 })
 
-describe('"elvadores" corrigido para "elevadores"', () => {
-  const laudo = readFileSync('src/app/api/gerar-laudo/route.ts', 'utf-8')
-  it('o nome certo está nas quatro listas de sistemas e na descrição do sistema 10', () => {
-    expect(laudo.match(/10-Acessibilidade\/elevadores/g)?.length).toBe(5)
-  })
-  it('o erro de digitação só sobrevive na tolerância que reconhece o dado antigo', () => {
-    const restos = laudo.split('\n').filter(l => l.includes('elvadores'))
-    expect(restos).toHaveLength(2)                                                    // o comentário e a normalização
-    expect(laudo).toMatch(/\.replace\(\/elvadores\/gi, 'elevadores'\)/)
-  })
-  it('a tolerância faz o nome antigo casar com o certo (mesma função do laudo)', () => {
-    const norm = (s: string) => String(s || '').trim().replace(/^\d+[-_]\s*/, '').replace(/_/g, ' ').replace(/elvadores/gi, 'elevadores').trim().toLowerCase()
-    expect(norm('10-Acessibilidade/elvadores')).toBe(norm('10-Acessibilidade/elevadores'))
-  })
-  it('nenhum outro arquivo do código tem o erro', () => {
-    for (const f of ['src/lib/profissionaisDeApoio.ts', 'src/app/api/gerar-laudo-docx/route.ts', 'src/lib/descSistemas.ts']) expect(readFileSync(f, 'utf-8')).not.toContain('elvadores')
-  })
-  it('o SQL corrige as duas tabelas que o código usa e começa por uma consulta só de leitura', () => {
-    const sql = readFileSync('sql/2026-10-14_corrige_elevadores.sql', 'utf-8')
-    expect(sql).toMatch(/update public\.sistemas_construtivos set sistema = regexp_replace\(sistema, 'elvadores', 'elevadores', 'gi'\)/)
-    expect(sql).toMatch(/update public\.dados_vistoria set sistema_vistoria = regexp_replace\(sistema_vistoria, 'elvadores', 'elevadores', 'gi'\)/)
-    expect(sql.indexOf('select table_name, column_name, qtd')).toBeLessThan(sql.indexOf('update public.sistemas_construtivos'))
-    expect(sql.split('\n').filter(l => /^\s*update /i.test(l))).toHaveLength(0)         // os updates ficam comentados: a ETAPA 2 é uma decisão consciente
-  })
-})
-
-describe('manual operacional', () => {
-  it('o link do painel aponta para o arquivo, e o arquivo é um PDF de 7 páginas, versão 1.1', () => {
-    expect(readFileSync('src/app/dashboard/page.tsx', 'utf-8')).toContain('href="/manual-operacional-inspetor.pdf"')
-    const pdf = readFileSync('public/manual-operacional-inspetor.pdf')
-    expect(pdf.subarray(0, 5).toString()).toBe('%PDF-')
-    expect(statSync('public/manual-operacional-inspetor.pdf').size).toBeGreaterThan(100_000)
-    expect(pdf.toString('latin1').match(/\/Type\s*\/Page[^s]/g)?.length).toBe(7)
-  })
-})

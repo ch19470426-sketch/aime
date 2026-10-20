@@ -60,39 +60,3 @@ describe('upload-pdf-assinado (URL de envio com upsert)', () => {
   })
 })
 
-describe('as telas que enviam PDF assinado usam o nome do sistema', () => {
-  it('homologar-produto (laudo) não usa mais o nome do arquivo escolhido no aparelho', () => {
-    const codigo = readFileSync('src/app/homologar-produto/page.tsx', 'utf-8')
-    expect(codigo).toMatch(/nomePdf = nomePdfAssinado\(nomeArquivo\)/)
-    expect(codigo).toMatch(/if \(!nomePdf\) throw/)                       // sem o documento, recusa em vez de adivinhar
-    expect(codigo).not.toMatch(/nomePdf = arquivo\.name/)
-  })
-  it('plano-manutencao monta o nome a partir do documento (já era assim)', () => {
-    expect(readFileSync('src/app/plano-manutencao/inner.tsx', 'utf-8')).toMatch(/nomePdf = nomeArq\.replace\('\.html', '_assinado\.pdf'\)/)
-  })
-})
-
-describe('todas as telas abrem Homologar produto com um nome de documento que ela entende', () => {
-  const telas = ['src/app/proposta/page.tsx', 'src/app/plano/page.tsx', 'src/app/laudo/page.tsx', 'src/app/plano-manutencao/inner.tsx']
-  it.each(telas)('%s passa o documento por nome_arquivo ou nome', (arquivo) => {
-    const linhas = readFileSync(arquivo, 'utf-8').split('\n')
-    const links = linhas.map((l, i) => (l.includes('/homologar-produto?') ? i : -1)).filter(i => i >= 0)
-    expect(links.length).toBeGreaterThan(0)
-    for (const i of links) {
-      const trecho = linhas.slice(i, i + 4).join(' ')
-      expect(trecho).toMatch(/[&?](nome_arquivo|nome)=/)
-    }
-  })
-  it('Homologar produto lê os dois parâmetros (o plano de manutenção usa nome)', () => {
-    expect(readFileSync('src/app/homologar-produto/page.tsx', 'utf-8')).toMatch(/params\.get\('nome_arquivo'\)\s*\?\?\s*params\.get\('nome'\)/)
-  })
-})
-
-describe('depois de enviar o PDF assinado, o OK volta ao menu em todas as telas de documento', () => {
-  it.each([
-    ['src/app/plano-manutencao/inner.tsx', /agradece\('PDF assinado salvo'[^\n]*window\.location\.href = retorno/],
-    ['src/app/homologar-produto/page.tsx', /agradece\('Homologação concluída',[\s\S]{0,160}window\.location\.href = retorno/],
-  ])('%s', (arquivo, regra) => {
-    expect(readFileSync(arquivo, 'utf-8')).toMatch(regra)
-  })
-})

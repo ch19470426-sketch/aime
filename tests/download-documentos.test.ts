@@ -39,17 +39,3 @@ describe('listar-documentos: a URL assinada entrega o arquivo como download, com
   })
 })
 
-describe('a tela Baixar Documentos', () => {
-  const tela = readFileSync('src/app/baixar-documentos/page.tsx', 'utf-8')
-  const trecho = tela.slice(tela.indexOf('function baixar(doc: Doc)'), tela.indexOf('const S = {')).replace(/\/\/.*$/gm, '')   // só o código, sem os comentários
-  it('o botão só abre o link da URL assinada: sem buscar o arquivo para a memória e sem abrir nova aba', () => {
-    expect(trecho).toMatch(/a\.href = doc\.url/)
-    expect(trecho).toMatch(/a\.download = nomeSemChave\(doc\.nome\)/)
-    expect(trecho).not.toMatch(/fetch\(/)
-    expect(trecho).not.toMatch(/blob/i)
-    expect(trecho).not.toMatch(/window\.open/)
-  })
-  it('se o documento não tem link, o botão MOSTRA uma mensagem (antes ficava sem efeito e sem aviso)', () => {
-    expect(trecho).toMatch(/if \(!doc\.url\) \{ setErro\('Não foi possível iniciar o download deste documento/)
-  })
-})

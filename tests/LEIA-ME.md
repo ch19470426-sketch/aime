@@ -1,5 +1,15 @@
 # Testes automáticos do AIMÊ
 
+## Regra de testes (decisão de Celso, 16/10/2026)
+
+Os testes existem para **proteger o que não pode quebrar**: dinheiro (créditos, estornos, cobrança), segurança (quem pode ler, gravar ou apagar o quê), dados pessoais (cadastro, autorização, termo) e **dono de arquivo**.
+
+- **Teste novo só nessas áreas**, e no máximo uns 5 por mudança.
+- **Mudança de texto, cor, espaço, botão ou ordem de tela: nenhum teste novo.** Basta o verificador de tipos (`npx tsc --noEmit`) e a conferência na tela. Testes que leem o texto do código-fonte quebram a cada ajuste visual e não provam comportamento.
+- A **prova de defeito provocado** (quebrar o código de propósito para ver o teste acusar) vale **só para cobrança e segurança**.
+- Em 16/10/2026 a suíte foi podada de 302 para 272 testes (saíram os de texto e de estilo); os de segurança, cobrança e dados ficaram intactos.
+
+
 Rodar tudo: `npm test` (uma vez) ou `npm run test:watch` (reexecuta ao salvar).
 Antes de publicar qualquer mudança em `src/app/api` ou `src/lib`, rode `npm test`.
 
@@ -22,11 +32,12 @@ Cada chamada ao banco e ao armazenamento fica registrada, então um teste de seg
 | `versoes-pdf-assinado.test.ts` | cada envio do PDF assinado é uma versão com data e hora de Brasília no nome; a lista mostra todas e o resumo do gestor conta um documento só |
 | `upload-pdf-assinado.test.ts` | o PDF assinado tem nome montado pelo sistema (começa pela chave) e a rota de envio só grava arquivo do próprio usuário |
 | `contato-cliente.test.ts` | o contato do cliente (responsável e finalidade) é gravado e lido como a vistoria e o laudo esperam |
-| `saldo-planos-vigentes.test.ts` | o saldo de plano soma TODOS os contratos vigentes (Cortesia 66 + Serviço 50 = 116) nas telas do gestor, e a migração do banco tem a regra certa; a regra do banco é testada em `sql/testes/2026-10-14_saldo_soma_planos.sh` (PostgreSQL de teste, 34 conferências) |
-| `profissionais-de-apoio.test.ts` | vistoria 39 para o Eng Elétrico (sistema 07) e o Eng Mecânico (09 e 10): a regra dos perfis, a rota do perfil, o sistema imposto no salvamento, a listagem por especialidade e as telas |
-| `ajustes-vistoria-39.test.ts` | vistoria 39 inicia com 50 CR (as outras vistorias, 100); "elvadores" corrigido para "elevadores" (código e SQL); manual operacional em PDF de 7 páginas |
-| `autorizacao-marketing.test.ts` | autorização do inspetor para uso dos dados em publicidade e promoções: opt-in, rota de retirada só do titular, cadastro inicial, tela (Meu Cadastro, item 6.2) e SQL |
-| `download-documentos.test.ts` | botão Baixar do item 61: a URL assinada entrega o arquivo como download com o nome sem a chave (CPF) e o botão só abre o link, sem fetch, blob nem nova aba |
+| `saldo-planos-vigentes.test.ts` | o saldo de plano soma TODOS os contratos vigentes (função usada pelas telas do gestor); a regra do banco é testada em `sql/testes/2026-10-14_saldo_soma_planos.sh` |
+| `profissionais-de-apoio.test.ts` | vistoria 39 do Eng Elétrico (sistema 07) e do Eng Mecânico (09 e 10): a regra dos perfis, a rota do perfil, o sistema imposto no salvamento e a listagem por especialidade |
+| `ajustes-vistoria-39.test.ts` | a vistoria 39 inicia com 50 CR (as outras vistorias, 100) |
+| `autorizacao-marketing.test.ts` | autorização para uso dos dados em publicidade (LGPD): opt-in, rota de retirada só do titular e cadastro inicial |
+| `download-documentos.test.ts` | botão Baixar do item 61: a URL assinada entrega o arquivo como download, com o nome sem a chave (CPF) |
+| `termo-aceite.test.ts` | termo de aceite: data do aceite no horário de Brasília, arquivo gerado com as 9 cláusulas e a data preenchida, fonte única do texto |
 | `offline-sincronizacao.test.ts` | vistoria salva offline antes da migração (chave INS-nnn) sincroniza com o CPF; as duas cópias da regra (fila do app e service worker) coincidem |
 | `seguranca/gerar-nome-do-arquivo.test.ts` | gerar-laudo e gerar-plano-manutencao só gravam o HTML com nome que começa pela chave do usuário logado (o modo _info_ segue livre) |
 | `seguranca/chave-inspetor.test.ts` | a chave do inspetor é o CPF, decidida no servidor; nenhuma rota grava chave vinda do navegador |

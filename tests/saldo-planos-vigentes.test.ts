@@ -27,29 +27,3 @@ describe('saldoPlanoVigente', () => {
   })
 })
 
-describe('as telas do gestor mostram o mesmo saldo que a cobrança usa', () => {
-  it('painel do gestor (saldo do inspetor) soma os contratos vigentes', () => {
-    const codigo = readFileSync('src/app/gestor/page.tsx', 'utf-8')
-    expect(codigo).toMatch(/saldoTotal = saldoPlanoVigente\(contratos,/)
-    expect(codigo).not.toMatch(/saldoTotal = \(contratoAtivo\?\.saldo_quantidade_plano/)
-  })
-  it('resumo do gestor (créditos disponíveis) soma os contratos vigentes', () => {
-    const codigo = readFileSync('src/app/api/gestor/resumo/route.ts', 'utf-8')
-    expect(codigo).toMatch(/creditosDisponiveis \+= saldoPlanoVigente\(contratos, hoje\)/)
-    expect(codigo).not.toMatch(/contratoVigentePorCpf\.get\(cpf\)\?\.saldo_quantidade_plano/)
-  })
-})
-
-describe('a migração do banco', () => {
-  const sql = readFileSync('sql/2026-10-14_saldo_soma_planos_vigentes.sql', 'utf-8')
-  it('define as duas funções somando os contratos vigentes', () => {
-    expect(sql).toMatch(/CREATE OR REPLACE FUNCTION public\.saldo_creditos/)
-    expect(sql).toMatch(/CREATE OR REPLACE FUNCTION public\.consumir_creditos/)
-    expect(sql.match(/SUM\(saldo_quantidade_plano\)/g)?.length).toBe(2)
-  })
-  it('debita primeiro o contrato que vence antes e atualiza pela chave primária (não pelo ctid)', () => {
-    expect(sql).toMatch(/ORDER BY data_fim_contrato, data_inicio_contrato, tipo_assinatura/)
-    expect(sql).toMatch(/AND tipo_assinatura = r_plano\.tipo_assinatura/)
-    expect(sql).not.toMatch(/WHERE ctid = /)
-  })
-})

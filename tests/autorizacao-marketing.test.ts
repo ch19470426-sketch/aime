@@ -105,29 +105,10 @@ describe('a tela de cadastro (Cadastro Inicial e Meu Cadastro, item 6.2)', () =>
     expect(tela).toContain('{TEXTO_AUTORIZACAO_MARKETING}')
     expect(tela).toContain('Autorização de Uso dos Dados')
   })
-  it('aparece só no Cadastro Inicial e em Meu Cadastro (não no cadastro do gestor nem na visualização do gestor)', () => {
-    expect(tela).toMatch(/\{\(ehNovo \|\| ehConsulta\) && \(\s*<div style=\{blocoStyle\}>\s*<div style=\{blocoHeaderStyle\}>\s*<span style=\{blocoTituloStyle\}>Autorização de Uso dos Dados/)
-  })
   it('em Meu Cadastro grava na hora pela rota própria (retirar não depende do resto do formulário)', () => {
     expect(tela).toMatch(/if \(!ehConsulta\) \{ setAutorizaMarketing\(valor\); return \}/)
     expect(tela).toContain("fetch('/api/autorizacao-marketing'")
     expect(tela.match(/setAutorizaMarketing\(anterior\)/g)?.length).toBe(2)   // se falhar, a caixa volta ao que estava: no erro do servidor E na falta de conexão
   })
-  it('o envio do cadastro leva a autorização SÓ no Cadastro Inicial e SÓ se a caixa foi marcada', () => {
-    expect(tela).toMatch(/\.\.\.\(ehNovo && autorizaMarketing \? \{ autoriza_marketing: true \} : \{\}\)/)
-  })
-  it('a tela carrega a decisão e a data do banco', () => {
-    expect(tela).toMatch(/setAutorizaMarketing\(!!d\.autoriza_marketing\)/)
-    expect(tela).toContain('d.autoriza_marketing_em')
-  })
 })
 
-describe('o SQL', () => {
-  const sql = readFileSync('sql/2026-10-16_autorizacao_marketing.sql', 'utf-8')
-  it('cria as três colunas, com padrão "não autorizou" e sem apagar nada', () => {
-    expect(sql).toMatch(/add column if not exists autoriza_marketing boolean not null default false/)
-    expect(sql).toMatch(/add column if not exists autoriza_marketing_em timestamptz/)
-    expect(sql).toMatch(/add column if not exists autoriza_marketing_versao text/)
-    expect(sql.split('\n').filter(l => /^\s*(drop|delete|truncate|update)\b/i.test(l))).toHaveLength(0)
-  })
-})

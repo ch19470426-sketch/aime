@@ -61,11 +61,6 @@ describe('o servidor, já migrado, e a fila offline', () => {
 })
 
 describe('as duas cópias da regra (fila do app e service worker) fazem o mesmo', () => {
-  it('offlineVistoria.ts usa chaveParaSincronizar', () => {
-    const codigo = readFileSync('src/lib/offlineVistoria.ts', 'utf-8')
-    expect(codigo).toContain('chaveParaSincronizar(')
-    expect(codigo).not.toMatch(/const chave\s*=\s*item\.chaveInspetor \?\? item\.payload\?\.chaveInspetor\s*$/m)
-  })
   it('public/sw.js tem a regra e dá o mesmo resultado que a função', () => {
     const sw = readFileSync('public/sw.js', 'utf-8')
     const ini = sw.indexOf('const chaveSalva'); const fim = sw.indexOf('const nomeArquivo', ini)
