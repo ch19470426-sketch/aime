@@ -18,6 +18,7 @@ CREATE OR REPLACE FUNCTION public.saldo_creditos(p_cpf text)
  RETURNS jsonb
  LANGUAGE plpgsql
  STABLE
+ SET search_path = public, extensions, pg_temp
 AS $function$
 DECLARE
   v_gestor  BOOLEAN;
@@ -63,6 +64,7 @@ $function$;
 CREATE OR REPLACE FUNCTION public.consumir_creditos(p_cpf text, p_custo integer, p_codigo_servico text DEFAULT NULL::text, p_cnpjoucpf text DEFAULT NULL::text, p_referencia text DEFAULT NULL::text)
  RETURNS jsonb
  LANGUAGE plpgsql
+ SET search_path = public, extensions, pg_temp
 AS $function$
 DECLARE
   v_gestor      BOOLEAN;
