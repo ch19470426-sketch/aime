@@ -33,7 +33,7 @@ function Conteudo() {
     if (!cpf) return
     setVerificando(true); setAviso('')
     try {
-      const res = await fetch(`/api/tem-contrato?cpf_inspetor=${cpf}&_=${Date.now()}`, { cache: 'no-store' })
+      const res = await fetch(`/api/tem-contrato?_=${Date.now()}`, { cache: 'no-store' })
       const d = await res.json()
       if (d.bloqueada === false) { window.location.href = '/dashboard'; return }
       setMotivo(d.bloqueioMotivo ?? null)

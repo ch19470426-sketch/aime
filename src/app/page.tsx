@@ -77,7 +77,7 @@ export default function LoginPage() {
       const emailTecnico = `${cpfLimpo}@aime-app.com.br`
 
       // Verifica se já existe cadastro de inspetor para este CPF
-      const res = await fetch(`/api/verificar-inspetor?cpf=${cpfLimpo}`)
+      const res = await fetch('/api/verificar-inspetor', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ cpf: cpfLimpo }) })
       const { existe: jaCadastrado } = await res.json()
 
       if (jaCadastrado) {

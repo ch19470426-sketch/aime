@@ -171,7 +171,7 @@ function EscolherPlano() {
   // DIRETO ao Asaas se o pedido foi pago e libera os créditos — assim não depende de o aviso do
   // Asaas (webhook) ter chegado (06/10/2026: um PIX confirmado no Asaas deixou a tela esperando).
   async function temContratoRapido(): Promise<boolean> {
-    const res = await fetch(`/api/tem-contrato?cpf_inspetor=${cpf}&_=${Date.now()}`, { cache: 'no-store' })
+    const res = await fetch(`/api/tem-contrato?_=${Date.now()}`, { cache: 'no-store' })
     const d = await res.json()
     return d.temContrato === true
   }

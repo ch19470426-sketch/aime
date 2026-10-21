@@ -9,8 +9,11 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
 
-export async function GET(request: NextRequest) {
-  const cpf = new URL(request.url).searchParams.get('cpf')
+// POST, com o CPF no CORPO: a tela de login precisa desta consulta antes do login, e o CPF não pode ir na URL (histórico do navegador, registros do servidor e
+// ferramentas de análise guardam a URL inteira). A rota GET foi removida.
+export async function POST(request: NextRequest) {
+  let cpf = ''
+  try { cpf = String((await request.json())?.cpf ?? '').replace(/\D/g, '') } catch { /* corpo inválido */ }
   if (!cpf) return NextResponse.json({ existe: false })
   try {
     const { data } = await supabase

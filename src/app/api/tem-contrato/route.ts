@@ -6,13 +6,18 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { ehGestor, temAlgumContrato, temPedidoPendenteRecente } from '@/lib/creditos'
 import { contaBloqueada } from '@/lib/bloqueio'
+import { exigirSessao } from '@/lib/autorizacao'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
 
 export async function GET(request: NextRequest) {
-  const cpf = new URL(request.url).searchParams.get('cpf_inspetor')
-  if (!cpf) return NextResponse.json({ erro: 'cpf_inspetor é obrigatório' }, { status: 400 })
+  // A identidade vem da SESSÃO, nunca da URL: quem chama só vê a situação da PRÓPRIA conta, e qualquer cpf_inspetor na URL é ignorado. Antes a rota
+  // aceitava o CPF da URL sem login e devolvia contrato, bloqueio e motivo de QUALQUER CPF. Só com o porteiro desligado (desenvolvimento) o parâmetro vale.
+  const acesso = await exigirSessao(request)
+  if (acesso.ok === false) return acesso.resposta
+  const cpf = acesso.ativa ? acesso.cpf : new URL(request.url).searchParams.get('cpf_inspetor')
+  if (!cpf) return NextResponse.json({ erro: 'Não foi possível identificar o usuário.' }, { status: 400 })
 
   const gestor = await ehGestor(cpf)
   const tem = gestor === true ? true : await temAlgumContrato(cpf)

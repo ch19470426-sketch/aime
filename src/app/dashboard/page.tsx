@@ -383,7 +383,7 @@ export default function Dashboard() {
         // libera o acesso normalmente (mesma filosofia do prazo acima).
         if (navigator.onLine) {
           try {
-            const resContrato = await fetch(`/api/tem-contrato?cpf_inspetor=${cpf}`)
+            const resContrato = await fetch('/api/tem-contrato')
             if (resContrato.ok) {
               const dadosContrato = await resContrato.json()
               // liberado = tem contrato OU um pagamento em andamento (já escolheu o plano e está pagando).
