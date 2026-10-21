@@ -40,6 +40,7 @@ export const estado = {
   saldo: null as null | Record<string, unknown>, // se preenchido, é o que a função saldo_creditos devolve (ex.: { existe: true, saldo_total: 16 })
   dadosVistoria: [] as Record<string, unknown>[], // linhas de dados_vistoria
   gravacoesDados: [] as { metodo: string; corpo: Record<string, unknown>; prefer: string }[], // POST e PATCH em dados_vistoria
+  gravacoesAtivos: [] as Record<string, unknown>[], // POST em ativos_a_vistoriar
 }
 
 export const jr = (b: unknown, s = 200, h: Record<string, string> = {}) =>
@@ -67,6 +68,7 @@ export function mundo(u: URL, m: string, init: any): Response {
     const cpf = (u.searchParams.get('cpf_inspetor') || '').replace('eq.', '')
     return jr({ chave_inspetor: estado.chaves[cpf] ?? null, titulo_profissional: estado.titulos[cpf] ?? null, is_gestor: estado.gestor, email_inspetor: 'g@x.com', nome_inspetor: 'G', conta_bloqueada: false })
   }
+  if (p.includes('/rest/v1/ativos_a_vistoriar') && m === 'POST') { estado.gravacoesAtivos.push(JSON.parse(String(init?.body ?? '{}'))); return jr([], 201) }
   if (p.includes('/rest/v1/dados_vistoria')) {
     if (m !== 'GET') { estado.gravacoesDados.push({ metodo: m, corpo: JSON.parse(String(init?.body ?? '{}')), prefer: new Headers(init?.headers as any).get('prefer') ?? '' }); return jr([], 201) }
     return jr(estado.dadosVistoria)
@@ -137,7 +139,7 @@ export function reiniciar() {
   sessao(A)
   ligarPorteiro(true)
   process.env.COBRANCA_CREDITOS_ATIVA = 'true'
-  Object.assign(estado, { chaves: { ...CHAVES }, chavesExistentes: [], proximaChave: 'INS-010', rpcChaveAusente: false, cadastroExiste: true, arquivos: {}, destinosExistentes: [], contatos: [], contatosGravados: [], erroContato: '', titulos: {}, falhaTitulo: false, gravacoesInspetor: [], saldo: null, dadosVistoria: [], gravacoesDados: [], falhaChave: false, gestor: false, asaasFora: false, cobrancaAsaas: null, pedido: null, contratos: [], insercaoContrato: 'ok', inserts: [], vinculos: [[E, A]] })
+  Object.assign(estado, { chaves: { ...CHAVES }, chavesExistentes: [], proximaChave: 'INS-010', rpcChaveAusente: false, cadastroExiste: true, arquivos: {}, destinosExistentes: [], contatos: [], contatosGravados: [], erroContato: '', titulos: {}, falhaTitulo: false, gravacoesInspetor: [], saldo: null, dadosVistoria: [], gravacoesDados: [], gravacoesAtivos: [], falhaChave: false, gestor: false, asaasFora: false, cobrancaAsaas: null, pedido: null, contratos: [], insercaoContrato: 'ok', inserts: [], vinculos: [[E, A]] })
 }
 
 export const req = (url: string, method = 'GET', body?: unknown) =>

@@ -8,6 +8,7 @@ import { useBanner } from '@/hooks/useBanner'
 import { enviarPdfAssinado } from '@/lib/envioPdf'
 import { createClient } from '@/utils/supabase/client'
 import { nomeSemChave, nomePdfAssinado } from '@/lib/nomeArquivo'
+import { credencialDoBanco } from '@/lib/bancoNavegador'
 
 const SUPA_URL = 'https://asgorarunzhiojqioxzq.supabase.co'
 const SUPA_KEY = 'sb_publishable_dH85HYKGxv3X0te627VfOw_OGaPoNMF'
@@ -107,7 +108,7 @@ function HomologarProdutoInner() {
 
   async function query(table: string, qparams: string) {
     const res = await fetch(`${SUPA_URL}/rest/v1/${table}?${qparams}`, {
-      headers: { 'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}` }
+      headers: { 'apikey': SUPA_KEY, 'Authorization': `Bearer ${await credencialDoBanco()}` }
     })
     return res.json()
   }

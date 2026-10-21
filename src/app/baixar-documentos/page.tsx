@@ -4,6 +4,7 @@ import { useState, useEffect, Suspense } from "react"
 import { useSearchParams } from "next/navigation"
 import Image from "next/image"
 import { nomeSemChave } from '@/lib/nomeArquivo'
+import { credencialDoBanco } from '@/lib/bancoNavegador'
 
 export default function BaixarDocumentosPage() {
   return (
@@ -40,9 +41,9 @@ function BaixarDocumentos() {
     if (cnpjoucpfUrl) {
       // Busca razão social/nome do estabelecimento
       const limpo = cnpjoucpfUrl.replace(/\D/g, '')
-      fetch(`${SUPA_URL}/rest/v1/estabelecimento?cnpjoucpf=eq.${limpo}&select=razao_social_nome`, {
-        headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` }
-      }).then(r => r.json()).then(d => {
+      credencialDoBanco().then(token => fetch(`${SUPA_URL}/rest/v1/estabelecimento?cnpjoucpf=eq.${limpo}&select=razao_social_nome`, {
+        headers: { apikey: SUPA_KEY, Authorization: `Bearer ${token}` }
+      })).then(r => r.json()).then(d => {
         if (Array.isArray(d) && d.length > 0) setRazaoSocial(d[0].razao_social_nome ?? '')
       }).catch(() => {})
       buscar()

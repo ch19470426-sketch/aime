@@ -8,6 +8,7 @@ import Banner from '@/components/Banner'
 import { useBanner } from '@/hooks/useBanner'
 import { prioridadeDoGrau, corTelaDoGrau, fundoTelaDoGrau } from '@/lib/prioridade'
 import { PERFIS_APOIO, perfilDoSistema, sistemasDoParametro, codigoDoSistema } from '@/lib/profissionaisDeApoio'
+import { credencialDoBanco } from '@/lib/bancoNavegador'
 
 // Mesmo mapeamento usado em src/app/plano/page.tsx — necessário porque o campo tipo_servico
 // salvo em ativos_a_vistoriar é a string completa da vistoria (ex: "33 Vistoria imóvel novo"),
@@ -253,7 +254,7 @@ function Tela40Inner() {
 
   async function query(table: string, params: string) {
     const res = await fetch(`${SUPA_URL}/rest/v1/${table}?${params}`, {
-      headers: { 'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}` }
+      headers: { 'apikey': SUPA_KEY, 'Authorization': `Bearer ${await credencialDoBanco()}` }
     })
     return res.json()
   }

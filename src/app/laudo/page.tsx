@@ -7,6 +7,7 @@ import Banner from '@/components/Banner'
 import { useBanner } from '@/hooks/useBanner'
 import { camposFaltantes } from '@/lib/coletaLaudo'
 import { ehPrioridadeAltaOuMedia } from '@/lib/prioridade'
+import { credencialDoBanco } from '@/lib/bancoNavegador'
 
 // ─── Tipos ───────────────────────────────────────────────────────────────────
 interface NC {
@@ -193,7 +194,7 @@ function LaudoComplemento() {
       try {
         // Estabelecimento
         const resE = await fetch(`${SUPA_URL}/rest/v1/estabelecimento?cnpjoucpf=eq.${cnpjoucpf}&select=*`, {
-          headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` }
+          headers: { apikey: SUPA_KEY, Authorization: `Bearer ${await credencialDoBanco()}` }
         })
         const dadosE = await resE.json()
         if (Array.isArray(dadosE) && dadosE.length > 0) {
@@ -245,7 +246,7 @@ function LaudoComplemento() {
         // para mais de um tipo de vistoria (ex: elevador E NR-10) podia trazer
         // as características erradas (do outro tipo) para o cabeçalho do laudo.
         let resA = await fetch(`${SUPA_URL}/rest/v1/ativos_a_vistoriar?cpf_inspetor=eq.${cpfInspetor}&cnpjoucpf=eq.${cnpjLimpo}&tipo_servico=eq.${encodeURIComponent(tsV)}&select=*&limit=1`, {
-          headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` }
+          headers: { apikey: SUPA_KEY, Authorization: `Bearer ${await credencialDoBanco()}` }
         })
         let dadosA = await resA.json()
         // Fallback: buscar sem filtro de tipo_servico só se não achou nada
@@ -253,14 +254,14 @@ function LaudoComplemento() {
         // mas só como último recurso)
         if (!Array.isArray(dadosA) || dadosA.length === 0) {
           resA = await fetch(`${SUPA_URL}/rest/v1/ativos_a_vistoriar?cpf_inspetor=eq.${cpfInspetor}&cnpjoucpf=eq.${cnpjLimpo}&select=*&limit=1`, {
-            headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` }
+            headers: { apikey: SUPA_KEY, Authorization: `Bearer ${await credencialDoBanco()}` }
           })
           dadosA = await resA.json()
         }
         try {
           const resL = await fetch(
             `${SUPA_URL}/rest/v1/ativos_a_vistoriar?cpf_inspetor=eq.${cpfInspetor}&cnpjoucpf=eq.${cnpjLimpo}&tipo_servico=eq.${encodeURIComponent(tsV)}&select=*`,
-            { headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` } }
+            { headers: { apikey: SUPA_KEY, Authorization: `Bearer ${await credencialDoBanco()}` } }
           )
           const lista = await resL.json()
           if (Array.isArray(lista)) setListaAtivos(lista)
@@ -282,7 +283,7 @@ function LaudoComplemento() {
 
         // Inspetor
         const resI = await fetch(`${SUPA_URL}/rest/v1/inspetor?cpf_inspetor=eq.${cpfInspetor}&select=*`, {
-          headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` }
+          headers: { apikey: SUPA_KEY, Authorization: `Bearer ${await credencialDoBanco()}` }
         })
         const dadosI = await resI.json()
         // Buscar documentos do plano de trabalho via gerar-plano
@@ -399,7 +400,7 @@ function LaudoComplemento() {
     try {
       const ncsAM = ncs.filter((nc: any) => ehPrioridadeAltaOuMedia(nc.prioridade))
       const ativo = await fetch(`${SUPA_URL}/rest/v1/ativos_a_vistoriar?cpf_inspetor=eq.${cpfInspetor}&cnpjoucpf=eq.${cnpjoucpf}&tipo_servico=ilike.%${cfg.tipoVistoria}%&select=data_inicio_operacao&limit=1`, {
-        headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` }
+        headers: { apikey: SUPA_KEY, Authorization: `Bearer ${await credencialDoBanco()}` }
       }).then(r => r.json())
       const dataHabitese = Array.isArray(ativo) && ativo.length > 0 ? ativo[0].data_inicio_operacao : null
       const res = await fetch('/api/ia-laudo', {

@@ -8,6 +8,7 @@ import Image from 'next/image'
 import Banner from '@/components/Banner'
 import { useBanner } from '@/hooks/useBanner'
 import { validarAgenda } from '@/lib/agenda'
+import { credencialDoBanco } from '@/lib/bancoNavegador'
 
 const SUPA_URL = 'https://asgorarunzhiojqioxzq.supabase.co'
 const SUPA_KEY = 'sb_publishable_dH85HYKGxv3X0te627VfOw_OGaPoNMF'
@@ -165,7 +166,7 @@ function PlanoInner() {
 
   async function query(table: string, qparams: string) {
     const res = await fetch(`${SUPA_URL}/rest/v1/${table}?${qparams}`, {
-      headers: { 'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}` }
+      headers: { 'apikey': SUPA_KEY, 'Authorization': `Bearer ${await credencialDoBanco()}` }
     })
     return res.json()
   }
@@ -270,9 +271,10 @@ function PlanoInner() {
         fluido_classe_fluido: ativoAtual.fluido_classe_fluido || null,
         volume_interno_m3: ativoAtual.volume_interno_m3 ? parseFloat(ativoAtual.volume_interno_m3) : null,
       }
-      const res = await fetch(`${SUPA_URL}/rest/v1/ativos_a_vistoriar`, {
+      // Gravação PELO SERVIDOR (confere o dono e só aceita as colunas conhecidas); antes ia direto ao banco com a chave pública.
+      const res = await fetch('/api/salvar-ativo', {
         method: 'POST',
-        headers: { 'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}`, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       })
       if (res.ok) {

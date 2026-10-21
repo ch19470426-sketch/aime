@@ -11,6 +11,7 @@ import Banner from '@/components/Banner'
 import VersaoBuild from '@/components/VersaoBuild'
 import { useBanner } from '@/hooks/useBanner'
 import { TEXTO_AUTORIZACAO_MARKETING } from '@/lib/autorizacaoMarketing'
+import { credencialDoBanco } from '@/lib/bancoNavegador'
 
 const SUPA_URL = 'https://asgorarunzhiojqioxzq.supabase.co'
 const SUPA_KEY = 'sb_publishable_dH85HYKGxv3X0te627VfOw_OGaPoNMF'
@@ -115,7 +116,7 @@ function CadastroInspetor() {
         if (cpfUrl && !ehNovo) {
           try {
             const res = await fetch(`${SUPA_URL}/rest/v1/inspetor?cpf_inspetor=eq.${cpfUrl}&select=*`, {
-              headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` }
+              headers: { apikey: SUPA_KEY, Authorization: `Bearer ${await credencialDoBanco()}` }
             })
             const dados = await res.json()
             if (Array.isArray(dados) && dados.length > 0) {

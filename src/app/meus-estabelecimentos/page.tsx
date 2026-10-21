@@ -1,6 +1,7 @@
 'use client'
 import { useEffect, useState, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
+import { credencialDoBanco } from '@/lib/bancoNavegador'
 
 const SUPA_URL = 'https://asgorarunzhiojqioxzq.supabase.co'
 const SUPA_KEY = 'sb_publishable_dH85HYKGxv3X0te627VfOw_OGaPoNMF'
@@ -61,9 +62,9 @@ function MeusEstabelecimentosInner() {
   useEffect(() => {
     if (!cpfInspetor) { setCarregando(false); return }
     // Buscar cabeçalho do inspetor
-    fetch(`${SUPA_URL}/rest/v1/inspetor?cpf_inspetor=eq.${cpfInspetor}&select=cabecalho_documentos`, {
-      headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` }
-    }).then(r => r.json()).then(d => {
+    credencialDoBanco().then(token => fetch(`${SUPA_URL}/rest/v1/inspetor?cpf_inspetor=eq.${cpfInspetor}&select=cabecalho_documentos`, {
+      headers: { apikey: SUPA_KEY, Authorization: `Bearer ${token}` }
+    })).then(r => r.json()).then(d => {
       if (Array.isArray(d) && d[0]?.cabecalho_documentos) setCabInspetor(d[0].cabecalho_documentos)
     }).catch(() => {})
     fetch(`/api/meus-estabelecimentos?cpf=${cpfInspetor}`)

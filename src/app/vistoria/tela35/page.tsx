@@ -10,6 +10,7 @@ import { prioridadeDoGrau, corTelaDoGrau, fundoTelaDoGrau } from '@/lib/priorida
 import { guardarFotoDoRascunho, lerFotoDoRascunho, apagarFotoDoRascunho, marcarCameraAberta, cameraFicouAberta, limparMarcaCamera } from '@/lib/rascunhoFoto'
 import { reduzirFoto } from '@/lib/fotoLeve'
 import { tokenDaSessao, novaSessaoToken } from '@/lib/sessaoVistoria'
+import { credencialDoBanco } from '@/lib/bancoNavegador'
 
 // ─── Tipos ───────────────────────────────────────────────────────────────────
 
@@ -253,7 +254,7 @@ function Tela31Inner() {
 
     async function query(table: string, params: string) {
       const res = await fetchTimeout(`${SUPA_URL}/rest/v1/${table}?${params}`, {
-        headers: { 'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}` }
+        headers: { 'apikey': SUPA_KEY, 'Authorization': `Bearer ${await credencialDoBanco()}` }
       }, 6000)
       // Sem isto, uma resposta de ERRO da Supabase (ex.: 400) mas com corpo em
       // JSON valido era aceita como se fosse o resultado — nunca lancava

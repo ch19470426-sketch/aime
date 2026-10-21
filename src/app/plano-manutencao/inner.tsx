@@ -7,6 +7,7 @@ import { useBanner } from '@/hooks/useBanner'
 import { enviarPdfAssinado as enviarPdfAoStorage } from '@/lib/envioPdf'
 import { createClient } from '@/utils/supabase/client'
 import { nomeSemChave } from '@/lib/nomeArquivo'
+import { credencialDoBanco } from '@/lib/bancoNavegador'
 
 const SUPA_URL = 'https://asgorarunzhiojqioxzq.supabase.co'
 const SUPA_KEY = 'sb_publishable_dH85HYKGxv3X0te627VfOw_OGaPoNMF'
@@ -111,7 +112,7 @@ export default function PlanoManutencaoInner() {
 
   async function q(table: string, qp: string) {
     const r = await fetch(`${SUPA_URL}/rest/v1/${table}?${qp}`, {
-      headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` }
+      headers: { apikey: SUPA_KEY, Authorization: `Bearer ${await credencialDoBanco()}` }
     })
     return r.json()
   }
