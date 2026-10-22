@@ -2,7 +2,7 @@
 export const dynamic = 'force-dynamic'
 import { useState, useEffect, Suspense } from "react"
 import { useRouter } from 'next/navigation'
-import { useParametros, guardarCivil } from '@/lib/identidade'
+import { useParametros, guardarCivil, guardarEstabelecimento } from '@/lib/identidade'
 import React from "react"
 import Image from "next/image"
 import Banner from '@/components/Banner'
@@ -118,7 +118,7 @@ function VistoriaEletricaInner() {
       // "Vistoriar", não precisa de uma tela intermediária com outro botão.
       guardarCivil(cpfLimpo)   // o CPF do civil fica só na aba, não na URL
       router.push(
-        `/vistoria/tela32?cnpjoucpf=${cnpjLimpo}&tipo_servico=32&sistema_fixo=${sistemaFixoUrl}&apoio=1&sobre_civil=1&sessao=${sessaoToken}`
+        (guardarEstabelecimento(cnpjLimpo), `/vistoria/tela32?tipo_servico=32&sistema_fixo=${sistemaFixoUrl}&apoio=1&sobre_civil=1&sessao=${sessaoToken}`)
       )
     } catch(e: any) {
       setErro(e.message ?? 'Erro inesperado')
@@ -146,7 +146,7 @@ function VistoriaEletricaInner() {
     } catch { /* falha na verificação — libera normalmente */ }
     guardarCivil(credencial.cpfCivil)   // o CPF do civil fica só na aba, não na URL
     router.push(
-      `/vistoria/tela32?cnpjoucpf=${credencial.cnpj}&tipo_servico=32&sistema_fixo=${sistemaFixoUrl}&apoio=1&sobre_civil=1&sessao=${sessaoToken}`
+      (guardarEstabelecimento(credencial.cnpj), `/vistoria/tela32?tipo_servico=32&sistema_fixo=${sistemaFixoUrl}&apoio=1&sobre_civil=1&sessao=${sessaoToken}`)
     )
   }
 

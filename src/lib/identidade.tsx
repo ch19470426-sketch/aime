@@ -35,16 +35,27 @@ const CHAVE_CIVIL = 'aime_civil_cpf'
 export function guardarCivil(cpf: string) { try { sessionStorage.setItem(CHAVE_CIVIL, soDigitos(cpf)) } catch { /* sem armazenamento */ } }
 function lerCivil(): string { try { return sessionStorage.getItem(CHAVE_CIVIL) ?? '' } catch { return '' } }
 
+// O estabelecimento atendido (CNPJ, ou CPF quando o cliente é pessoa física) e o documento aberto em Homologar produto também ficam só na aba: o endereço não
+// carrega o documento do cliente. Quem ESCOLHE o cliente (painel, vistoria elétrica, seleção da homologação elétrica) o guarda; as telas seguintes o leem por
+// useParametros() como se ainda viesse na URL (cnpjoucpf, nome_arquivo). Uma aba por trabalho: duas abas, dois clientes, sem se misturar.
+const CHAVE_ESTAB = 'aime_estab_cnpjoucpf'
+const CHAVE_DOC = 'aime_doc_atual'
+export function guardarEstabelecimento(doc: string) { try { sessionStorage.setItem(CHAVE_ESTAB, soDigitos(doc)) } catch { /* sem armazenamento */ } }
+export function guardarDocumento(nome: string) { try { sessionStorage.setItem(CHAVE_DOC, String(nome ?? '')) } catch { /* sem armazenamento */ } }
+function lerEstab(): string { try { return sessionStorage.getItem(CHAVE_ESTAB) ?? '' } catch { return '' } }
+function lerDoc(): string { try { return sessionStorage.getItem(CHAVE_DOC) ?? '' } catch { return '' } }
+
 /**
  * Resolve os parâmetros de identidade de uma tela. PURA (testável).
  *  - chave_inspetor e chave: SEMPRE o próprio usuário (a chave é o CPF dele; no fluxo do profissional de apoio, também é a dele).
  *  - cpf_eletrico: o próprio usuário, mas só nos fluxos do profissional de apoio, marcados por apoio=1 (ou pelo parâmetro antigo).
  *  - cpf_inspetor e cpf: o próprio usuário, EXCETO quando a URL traz OUTRA pessoa (profissional de apoio, Fase 2) ou quando o gestor está vendo o cadastro de
  *    outro inspetor (visualizar=1): aí o cpf é o alvo guardado na aba.
+ *  - cnpjoucpf e nome_arquivo: o que a URL trouxer (link antigo); senão, o estabelecimento e o documento guardados na aba por quem os escolheu.
  *  - sobre_civil=1 (vistoria 39): cpf_inspetor é o do inspetor civil, guardado na aba por guardarCivil; a URL não escolhe quem é.
  * O CPF de alguém na URL nunca dá acesso a nada: o servidor confere o dono em toda chamada.
  */
-export function resolverParametros(url: URLSearchParams, cpfLogado: string, alvo = '', civil = ''): URLSearchParams {
+export function resolverParametros(url: URLSearchParams, cpfLogado: string, alvo = '', civil = '', estab = '', doc = ''): URLSearchParams {
   const p = new URLSearchParams(url.toString())
   if (!cpfLogado) return p
   p.set('chave_inspetor', cpfLogado)
@@ -58,6 +69,9 @@ export function resolverParametros(url: URLSearchParams, cpfLogado: string, alvo
   }
   // Profissional de apoio agindo sobre o inspetor civil: cpf_inspetor é o do CIVIL (guardado na aba), e a URL não escolhe quem é. Sem civil guardado (aba nova,
   // link colado), não há quem vistoriar: cpf_inspetor fica vazio e o profissional volta à tela de escolha.
+  // Estabelecimento atendido e documento aberto: o que a URL traz (link antigo) vale; sem isso, o que está guardado na aba.
+  if (!url.get('cnpjoucpf') && soDigitos(estab)) p.set('cnpjoucpf', soDigitos(estab))
+  if (!url.get('nome_arquivo') && !url.get('nome') && doc) p.set('nome_arquivo', doc)
   if (url.get('sobre_civil') === '1') {
     const c = soDigitos(civil)
     if (c) p.set('cpf_inspetor', c)
@@ -79,7 +93,7 @@ export function IdentidadeProvider({ children }: { children: ReactNode }) {
       .then(({ data }) => { if (vivo) setEstado({ cpf: cpfDoLogin(data.session?.user?.email), pronto: true }) })
       .catch(() => { if (vivo) setEstado({ cpf: '', pronto: true }) })
     const { data: assinatura } = supabase.auth.onAuthStateChange((_evento, sessao) => {
-      if (!sessao) { try { sessionStorage.removeItem(CHAVE_ALVO); sessionStorage.removeItem(CHAVE_CIVIL) } catch { /* ok */ } }   // saiu: esquece o inspetor que o gestor via e o civil do profissional de apoio
+      if (!sessao) { try { sessionStorage.removeItem(CHAVE_ALVO); sessionStorage.removeItem(CHAVE_CIVIL); sessionStorage.removeItem(CHAVE_ESTAB); sessionStorage.removeItem(CHAVE_DOC) } catch { /* ok */ } }   // saiu: esquece o inspetor que o gestor via e o civil do profissional de apoio
       if (vivo) setEstado({ cpf: cpfDoLogin(sessao?.user?.email), pronto: true })
     })
     return () => { vivo = false; assinatura.subscription.unsubscribe() }
@@ -94,5 +108,5 @@ export function IdentidadeProvider({ children }: { children: ReactNode }) {
 export function useParametros(): URLSearchParams {
   const real = useSearchParams()
   const { cpf } = useContext(IdentidadeCtx)
-  return useMemo(() => resolverParametros(new URLSearchParams(real?.toString() ?? ''), cpf, lerAlvo(), lerCivil()), [real, cpf])
+  return useMemo(() => resolverParametros(new URLSearchParams(real?.toString() ?? ''), cpf, lerAlvo(), lerCivil(), lerEstab(), lerDoc()), [real, cpf])
 }

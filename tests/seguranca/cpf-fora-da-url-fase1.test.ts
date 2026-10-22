@@ -1,5 +1,5 @@
-// Fases 1 e 2 do pedido do marketing (CPF fora da URL): a identidade do usuário vem da sessão, e o CPF de OUTRA pessoa (o inspetor que o gestor está vendo, o
-// inspetor civil do profissional de apoio) fica guardado só na aba, nunca na URL. Não resta nenhuma exceção nos links de tela. O servidor confere o dono de qualquer jeito (testes em tests/seguranca/).
+// Fases 1, 2 e 3 do pedido do marketing (CPF fora da URL): a identidade do usuário vem da sessão; o CPF de OUTRA pessoa (o inspetor que o gestor está vendo, o
+// inspetor civil do profissional de apoio), o documento do CLIENTE atendido e o nome do documento aberto ficam guardados só na aba, nunca na URL. O servidor confere o dono de qualquer jeito (testes em tests/seguranca/).
 import { describe, it, expect } from 'vitest'
 import { readFileSync, readdirSync, statSync } from 'node:fs'
 import { join } from 'node:path'
@@ -31,6 +31,14 @@ describe('identidade vinda da sessão (resolverParametros)', () => {
   it('gestor vendo o cadastro de outro inspetor: o CPF vem do alvo guardado na ABA, e só com visualizar=1', () => {
     expect(resolverParametros(url('visualizar=1'), EU, OUTRO).get('cpf')).toBe(OUTRO)
     expect(resolverParametros(url(''), EU, OUTRO).get('cpf')).toBe(EU)                              // fora do modo visualizar o alvo guardado é ignorado
+  })
+  it('estabelecimento atendido e documento aberto: vêm da aba quando a URL não os traz; o que a URL trouxer (link antigo) vale', () => {
+    const CNPJ = '39262886000187'
+    const p = resolverParametros(url('tipo_servico=32'), EU, '', '', CNPJ, `${CNPJ}_proposta_nr12.html`)
+    expect(p.get('cnpjoucpf')).toBe(CNPJ); expect(p.get('nome_arquivo')).toBe(`${CNPJ}_proposta_nr12.html`); expect(p.get('tipo_servico')).toBe('32')
+    const antigo = resolverParametros(url('cnpjoucpf=11111111000191&nome=x.html'), EU, '', '', CNPJ, 'guardado.html')
+    expect(antigo.get('cnpjoucpf')).toBe('11111111000191'); expect(antigo.has('nome_arquivo')).toBe(false); expect(antigo.get('nome')).toBe('x.html')
+    expect(resolverParametros(url(''), EU).has('cnpjoucpf')).toBe(false)                          // nada guardado, nada inventado
   })
   it('sem sessão nada é inventado; e o CPF sai do e-mail de login só se for o do AIMÊ', () => {
     expect(resolverParametros(url('cnpjoucpf=1'), '').has('cpf_inspetor')).toBe(false)
@@ -65,23 +73,15 @@ describe('redirecionamento da URL antiga /inspetor?cpf=... (servidor)', () => {
 
 describe('nenhum link do app carrega o CPF do próprio usuário', () => {
   const arquivos = (dir: string): string[] => readdirSync(dir).flatMap(n => (statSync(join(dir, n)).isDirectory() ? arquivos(join(dir, n)) : n.endsWith('.tsx') ? [join(dir, n)] : []))
-  it('nenhum link de tela carrega CPF, de ninguém; consultas ao banco e rotas /api ficam para a Fase 1b', () => {
+  it('nenhum link de tela carrega CPF, CNPJ do cliente ou nome de documento; consultas ao banco (=eq.) e rotas /api ficam para a Fase 1b', () => {
     const achados: string[] = []
     for (const f of arquivos('src/app')) {
       readFileSync(f, 'utf-8').split('\n').forEach((l, i) => {
         if (l.trim().startsWith('//')) return
-        if (/[?&](cpf_inspetor|chave_inspetor|cpf|chave|cpf_eletrico|cpf_civil)=/.test(l) && !l.includes('/api/') && !l.includes('/rest/v1/')) achados.push(`${f.replace('src/app/', '')}:${i + 1}`)
+        if (/[?&](cpf_inspetor|chave_inspetor|cpf|chave|cpf_eletrico|cpf_civil|cnpjoucpf|nome_arquivo|nome)=(?!eq\.)/.test(l) && !l.includes('/api/') && !l.includes('/rest/v1/')) achados.push(`${f.replace('src/app/', '')}:${i + 1}`)
       })
     }
     expect(achados).toEqual([])
-  })
-  it('todo link de tela que leva o nome de um documento (nome_arquivo= ou nome=) tira a chave antes (nomeSemChave)', () => {
-    const sem: string[] = []
-    for (const f of arquivos('src/app')) readFileSync(f, 'utf-8').split('\n').forEach((l, i) => {
-      if (l.trim().startsWith('//') || l.includes('/api/')) return
-      if (/[?&](nome_arquivo|nome)=/.test(l) && !l.includes('nomeSemChave(')) sem.push(`${f.replace('src/app/', '')}:${i + 1}`)
-    })
-    expect(sem).toEqual([])
   })
   it('as telas leem a identidade pelo leitor central (useParametros); só o painel do gestor usa useSearchParams direto', () => {
     const diretos = arquivos('src/app').filter(f => /\buseSearchParams\b/.test(readFileSync(f, 'utf-8'))).map(f => f.replace('src/app/', ''))

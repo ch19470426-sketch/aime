@@ -1,7 +1,7 @@
 "use client"
 export const dynamic = 'force-dynamic'
 import { Suspense, useEffect, useState } from 'react'
-import { useParametros } from '@/lib/identidade'
+import { useParametros, guardarDocumento } from '@/lib/identidade'
 import Image from 'next/image'
 import Banner from '@/components/Banner'
 import { useBanner } from '@/hooks/useBanner'
@@ -380,7 +380,7 @@ function PropostaInner() {
         })
       } catch { /* histórico não crítico */ }
 
-      window.location.href = `/homologar-produto?cnpjoucpf=${cnpjoucpf}&tipo_servico=${tipoServico}&nome_arquivo=${encodeURIComponent(nomeSemChave(nomeArq))}&titulo=${encodeURIComponent(titulo)}`
+      window.location.href = (guardarDocumento(nomeSemChave(nomeArq)), `/homologar-produto?tipo_servico=${tipoServico}&titulo=${encodeURIComponent(titulo)}`)
     } catch(e) {
       informa('Erro', String(e))
     } finally {

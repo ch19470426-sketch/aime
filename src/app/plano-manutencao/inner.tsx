@@ -1,5 +1,5 @@
 'use client'
-import { useParametros } from '@/lib/identidade'
+import { useParametros, guardarDocumento } from '@/lib/identidade'
 import { useState, useEffect, useRef } from 'react'
 import Image from 'next/image'
 import Banner from '@/components/Banner'
@@ -288,10 +288,8 @@ export default function PlanoManutencaoInner() {
   }
 
   function homologar() {
-    window.location.href =
-      `/homologar-produto` +
-      `?cnpjoucpf=${cnpjoucpf}&tipo_servico=${tipoServico}` +
-      `&nome=${encodeURIComponent(nomeSemChave(nomeArq))}&pasta=documentos_inspetor`
+    guardarDocumento(nomeSemChave(nomeArq))   // o nome do documento fica só na aba, não na URL
+    window.location.href = `/homologar-produto?tipo_servico=${tipoServico}&pasta=documentos_inspetor`
   }
 
   const retorno = `/dashboard`

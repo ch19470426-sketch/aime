@@ -18,6 +18,7 @@ import { createClient } from "@/utils/supabase/client"
 import { encerrarSessao } from '@/lib/encerrarSessao'
 import { tokenDaSessao, novaSessaoToken } from '@/lib/sessaoVistoria'
 import { perfilDoTitulo } from '@/lib/profissionaisDeApoio'
+import { guardarEstabelecimento } from '@/lib/identidade'
 
 const SUPA_URL = 'https://asgorarunzhiojqioxzq.supabase.co'
 const SUPA_KEY = 'sb_publishable_dH85HYKGxv3X0te627VfOw_OGaPoNMF'
@@ -604,6 +605,7 @@ export default function Dashboard() {
       setMsgErro('CNPJ/CPF inválido — confira os dígitos verificadores. Pode ter sido digitado errado.')
       return
     }
+    guardarEstabelecimento(docLimpo)   // o cliente fica só na aba; as telas seguintes o leem de lá (o endereço não leva o documento do cliente)
     // Códigos 51-58: Planos de Manutenção — redirecionar antes da validação de tamanho
     if (Number(tipoServico) >= 51 && Number(tipoServico) <= 58) {
       if (docLimpo.length !== 11 && docLimpo.length !== 14) {
@@ -611,7 +613,7 @@ export default function Dashboard() {
         return
       }
       if (!(await creditosOk(Number(tipoServico), docLimpo))) return
-      window.location.href = `/plano-manutencao?cnpjoucpf=${docLimpo}&tipo_servico=${tipoServico}`
+      window.location.href = `/plano-manutencao?tipo_servico=${tipoServico}`
       return
     }
     if (aceitaAmbos) {
@@ -628,30 +630,30 @@ export default function Dashboard() {
     }
     // Código 61: Baixar Documentos — passa o CNPJ/CPF já preenchido
     if (Number(tipoServico) === 61) {
-      window.location.href = `/baixar-documentos?cnpjoucpf=${docLimpo}`
+      window.location.href = `/baixar-documentos`
       return
     }
     // Códigos 21-29: Planos de Trabalho
     if (Number(tipoServico) >= 21 && Number(tipoServico) <= 29) {
       if (!(await creditosOk(Number(tipoServico), docLimpo))) return
-      window.location.href = `/plano?cnpjoucpf=${docLimpo}&tipo_servico=${tipoServico}`
+      window.location.href = `/plano?tipo_servico=${tipoServico}`
       return
     }
     // Códigos 11-19: Propostas
     if (Number(tipoServico) >= 11 && Number(tipoServico) <= 19) {
       if (!(await creditosOk(Number(tipoServico), docLimpo))) return
-      window.location.href = `/proposta?cnpjoucpf=${docLimpo}&tipo_servico=${tipoServico}`
+      window.location.href = `/proposta?tipo_servico=${tipoServico}`
       return
     }
     // Códigos 41-48: Laudos (Autovistoria, Inspeção, Imóvel Novo, Fachada, Elevador, NR-10, NR-12, NR-13)
     if (Number(tipoServico) >= 41 && Number(tipoServico) <= 48) {
       if (!(await creditosOk(Number(tipoServico), docLimpo))) return
-      window.location.href = `/laudo?cnpjoucpf=${docLimpo}&tipo_servico=${tipoServico}`
+      window.location.href = `/laudo?tipo_servico=${tipoServico}`
       return
     }
     // Código 40: Homologar Vistoria (eng. elétrico já tratado no clique direto acima)
     if (Number(tipoServico) === 40) {
-      window.location.href = `/homologar?cnpjoucpf=${docLimpo}`
+      window.location.href = `/homologar`
       return
     }
     // Verificar se existe Plano de Trabalho para o CNPJ+tipo antes de iniciar vistoria
@@ -712,7 +714,7 @@ export default function Dashboard() {
     const sessaoToken = `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`
     const url = Number(tipoServico) === 39
       ? `/vistoria-eletrica?sessao=${sessaoToken}`
-      : `/vistoria/tela${tipoServico}?cnpjoucpf=${docLimpo}&tipo_servico=${tipoServico}&sessao=${sessaoToken}`
+      : `/vistoria/tela${tipoServico}?tipo_servico=${tipoServico}&sessao=${sessaoToken}`
     window.location.href = url
   }
 

@@ -3,7 +3,7 @@ export const dynamic = 'force-dynamic'
 import dynamic_import from 'next/dynamic'
 const DatePickerYear = dynamic_import(() => import('@/components/DatePickerYear'), { ssr: false })
 import { Suspense, useEffect, useState } from 'react'
-import { useParametros } from '@/lib/identidade'
+import { useParametros, guardarDocumento } from '@/lib/identidade'
 import Image from 'next/image'
 import Banner from '@/components/Banner'
 import { useBanner } from '@/hooks/useBanner'
@@ -379,7 +379,7 @@ function PlanoInner() {
       if (data.sucesso) {
         const tituloPlano = htmlData.planoInfo?.titulo ?? 'Plano de Trabalho'
         setSalvando(false)
-        window.location.href = `/homologar-produto?cnpjoucpf=${cnpjoucpf}&tipo_servico=${tipoServico}&nome_arquivo=${encodeURIComponent(nomeSemChave(nomeArq))}&titulo=${encodeURIComponent(tituloPlano)}`
+        window.location.href = (guardarDocumento(nomeSemChave(nomeArq)), `/homologar-produto?tipo_servico=${tipoServico}&titulo=${encodeURIComponent(tituloPlano)}`)
       } else {
         informa('Erro', data.erro ?? 'Não foi possível salvar.')
       }

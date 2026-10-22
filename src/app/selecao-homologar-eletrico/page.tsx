@@ -1,7 +1,7 @@
 "use client"
 export const dynamic = 'force-dynamic'
 import { useState, useEffect, Suspense } from "react"
-import { useParametros } from '@/lib/identidade'
+import { useParametros, guardarEstabelecimento } from '@/lib/identidade'
 import Banner from "@/components/Banner"
 import { useBanner } from "@/hooks/useBanner"
 import React from "react"
@@ -68,7 +68,7 @@ function SelecaoInner() {
     const sistemaEnc = encodeURIComponent(sistemaFixoDoPerfil(perfil))
     // Arquivos salvos com chave do elétrico — usar chaveEletrico para buscar no Storage
     window.location.href =
-      `/homologar?cnpjoucpf=${art.cnpjoucpf}&sistema_fixo=${sistemaEnc}&apoio=1`
+      (guardarEstabelecimento(art.cnpjoucpf), `/homologar?sistema_fixo=${sistemaEnc}&apoio=1`)
   }
 
   function fmtDoc(v: string) {
@@ -92,7 +92,7 @@ function SelecaoInner() {
     const cnpjFinal = (cnpjNR10 || cnpjoucpfUrl).replace(/\D/g, '')
     if (!cnpjFinal) { orienta('Falta o CNPJ ou CPF', 'Informe o CNPJ ou CPF do estabelecimento.'); return }
     window.location.href =
-      `/homologar?cnpjoucpf=${cnpjFinal}`
+      (guardarEstabelecimento(cnpjFinal), `/homologar`)
   }
 
   function voltar() {
