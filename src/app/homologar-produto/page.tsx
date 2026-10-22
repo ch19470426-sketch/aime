@@ -90,7 +90,8 @@ function HomologarProdutoInner() {
       base = 'documento'
     }
 
-    return `${chaveInspetor}_${cnpjoucpf}_${base}.${extensao}`
+    // Sem a chave do inspetor (o CPF dele): este nome vira o do arquivo que o inspetor salva e envia ao cliente (título do salvar como PDF do navegador, e o Word).
+    return nomeSemChave(`${chaveInspetor}_${cnpjoucpf}_${base}.${extensao}`)
   }
 
   useEffect(() => {

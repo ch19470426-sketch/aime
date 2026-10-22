@@ -100,6 +100,11 @@ describe('gerar-laudo-docx: não conformidades e imagens do pedido', () => {
 })
 
 describe('nome do arquivo entregue ao usuário não leva a chave (o CPF)', () => {
+  it('o nome amigável do documento (Homologar produto) sai sem a chave do inspetor: ela não vai no arquivo que ele envia ao cliente', () => {
+    const src = readFileSync('src/app/homologar-produto/page.tsx', 'utf-8')
+    expect(src).toMatch(/return nomeSemChave\(`\$\{chaveInspetor\}_\$\{cnpjoucpf\}_\$\{base\}\.\$\{extensao\}`\)/)
+    expect(src).not.toMatch(/return `\$\{chaveInspetor\}_\$\{cnpjoucpf\}/)
+  })
   it('nomeSemChave tira só o primeiro trecho', () => {
     expect(nomeSemChave('05491239704_12345678000190_proposta.html')).toBe('12345678000190_proposta.html')
     expect(nomeSemChave('05491239704_termo_de_aceite.html')).toBe('termo_de_aceite.html')
