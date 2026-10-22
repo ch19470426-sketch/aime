@@ -2,6 +2,7 @@ import type { Metadata } from "next"
 import "./globals.css"
 import AuthFetch from "@/components/AuthFetch"
 import { IdentidadeProvider } from "@/lib/identidade"
+import { GTM_ID, CONSENT_DEFAULT, gtmScript, gtmNoscript, COOKIE_CONSENT_SRC } from "@/lib/gtm"
 
 export const metadata: Metadata = {
   title: "AIMÊ",
@@ -24,6 +25,11 @@ export default function RootLayout({
   return (
     <html lang="pt-BR" className="h-full">
       <head>
+        {/* Rastreamento (só com NEXT_PUBLIC_GTM_ID): 1º o consentimento padrão (tudo negado até o aceite), 2º o GTM, 3º o aviso de cookies do site.
+            Scripts comuns no head, nesta ordem, para o consentimento rodar sempre antes do GTM. */}
+        {GTM_ID && <script dangerouslySetInnerHTML={{ __html: CONSENT_DEFAULT }} />}
+        {GTM_ID && <script dangerouslySetInnerHTML={{ __html: gtmScript(GTM_ID) }} />}
+        {GTM_ID && <script src={COOKIE_CONSENT_SRC} defer />}
         <link rel="manifest" href="/manifest.json" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
         <meta name="theme-color" content="#1E3A8A" />
@@ -59,6 +65,7 @@ export default function RootLayout({
         `}} />
       </head>
       <body className="min-h-full flex flex-col" style={{ fontFamily: "Arial, Helvetica, sans-serif" }}>
+        {GTM_ID && <noscript dangerouslySetInnerHTML={{ __html: gtmNoscript(GTM_ID) }} />}
         <AuthFetch />
         <IdentidadeProvider>{children}</IdentidadeProvider>
       </body>

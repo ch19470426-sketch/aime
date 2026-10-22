@@ -20,6 +20,7 @@ import { tokenDaSessao, novaSessaoToken } from '@/lib/sessaoVistoria'
 import { perfilDoTitulo } from '@/lib/profissionaisDeApoio'
 import { guardarEstabelecimento } from '@/lib/identidade'
 import PainelCreditos from '@/components/PainelCreditos'
+import { GTM_ID } from '@/lib/gtm'
 
 const SUPA_URL = 'https://asgorarunzhiojqioxzq.supabase.co'
 const SUPA_KEY = 'sb_publishable_dH85HYKGxv3X0te627VfOw_OGaPoNMF'
@@ -489,9 +490,16 @@ export default function Dashboard() {
     carregarSessao()
   }, [])
 
-  const permitidos = permissoes[titulo] || []
+  const permitidos = GTM_ID ? [...(permissoes[titulo] || []), 92] : (permissoes[titulo] || [])
   // O item 39 se chama Vistoria Inspeção - Elétrica ou - Mecânica, conforme o título profissional
-  const grupos = menuGrupos.map((g) => ({ ...g, itens: g.itens.map((i) => i.codigo === 39 ? { ...i, label: `Vistoria Inspeção - ${perfilDoTitulo(titulo)?.rotulo ?? 'Elétrica'}` } : i) }))
+  // 92 "Preferências de cookies" só existe quando o rastreamento está ligado (NEXT_PUBLIC_GTM_ID): reabre o aviso do site.
+  const grupos = menuGrupos.map((g) => ({
+    ...g,
+    itens: (GTM_ID && g.grupo === "Consultas e Relatórios"
+      ? [...g.itens.filter(i => i.codigo !== 99), { codigo: 92, label: "Preferências de cookies" }, ...g.itens.filter(i => i.codigo === 99)]
+      : g.itens
+    ).map((i) => i.codigo === 39 ? { ...i, label: `Vistoria Inspeção - ${perfilDoTitulo(titulo)?.rotulo ?? 'Elétrica'}` } : i),
+  }))
   const itemSelecionado = grupos.flatMap((g) => g.itens).find((i) => i.codigo === tipoServico)
   const ehVistoria = tipoServico !== null && CODIGOS_VISTORIA.includes(Number(tipoServico))
   const coletaCpf  = tipoServico !== null && CODIGOS_CPF.includes(Number(tipoServico))
@@ -541,6 +549,11 @@ export default function Dashboard() {
     // usuário sem créditos precisa conseguir chegar aqui para contratar.
     if (codigo === 64) {
       window.location.href = `/meu-plano`
+      return
+    }
+    // 92: Preferências de cookies — reabre o aviso compartilhado com o site (script carregado no layout raiz).
+    if (codigo === 92) {
+      try { (window as any).aimeCookiePrefs?.() } catch { /* aviso indisponível: nada a fazer */ }
       return
     }
     // 91: Fale Conosco — navega direto, sem coletar CNPJ.
