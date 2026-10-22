@@ -28,7 +28,7 @@ function venceEmBreve(fim: string | null | undefined, hoje: string): boolean {
 }
 
 type Linha = { chave: string; rotulo: string; cor: string; validade: string; saldo: number; breve: boolean }
-type Dados = { linhas: Linha[]; total: number; semVigente: boolean } | null
+type Dados = { linhas: Linha[]; total: number } | null
 
 export default function PainelCreditos() {
   const [dados, setDados] = useState<Dados>(null)
@@ -54,14 +54,12 @@ export default function PainelCreditos() {
       const hoje = hojeBrasilia()
 
       const linhas: Linha[] = lista
-        .filter(c => c.qde_contratada_plano > 0 && c.data_fim_contrato >= hoje)
+        .filter(c => c.qde_contratada_plano > 0 && c.data_fim_contrato >= hoje && Number(c.saldo_quantidade_plano) > 0)
         .map((c, i) => ({
           chave: `p${i}`, rotulo: String(c.tipo_assinatura ?? 'PLANO').replace(/^PLANO /, 'Plano '),
           cor: COR[c.tipo_assinatura] ?? '#1E3A8A', validade: `até ${dataBR(c.data_fim_contrato)}`,
           saldo: Number(c.saldo_quantidade_plano) || 0, breve: venceEmBreve(c.data_fim_contrato, hoje),
         }))
-      const semVigente = linhas.length === 0
-
       const saldoAvulso = Number(st.saldoAvulso) || 0
       if (saldoAvulso > 0) {
         const r = lista[0] // avulso vale do contrato mais recente
@@ -69,7 +67,7 @@ export default function PainelCreditos() {
           validade: r?.data_fim_avulso ? `até ${dataBR(r.data_fim_avulso)}` : 'sem vencimento', saldo: saldoAvulso,
           breve: venceEmBreve(r?.data_fim_avulso, hoje) })
       }
-      setDados({ linhas, total: Number(st.saldoTotal) || 0, semVigente })
+      setDados({ linhas, total: Number(st.saldoTotal) || 0 })
     } catch { /* sem painel: o menu segue normal */ }
   }
 
@@ -90,7 +88,7 @@ export default function PainelCreditos() {
         Meus créditos
       </div>
       {dados.linhas.length === 0 && (
-        <div style={{ fontSize: '11px', color: '#B45309', marginBottom: '4px' }}>Sem plano vigente.</div>
+        <div style={{ fontSize: '11px', color: '#B45309', marginBottom: '4px' }}>Sem créditos disponíveis.</div>
       )}
       {dados.linhas.map(l => (
         <div key={l.chave} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '6px', padding: '3px 0' }}>
@@ -107,9 +105,9 @@ export default function PainelCreditos() {
           <span style={{ fontSize: '15px', fontWeight: 800, color: baixo ? '#B45309' : '#1E3A8A' }}>{dados.total}<span style={{ fontSize: '9px', fontWeight: 600 }}> CR</span></span>
         </div>
       )}
-      {(baixo || dados.semVigente) && (
+      {baixo && (
         <a href="/meu-plano" style={{ display: 'block', marginTop: '5px', fontSize: '10px', fontWeight: 700, color: '#B45309', textDecoration: 'underline' }}>
-          {baixo ? 'Saldo baixo: contratar créditos' : 'Contratar plano'}
+          {dados.linhas.length === 0 ? 'Contratar créditos' : 'Saldo baixo: contratar créditos'}
         </a>
       )}
     </div>
