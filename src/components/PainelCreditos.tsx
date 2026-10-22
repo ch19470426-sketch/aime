@@ -57,14 +57,14 @@ export default function PainelCreditos() {
         .filter(c => c.qde_contratada_plano > 0 && c.data_fim_contrato >= hoje && Number(c.saldo_quantidade_plano) > 0)
         .map((c, i) => ({
           chave: `p${i}`, rotulo: String(c.tipo_assinatura ?? 'PLANO').replace(/^PLANO /, 'Plano '),
-          cor: COR[c.tipo_assinatura] ?? '#1E3A8A', validade: `até ${dataBR(c.data_fim_contrato)}`,
+          cor: COR[c.tipo_assinatura] ?? '#1E3A8A', validade: `Val.: ${dataBR(c.data_fim_contrato)}`,
           saldo: Number(c.saldo_quantidade_plano) || 0, breve: venceEmBreve(c.data_fim_contrato, hoje),
         }))
       const saldoAvulso = Number(st.saldoAvulso) || 0
       if (saldoAvulso > 0) {
         const r = lista[0] // avulso vale do contrato mais recente
         linhas.push({ chave: 'av', rotulo: 'Avulsos', cor: '#7C3AED',
-          validade: r?.data_fim_avulso ? `até ${dataBR(r.data_fim_avulso)}` : 'sem vencimento', saldo: saldoAvulso,
+          validade: r?.data_fim_avulso ? `Val.: ${dataBR(r.data_fim_avulso)}` : 'Val.: sem vencimento', saldo: saldoAvulso,
           breve: venceEmBreve(r?.data_fim_avulso, hoje) })
       }
       setDados({ linhas, total: Number(st.saldoTotal) || 0 })
@@ -94,7 +94,7 @@ export default function PainelCreditos() {
         <div key={l.chave} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '6px', padding: '3px 0' }}>
           <div style={{ minWidth: 0 }}>
             <span style={{ display: 'inline-block', padding: '1px 7px', borderRadius: '9999px', fontSize: '9px', fontWeight: 700, color: 'white', backgroundColor: l.cor }}>{l.rotulo}</span>
-            <div style={{ fontSize: '9px', color: l.breve ? '#B45309' : '#64748B', fontWeight: l.breve ? 700 : 400, marginTop: '1px' }}>{l.breve ? '⚠ vence ' : ''}{l.validade}</div>
+            <div style={{ fontSize: '9px', color: l.breve ? '#B45309' : '#64748B', fontWeight: l.breve ? 700 : 400, marginTop: '1px' }}>{l.breve ? '⚠ ' : ''}{l.validade}</div>
           </div>
           <div style={{ fontSize: '14px', fontWeight: 700, color: '#1E3A8A', whiteSpace: 'nowrap' }}>{l.saldo}<span style={{ fontSize: '9px', color: '#64748B', fontWeight: 600 }}> CR</span></div>
         </div>
