@@ -1,6 +1,5 @@
 "use client"
 import { useState, useEffect, useRef } from "react"
-import Image from "next/image"
 import { createClient } from "@/utils/supabase/client"
 import { useRouter } from "next/navigation"
 import { encerrarSessao } from '@/lib/encerrarSessao'
@@ -13,7 +12,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState("")
   const [erro, setErro] = useState("")
   const [loading, setLoading] = useState(false)
-  const [mostrarCapa, setMostrarCapa] = useState(false)
+  const [verSenha, setVerSenha] = useState(false)
   const [verificandoSessao, setVerificandoSessao] = useState(true)
 
   const supabase = createClient()
@@ -33,18 +32,15 @@ export default function LoginPage() {
             // Sessão inválida — limpar e mostrar login
             encerrarSessao().then(() => {
               setVerificandoSessao(false)
-              setMostrarCapa(true)
             })
           }
         })
       } else {
-        // Sem sessão — mostrar capa
+        // Sem sessão — mostrar capa com login
         setVerificandoSessao(false)
-        setMostrarCapa(true)
       }
     }).catch(() => {
       setVerificandoSessao(false)
-      setMostrarCapa(true)
     })
     // Limpar campos
     const t = setTimeout(() => {
@@ -141,64 +137,69 @@ export default function LoginPage() {
     }
   }
 
-  // Tela de capa — clicar em qualquer lugar vai para o login
   // Verificando sessão — tela em branco (evita flash)
   if (verificandoSessao) return (
-    <div style={{ backgroundColor:'#1E3A8A', minHeight:'100vh' }} />
+    <div style={{ backgroundColor:'#DCE8F7', minHeight:'100vh' }} />
   )
 
-  if (mostrarCapa) return (
-    <div onClick={() => setMostrarCapa(false)}
-      style={{ backgroundColor: "#1E3A8A", minHeight: "100vh", width: "100%",
-        display: "flex", alignItems: "center", justifyContent: "center",
-        cursor: "pointer", overflow: "hidden" }}>
-      <img src="/capa_aime.png" alt="AIMÊ"
-        style={{ width: "100%", maxWidth: "480px", display: "block", touchAction: "manipulation" }} />
-    </div>
-  )
+  // Capa + login numa tela só (22/10/2026). A arte (public/capa-login.jpg) tem a área do cartão
+  // apagada; o cartão abaixo é HTML de verdade, posicionado sobre ela. Largura da arte: ocupa a altura
+  // da tela no computador e a largura toda no celular. Unidades "cqw" = % da largura da arte.
+  const campo: React.CSSProperties = { display: "flex", alignItems: "center", gap: "10px", border: "1px solid #C7D5EA",
+    borderRadius: "10px", backgroundColor: "#EEF3FA", padding: "0 12px", height: "46px" }
+  const entrada: React.CSSProperties = { flex: 1, minWidth: 0, border: "none", outline: "none", background: "transparent",
+    fontSize: "16px", color: "#111827", height: "100%" }
+  const rotulo: React.CSSProperties = { fontSize: "14px", fontWeight: 700, color: "#0F1E4A" }
 
   return (
-    <div style={{ backgroundColor: "#E8EEF7", minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", padding: "16px" }}>
-      <div style={{ backgroundColor: "white", borderRadius: "16px", boxShadow: "0 25px 50px rgba(0,0,0,0.15)", width: "100%", maxWidth: "448px", overflow: "hidden" }}>
-        <div style={{ backgroundColor: "#1E3A8A", padding: "8px 16px 14px", display: "flex", alignItems: "center", gap: "12px" }}>
-          <Image src="/logo.png" alt="AIME" width={80} height={32} priority style={{ filter: "brightness(0) invert(1)" }} />
-          <div style={{ flex: 1, textAlign: "center" }}>
-            <span style={{ display: "block", color: "white", fontWeight: "bold", fontSize: "12px", lineHeight: "1.3" }}>
-              Mapeamento Inteligente de Edificacoes e Equipamentos
-            </span>
-            <span style={{ display: "block", color: "white", fontWeight: "bold", fontSize: "16px", lineHeight: "1.3", marginTop: "14px", position: "relative", top: "8px" }}>
-              Efetue Login e Cadastro
-            </span>
-          </div>
-        </div>
-        <div style={{ height: "2px", backgroundColor: "#1E3A8A" }} />
-        <div style={{ padding: "24px" }}>
-          <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+    <div style={{ backgroundColor: "#DCE8F7", minHeight: "100vh", display: "flex", justifyContent: "center", alignItems: "flex-start" }}>
+      <div style={{ position: "relative", width: "min(100vw, 680px, max(420px, 66.6vh))", containerType: "inline-size" }}>
+        <img src="/capa-login.jpg" alt="AIMÊ — Mapeamento Inteligente de Edificações e Equipamentos"
+          style={{ width: "100%", display: "block" }} />
+        <div style={{ position: "absolute", top: "63.7cqw", left: "50%", transform: "translateX(-50%)",
+          width: "max(64.2cqw, min(92cqw, 380px))", minHeight: "57.1cqw", boxSizing: "border-box",
+          backgroundColor: "#F8FBFE", borderRadius: "16px", boxShadow: "0 10px 30px rgba(15,30,74,0.12)",
+          padding: "22px 22px 20px", marginBottom: "16px" }}>
+          <h1 style={{ margin: 0, textAlign: "center", color: "#0F1E4A", fontWeight: 800, fontSize: "22px" }}>
+            Efetuar Login e Cadastro
+          </h1>
+          <p style={{ margin: "6px 0 16px", textAlign: "center", color: "#1F2937", fontSize: "13px", lineHeight: 1.4 }}>
+            Entre com seu CPF e senha para acessar o AIMÊ e gerenciar seus serviços de engenharia diagnóstica.
+          </p>
+          <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
             <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-              <label style={{ fontSize: "14px", fontWeight: "500", color: "#374151" }}>CPF</label>
-              <input ref={cpfRef} type="text" required value={cpf} onChange={(e) => setCpf(formatarCPF(e.target.value))}
-                placeholder="000.000.000-00" inputMode="numeric"
-                autoComplete="new-password" name="cpf-inspetor"
-                style={{ border: "1px solid #D1D5DB", borderRadius: "8px", padding: "10px 12px", fontSize: "14px", outline: "none" }} />
+              <label htmlFor="cpf-inspetor" style={rotulo}>CPF</label>
+              <div style={campo}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1F2937" strokeWidth="1.6" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/></svg>
+                <input id="cpf-inspetor" ref={cpfRef} type="text" required value={cpf} onChange={(e) => setCpf(formatarCPF(e.target.value))}
+                  placeholder="000.000.000-00" inputMode="numeric" autoComplete="new-password" name="cpf-inspetor" style={entrada} />
+              </div>
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-              <label style={{ fontSize: "14px", fontWeight: "500", color: "#374151" }}>Senha</label>
-              <input type="password" required value={password} onChange={(e) => setPassword(e.target.value)} placeholder="********"
-                style={{ border: "1px solid #D1D5DB", borderRadius: "8px", padding: "10px 12px", fontSize: "14px", outline: "none" }} />
-              <p style={{ fontSize: "13px", fontWeight: "bold", textAlign: "center", color: "#6B7280" }}>
-                Ao criar uma conta: senha com o mínimo de 8 caracteres, mínimo de uma letra, um número e um caractere especial.
+              <label htmlFor="senha-inspetor" style={rotulo}>Senha</label>
+              <div style={campo}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1F2937" strokeWidth="1.6" aria-hidden="true"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+                <input id="senha-inspetor" type={verSenha ? "text" : "password"} required value={password}
+                  onChange={(e) => setPassword(e.target.value)} placeholder="Digite sua senha" style={entrada} />
+                <button type="button" onClick={() => setVerSenha(v => !v)} aria-label={verSenha ? "Ocultar senha" : "Mostrar senha"}
+                  style={{ background: "none", border: "none", padding: "4px", cursor: "pointer", display: "flex" }}>
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1F2937" strokeWidth="1.8" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>{verSenha && <path d="M4 4l16 16"/>}</svg>
+                </button>
+              </div>
+              <p style={{ margin: "2px 0 0", fontSize: "12px", fontWeight: 700, textAlign: "center", color: "#0F2A6B", lineHeight: 1.35 }}>
+                Ao criar uma conta: senha com no mínimo 8 caracteres, incluindo uma letra, um número e um caractere especial.
               </p>
+              <div style={{ textAlign: "right" }}>
+                <a href="/recuperar-senha" style={{ fontSize: "12px", color: "#1E40AF", textDecoration: "underline" }}>Esqueci minha senha</a>
+              </div>
             </div>
-            {erro && <p style={{ color: "#DC2626", fontSize: "13px", textAlign: "center" }}>{erro}</p>}
+            {erro && <p style={{ margin: 0, color: "#DC2626", fontSize: "13px", textAlign: "center" }}>{erro}</p>}
             <button type="submit" disabled={loading}
-              style={{ backgroundColor: "#1E3A8A", color: "white", fontWeight: "600", padding: "12px", borderRadius: "50px", border: "none", cursor: "pointer", fontSize: "14px", opacity: loading ? 0.7 : 1 }}>
-              {loading ? "Aguarde..." : "Acessar Conta"}
+              style={{ background: "linear-gradient(180deg, #1E4FBF 0%, #0B2E86 100%)", color: "white", fontWeight: 600,
+                height: "48px", borderRadius: "50px", border: "none", cursor: "pointer", fontSize: "16px",
+                boxShadow: "0 6px 14px rgba(11,46,134,0.3)", opacity: loading ? 0.7 : 1 }}>
+              {loading ? "Aguarde..." : "Acessar conta  ›"}
             </button>
-            <div style={{ textAlign: 'center', marginTop: '12px' }}>
-              <a href="/recuperar-senha" style={{ fontSize: '11px', color: '#1E3A8A', textDecoration: 'underline' }}>
-                Esqueci minha senha
-              </a>
-            </div>
           </form>
         </div>
       </div>
