@@ -19,6 +19,7 @@ import { encerrarSessao } from '@/lib/encerrarSessao'
 import { tokenDaSessao, novaSessaoToken } from '@/lib/sessaoVistoria'
 import { perfilDoTitulo } from '@/lib/profissionaisDeApoio'
 import { guardarEstabelecimento } from '@/lib/identidade'
+import PainelCreditos from '@/components/PainelCreditos'
 
 const SUPA_URL = 'https://asgorarunzhiojqioxzq.supabase.co'
 const SUPA_KEY = 'sb_publishable_dH85HYKGxv3X0te627VfOw_OGaPoNMF'
@@ -767,6 +768,7 @@ export default function Dashboard() {
               <span style={{ color: "white", fontWeight: "bold", fontSize: "11px" }}>Selecionar Serviço</span>
             </div>
             <div style={{ height: "2px", backgroundColor: "#1E3A8A" }} />
+            <PainelCreditos />
             {grupos.map((grupo) => (
               <div key={grupo.grupo}>
                 <button onClick={() => setGrupoAberto(grupoAberto === grupo.grupo ? null : grupo.grupo)}
