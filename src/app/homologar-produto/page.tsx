@@ -1,7 +1,7 @@
 "use client"
 export const dynamic = 'force-dynamic'
 import React, { Suspense, useEffect, useRef, useState } from 'react'
-import { useSearchParams } from 'next/navigation'
+import { useParametros } from '@/lib/identidade'
 import Image from 'next/image'
 import Banner from '@/components/Banner'
 import { useBanner } from '@/hooks/useBanner'
@@ -38,7 +38,7 @@ export default function HomologarProdutoPage() {
 }
 
 function HomologarProdutoInner() {
-  const params         = useSearchParams()
+  const params         = useParametros()
   const cpfInspetor    = params.get('cpf_inspetor')    ?? ''
   const chaveInspetor  = params.get('chave_inspetor')  ?? cpfInspetor   // sem chave na URL, vale o CPF (como nas demais telas)
   const cnpjoucpf      = params.get('cnpjoucpf')       ?? ''

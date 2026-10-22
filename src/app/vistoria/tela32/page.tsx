@@ -7,7 +7,7 @@ import { salvarOffline } from '@/lib/offlineVistoria'
 
 import { Suspense, useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { useSearchParams } from 'next/navigation'
+import { useParametros } from '@/lib/identidade'
 import Banner from '@/components/Banner'
 import { useBanner } from '@/hooks/useBanner'
 import Image from 'next/image'
@@ -77,7 +77,7 @@ export default function Tela31Page() {
 // ─── Componente principal ─────────────────────────────────────────────────────
 
 function Tela31Inner() {
-  const params        = useSearchParams()
+  const params        = useParametros()
   const { bannerProps, orienta } = useBanner()
   const cpfInspetor   = params.get('cpf_inspetor')   ?? ''
   const chaveInspetor = params.get('chave_inspetor') ?? cpfInspetor
@@ -604,7 +604,7 @@ function Tela31Inner() {
     blurAll()
     // Modo elétrico: retorna ao dashboard com credenciais do eng. elétrico
     if (sistemaFixo && cpfEletrico) {
-      window.location.href = `/dashboard?cpf_inspetor=${cpfEletrico}&chave_inspetor=${chaveInspetor}`
+      window.location.href = `/dashboard`
     } else {
       window.location.href = '/dashboard'
     }

@@ -405,7 +405,7 @@ export default function GestorPage() {
 
   async function novoInspetor() {
     const { data: { session } } = await supabase.auth.getSession()
-    window.location.href = `/inspetor?gestor=1`
+    window.location.href = `/meu-cadastro?gestor=1`
   }
 
   const inspFiltrados = inspetores.filter(i =>

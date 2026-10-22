@@ -1,7 +1,7 @@
 "use client"
 export const dynamic = 'force-dynamic'
 import { Suspense, useEffect, useState } from "react"
-import { useSearchParams } from "next/navigation"
+import { useParametros } from '@/lib/identidade'
 import Image from "next/image"
 import LinkSair from "@/components/LinkSair"
 import Banner from "@/components/Banner"
@@ -32,7 +32,7 @@ const PLANOS = [
 ]
 
 function EscolherPlano() {
-  const params = useSearchParams()
+  const params = useParametros()
   // O CPF vem da URL, mas a SESSÃO é a fonte confiável (é a que o dashboard usa): se a URL não
   // trouxer o CPF, a tela antes ficava presa em "Aguardando..." sem conferir nada.
   const cpfUrl = params.get('cpf') ?? ''
@@ -185,7 +185,7 @@ function EscolherPlano() {
   }
 
   function continuar() {
-    window.location.href = `${proximo}${proximo.includes('?') ? '&' : '?'}cpf_inspetor=${cpf}&chave_inspetor=${encodeURIComponent(chave)}`
+    window.location.href = proximo   // a identidade vem da sessão, não da URL
   }
 
   const S = {

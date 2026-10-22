@@ -1,7 +1,7 @@
 "use client"
 export const dynamic = 'force-dynamic'
 import { Suspense, useState } from "react"
-import { useSearchParams } from "next/navigation"
+import { useParametros } from '@/lib/identidade'
 import Image from "next/image"
 import { createClient } from "@/utils/supabase/client"
 import Banner from '@/components/Banner'
@@ -16,7 +16,7 @@ export default function FaleConoscoPage() {
 }
 
 function FaleConosco() {
-  const params = useSearchParams()
+  const params = useParametros()
   const cpfInspetor = params.get('cpf_inspetor') ?? ''
 
   const { bannerProps, informa, solicita, fechar } = useBanner()
@@ -41,7 +41,7 @@ function FaleConosco() {
       if (!res.ok) { informa('Erro', d.erro ?? 'Não foi possível enviar sua mensagem.'); setEnviando(false); return }
       solicita('Mensagem enviada!',
         'Recebemos sua mensagem e vamos responder em breve.',
-        [{ label: 'Voltar ao Menu', acao: () => { fechar(); window.location.href = `/dashboard?cpf_inspetor=${cpfInspetor}` }, estilo: 'primario' }]
+        [{ label: 'Voltar ao Menu', acao: () => { fechar(); window.location.href = `/dashboard` }, estilo: 'primario' }]
       )
       setAssunto(''); setMensagem('')
     } catch {
@@ -88,7 +88,7 @@ function FaleConosco() {
               style={{ width: "100%", border: "1px solid #D1D5DB", borderRadius: "6px", padding: "8px 10px", fontSize: "13px", marginBottom: "16px", boxSizing: "border-box", resize: "vertical" as const, fontFamily: "inherit" }} />
 
             <div style={{ display: "flex", gap: "10px", justifyContent: "flex-end" }}>
-              <button type="button" onClick={() => window.location.href = `/dashboard?cpf_inspetor=${cpfInspetor}`}
+              <button type="button" onClick={() => window.location.href = `/dashboard`}
                 style={{ padding: "9px 20px", borderRadius: "50px", border: "1px solid #1E3A8A", backgroundColor: "white", color: "#1E3A8A", fontWeight: 600, fontSize: "12px", cursor: "pointer" }}>
                 Voltar
               </button>

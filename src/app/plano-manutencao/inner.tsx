@@ -1,5 +1,5 @@
 'use client'
-import { useSearchParams } from 'next/navigation'
+import { useParametros } from '@/lib/identidade'
 import { useState, useEffect, useRef } from 'react'
 import Image from 'next/image'
 import Banner from '@/components/Banner'
@@ -79,7 +79,7 @@ function HeaderBar({ subtitulo }: { subtitulo: string }) {
 }
 
 export default function PlanoManutencaoInner() {
-  const params      = useSearchParams()
+  const params      = useParametros()
   const cpfInspetor = params.get('cpf_inspetor')   ?? ''
   const chaveInsp   = params.get('chave_inspetor') ?? ''
   const cnpjoucpf   = params.get('cnpjoucpf')      ?? ''
@@ -193,7 +193,7 @@ export default function PlanoManutencaoInner() {
           solicita('Créditos insuficientes',
             `${data.erro ?? 'Créditos insuficientes para gerar este plano de manutenção.'} Faltam ${data.faltam ?? '—'} CR (saldo atual: ${data.saldoTotal ?? '—'}).`,
             [
-              { label: 'Comprar Créditos', acao: () => { fechar(); window.location.href = `/inspetor?cpf=${cpfInspetor}&aba=plano` }, estilo: 'primario' },
+              { label: 'Comprar Créditos', acao: () => { fechar(); window.location.href = `/meu-plano` }, estilo: 'primario' },
               { label: 'Cancelar', acao: () => { fechar(); window.location.href = retorno }, estilo: 'secundario' },
             ]
           )
@@ -289,8 +289,8 @@ export default function PlanoManutencaoInner() {
 
   function homologar() {
     window.location.href =
-      `/homologar-produto?cpf_inspetor=${cpfInspetor}&chave_inspetor=${chaveInsp}` +
-      `&cnpjoucpf=${cnpjoucpf}&tipo_servico=${tipoServico}` +
+      `/homologar-produto` +
+      `?cnpjoucpf=${cnpjoucpf}&tipo_servico=${tipoServico}` +
       `&nome=${encodeURIComponent(nomeArq)}&pasta=documentos_inspetor`
   }
 

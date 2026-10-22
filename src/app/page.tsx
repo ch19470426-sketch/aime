@@ -133,7 +133,7 @@ export default function LoginPage() {
           setErro("Conta criada, mas não foi possível entrar automaticamente. Tente fazer login novamente.")
           return
         }
-        router.push(`/inspetor?cpf=${cpfLimpo}&novo=1`)
+        router.push(`/meu-cadastro?novo=1`)
       }
     } catch {
       setLoading(false)

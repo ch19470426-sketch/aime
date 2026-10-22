@@ -1,6 +1,7 @@
 import type { Metadata } from "next"
 import "./globals.css"
 import AuthFetch from "@/components/AuthFetch"
+import { IdentidadeProvider } from "@/lib/identidade"
 
 export const metadata: Metadata = {
   title: "AIMÊ",
@@ -59,7 +60,7 @@ export default function RootLayout({
       </head>
       <body className="min-h-full flex flex-col" style={{ fontFamily: "Arial, Helvetica, sans-serif" }}>
         <AuthFetch />
-        {children}
+        <IdentidadeProvider>{children}</IdentidadeProvider>
       </body>
     </html>
   )

@@ -1,7 +1,7 @@
 "use client"
 export const dynamic = 'force-dynamic'
 import { useState, useEffect, Suspense } from "react"
-import { useSearchParams } from "next/navigation"
+import { useParametros } from '@/lib/identidade'
 import Image from "next/image"
 import { nomeSemChave } from '@/lib/nomeArquivo'
 import { credencialDoBanco } from '@/lib/bancoNavegador'
@@ -22,7 +22,7 @@ interface Doc {
 }
 
 function BaixarDocumentos() {
-  const params = useSearchParams()
+  const params = useParametros()
   const cpfInspetor   = params.get('cpf_inspetor')   ?? ''
   const chaveInspetor = params.get('chave_inspetor')  ?? ''
   const cnpjoucpfUrl  = params.get('cnpjoucpf')       ?? ''

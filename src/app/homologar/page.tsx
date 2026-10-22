@@ -2,7 +2,7 @@
 export const dynamic = 'force-dynamic'
 import React, { Suspense, useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { useSearchParams } from 'next/navigation'
+import { useParametros } from '@/lib/identidade'
 import Image from 'next/image'
 import Banner from '@/components/Banner'
 import { useBanner } from '@/hooks/useBanner'
@@ -146,7 +146,7 @@ export default function Tela40Page() {
 }
 
 function Tela40Inner() {
-  const params        = useSearchParams()
+  const params        = useParametros()
   const chaveInspetor = params.get('chave_inspetor') ?? ''
   const cpfInspetor   = params.get('cpf_inspetor')   ?? ''
   const cnpjoucpf     = params.get('cnpjoucpf')      ?? ''

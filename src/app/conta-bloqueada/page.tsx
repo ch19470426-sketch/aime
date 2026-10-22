@@ -5,7 +5,7 @@
 // (Painel do Gestor, aba "Contas bloqueadas"); se a conta for liberada, esta tela leva de volta ao menu.
 
 import { Suspense, useEffect, useState } from 'react'
-import { useSearchParams } from 'next/navigation'
+import { useParametros } from '@/lib/identidade'
 import Image from 'next/image'
 import LinkSair from '@/components/LinkSair'
 import VersaoBuild from '@/components/VersaoBuild'
@@ -15,7 +15,7 @@ import { TEXTO_MOTIVO } from '@/lib/textosBloqueio'
 const EMAIL_SUPORTE = 'suporte@aime.eng.br'
 
 function Conteudo() {
-  const params = useSearchParams()
+  const params = useParametros()
   const [cpf, setCpf] = useState(params.get('cpf') ?? '')
   const [motivo, setMotivo] = useState<string | null>(null)
   const [verificando, setVerificando] = useState(false)

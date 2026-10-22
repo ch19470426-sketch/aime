@@ -1,6 +1,6 @@
 'use client'
 import { useEffect, useState, Suspense } from 'react'
-import { useSearchParams } from 'next/navigation'
+import { useParametros } from '@/lib/identidade'
 import { credencialDoBanco } from '@/lib/bancoNavegador'
 
 const SUPA_URL = 'https://asgorarunzhiojqioxzq.supabase.co'
@@ -45,7 +45,7 @@ function formatDoc(v: string) {
 }
 
 function MeusEstabelecimentosInner() {
-  const params = useSearchParams()
+  const params = useParametros()
   const cpfInspetor = params.get('cpf_inspetor') ?? ''
   const [cabInspetor, setCabInspetor] = useState('')
   const origem = params.get('origem') ?? 'dashboard'

@@ -1,7 +1,8 @@
 "use client"
 export const dynamic = 'force-dynamic'
 import { useState, useEffect, Suspense } from "react"
-import { useSearchParams } from "next/navigation"
+import { useParametros } from '@/lib/identidade'
+import { usePathname } from 'next/navigation'
 import Image from "next/image"
 import { createClient } from "@/utils/supabase/client"
 import BlocoAssinatura, { type AssinaturaStatus } from '@/components/BlocoAssinatura'
@@ -39,7 +40,8 @@ export default function CadastroInspetorPage() {
 }
 
 function CadastroInspetor() {
-  const params = useSearchParams()
+  const params = useParametros()
+  const caminho = usePathname()   // /meu-plano abre direto na aba do plano
   const cpfUrl = params.get('cpf') ?? ''
   const ehNovo = params.get('novo') === '1'
   const ehGestor = params.get('gestor') === '1'
@@ -73,7 +75,7 @@ function CadastroInspetor() {
   const [salvando, setSalvando] = useState(false)
   const [carregando, setCarregando] = useState(true)
   const [buscandoCep, setBuscandoCep] = useState(false)
-  const [abaInspetor, setAbaInspetor] = useState<'dados'|'plano'>(params.get('aba') === 'plano' ? 'plano' : 'dados')
+  const [abaInspetor, setAbaInspetor] = useState<'dados'|'plano'>(params.get('aba') === 'plano' || caminho === '/meu-plano' ? 'plano' : 'dados')
   const [contratos, setContratos] = useState<any[]>([])
   const [carregandoPlano, setCarregandoPlano] = useState(false)
   const [msgPlano, setMsgPlano] = useState('')
@@ -276,7 +278,7 @@ function CadastroInspetor() {
       setTimeout(() => {
         const cpfLimpo = form.cpf.replace(/\D/g, '')
         if (ehNovo) {
-          window.location.href = `/termo-aceite?cpf=${cpfLimpo}&chave=${encodeURIComponent(chaveGerada)}&proximo=/dashboard`
+          window.location.href = `/termo-aceite?proximo=/dashboard`
         } else if (ehVisualizar) {
           window.location.href = "/gestor"
         } else {

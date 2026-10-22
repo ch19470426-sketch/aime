@@ -1,0 +1,77 @@
+'use client'
+// src/lib/identidade.tsx
+// AIMÊ — Identidade do usuário logado nas telas, SEM passar pela URL (pedido do marketing: CPF fora da URL, LGPD e política do Google Analytics).
+//
+// Antes, cada tela lia cpf_inspetor, chave_inspetor, cpf e chave da URL (?cpf_inspetor=...). Agora a identidade vem da SESSÃO: o login do usuário é
+// <cpf>@aime-app.com.br, e a chave do inspetor é o próprio CPF (desde a migração de 13/10/2026). As telas continuam chamando params.get('cpf_inspetor')
+// como antes, mas com useParametros() no lugar de useSearchParams(): o valor sai daqui.
+//
+// O que a URL AINDA pode trazer: o CPF de OUTRA pessoa, nos fluxos do gestor (vendo o cadastro de um inspetor) e do profissional de apoio (agindo sobre o
+// inspetor civil). Isso sai na Fase 2. O servidor confere o dono de qualquer jeito (403 se não for o próprio, o vinculado ou o gestor).
+
+import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
+import { usePathname, useSearchParams } from 'next/navigation'
+import { createClient } from '@/utils/supabase/client'
+
+const DOMINIO_LOGIN = '@aime-app.com.br'
+// Telas sem login: não leem a identidade e não podem esperar a sessão.
+const TELAS_PUBLICAS = ['/', '/nova-senha', '/recuperar-senha', '/logout']
+
+/** O CPF (só dígitos) de quem está logado, a partir do e-mail de login. Vazio se não houver sessão ou se o e-mail não for o do AIMÊ. */
+export function cpfDoLogin(email?: string | null): string {
+  if (!email || !email.toLowerCase().endsWith(DOMINIO_LOGIN)) return ''
+  return email.slice(0, email.length - DOMINIO_LOGIN.length).replace(/\D/g, '')
+}
+
+const soDigitos = (v: string | null) => (v ?? '').replace(/\D/g, '')
+
+/**
+ * Resolve os parâmetros de identidade de uma tela. PURA (testável).
+ *  - chave_inspetor e chave: SEMPRE o próprio usuário (a chave é o CPF dele; no fluxo do profissional de apoio, também é a dele).
+ *  - cpf_eletrico: o próprio usuário, mas só nos fluxos do profissional de apoio, marcados por apoio=1 (ou pelo parâmetro antigo).
+ *  - cpf_inspetor e cpf: o próprio usuário, EXCETO quando a URL traz OUTRA pessoa (gestor e profissional de apoio, Fase 2).
+ * O CPF de alguém na URL nunca dá acesso a nada: o servidor confere o dono em toda chamada.
+ */
+export function resolverParametros(url: URLSearchParams, cpfLogado: string): URLSearchParams {
+  const p = new URLSearchParams(url.toString())
+  if (!cpfLogado) return p
+  p.set('chave_inspetor', cpfLogado)
+  p.set('chave', cpfLogado)
+  if (url.get('apoio') === '1' || url.has('cpf_eletrico')) p.set('cpf_eletrico', cpfLogado)
+  else p.delete('cpf_eletrico')
+  for (const nome of ['cpf_inspetor', 'cpf']) {
+    const daUrl = soDigitos(url.get(nome))
+    if (!daUrl || daUrl === cpfLogado) p.set(nome, cpfLogado)
+  }
+  return p
+}
+
+const IdentidadeCtx = createContext<{ cpf: string }>({ cpf: '' })
+
+export function IdentidadeProvider({ children }: { children: ReactNode }) {
+  const caminho = usePathname() ?? '/'
+  const [estado, setEstado] = useState<{ cpf: string; pronto: boolean }>({ cpf: '', pronto: false })
+
+  useEffect(() => {
+    const supabase = createClient()
+    let vivo = true
+    supabase.auth.getSession()
+      .then(({ data }) => { if (vivo) setEstado({ cpf: cpfDoLogin(data.session?.user?.email), pronto: true }) })
+      .catch(() => { if (vivo) setEstado({ cpf: '', pronto: true }) })
+    const { data: assinatura } = supabase.auth.onAuthStateChange((_evento, sessao) => {
+      if (vivo) setEstado({ cpf: cpfDoLogin(sessao?.user?.email), pronto: true })
+    })
+    return () => { vivo = false; assinatura.subscription.unsubscribe() }
+  }, [])
+
+  // Telas com login esperam a sessão (leitura local, milissegundos) para já nascerem com a identidade; as públicas aparecem de imediato.
+  if (!estado.pronto && !TELAS_PUBLICAS.includes(caminho)) return null
+  return <IdentidadeCtx.Provider value={{ cpf: estado.cpf }}>{children}</IdentidadeCtx.Provider>
+}
+
+/** No lugar de useSearchParams(): igual, mas a identidade do próprio usuário vem da sessão e não da URL. */
+export function useParametros(): URLSearchParams {
+  const real = useSearchParams()
+  const { cpf } = useContext(IdentidadeCtx)
+  return useMemo(() => resolverParametros(new URLSearchParams(real?.toString() ?? ''), cpf), [real, cpf])
+}

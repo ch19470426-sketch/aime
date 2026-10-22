@@ -1,7 +1,7 @@
 "use client"
 export const dynamic = 'force-dynamic'
 import { Suspense, useEffect, useState } from 'react'
-import { useSearchParams } from 'next/navigation'
+import { useParametros } from '@/lib/identidade'
 import Image from 'next/image'
 import Banner from '@/components/Banner'
 import { useBanner } from '@/hooks/useBanner'
@@ -130,7 +130,7 @@ export default function PropostaPage() {
 }
 
 function PropostaInner() {
-  const params       = useSearchParams()
+  const params       = useParametros()
   const cpfInspetor  = params.get('cpf_inspetor')   ?? ''
   const chaveInspetor = params.get('chave_inspetor') ?? ''
   const cnpjoucpf    = params.get('cnpjoucpf')       ?? ''
@@ -329,7 +329,7 @@ function PropostaInner() {
           solicita('Créditos insuficientes',
             `${data.erro ?? 'Créditos insuficientes para gerar esta proposta.'} Faltam ${data.faltam ?? '—'} CR (saldo atual: ${data.saldoTotal ?? '—'}).`,
             [
-              { label: 'Comprar Créditos', acao: () => { fechar(); window.location.href = `/inspetor?cpf=${cpfInspetor}&aba=plano` }, estilo: 'primario' },
+              { label: 'Comprar Créditos', acao: () => { fechar(); window.location.href = `/meu-plano` }, estilo: 'primario' },
               { label: 'Cancelar', acao: () => fechar(), estilo: 'secundario' },
             ]
           )
@@ -379,7 +379,7 @@ function PropostaInner() {
         })
       } catch { /* histórico não crítico */ }
 
-      window.location.href = `/homologar-produto?cpf_inspetor=${cpfInspetor}&chave_inspetor=${chaveInspetor}&cnpjoucpf=${cnpjoucpf}&tipo_servico=${tipoServico}&nome_arquivo=${encodeURIComponent(nomeArq)}&titulo=${encodeURIComponent(titulo)}`
+      window.location.href = `/homologar-produto?cnpjoucpf=${cnpjoucpf}&tipo_servico=${tipoServico}&nome_arquivo=${encodeURIComponent(nomeArq)}&titulo=${encodeURIComponent(titulo)}`
     } catch(e) {
       informa('Erro', String(e))
     } finally {

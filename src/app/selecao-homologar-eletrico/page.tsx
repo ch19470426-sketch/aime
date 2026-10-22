@@ -1,7 +1,7 @@
 "use client"
 export const dynamic = 'force-dynamic'
 import { useState, useEffect, Suspense } from "react"
-import { useSearchParams } from "next/navigation"
+import { useParametros } from '@/lib/identidade'
 import Banner from "@/components/Banner"
 import { useBanner } from "@/hooks/useBanner"
 import React from "react"
@@ -29,7 +29,7 @@ const S: Record<string, React.CSSProperties> = {
 }
 
 function SelecaoInner() {
-  const params        = useSearchParams()
+  const params        = useParametros()
   const { bannerProps, orienta } = useBanner()
   const cpfEletrico   = params.get('cpf_inspetor')   ?? ''
   const chaveEletrico = params.get('chave_inspetor') ?? ''
@@ -69,7 +69,7 @@ function SelecaoInner() {
     // Arquivos salvos com chave do elétrico — usar chaveEletrico para buscar no Storage
     // cpf_inspetor do civil apenas para referência no laudo
     window.location.href =
-      `/homologar?cpf_inspetor=${cpfEletrico}&chave_inspetor=${chaveEletrico}&cnpjoucpf=${art.cnpjoucpf}&sistema_fixo=${sistemaEnc}&cpf_eletrico=${cpfEletrico}&cpf_civil=${art.cpf_inspetor}`
+      `/homologar?cnpjoucpf=${art.cnpjoucpf}&sistema_fixo=${sistemaEnc}&apoio=1&cpf_civil=${art.cpf_inspetor}`
   }
 
   function fmtDoc(v: string) {
@@ -93,11 +93,11 @@ function SelecaoInner() {
     const cnpjFinal = (cnpjNR10 || cnpjoucpfUrl).replace(/\D/g, '')
     if (!cnpjFinal) { orienta('Falta o CNPJ ou CPF', 'Informe o CNPJ ou CPF do estabelecimento.'); return }
     window.location.href =
-      `/homologar?cpf_inspetor=${cpfEletrico}&chave_inspetor=${chaveEletrico}&cnpjoucpf=${cnpjFinal}`
+      `/homologar?cnpjoucpf=${cnpjFinal}`
   }
 
   function voltar() {
-    window.location.href = `/dashboard?cpf_inspetor=${cpfEletrico}&chave_inspetor=${chaveEletrico}`
+    window.location.href = `/dashboard`
   }
 
   return (

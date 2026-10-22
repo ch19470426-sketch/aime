@@ -1,7 +1,7 @@
 "use client"
 export const dynamic = 'force-dynamic'
 import { useState, useEffect, Suspense } from "react"
-import { useSearchParams } from "next/navigation"
+import { useParametros } from '@/lib/identidade'
 import Image from "next/image"
 
 const tiposAtivo: Record<string, string[]> = {
@@ -52,7 +52,7 @@ const formInicial = {
 }
 
 function AtivosVistoriarInner() {
-  const searchParams = useSearchParams()
+  const searchParams = useParametros()
   const cpfUrl  = searchParams.get('cpf_inspetor') ?? ''
   const cnpjUrl = searchParams.get('cnpjoucpf')    ?? ''
   const tipoUrl = searchParams.get('tipo_servico') ?? ''

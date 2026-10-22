@@ -1,7 +1,7 @@
 "use client"
 export const dynamic = 'force-dynamic'
 import { useState, Suspense } from "react"
-import { useSearchParams } from "next/navigation"
+import { useParametros } from '@/lib/identidade'
 import Image from "next/image"
 import LinkSair from "@/components/LinkSair"
 import { TERMO_BLOCOS, partesComNegrito, dataDoAceite, type BlocoTermo } from "@/lib/termoAceite"
@@ -16,7 +16,7 @@ export default function TermoAceitePage() {
 
 
 function TermoAceite() {
-  const params = useSearchParams()
+  const params = useParametros()
   const cpf = params.get('cpf') ?? ''
   const chave = params.get('chave') ?? ''
   const proximo = params.get('proximo') ?? '/dashboard'
@@ -46,7 +46,7 @@ function TermoAceite() {
       // Próxima etapa obrigatória: escolher um plano (mesmo que Cortesia) —
       // o "proximo" original (ex.: /dashboard) é repassado para DEPOIS
       // dessa escolha, não pulado.
-      window.location.href = `/escolher-plano?cpf=${cpf}&chave=${encodeURIComponent(chave)}&proximo=${encodeURIComponent(proximo)}`
+      window.location.href = `/escolher-plano?proximo=${encodeURIComponent(proximo)}`
       return
     } catch {
       setErro('Não foi possível conectar. Tente novamente.')

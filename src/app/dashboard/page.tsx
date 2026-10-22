@@ -391,11 +391,11 @@ export default function Dashboard() {
               // antiga da rota durante a publicação.
               // Conta bloqueada (estorno, chargeback ou cartão recusado 3 vezes): tela própria, sem menu.
               if (dadosContrato.bloqueada === true) {
-                window.location.href = `/conta-bloqueada?cpf=${cpf}`
+                window.location.href = `/conta-bloqueada`
                 return
               }
               if ((dadosContrato.liberado ?? dadosContrato.temContrato) === false) {
-                window.location.href = `/escolher-plano?cpf=${cpf}&proximo=${encodeURIComponent('/dashboard')}`
+                window.location.href = `/escolher-plano?proximo=${encodeURIComponent('/dashboard')}`
                 return
               }
               if (dadosContrato.pagamentoPendente === true) setPagamentoPendente(true)
@@ -420,7 +420,7 @@ export default function Dashboard() {
             if (navigator.onLine) {
               deveRedirecionar = true
               await encerrarSessao()
-              window.location.href = `/inspetor?cpf=${cpf}&novo=1`
+              window.location.href = `/meu-cadastro?novo=1`
             }
             return
           }
@@ -469,7 +469,7 @@ export default function Dashboard() {
             const termoData = { existe: termoNovo.existe || termoAntigo.existe }
             if (!termoData.existe) {
               deveRedirecionar = true
-              window.location.href = `/termo-aceite?cpf=${cpf}&chave=${encodeURIComponent(chave)}&proximo=/dashboard`
+              window.location.href = `/termo-aceite?proximo=/dashboard`
               return
             }
           }
@@ -526,29 +526,29 @@ export default function Dashboard() {
     }
     // 62: Meu Cadastro — vai direto para a tela de edição do inspetor
     if (codigo === 62) {
-      window.location.href = `/inspetor?cpf=${cpfInspetor}`
+      window.location.href = `/meu-cadastro`
       return
     }
     // 63: Meus Estabelecimentos — lista estabelecimentos do inspetor
     if (codigo === 63) {
-      window.location.href = `/meus-estabelecimentos?cpf_inspetor=${cpfInspetor}`
+      window.location.href = `/meus-estabelecimentos`
       return
     }
     // 64: Meu Plano e Créditos — abre direto a aba de plano/contratação.
     // Fica fora do fluxo de login e de qualquer verificação de saldo: o
     // usuário sem créditos precisa conseguir chegar aqui para contratar.
     if (codigo === 64) {
-      window.location.href = `/inspetor?cpf=${cpfInspetor}&aba=plano`
+      window.location.href = `/meu-plano`
       return
     }
     // 91: Fale Conosco — navega direto, sem coletar CNPJ.
     if (codigo === 91) {
-      window.location.href = `/fale-conosco?cpf_inspetor=${cpfInspetor}`
+      window.location.href = `/fale-conosco`
       return
     }
     // Item 39: navegar direto sem coletar CNPJ
     if (codigo === 39) {
-      window.location.href = `/vistoria-eletrica?cpf_inspetor=${cpfInspetor}&chave_inspetor=${chaveInspetor}&sessao=${novaSessaoToken()}`
+      window.location.href = `/vistoria-eletrica?sessao=${novaSessaoToken()}`
       return
     }
     // Item 40 para Eng Elétrico e Eng Mecânico (profissionais de apoio): sempre vai para a tela de seleção, que tem
@@ -557,7 +557,7 @@ export default function Dashboard() {
     // próprio de CNPJ/CPF, não depende de nada relacionado a ART). Decisão de
     // 10/09/2026.
     if (codigo === 40 && perfilDoTitulo(titulo)) {
-      window.location.href = `/selecao-homologar-eletrico?cpf_inspetor=${cpfInspetor}&chave_inspetor=${chaveInspetor}`
+      window.location.href = `/selecao-homologar-eletrico`
       return
     }
     setTipoServico(codigo)
@@ -573,13 +573,13 @@ export default function Dashboard() {
       const r = await fetch(`/api/creditos/verificar-servico?cpf_inspetor=${cpfInspetor}&codigo_servico=${codigo}`)
       if (r.ok) {
         const v = await r.json()
-        if (v.liberado === false && v.motivo === 'conta_bloqueada') { window.location.href = `/conta-bloqueada?cpf=${cpfInspetor}`; return false }
+        if (v.liberado === false && v.motivo === 'conta_bloqueada') { window.location.href = `/conta-bloqueada`; return false }
         if (v.liberado === false) {
           setEstadoDoc('aguardando')
           solicita('Créditos insuficientes',
             `Créditos insuficientes para iniciar este serviço. São necessários ${v.necessario} CR (faltam ${v.faltam ?? '—'}).`,
             [
-              { label: 'Comprar Créditos', acao: () => { fechar(); window.location.href = `/inspetor?cpf=${cpfInspetor}&aba=plano` }, estilo: 'primario' },
+              { label: 'Comprar Créditos', acao: () => { fechar(); window.location.href = `/meu-plano` }, estilo: 'primario' },
               { label: 'Cancelar', acao: () => fechar(), estilo: 'secundario' },
             ])
           return false
@@ -593,7 +593,7 @@ export default function Dashboard() {
     const docLimpo = documentoSemMascara(documento)
     // Código 39: Vistoria Elétrica — navega direto sem coletar CNPJ aqui
     if (Number(tipoServico) === 39) {
-      window.location.href = `/vistoria-eletrica?cpf_inspetor=${cpfInspetor}&chave_inspetor=${chaveInspetor}&sessao=${novaSessaoToken()}`
+      window.location.href = `/vistoria-eletrica?sessao=${novaSessaoToken()}`
       return
     }
     // Validação de CPF/CNPJ pelas regras da Receita Federal — cobre todos os
@@ -611,7 +611,7 @@ export default function Dashboard() {
         return
       }
       if (!(await creditosOk(Number(tipoServico), docLimpo))) return
-      window.location.href = `/plano-manutencao?cpf_inspetor=${cpfInspetor}&chave_inspetor=${chaveInspetor}&cnpjoucpf=${docLimpo}&tipo_servico=${tipoServico}`
+      window.location.href = `/plano-manutencao?cnpjoucpf=${docLimpo}&tipo_servico=${tipoServico}`
       return
     }
     if (aceitaAmbos) {
@@ -628,30 +628,30 @@ export default function Dashboard() {
     }
     // Código 61: Baixar Documentos — passa o CNPJ/CPF já preenchido
     if (Number(tipoServico) === 61) {
-      window.location.href = `/baixar-documentos?cpf_inspetor=${cpfInspetor}&chave_inspetor=${chaveInspetor}&cnpjoucpf=${docLimpo}`
+      window.location.href = `/baixar-documentos?cnpjoucpf=${docLimpo}`
       return
     }
     // Códigos 21-29: Planos de Trabalho
     if (Number(tipoServico) >= 21 && Number(tipoServico) <= 29) {
       if (!(await creditosOk(Number(tipoServico), docLimpo))) return
-      window.location.href = `/plano?cpf_inspetor=${cpfInspetor}&chave_inspetor=${chaveInspetor}&cnpjoucpf=${docLimpo}&tipo_servico=${tipoServico}`
+      window.location.href = `/plano?cnpjoucpf=${docLimpo}&tipo_servico=${tipoServico}`
       return
     }
     // Códigos 11-19: Propostas
     if (Number(tipoServico) >= 11 && Number(tipoServico) <= 19) {
       if (!(await creditosOk(Number(tipoServico), docLimpo))) return
-      window.location.href = `/proposta?cpf_inspetor=${cpfInspetor}&chave_inspetor=${chaveInspetor}&cnpjoucpf=${docLimpo}&tipo_servico=${tipoServico}`
+      window.location.href = `/proposta?cnpjoucpf=${docLimpo}&tipo_servico=${tipoServico}`
       return
     }
     // Códigos 41-48: Laudos (Autovistoria, Inspeção, Imóvel Novo, Fachada, Elevador, NR-10, NR-12, NR-13)
     if (Number(tipoServico) >= 41 && Number(tipoServico) <= 48) {
       if (!(await creditosOk(Number(tipoServico), docLimpo))) return
-      window.location.href = `/laudo?cpf_inspetor=${cpfInspetor}&chave_inspetor=${chaveInspetor}&cnpjoucpf=${docLimpo}&tipo_servico=${tipoServico}`
+      window.location.href = `/laudo?cnpjoucpf=${docLimpo}&tipo_servico=${tipoServico}`
       return
     }
     // Código 40: Homologar Vistoria (eng. elétrico já tratado no clique direto acima)
     if (Number(tipoServico) === 40) {
-      window.location.href = `/homologar?cpf_inspetor=${cpfInspetor}&chave_inspetor=${chaveInspetor}&cnpjoucpf=${docLimpo}`
+      window.location.href = `/homologar?cnpjoucpf=${docLimpo}`
       return
     }
     // Verificar se existe Plano de Trabalho para o CNPJ+tipo antes de iniciar vistoria
@@ -686,7 +686,7 @@ export default function Dashboard() {
       if (resSaldo.ok) {
         const verificacao = await resSaldo.json()
         if (verificacao.liberado === false && verificacao.motivo === 'conta_bloqueada') {
-          window.location.href = `/conta-bloqueada?cpf=${cpfInspetor}`
+          window.location.href = `/conta-bloqueada`
           return
         }
         if (verificacao.liberado === false) {
@@ -694,7 +694,7 @@ export default function Dashboard() {
           solicita('Créditos insuficientes',
             `Créditos insuficientes para iniciar esta vistoria. São necessários ${verificacao.necessario} CR (faltam ${verificacao.faltam ?? '—'}).`,
             [
-              { label: 'Comprar Créditos', acao: () => { fechar(); window.location.href = `/inspetor?cpf=${cpfInspetor}&aba=plano` }, estilo: 'primario' },
+              { label: 'Comprar Créditos', acao: () => { fechar(); window.location.href = `/meu-plano` }, estilo: 'primario' },
               { label: 'Cancelar', acao: () => fechar(), estilo: 'secundario' },
             ]
           )
@@ -711,8 +711,8 @@ export default function Dashboard() {
     // aparecer. Pedido de Celso, 29/09/2026.
     const sessaoToken = `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`
     const url = Number(tipoServico) === 39
-      ? `/vistoria-eletrica?cpf_inspetor=${cpfInspetor}&chave_inspetor=${chaveInspetor}&sessao=${sessaoToken}`
-      : `/vistoria/tela${tipoServico}?cpf_inspetor=${cpfInspetor}&chave_inspetor=${chaveInspetor}&cnpjoucpf=${docLimpo}&tipo_servico=${tipoServico}&sessao=${sessaoToken}`
+      ? `/vistoria-eletrica?sessao=${sessaoToken}`
+      : `/vistoria/tela${tipoServico}?cnpjoucpf=${docLimpo}&tipo_servico=${tipoServico}&sessao=${sessaoToken}`
     window.location.href = url
   }
 
@@ -746,7 +746,7 @@ export default function Dashboard() {
         {pagamentoPendente && (
           <div style={{ backgroundColor: "#FFFBEB", borderBottom: "1px solid #FDE68A", color: "#92400E", fontSize: "11px", padding: "8px 16px", lineHeight: 1.5 }}>
             <strong>Pagamento pendente.</strong> Assim que for confirmado, seus créditos serão liberados automaticamente; não é preciso fazer nada.{" "}
-            <a href={`/inspetor?cpf=${cpfInspetor}&aba=plano`} style={{ color: "#1E3A8A", textDecoration: "underline" }}>Ver pedido</a>
+            <a href={`/meu-plano`} style={{ color: "#1E3A8A", textDecoration: "underline" }}>Ver pedido</a>
           </div>
         )}
 

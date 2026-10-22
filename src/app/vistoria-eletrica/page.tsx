@@ -1,7 +1,8 @@
 "use client"
 export const dynamic = 'force-dynamic'
 import { useState, useEffect, Suspense } from "react"
-import { useSearchParams, useRouter } from "next/navigation"
+import { useRouter } from 'next/navigation'
+import { useParametros } from '@/lib/identidade'
 import React from "react"
 import Image from "next/image"
 import Banner from '@/components/Banner'
@@ -30,7 +31,7 @@ const S: Record<string, React.CSSProperties> = {
 }
 
 function VistoriaEletricaInner() {
-  const params        = useSearchParams()
+  const params        = useParametros()
   const router        = useRouter()
   const cpfEletrico   = params.get('cpf_inspetor')   ?? ''
   const chaveEletrico = params.get('chave_inspetor') ?? ''
@@ -104,7 +105,7 @@ function VistoriaEletricaInner() {
             solicita('Créditos insuficientes',
               `Créditos insuficientes para iniciar esta vistoria. São necessários ${verificacao.necessario} CR (faltam ${verificacao.faltam ?? '—'}).`,
               [
-                { label: 'Comprar Créditos', acao: () => { fechar(); window.location.href = `/inspetor?cpf=${cpfEletrico}&aba=plano` }, estilo: 'primario' },
+                { label: 'Comprar Créditos', acao: () => { fechar(); window.location.href = `/meu-plano` }, estilo: 'primario' },
                 { label: 'Cancelar', acao: () => fechar(), estilo: 'secundario' },
               ]
             )
@@ -116,7 +117,7 @@ function VistoriaEletricaInner() {
       // Vai direto para a vistoria — o comando já foi dado ao clicar em
       // "Vistoriar", não precisa de uma tela intermediária com outro botão.
       router.push(
-        `/vistoria/tela32?cpf_inspetor=${cpfLimpo}&chave_inspetor=${chaveEletrico}&cnpjoucpf=${cnpjLimpo}&tipo_servico=32&sistema_fixo=${sistemaFixoUrl}&cpf_eletrico=${cpfEletrico}&sessao=${sessaoToken}`
+        `/vistoria/tela32?cpf_inspetor=${cpfLimpo}&cnpjoucpf=${cnpjLimpo}&tipo_servico=32&sistema_fixo=${sistemaFixoUrl}&apoio=1&sessao=${sessaoToken}`
       )
     } catch(e: any) {
       setErro(e.message ?? 'Erro inesperado')
@@ -134,7 +135,7 @@ function VistoriaEletricaInner() {
           solicita('Créditos insuficientes',
             `Créditos insuficientes para iniciar esta vistoria. São necessários ${verificacao.necessario} CR (faltam ${verificacao.faltam ?? '—'}).`,
             [
-              { label: 'Comprar Créditos', acao: () => { fechar(); window.location.href = `/inspetor?cpf=${cpfEletrico}&aba=plano` }, estilo: 'primario' },
+              { label: 'Comprar Créditos', acao: () => { fechar(); window.location.href = `/meu-plano` }, estilo: 'primario' },
               { label: 'Cancelar', acao: () => fechar(), estilo: 'secundario' },
             ]
           )
@@ -143,7 +144,7 @@ function VistoriaEletricaInner() {
       }
     } catch { /* falha na verificação — libera normalmente */ }
     router.push(
-      `/vistoria/tela32?cpf_inspetor=${credencial.cpfCivil}&chave_inspetor=${chaveEletrico}&cnpjoucpf=${credencial.cnpj}&tipo_servico=32&sistema_fixo=${sistemaFixoUrl}&cpf_eletrico=${cpfEletrico}&sessao=${sessaoToken}`
+      `/vistoria/tela32?cpf_inspetor=${credencial.cpfCivil}&cnpjoucpf=${credencial.cnpj}&tipo_servico=32&sistema_fixo=${sistemaFixoUrl}&apoio=1&sessao=${sessaoToken}`
     )
   }
 
@@ -191,7 +192,7 @@ function VistoriaEletricaInner() {
 
             <div style={S.footer}>
               <button style={{ ...S.btn, ...S.btnSec }}
-                onClick={() => router.push(`/dashboard?cpf_inspetor=${cpfEletrico}&chave_inspetor=${chaveEletrico}`)}>
+                onClick={() => router.push(`/dashboard`)}>
                 Voltar
               </button>
               <button style={{ ...S.btn, ...S.btnPri, opacity: salvando ? 0.6 : 1 }}
@@ -215,7 +216,7 @@ function VistoriaEletricaInner() {
             </div>
             <div style={S.footer}>
               <button style={{ ...S.btn, ...S.btnSec }}
-                onClick={() => router.push(`/dashboard?cpf_inspetor=${cpfEletrico}&chave_inspetor=${chaveEletrico}`)}>
+                onClick={() => router.push(`/dashboard`)}>
                 Dashboard
               </button>
               <button style={{ ...S.btn, ...S.btnPri }}
