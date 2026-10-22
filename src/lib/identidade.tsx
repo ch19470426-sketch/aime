@@ -30,15 +30,21 @@ const CHAVE_ALVO = 'aime_alvo_cpf'
 export function guardarAlvo(cpf: string) { try { sessionStorage.setItem(CHAVE_ALVO, soDigitos(cpf)) } catch { /* sem armazenamento */ } }
 function lerAlvo(): string { try { return sessionStorage.getItem(CHAVE_ALVO) ?? '' } catch { return '' } }
 
+// O profissional de apoio (vistoria 39) agindo sobre o inspetor CIVIL: o CPF do civil também fica só na aba. O link leva o marcador sobre_civil=1.
+const CHAVE_CIVIL = 'aime_civil_cpf'
+export function guardarCivil(cpf: string) { try { sessionStorage.setItem(CHAVE_CIVIL, soDigitos(cpf)) } catch { /* sem armazenamento */ } }
+function lerCivil(): string { try { return sessionStorage.getItem(CHAVE_CIVIL) ?? '' } catch { return '' } }
+
 /**
  * Resolve os parâmetros de identidade de uma tela. PURA (testável).
  *  - chave_inspetor e chave: SEMPRE o próprio usuário (a chave é o CPF dele; no fluxo do profissional de apoio, também é a dele).
  *  - cpf_eletrico: o próprio usuário, mas só nos fluxos do profissional de apoio, marcados por apoio=1 (ou pelo parâmetro antigo).
  *  - cpf_inspetor e cpf: o próprio usuário, EXCETO quando a URL traz OUTRA pessoa (profissional de apoio, Fase 2) ou quando o gestor está vendo o cadastro de
  *    outro inspetor (visualizar=1): aí o cpf é o alvo guardado na aba.
+ *  - sobre_civil=1 (vistoria 39): cpf_inspetor é o do inspetor civil, guardado na aba por guardarCivil; a URL não escolhe quem é.
  * O CPF de alguém na URL nunca dá acesso a nada: o servidor confere o dono em toda chamada.
  */
-export function resolverParametros(url: URLSearchParams, cpfLogado: string, alvo = ''): URLSearchParams {
+export function resolverParametros(url: URLSearchParams, cpfLogado: string, alvo = '', civil = ''): URLSearchParams {
   const p = new URLSearchParams(url.toString())
   if (!cpfLogado) return p
   p.set('chave_inspetor', cpfLogado)
@@ -49,6 +55,13 @@ export function resolverParametros(url: URLSearchParams, cpfLogado: string, alvo
     if (nome === 'cpf' && url.get('visualizar') === '1' && soDigitos(alvo)) { p.set('cpf', soDigitos(alvo)); continue }   // gestor vendo outro inspetor
     const daUrl = soDigitos(url.get(nome))
     if (!daUrl || daUrl === cpfLogado) p.set(nome, cpfLogado)
+  }
+  // Profissional de apoio agindo sobre o inspetor civil: cpf_inspetor é o do CIVIL (guardado na aba), e a URL não escolhe quem é. Sem civil guardado (aba nova,
+  // link colado), não há quem vistoriar: cpf_inspetor fica vazio e o profissional volta à tela de escolha.
+  if (url.get('sobre_civil') === '1') {
+    const c = soDigitos(civil)
+    if (c) p.set('cpf_inspetor', c)
+    else p.delete('cpf_inspetor')
   }
   return p
 }
@@ -66,7 +79,7 @@ export function IdentidadeProvider({ children }: { children: ReactNode }) {
       .then(({ data }) => { if (vivo) setEstado({ cpf: cpfDoLogin(data.session?.user?.email), pronto: true }) })
       .catch(() => { if (vivo) setEstado({ cpf: '', pronto: true }) })
     const { data: assinatura } = supabase.auth.onAuthStateChange((_evento, sessao) => {
-      if (!sessao) { try { sessionStorage.removeItem(CHAVE_ALVO) } catch { /* ok */ } }   // saiu: esquece o inspetor que o gestor estava vendo
+      if (!sessao) { try { sessionStorage.removeItem(CHAVE_ALVO); sessionStorage.removeItem(CHAVE_CIVIL) } catch { /* ok */ } }   // saiu: esquece o inspetor que o gestor via e o civil do profissional de apoio
       if (vivo) setEstado({ cpf: cpfDoLogin(sessao?.user?.email), pronto: true })
     })
     return () => { vivo = false; assinatura.subscription.unsubscribe() }
@@ -81,5 +94,5 @@ export function IdentidadeProvider({ children }: { children: ReactNode }) {
 export function useParametros(): URLSearchParams {
   const real = useSearchParams()
   const { cpf } = useContext(IdentidadeCtx)
-  return useMemo(() => resolverParametros(new URLSearchParams(real?.toString() ?? ''), cpf, lerAlvo()), [real, cpf])
+  return useMemo(() => resolverParametros(new URLSearchParams(real?.toString() ?? ''), cpf, lerAlvo(), lerCivil()), [real, cpf])
 }

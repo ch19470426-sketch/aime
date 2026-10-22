@@ -67,9 +67,8 @@ function SelecaoInner() {
   function irVistoriaEletrica(art: any) {
     const sistemaEnc = encodeURIComponent(sistemaFixoDoPerfil(perfil))
     // Arquivos salvos com chave do elétrico — usar chaveEletrico para buscar no Storage
-    // cpf_inspetor do civil apenas para referência no laudo
     window.location.href =
-      `/homologar?cnpjoucpf=${art.cnpjoucpf}&sistema_fixo=${sistemaEnc}&apoio=1&cpf_civil=${art.cpf_inspetor}`
+      `/homologar?cnpjoucpf=${art.cnpjoucpf}&sistema_fixo=${sistemaEnc}&apoio=1`
   }
 
   function fmtDoc(v: string) {
