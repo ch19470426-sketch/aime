@@ -92,6 +92,12 @@ function Tela31Inner() {
   const tipoServicoBanco = TIPO_SERVICO_BANCO[tipoServico] ?? `${tipoServico} Autovistoria`
   const tagObrigatorio   = ['35', '37', '38'].includes(tipoServico)
 
+  // Vistoria 39 (profissional de apoio) sem o inspetor civil guardado nesta aba (aba nova, endereço colado): não há quem vistoriar. O CPF do civil não vai
+  // na URL, fica só na aba; então volta à tela de escolha em vez de abrir uma vistoria que o servidor recusaria ao salvar.
+  useEffect(() => {
+    if (params.get('sobre_civil') === '1' && !cpfInspetor) window.location.href = '/vistoria-eletrica'
+  }, [params, cpfInspetor])
+
   // ── Dados do estabelecimento ──
   const [cnpjDisplay,  setCnpjDisplay]  = useState('')
   const [razaoSocial,  setRazaoSocial]  = useState('')
