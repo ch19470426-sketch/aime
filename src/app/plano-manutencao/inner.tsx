@@ -291,7 +291,7 @@ export default function PlanoManutencaoInner() {
     window.location.href =
       `/homologar-produto` +
       `?cnpjoucpf=${cnpjoucpf}&tipo_servico=${tipoServico}` +
-      `&nome=${encodeURIComponent(nomeArq)}&pasta=documentos_inspetor`
+      `&nome=${encodeURIComponent(nomeSemChave(nomeArq))}&pasta=documentos_inspetor`
   }
 
   const retorno = `/dashboard`

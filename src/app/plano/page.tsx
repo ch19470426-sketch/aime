@@ -9,6 +9,7 @@ import Banner from '@/components/Banner'
 import { useBanner } from '@/hooks/useBanner'
 import { validarAgenda } from '@/lib/agenda'
 import { credencialDoBanco } from '@/lib/bancoNavegador'
+import { nomeSemChave } from '@/lib/nomeArquivo'
 
 const SUPA_URL = 'https://asgorarunzhiojqioxzq.supabase.co'
 const SUPA_KEY = 'sb_publishable_dH85HYKGxv3X0te627VfOw_OGaPoNMF'
@@ -378,7 +379,7 @@ function PlanoInner() {
       if (data.sucesso) {
         const tituloPlano = htmlData.planoInfo?.titulo ?? 'Plano de Trabalho'
         setSalvando(false)
-        window.location.href = `/homologar-produto?cnpjoucpf=${cnpjoucpf}&tipo_servico=${tipoServico}&nome_arquivo=${encodeURIComponent(nomeArq)}&titulo=${encodeURIComponent(tituloPlano)}`
+        window.location.href = `/homologar-produto?cnpjoucpf=${cnpjoucpf}&tipo_servico=${tipoServico}&nome_arquivo=${encodeURIComponent(nomeSemChave(nomeArq))}&titulo=${encodeURIComponent(tituloPlano)}`
       } else {
         informa('Erro', data.erro ?? 'Não foi possível salvar.')
       }

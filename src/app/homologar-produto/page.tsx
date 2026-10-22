@@ -7,7 +7,7 @@ import Banner from '@/components/Banner'
 import { useBanner } from '@/hooks/useBanner'
 import { enviarPdfAssinado } from '@/lib/envioPdf'
 import { createClient } from '@/utils/supabase/client'
-import { nomeSemChave, nomePdfAssinado } from '@/lib/nomeArquivo'
+import { nomeSemChave, nomeComChave, nomePdfAssinado } from '@/lib/nomeArquivo'
 import { credencialDoBanco } from '@/lib/bancoNavegador'
 
 const SUPA_URL = 'https://asgorarunzhiojqioxzq.supabase.co'
@@ -46,7 +46,8 @@ function HomologarProdutoInner() {
 
   const tipoServico    = params.get('tipo_servico')    ?? ''
   // O nome do documento vem como nome_arquivo (proposta, plano e laudo) ou como nome (plano de manutenção, que abre esta tela com esse parâmetro)
-  const nomeArquivo    = params.get('nome_arquivo')    ?? params.get('nome') ?? ''
+  // O nome chega SEM a chave (o CPF não vai na URL); a chave é a do usuário logado.
+  const nomeArquivo    = nomeComChave(params.get('nome_arquivo') ?? params.get('nome') ?? '', chaveInspetor)
   const titulo         = params.get('titulo')          ?? 'Documento'
   // URL para onde voltar ao terminar (ou desistir). Se não informado, vai para o dashboard.
   const retorno        = params.get('retorno')          ?? '/dashboard'

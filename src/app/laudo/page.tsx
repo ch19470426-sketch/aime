@@ -8,6 +8,7 @@ import { useBanner } from '@/hooks/useBanner'
 import { camposFaltantes } from '@/lib/coletaLaudo'
 import { ehPrioridadeAltaOuMedia } from '@/lib/prioridade'
 import { credencialDoBanco } from '@/lib/bancoNavegador'
+import { nomeSemChave } from '@/lib/nomeArquivo'
 
 // ─── Tipos ───────────────────────────────────────────────────────────────────
 interface NC {
@@ -680,7 +681,7 @@ function LaudoComplemento() {
       if (data.html) { try { sessionStorage.setItem('laudoHtml_' + nome, data.html) } catch {} }
       // Redirecionar diretamente usando a variável local (não o estado que pode não ter atualizado)
       console.log('GERAR: redirecionando para homologar')
-      window.location.href = `/homologar-produto?cnpjoucpf=${cnpjoucpf}&tipo_servico=${tipoServico}&nome_arquivo=${encodeURIComponent(nome)}&titulo=${encodeURIComponent(cfg?.titulo ?? 'Laudo Técnico')}`
+      window.location.href = `/homologar-produto?cnpjoucpf=${cnpjoucpf}&tipo_servico=${tipoServico}&nome_arquivo=${encodeURIComponent(nomeSemChave(nome))}&titulo=${encodeURIComponent(cfg?.titulo ?? 'Laudo Técnico')}`
     } catch (e) {
       console.error('GERAR CATCH:', String(e), e instanceof Error ? e.stack?.split('\n').slice(0,3).join(' | ') : '')
       setErro('Erro ao gerar laudo: ' + String(e))
@@ -739,7 +740,7 @@ function LaudoComplemento() {
           <div style={{ display: "flex", gap: "12px", justifyContent: "center" }}>
             <button style={S.btn} onClick={() => {
               console.log('GERAR: redirecionando para homologar')
-      window.location.href = `/homologar-produto?cnpjoucpf=${cnpjoucpf}&tipo_servico=${tipoServico}&nome_arquivo=${encodeURIComponent(nomeArquivo)}&titulo=${encodeURIComponent(cfg.titulo)}`
+      window.location.href = `/homologar-produto?cnpjoucpf=${cnpjoucpf}&tipo_servico=${tipoServico}&nome_arquivo=${encodeURIComponent(nomeSemChave(nomeArquivo))}&titulo=${encodeURIComponent(cfg.titulo)}`
             }}>Homologar documento →</button>
             <button style={S.btnSec} onClick={() => window.location.href = '/dashboard'}>Voltar ao Menu</button>
           </div>

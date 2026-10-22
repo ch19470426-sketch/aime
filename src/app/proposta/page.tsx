@@ -7,6 +7,7 @@ import Banner from '@/components/Banner'
 import { useBanner } from '@/hooks/useBanner'
 import { digitosDoCep, formatarCep } from '@/lib/cep'
 import { credencialDoBanco } from '@/lib/bancoNavegador'
+import { nomeSemChave } from '@/lib/nomeArquivo'
 
 const SUPA_URL = 'https://asgorarunzhiojqioxzq.supabase.co'
 const SUPA_KEY = 'sb_publishable_dH85HYKGxv3X0te627VfOw_OGaPoNMF'
@@ -379,7 +380,7 @@ function PropostaInner() {
         })
       } catch { /* histórico não crítico */ }
 
-      window.location.href = `/homologar-produto?cnpjoucpf=${cnpjoucpf}&tipo_servico=${tipoServico}&nome_arquivo=${encodeURIComponent(nomeArq)}&titulo=${encodeURIComponent(titulo)}`
+      window.location.href = `/homologar-produto?cnpjoucpf=${cnpjoucpf}&tipo_servico=${tipoServico}&nome_arquivo=${encodeURIComponent(nomeSemChave(nomeArq))}&titulo=${encodeURIComponent(titulo)}`
     } catch(e) {
       informa('Erro', String(e))
     } finally {

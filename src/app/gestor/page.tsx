@@ -5,6 +5,7 @@ import { createClient } from '@/utils/supabase/client'
 import Banner from '@/components/Banner'
 import { useBanner } from '@/hooks/useBanner'
 import { saldoPlanoVigente } from '@/lib/contratos'
+import { guardarAlvo } from '@/lib/identidade'
 
 const SUPA_URL = 'https://asgorarunzhiojqioxzq.supabase.co'
 const SUPA_KEY = 'sb_publishable_dH85HYKGxv3X0te627VfOw_OGaPoNMF'
@@ -555,7 +556,7 @@ export default function GestorPage() {
                       </div>
                     </div>
                     <div style={{ marginTop:'12px', display:'flex', gap:'8px' }}>
-                      <button onClick={() => window.location.href=`/inspetor?cpf=${selecionado.cpf_inspetor}&visualizar=1`}
+                      <button onClick={() => { guardarAlvo(selecionado.cpf_inspetor); window.location.href = '/inspetor?visualizar=1' }}
                         style={S.btnPri}>
                         🔍 Visualizar Cadastro
                       </button>

@@ -9,6 +9,17 @@
 export const nomeSemChave = (nome: string): string => String(nome ?? '').replace(/^[^_]+_/, '')
 
 /**
+ * O inverso de nomeSemChave: recoloca a chave do USUÁRIO LOGADO no nome de um documento que veio da URL. Os links entre telas passam o nome SEM a chave (o CPF)
+ * para o CPF não aparecer na barra de endereço; a tela de destino o recompõe aqui. Um nome que já começa pela chave do usuário fica como está (links antigos).
+ * A chave vem da sessão, nunca da URL: pedir o arquivo de outro inspetor resulta num nome com a SUA chave na frente, que não existe.
+ */
+export const nomeComChave = (nome: string, chave: string): string => {
+  const n = String(nome ?? '')
+  if (!n || !chave) return n
+  return n.startsWith(`${chave}_`) ? n : `${chave}_${n}`
+}
+
+/**
  * Chave a usar no NOME do arquivo ao sincronizar uma vistoria salva SEM internet. Até 13/10/2026 a chave do inspetor era um código
  * sequencial (INS-001...); agora é o CPF. Uma vistoria salva offline antes da migração (ou num aparelho que não atualizou o cadastro)
  * carrega a chave antiga, e o servidor recusa arquivo cujo nome não comece pela chave atual (o CPF): sem esta troca, ela ficaria
