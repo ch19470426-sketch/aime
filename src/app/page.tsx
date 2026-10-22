@@ -142,32 +142,37 @@ export default function LoginPage() {
     <div style={{ backgroundColor:'#DCE8F7', minHeight:'100vh' }} />
   )
 
-  // Capa + login numa tela só (22/10/2026). A arte (public/capa-login.jpg) tem a área do cartão
-  // apagada; o cartão abaixo é HTML de verdade, posicionado sobre ela. Largura da arte: ocupa a altura
-  // da tela no computador e a largura toda no celular. Unidades "cqw" = % da largura da arte.
+  // Capa + login numa tela só (22/10/2026). A arte do modelo foi fatiada em 3 partes (topo com o logo,
+  // meio com a área do cartão apagada, base com os ícones) para a tela ficar mais baixa e proporcional.
+  // O cartão é HTML de verdade sobre a parte do meio.
   const campo: React.CSSProperties = { display: "flex", alignItems: "center", gap: "10px", border: "1px solid #C7D5EA",
-    borderRadius: "10px", backgroundColor: "#EEF3FA", padding: "0 12px", height: "46px" }
+    borderRadius: "10px", backgroundColor: "#EEF3FA", padding: "0 12px", height: "42px" }
   const entrada: React.CSSProperties = { flex: 1, minWidth: 0, border: "none", outline: "none", background: "transparent",
     fontSize: "16px", color: "#111827", height: "100%" }
-  const rotulo: React.CSSProperties = { fontSize: "14px", fontWeight: 700, color: "#0F1E4A" }
+  const rotulo: React.CSSProperties = { fontSize: "13px", fontWeight: 700, color: "#0F1E4A" }
 
   return (
     <div style={{ backgroundColor: "#DCE8F7", minHeight: "100vh", display: "flex", justifyContent: "center", alignItems: "flex-start" }}>
-      <div style={{ position: "relative", width: "min(100vw, 680px, max(420px, 66.6vh))", containerType: "inline-size" }}>
-        <img src="/capa-login.jpg" alt="AIMÊ — Mapeamento Inteligente de Edificações e Equipamentos"
-          style={{ width: "100%", display: "block" }} />
-        <div style={{ position: "absolute", top: "63.7cqw", left: "50%", transform: "translateX(-50%)",
-          width: "max(64.2cqw, min(92cqw, 380px))", minHeight: "57.1cqw", boxSizing: "border-box",
-          backgroundColor: "#F8FBFE", borderRadius: "16px", boxShadow: "0 10px 30px rgba(15,30,74,0.12)",
-          padding: "22px 22px 20px", marginBottom: "16px" }}>
-          <h1 style={{ margin: 0, textAlign: "center", color: "#0F1E4A", fontWeight: 800, fontSize: "22px" }}>
+      <div style={{ position: "relative", width: "min(100vw, 520px)", containerType: "inline-size" }}>
+        <div style={{ position: "relative" }}>
+          <img src="/capa-topo.jpg" alt="AIMÊ — Mapeamento Inteligente de Edificações e Equipamentos"
+            style={{ width: "100%", display: "block" }} />
+          <p style={{ position: "absolute", top: "6px", right: "3%", margin: 0, textAlign: "left", color: "white",
+            fontSize: "11px", fontWeight: 600, lineHeight: 1.3, textShadow: "0 1px 4px rgba(0,0,40,0.85), 0 0 2px rgba(0,0,40,0.8)" }}>
+            Baseado nas normas<br /><strong style={{ color: "#67E8F9" }}>ABNT</strong> e metodologia<br /><strong style={{ color: "#67E8F9" }}>IBAPE</strong>
+          </p>
+        </div>
+        <div style={{ backgroundImage: "url(/capa-meio.jpg)", backgroundSize: "100% 100%", display: "flex", justifyContent: "center" }}>
+          <div style={{ width: "max(63.6%, min(92%, 360px))", boxSizing: "border-box", backgroundColor: "#F8FBFE", borderRadius: "16px",
+            boxShadow: "0 8px 24px rgba(15,30,74,0.12)", padding: "16px 20px 18px" }}>
+          <h1 style={{ margin: 0, textAlign: "center", color: "#0F1E4A", fontWeight: 800, fontSize: "20px" }}>
             Efetuar Login e Cadastro
           </h1>
-          <p style={{ margin: "6px 0 16px", textAlign: "center", color: "#1F2937", fontSize: "13px", lineHeight: 1.4 }}>
+          <p style={{ margin: "4px 0 12px", textAlign: "center", color: "#1F2937", fontSize: "12.5px", lineHeight: 1.35 }}>
             Entre com seu CPF e senha para acessar o AIMÊ e gerenciar seus serviços de engenharia diagnóstica.
           </p>
-          <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-            <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+          <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
               <label htmlFor="cpf-inspetor" style={rotulo}>CPF</label>
               <div style={campo}>
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1F2937" strokeWidth="1.6" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/></svg>
@@ -186,7 +191,7 @@ export default function LoginPage() {
                   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1F2937" strokeWidth="1.8" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>{verSenha && <path d="M4 4l16 16"/>}</svg>
                 </button>
               </div>
-              <p style={{ margin: "2px 0 0", fontSize: "12px", fontWeight: 700, textAlign: "center", color: "#0F2A6B", lineHeight: 1.35 }}>
+              <p style={{ margin: "2px 0 0", fontSize: "11.5px", fontWeight: 700, textAlign: "center", color: "#0F2A6B", lineHeight: 1.35 }}>
                 Ao criar uma conta: senha com no mínimo 8 caracteres, incluindo uma letra, um número e um caractere especial.
               </p>
               <div style={{ textAlign: "right" }}>
@@ -196,12 +201,15 @@ export default function LoginPage() {
             {erro && <p style={{ margin: 0, color: "#DC2626", fontSize: "13px", textAlign: "center" }}>{erro}</p>}
             <button type="submit" disabled={loading}
               style={{ background: "linear-gradient(180deg, #1E4FBF 0%, #0B2E86 100%)", color: "white", fontWeight: 600,
-                height: "48px", borderRadius: "50px", border: "none", cursor: "pointer", fontSize: "16px",
+                height: "44px", borderRadius: "50px", border: "none", cursor: "pointer", fontSize: "16px",
                 boxShadow: "0 6px 14px rgba(11,46,134,0.3)", opacity: loading ? 0.7 : 1 }}>
               {loading ? "Aguarde..." : "Acessar conta  ›"}
             </button>
           </form>
+          </div>
         </div>
+        <img src="/capa-base.jpg" alt="" aria-hidden="true"
+          style={{ width: "100%", display: "block", marginTop: "-14px", WebkitMaskImage: "linear-gradient(to bottom, transparent, black 30%)", maskImage: "linear-gradient(to bottom, transparent, black 30%)" }} />
       </div>
     </div>
   )
