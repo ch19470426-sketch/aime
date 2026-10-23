@@ -553,7 +553,7 @@ export default function Dashboard() {
     }
     // 92: Preferências de cookies — reabre o aviso compartilhado com o site (script carregado no layout raiz).
     if (codigo === 92) {
-      try { (window as any).aimeCookiePrefs?.() } catch { /* aviso indisponível: nada a fazer */ }
+      try { (window as Window & { aimeCookiePrefs?: () => void }).aimeCookiePrefs?.() } catch { /* aviso indisponível: nada a fazer */ }
       return
     }
     // 91: Fale Conosco — navega direto, sem coletar CNPJ.

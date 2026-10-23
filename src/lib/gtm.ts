@@ -26,4 +26,4 @@ export function gtmNoscript(id: string): string {
   return `<iframe src="https://www.googletagmanager.com/ns.html?id=${id}" height="0" width="0" style="display:none;visibility:hidden"></iframe>`
 }
 
-export const COOKIE_CONSENT_SRC = 'https://aime.eng.br/assets/js/cookie-consent.js'
+export const COOKIE_CONSENT_SRC = '/js/cookie-consent.js'
