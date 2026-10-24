@@ -25,6 +25,10 @@
     {
       "path": "/api/higienizacao?simular=false",
       "schedule": "0 2 * * 1"
+    },
+    {
+      "path": "/api/copia-homologadas?simular=false",
+      "schedule": "0 3 * * 1"
     }
   ]
 }
