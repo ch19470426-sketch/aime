@@ -84,20 +84,6 @@ export function useCreditos(): EstadoCreditos {
   return { dados, oculto }
 }
 
-// Chip no cabeçalho do Dashboard: o saldo total fica visível mesmo quando o menu lateral se esconde (celular, com serviço aberto).
-export function ChipSaldo({ estado }: { estado: EstadoCreditos }) {
-  const { dados, oculto } = estado
-  if (oculto || !dados) return null
-  const baixo = dados.total < MINIMO_VISTORIA
-  return (
-    <a href="/meu-plano" title="Meu plano e créditos"
-      style={{ flexShrink: 0, marginLeft: 'auto', textDecoration: 'none', whiteSpace: 'nowrap', fontSize: '11px', fontWeight: 700, padding: '3px 10px', borderRadius: '9999px',
-        backgroundColor: baixo ? '#FEF3C7' : 'white', color: baixo ? '#92400E' : '#1E3A8A' }}>
-      Saldo: {dados.total} CR
-    </a>
-  )
-}
-
 export default function PainelCreditos({ estado }: { estado: EstadoCreditos }) {
   const { dados, oculto } = estado
   if (oculto || !dados) return null
