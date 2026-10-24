@@ -19,7 +19,7 @@ import { encerrarSessao } from '@/lib/encerrarSessao'
 import { tokenDaSessao, novaSessaoToken } from '@/lib/sessaoVistoria'
 import { perfilDoTitulo } from '@/lib/profissionaisDeApoio'
 import { guardarEstabelecimento } from '@/lib/identidade'
-import PainelCreditos from '@/components/PainelCreditos'
+import PainelCreditos, { ChipSaldo, useCreditos } from '@/components/PainelCreditos'
 import { GTM_ID } from '@/lib/gtm'
 
 const SUPA_URL = 'https://asgorarunzhiojqioxzq.supabase.co'
@@ -321,6 +321,7 @@ export default function Dashboard() {
   // Sessão do inspetor logado (autenticação real via Supabase Auth, identidade por CPF)
   const [carregandoSessao, setCarregandoSessao] = useState(true)
   const [cpfInspetor, setCpfInspetor] = useState("")
+  const credito = useCreditos()   // saldo do painel do menu e do chip do cabeçalho
   const [chaveInspetor, setChaveInspetor] = useState("")
   const [titulo, setTitulo] = useState("")
 
@@ -751,11 +752,12 @@ export default function Dashboard() {
       <div style={{ backgroundColor: "white", borderRadius: "16px", boxShadow: "0 4px 24px rgba(0,0,0,0.12)", width: "100%", maxWidth: "1100px", overflow: "hidden", minWidth: 0 }}>
 
         {/* ── Header ── */}
-        <div style={{ backgroundColor: "#1E3A8A", padding: "8px 16px", display: "flex", alignItems: "center", gap: "12px" }}>
+        <div style={{ backgroundColor: "#1E3A8A", padding: "8px 16px", display: "flex", alignItems: "center", gap: "8px 12px", flexWrap: "wrap" }}>
           <Image src="/logo.png" alt="AIME" width={80} height={32} priority style={{ filter: "brightness(0) invert(1)" }} />
-          <span style={{ color: "white", fontWeight: "bold", fontSize: "12px", flex: 1, textAlign: "center" }}>
+          <span style={{ color: "white", fontWeight: "bold", fontSize: "12px", flex: "1 1 200px", textAlign: "center" }}>
             Mapeamento Inteligente de Edificações e Equipamentos
           </span>
+          <ChipSaldo estado={credito} />
         </div>
         <div style={{ height: "2px", backgroundColor: "#1E3A8A" }} />
 
@@ -781,7 +783,7 @@ export default function Dashboard() {
               <span style={{ color: "white", fontWeight: "bold", fontSize: "11px" }}>Selecionar Serviço</span>
             </div>
             <div style={{ height: "2px", backgroundColor: "#1E3A8A" }} />
-            <PainelCreditos />
+            <PainelCreditos estado={credito} />
             {grupos.map((grupo) => (
               <div key={grupo.grupo}>
                 <button onClick={() => setGrupoAberto(grupoAberto === grupo.grupo ? null : grupo.grupo)}

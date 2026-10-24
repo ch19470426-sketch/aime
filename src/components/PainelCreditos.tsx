@@ -30,7 +30,10 @@ function venceEmBreve(fim: string | null | undefined, hoje: string): boolean {
 type Linha = { chave: string; rotulo: string; cor: string; validade: string; saldo: number; breve: boolean }
 type Dados = { linhas: Linha[]; total: number } | null
 
-export default function PainelCreditos() {
+// Hook único: o Dashboard o chama UMA vez e passa o resultado ao painel do menu e ao chip do cabeçalho (uma só carga de dados).
+export type EstadoCreditos = { dados: Dados; oculto: boolean }
+
+export function useCreditos(): EstadoCreditos {
   const [dados, setDados] = useState<Dados>(null)
   const [oculto, setOculto] = useState(false)
 
@@ -78,6 +81,25 @@ export default function PainelCreditos() {
     return () => document.removeEventListener('visibilitychange', aoVoltar)
   }, [])
 
+  return { dados, oculto }
+}
+
+// Chip no cabeçalho do Dashboard: o saldo total fica visível mesmo quando o menu lateral se esconde (celular, com serviço aberto).
+export function ChipSaldo({ estado }: { estado: EstadoCreditos }) {
+  const { dados, oculto } = estado
+  if (oculto || !dados) return null
+  const baixo = dados.total < MINIMO_VISTORIA
+  return (
+    <a href="/meu-plano" title="Meu plano e créditos"
+      style={{ flexShrink: 0, marginLeft: 'auto', textDecoration: 'none', whiteSpace: 'nowrap', fontSize: '11px', fontWeight: 700, padding: '3px 10px', borderRadius: '9999px',
+        backgroundColor: baixo ? '#FEF3C7' : 'white', color: baixo ? '#92400E' : '#1E3A8A' }}>
+      Saldo: {dados.total} CR
+    </a>
+  )
+}
+
+export default function PainelCreditos({ estado }: { estado: EstadoCreditos }) {
+  const { dados, oculto } = estado
   if (oculto || !dados) return null
   const baixo = dados.total < MINIMO_VISTORIA
   const mostrarTotal = dados.linhas.length > 1

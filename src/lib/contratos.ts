@@ -41,3 +41,14 @@ export function contratoCorrente<T extends ContratoBasico>(lista: T[], hoje: str
 export function saldoPlanoVigente(lista: { data_fim_contrato: string | null; saldo_quantidade_plano: number | null }[], hoje: string): number {
   return lista.reduce((soma, c) => ((c.data_fim_contrato ?? '') >= hoje ? soma + (c.saldo_quantidade_plano ?? 0) : soma), 0)
 }
+
+/**
+ * Data de hoje em Brasília somada de N dias, 'AAAA-MM-DD'. Usada na validade do avulso (90 dias): antes era
+ * `new Date(Date.now() + 90d).toISOString()`, que dá a data em UTC, e uma compra feita depois das 21h em Brasília
+ * (já "amanhã" em UTC) ganhava um dia a mais. Aqui a data de partida é a de Brasília e a soma é só de calendário.
+ */
+export function dataBrasiliaMaisDias(dias: number, agora: Date = new Date()): string {
+  const hoje = agora.toLocaleDateString('sv-SE', { timeZone: 'America/Sao_Paulo' })   // 'AAAA-MM-DD'
+  const [a, m, d] = hoje.split('-').map(Number)
+  return new Date(Date.UTC(a, m - 1, d + dias)).toISOString().slice(0, 10)
+}

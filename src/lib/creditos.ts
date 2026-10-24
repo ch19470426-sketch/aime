@@ -14,7 +14,7 @@
 //   * Falha de infraestrutura NUNCA bloqueia o usuário: na dúvida, libera e registra o erro.
 
 import { createClient } from '@supabase/supabase-js'
-import { contratoCorrente } from '@/lib/contratos'
+import { contratoCorrente, dataBrasiliaMaisDias } from '@/lib/contratos'
 import { contaBloqueada } from '@/lib/bloqueio'
 import { precoPlanoCentavos, precoAvulsoPacoteCentavos } from '@/lib/precos'
 
@@ -400,7 +400,7 @@ export async function concederCreditos(
       // vale 90 dias a partir da ÚLTIMA compra. Antes, avulso de origens diferentes ficava em saldos
       // separados (um sem vencimento, outro com 90 dias), o que confundia; e o avulso novo podia ir
       // parar num plano já encerrado pela troca de plano (empate na data de início).
-      const fimAvulso = new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
+      const fimAvulso = dataBrasiliaMaisDias(90)   // 90 dias a contar de HOJE EM BRASÍLIA (não em UTC)
       const { data: vigentes } = await supabase
         .from('contratos_inspetor').select('*')
         .eq('cpf_inspetor', cpf).gte('data_fim_contrato', hojeAvulso)
@@ -460,7 +460,7 @@ export async function concederCreditos(
     // de valor fixo (só exige múltiplo de 600) — garantindo que o
     // pagamento sempre vira crédito de verdade, nunca se perde.
     const hoje = new Date().toISOString().slice(0, 10)
-    const fim90 = new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
+    const fim90 = dataBrasiliaMaisDias(90)
     const { data: jaExiste } = await supabase
       .from('contratos_inspetor').select('qde_contratada_plano,saldo_quantidade_plano,qde_contratada_avulso,saldo_quantidade_avulso,data_fim_avulso')
       .eq('cpf_inspetor', cpf).eq('tipo_assinatura', tipo).eq('data_inicio_contrato', hoje)
