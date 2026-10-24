@@ -1,6 +1,6 @@
 // src/app/api/higienizacao/route.ts
 // AIMÊ — Item 3.7 da especificação: higienização semanal dos diretórios
-// "Vistorias", "Documentos inspetor" e das tabelas "Dados vistoria" e
+// "Vistorias", "Vistorias homologadas", "Documentos inspetor" e das tabelas "Dados vistoria" e
 // "Ativos a vistoriar", excluindo o que tem mais de 185 dias.
 //
 // SEGURANÇA (exclusão é IRREVERSÍVEL, sem backup automático no plano atual
@@ -36,6 +36,9 @@ import {
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
 export const maxDuration = 60
+
+/** Texto que substitui o conteúdo pessoal de uma mensagem do Fale Conosco depois do prazo. */
+const MARCA_REMOVIDO = '(removido por prazo)'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -134,6 +137,24 @@ export async function GET(request: NextRequest) {
         if (error) falhas.push(a.name); else removidos++
       }
       resultado.vistorias = { elegiveis: selVistorias.length, removidos, falhas }
+    }
+
+    // ---------- a2) Storage "vistorias_homologadas/" (cláusula 6.3 do Termo, 24/10/2026) ----------
+    // Mesma regra de "vistorias/": created_at anterior ao corte. Fica na base durante o prazo e sai aqui.
+    const arqHomolog = await listarTodos('vistorias_homologadas')
+    const selHomolog = selecionarArquivosVistorias(arqHomolog, corte)
+    for (const a of arqHomolog) {
+      linhasCsv.push(['vistorias_homologadas', a.name, fmtBR(a.created_at), corteBR, selHomolog.includes(a) ? 'sim' : 'não'])
+    }
+    if (simular) {
+      resultado.vistoriasHomologadas = { total: arqHomolog.length, elegiveis: selHomolog.length, amostra: selHomolog.slice(0, 10).map(a => a.name) }
+    } else {
+      let removidos = 0; const falhas: string[] = []
+      for (const a of selHomolog) {
+        const { error } = await supabase.storage.from('aime').remove([`vistorias_homologadas/${a.name}`])
+        if (error) falhas.push(a.name); else removidos++
+      }
+      resultado.vistoriasHomologadas = { elegiveis: selHomolog.length, removidos, falhas }
     }
 
     // ---------- b) Storage "documentos_inspetor/" (preserva Termo de Aceite) ----------
@@ -271,6 +292,42 @@ export async function GET(request: NextRequest) {
     } catch {
       resultado.assinaturasParadas = { total: 0, elegiveis: 0 }
     }
+
+    // ---------- g) LGPD, cláusula 6.3 do Termo (24/10/2026): dados pessoais de terceiros e do Fale Conosco ----------
+    // Operações por data (sem depender de chave primária): apagam ou limpam só o que passou do corte.
+    // As linhas de contrato, assinatura e pedido NÃO entram aqui (guarda legal); o Termo de Aceite também fica.
+    const corteTS = corte.toISOString()
+    const tratar = async (rotulo: string, contar: () => PromiseLike<{ count: number | null; error: unknown }>,
+                          executar: () => PromiseLike<{ error: unknown }>) => {
+      try {
+        const c = await contar()
+        const elegiveis = c.error ? 0 : (c.count ?? 0)
+        linhasCsv.push([rotulo, `${elegiveis} linha(s)`, '', corteBR, elegiveis > 0 ? 'sim' : 'não'])
+        if (c.error) { resultado[rotulo] = { erro: String((c.error as { message?: string }).message ?? c.error) }; return }
+        if (simular || elegiveis === 0) { resultado[rotulo] = { elegiveis }; return }
+        const r = await executar()
+        resultado[rotulo] = r.error ? { elegiveis, erro: String((r.error as { message?: string }).message ?? r.error) } : { elegiveis, tratadas: elegiveis }
+      } catch (e) {
+        resultado[rotulo] = { erro: e instanceof Error ? e.message : String(e) }
+      }
+    }
+
+    // Contato do cliente do inspetor (nome, CPF, WhatsApp e e-mail do responsável): apagado.
+    await tratar('contato_cliente',
+      () => supabase.from('contato_cliente').select('*', { count: 'exact', head: true }).lt('data_cadastro', corteISO),
+      () => supabase.from('contato_cliente').delete().lt('data_cadastro', corteISO))
+
+    // Fale Conosco: a linha fica (conta o atendimento), o conteúdo pessoal sai. A marca em "mensagem" evita refazer.
+    await tratar('mensagens_suporte',
+      () => supabase.from('mensagens_suporte').select('*', { count: 'exact', head: true }).lt('criado_em', corteTS).neq('mensagem', MARCA_REMOVIDO),
+      () => supabase.from('mensagens_suporte')
+        .update({ nome_inspetor: MARCA_REMOVIDO, assunto: MARCA_REMOVIDO, mensagem: MARCA_REMOVIDO, resposta: null })
+        .lt('criado_em', corteTS).neq('mensagem', MARCA_REMOVIDO))
+
+    // Livro de consumo de créditos: o registro financeiro fica; só o CPF/CNPJ do cliente do inspetor é limpo.
+    await tratar('consumo_creditos_cliente',
+      () => supabase.from('consumo_creditos').select('*', { count: 'exact', head: true }).lt('data_hora', corteTS).not('cnpjoucpf', 'is', null),
+      () => supabase.from('consumo_creditos').update({ cnpjoucpf: null }).lt('data_hora', corteTS).not('cnpjoucpf', 'is', null))
 
     if (formato === 'csv') {
       // Ponto-e-virgula (nao virgula) como separador — Excel em Portugues do
