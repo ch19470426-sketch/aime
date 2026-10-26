@@ -22,8 +22,9 @@ describe('o arquivo do aceite', () => {
   it('traz as 9 cláusulas do termo novo, em ordem, inclusive a de créditos e pagamento e a eliminação dos dados', () => {
     const titulos = [...html.matchAll(/<h2>([^<]+)<\/h2>/g)].map(m => m[1])
     expect(titulos).toEqual(['1. OBJETO.', '2. CONDIÇÕES DE USO E RESPONSABILIDADE PROFISSIONAL.', '3. CONTRATAÇÃO, CRÉDITOS E PAGAMENTO.', '4. ÉTICA E CONFORMIDADE.',
-      '5. PROPRIEDADE DOS DADOS.', '6. PROTEÇÃO DE DADOS.', '7. LIMITAÇÃO DE RESPONSABILIDADE.', '8. ACEITE.', '9. DISPOSIÇÕES GERAIS'])
-    expect(html).toContain('após o prazo de 6 (seis) meses')
+      '5. PROPRIEDADE DOS DADOS.', '6. PROTEÇÃO DE DADOS PESSOAIS', '7. LIMITAÇÃO DE RESPONSABILIDADE.', '8. ACEITE.', '9. DISPOSIÇÕES GERAIS'])
+    expect(html).toContain('serão eliminados da base de dados após <strong>185 (cento e oitenta e cinco) dias</strong>')
+    expect(html).toContain('Vitória/ES, 26 de outubro de 2026.')
   })
   it('termina com a data do aceite JÁ preenchida: nenhum marcador sobra', () => {
     expect(html).toContain('<p class="data">Data do aceite: 16/10/2026.</p>')

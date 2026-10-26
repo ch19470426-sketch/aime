@@ -2,12 +2,14 @@
 // AIMÊ — Termo de Aceite dos Serviços: texto ÚNICO, usado pela tela (src/app/termo-aceite/page.tsx) e pelo arquivo que registra o aceite
 // (src/app/api/gerar-termo-aceite/route.ts), para os dois nunca divergirem.
 //
-// Texto do documento "Termo_de_Aceite_AIMÊ.docx" enviado por Celso em 16/10/2026, reproduzido SEM alteração (inclusive o cabeçalho e o rodapé do
-// documento). É um termo PROVISÓRIO, até o advogado entregar o definitivo. Para trocar o termo: substituir os dados abaixo e a VERSAO_TERMO.
+// Texto do documento "Termo_de_Aceite_AIME_V1.1 - 26-10-2026.docx", avaliado e aceito por Celso em 26/10/2026 (versão 1.1), reproduzido SEM
+// alteração. Substitui o termo provisório de 16/10/2026: só a cláusula 6 (Proteção de dados pessoais) mudou. A linha final "Vitória/ES, 26 de
+// outubro de 2026." é a data do documento; a data do aceite de cada usuário vem de dataDoAceite(). Para trocar o termo: substituir os dados
+// abaixo e a VERSAO_TERMO.
 //
 // Marcação do texto: **trecho** = negrito. nivel 0 = sem recuo; 1 = parágrafo numerado (1.1., 2.2.); 2 = item (a, b, c).
 
-export const VERSAO_TERMO = '2026-10-16'
+export const VERSAO_TERMO = '2026-10-26'
 
 export const TERMO_TITULO = "Termo de Aceite dos Serviços – Plataforma AIMÊ (SaaS)"
 export const TERMO_CABECALHO = 'SAAS – ENGENHARIA DIAGNÓSTICA INOVA SIMPLES (IS)'
@@ -55,10 +57,16 @@ export const TERMO_BLOCOS: BlocoTermo[] = [
   { t: "paragrafo", nivel: 2, texto: "a) Utilizar os dados apenas para os fins contratados;" },
   { t: "paragrafo", nivel: 2, texto: "b) Respeitar as restrições impostas pelos proprietários das informações;" },
   { t: "paragrafo", nivel: 2, texto: "c) Não divulgar, compartilhar ou comercializar os dados sem autorização expressa." },
-  { t: "clausula", nivel: 0, texto: "6. PROTEÇÃO DE DADOS." },
-  { t: "paragrafo", nivel: 1, texto: "6.1. A CONTRATADA compromete-se a adotar boas práticas de segurança da informação, visando a proteção dos dados armazenados na plataforma." },
-  { t: "paragrafo", nivel: 1, texto: "6.2. O USUÁRIO é responsável pela veracidade, integridade e legalidade dos dados inseridos no sistema." },
-  { t: "paragrafo", nivel: 0, texto: "6.3. Os dados e produtos gerados na plataforma pela execução dos serviços armazenados na base de dados poderão ser eliminados ou anonimizados após o prazo de 6 (seis) meses, observadas as obrigações legais de conservação." },
+  { t: "clausula", nivel: 0, texto: "6. PROTEÇÃO DE DADOS PESSOAIS" },
+  { t: "paragrafo", nivel: 1, texto: "6.1. **Papéis.** Para os fins da Lei nº 13.709/2018 (LGPD): (a) a CONTRATADA é controladora dos dados pessoais do USUÁRIO; (b) quanto aos dados pessoais de terceiros inseridos pelo USUÁRIO na execução dos serviços (contratantes, responsáveis e demais pessoas identificáveis em registros, fotos e documentos), o USUÁRIO é o controlador e a CONTRATADA atua como operadora, tratando-os apenas para disponibilizar a plataforma e conforme este Termo." },
+  { t: "paragrafo", nivel: 1, texto: "6.2. **Dados e finalidades.** A CONTRATADA trata: (a) do USUÁRIO, nome, CPF, e-mail, WhatsApp, título profissional, dados de contratação e de consumo de créditos, registro do aceite e mensagens de suporte, para cadastro, execução do contrato, cobrança, segurança, atendimento e cumprimento de obrigação legal; (b) dos serviços, os dados técnicos e pessoais inseridos pelo USUÁRIO, para gerar os documentos solicitados." },
+  { t: "paragrafo", nivel: 1, texto: "6.3. **Compartilhamento.** Para operar a plataforma, a CONTRATADA utiliza fornecedores de hospedagem e banco de dados, processamento de pagamentos, envio de e-mails, inteligência artificial de apoio à redação técnica e, mediante consentimento, medição de acesso. Pode haver transferência internacional de dados, com as garantias previstas na LGPD (art. 33). Os textos produzidos com apoio de inteligência artificial devem ser revisados pelo profissional habilitado, que responde por eles (cláusula 2.3)." },
+  { t: "paragrafo", nivel: 1, texto: "6.4. **Segurança.** A CONTRATADA adota boas práticas de segurança da informação: controle de acesso por usuário, comunicação criptografada, cópias de segurança e eliminação periódica de dados. Incidente que possa acarretar risco ou dano relevante será comunicado ao USUÁRIO e à Autoridade Nacional de Proteção de Dados (ANPD), nos termos da lei." },
+  { t: "paragrafo", nivel: 1, texto: "6.5. **Eliminação.** Os dados e produtos gerados pela execução dos serviços (fotos, registros de vistoria, documentos e contatos de clientes) serão eliminados da base de dados após **185 (cento e oitenta e cinco) dias**; as mensagens de suporte e o CPF ou CNPJ de clientes nos registros de consumo serão anonimizados no mesmo prazo. Ficam ressalvados contratos, pagamentos e o registro do aceite, mantidos pelos prazos de obrigação legal. As cópias de segurança são mantidas por até 4 (quatro) semanas. O USUÁRIO deve guardar cópia dos documentos que emitir, que poderão deixar de estar disponíveis na plataforma após esse prazo." },
+  { t: "paragrafo", nivel: 1, texto: "6.6. **Direitos do titular.** Os pedidos de acesso, correção, exclusão e demais direitos previstos na LGPD são feitos pelo e-mail suporte@aime.eng.br ou pelo \"Fale Conosco\" da plataforma, com resposta em até 15 (quinze) dias. Quanto aos dados de terceiros, o USUÁRIO, como controlador, atende o titular, e a CONTRATADA o auxilia. A exclusão não alcança dados que a lei obrigue a conservar." },
+  { t: "paragrafo", nivel: 1, texto: "6.7. **Obrigações do USUÁRIO.** O USUÁRIO é responsável pela veracidade, integridade e legalidade dos dados inseridos no sistema, por possuir base legal para tratar os dados de terceiros e informá-los, e por inserir apenas os dados necessários ao serviço." },
+  { t: "paragrafo", nivel: 1, texto: "6.8. **Marketing e cookies.** O uso de dados para publicidade depende de autorização opcional do USUÁRIO no cadastro, que pode ser retirada a qualquer tempo em \"Meu Cadastro\". Os cookies de medição só são ativados após o aceite, e a escolha pode ser alterada em \"Preferências de cookies\"." },
+  { t: "paragrafo", nivel: 1, texto: "6.9. **Canal.** O canal do titular e da ANPD para assuntos de proteção de dados é suporte@aime.eng.br." },
   { t: "clausula", nivel: 0, texto: "7. LIMITAÇÃO DE RESPONSABILIDADE." },
   { t: "paragrafo", nivel: 1, texto: "7.1. A CONTRATADA não responde por quaisquer danos diretos ou indiretos decorrentes:" },
   { t: "paragrafo", nivel: 2, texto: "a) Do uso inadequado da plataforma;" },
@@ -72,6 +80,7 @@ export const TERMO_BLOCOS: BlocoTermo[] = [
   { t: "paragrafo", nivel: 1, texto: "9.1. Este Termo poderá ser atualizado pela CONTRATADA a qualquer tempo, sendo as alterações comunicadas ao USUÁRIO por meio da própria plataforma." },
   { t: "paragrafo", nivel: 1, texto: "9.2. O uso continuado da plataforma após alterações implica concordância com os novos termos." },
   { t: "paragrafo", nivel: 1, texto: "9.3. Fica eleito o foro da comarca do domicílio da CONTRATADA para dirimir quaisquer controvérsias oriundas deste Termo, com renúncia a qualquer outro, por mais privilegiado que seja." },
+  { t: "paragrafo", nivel: 0, texto: "Vitória/ES, 26 de outubro de 2026." },
 ]
 
 /** "a **b** c" → [{t:"a ",b:false}, {t:"b",b:true}, {t:" c",b:false}] */
