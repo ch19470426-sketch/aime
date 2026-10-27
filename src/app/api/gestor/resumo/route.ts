@@ -72,7 +72,7 @@ export async function GET(request: NextRequest) {
 
     // ---------- 1. Inspetores ----------
     const { data: inspetores } = await supabase
-      .from('inspetor').select('cpf_inspetor, nome_inspetor, data_cadastro')
+      .from('inspetor').select('cpf_inspetor, nome_inspetor, data_cadastro, is_gestor')
     const totalInspetores = inspetores?.length ?? 0
     const inspetoresDesde = desde ? (inspetores ?? []).filter(i => (i.data_cadastro ?? '') >= desde).length : null
 
@@ -191,6 +191,7 @@ export async function GET(request: NextRequest) {
       totalCrAvulso: [...contratoAtualPorCpf.values()].reduce((s, c) => s + (c.saldo_quantidade_avulso ?? 0), 0),
       totalCrConsumo: 0,
       inspetoresSemContrato: (inspetores ?? [])
+        .filter(i => i.is_gestor !== true)   // gestor é isento de créditos: nunca "sem contrato"
         .filter(i => !contratoVigentePorCpf.has(i.cpf_inspetor))
         .map(i => i.nome_inspetor),
     })

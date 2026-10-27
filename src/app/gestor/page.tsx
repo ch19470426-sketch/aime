@@ -856,7 +856,7 @@ export default function GestorPage() {
                   {[
                     { label:'Total de Inspetores', valor: resumo.totalInspetores, cor:'#1E3A8A', icon:'👤' },
                     { label:'Com Contrato Vigente', valor: resumo.contratosVigentes, cor:'#059669', icon:'✅' },
-                    { label:'Sem Contrato', valor: resumo.totalInspetores - resumo.contratosVigentes, cor:'#DC2626', icon:'⚠️' },
+                    { label:'Sem Contrato', valor: resumo.inspetoresSemContrato.length, cor:'#DC2626', icon:'⚠️' },
                     { label:'CR Plano Disponível', valor: resumo.totalCrPlano, cor:'#0284C7', icon:'📦' },
                     { label:'CR Avulso Disponível', valor: resumo.totalCrAvulso, cor:'#7C3AED', icon:'➕' },
                     { label:'Total CR Disponível', valor: resumo.totalCrPlano + resumo.totalCrAvulso, cor:'#065F46', icon:'💎' },
