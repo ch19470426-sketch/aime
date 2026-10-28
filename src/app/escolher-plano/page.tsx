@@ -9,6 +9,7 @@ import VersaoBuild from "@/components/VersaoBuild"
 import { useBanner } from "@/hooks/useBanner"
 import { createClient } from "@/utils/supabase/client"
 import { precoPlanoCentavos, formatarReais } from "@/lib/precos"
+import { atribuicaoAtual } from '@/lib/origemVisita'
 
 export default function EscolherPlanoPage() {
   return (
@@ -132,7 +133,7 @@ function EscolherPlano() {
       const res = await fetch('/api/creditos/pedido', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${await tokenSessao()}` },
-        body: JSON.stringify({ tipo, forma }),
+        body: JSON.stringify({ tipo, forma, atribuicao: atribuicaoAtual() }),
       })
       const d = await res.json()
       if (!res.ok) { setErro(d.erro ?? 'Não foi possível gerar a cobrança.'); setEnviando(false); return }
@@ -151,7 +152,7 @@ function EscolherPlano() {
       const res = await fetch('/api/creditos/assinatura', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${await tokenSessao()}` },
-        body: JSON.stringify({ tipo }),
+        body: JSON.stringify({ tipo, atribuicao: atribuicaoAtual() }),
       })
       const d = await res.json()
       if (!res.ok) { setErro(d.erro ?? 'Não foi possível iniciar a assinatura.'); setEnviando(false); return }

@@ -20,6 +20,8 @@ import { consultarCobranca, consultarAssinatura, cancelarAssinaturaNoAsaas, STAT
 import { concederCreditos, revogarCreditos, PLANO_CR } from '@/lib/creditos'
 import { bloquearConta, avisarSuporte, LIMITE_FALHAS_CARTAO } from '@/lib/bloqueio'
 import { avisarInspetor, dataBR, somarUmMes } from '@/lib/assinaturas'
+import { enfileirarGa4, montarCorpoGa4, tipoDePagamento, type EventoGa4 } from '@/lib/ga4'
+import { lerAtribuicao } from '@/lib/atribuicaoServidor'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -135,6 +137,33 @@ async function marcarInadimplente(pedido: any, invoiceUrl: string | undefined, p
  * assinatura, ela é encerrada. Idempotente por pedido (estornado_em). Se algo falhar, desfaz a reserva
  * e responde 500 para o Asaas reentregar (bloquear é idempotente).
  */
+/**
+ * Marketing (28/10/2026): põe na fila do GA4 a compra recém-liberada. SÓ enfileira (uma linha por cobrança+evento): o envio
+ * acontece depois da resposta ao Asaas. Nunca lança erro e nunca interfere na liberação dos créditos.
+ *  - cobrança única, ou 1ª cobrança paga de uma assinatura -> purchase
+ *  - cobranças seguintes da mesma assinatura                -> renovacao
+ *  - estorno                                                -> refund (mesmo transaction_id e valor)
+ */
+async function enfileirarEventoGa4(pedido: any, paymentId: string, evento: EventoGa4 | 'auto', valorCobrado: unknown, billingType?: string | null): Promise<void> {
+  try {
+    let ev: EventoGa4 = evento === 'auto' ? 'purchase' : evento
+    if (evento === 'auto' && pedido.assinatura_id) {
+      const { data: outras } = await supabase.from('pedidos_credito').select('id')
+        .eq('assinatura_id', pedido.assinatura_id).eq('status', 'pago').neq('id', pedido.id).limit(1)
+      if (outras && outras.length > 0) ev = 'renovacao'
+    }
+    const valor = Number(valorCobrado ?? pedido.valor)
+    if (!Number.isFinite(valor)) return
+    const atribuicao = await lerAtribuicao(pedido.id, pedido.assinatura_id)
+    await enfileirarGa4(paymentId, ev, montarCorpoGa4({
+      evento: ev, transactionId: paymentId, valor, tipoPagamento: billingType ? tipoDePagamento(billingType) : null,
+      plano: pedido.tipo, atribuicao,
+    }))
+  } catch (e) {
+    console.error('[pagamentos] GA4: não consegui enfileirar', paymentId, e instanceof Error ? e.message : String(e))
+  }
+}
+
 async function tratarEstorno(pedido: any, evento: string): Promise<ResultadoCobranca> {
   if (pedido.status !== 'pago') return ok({ ignorado: true, motivo: 'pedido_nao_pago' })   // nada foi concedido
   const { data: reservado, error: erroReserva } = await supabase.from('pedidos_credito')
@@ -155,6 +184,7 @@ async function tratarEstorno(pedido: any, evento: string): Promise<ResultadoCobr
     if (pedido.assinatura_id) await encerrarAssinaturaPorBloqueio(pedido.assinatura_id)
     await bloquearConta(pedido.cpf_inspetor, motivo,
       `Pedido #${pedido.id} (${pedido.tipo}). Créditos revogados: ${rev.revogados}; já usados e não recuperados: ${rev.naoRecuperados}.`)
+    if (pedido.asaas_payment_id) await enfileirarEventoGa4(pedido, pedido.asaas_payment_id, 'refund', pedido.valor)
     return ok({ estornado: true, revogados: rev.revogados, naoRecuperados: rev.naoRecuperados })
   } catch (e) {
     await supabase.from('pedidos_credito').update({ estornado_em: null, motivo_estorno: null }).eq('id', pedido.id)
@@ -365,6 +395,8 @@ export async function processarCobranca(paymentId: string, evento = '', statusNo
   }
 
   if (pedido.assinatura_id) await aposPagamentoDeAssinatura(pedido, assinatura?.proxima ?? null, qde)
+
+  await enfileirarEventoGa4(pedido, paymentId, 'auto', cobranca.value, cobranca.billingType)
 
   return ok({ creditosConcedidos: qde })
 }

@@ -13,6 +13,7 @@ import VersaoBuild from '@/components/VersaoBuild'
 import { useBanner } from '@/hooks/useBanner'
 import { TEXTO_AUTORIZACAO_MARKETING } from '@/lib/autorizacaoMarketing'
 import { credencialDoBanco } from '@/lib/bancoNavegador'
+import { atribuicaoAtual } from '@/lib/origemVisita'
 
 const SUPA_URL = 'https://asgorarunzhiojqioxzq.supabase.co'
 const SUPA_KEY = 'sb_publishable_dH85HYKGxv3X0te627VfOw_OGaPoNMF'
@@ -337,7 +338,7 @@ function CadastroInspetor() {
       const res = await fetch('/api/creditos/pedido', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session?.access_token ?? ''}` },
-        body: JSON.stringify({ tipo: tipoPedido, qdeAvulso: tipoPedido === 'AVULSO' ? qdeAvulso : undefined, forma: formaPagamento }),
+        body: JSON.stringify({ tipo: tipoPedido, qdeAvulso: tipoPedido === 'AVULSO' ? qdeAvulso : undefined, forma: formaPagamento, atribuicao: atribuicaoAtual() }),
       })
       const d = await res.json()
       if (res.ok) {
@@ -376,7 +377,7 @@ function CadastroInspetor() {
       const res = await fetch('/api/creditos/assinatura', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session?.access_token ?? ''}` },
-        body: JSON.stringify({ tipo }),
+        body: JSON.stringify({ tipo, atribuicao: atribuicaoAtual() }),
       })
       const d = await res.json()
       if (res.ok && d.pagamento && typeof d.pagamento === 'object') {

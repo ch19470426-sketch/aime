@@ -13,6 +13,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { cpfDaSessao } from '@/lib/sessaoServidor'
 import { PLANO_CR, ehGestor, precoCentavos } from '@/lib/creditos'
+import { guardarAtribuicao } from '@/lib/atribuicaoServidor'
 import { contaBloqueada } from '@/lib/bloqueio'
 import {
   acharOuCriarCliente, criarAssinatura, listarCobrancasDaAssinatura, cancelarAssinaturaNoAsaas,
@@ -61,7 +62,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ isento: true, erro: 'Perfil de gestor: isento de contratação de créditos.' }, { status: 409 })
     }
 
-    const { tipo } = await request.json().catch(() => ({}))
+    const { tipo, atribuicao } = await request.json().catch(() => ({} as { tipo?: string; atribuicao?: unknown }))
     if (!TIPOS_ASSINAVEIS.includes(tipo)) {
       return NextResponse.json({ erro: 'Só o Plano Mensal e o Plano Escritório podem ser assinados.' }, { status: 400 })
     }
@@ -103,6 +104,7 @@ export async function POST(request: NextRequest) {
     const { data: nova, error: errIns } = await supabase
       .from('assinaturas').insert({ cpf_inspetor: cpf, tipo, valor: valorCentavos / 100 }).select('*').single()
     if (errIns) return NextResponse.json({ erro: errIns.message }, { status: 500 })
+    await guardarAtribuicao({ assinaturaId: nova.id, plano: tipo, valor: valorCentavos / 100, atribuicaoBruta: atribuicao })   // as renovações reaproveitam esta origem
 
     // 1) Cria no Asaas. Se falhar aqui, nada ficou lá: marca a nossa linha como cancelada para liberar nova tentativa.
     let sub

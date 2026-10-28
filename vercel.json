@@ -29,6 +29,10 @@
     {
       "path": "/api/copia-homologadas?simular=false",
       "schedule": "0 3 * * 1"
+    },
+    {
+      "path": "/api/webhook-reprocessar",
+      "schedule": "0 6 * * *"
     }
   ]
 }

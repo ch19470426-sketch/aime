@@ -1,6 +1,7 @@
 import type { Metadata } from "next"
 import "./globals.css"
 import AuthFetch from "@/components/AuthFetch"
+import OrigemVisita from "@/components/OrigemVisita"
 import { IdentidadeProvider } from "@/lib/identidade"
 import { GTM_ID, CONSENT_DEFAULT, gtmScript, gtmNoscript, COOKIE_CONSENT_SRC } from "@/lib/gtm"
 
@@ -67,6 +68,7 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col" style={{ fontFamily: "Arial, Helvetica, sans-serif" }}>
         {GTM_ID && <noscript dangerouslySetInnerHTML={{ __html: gtmNoscript(GTM_ID) }} />}
         <AuthFetch />
+        <OrigemVisita />
         <IdentidadeProvider>{children}</IdentidadeProvider>
       </body>
     </html>

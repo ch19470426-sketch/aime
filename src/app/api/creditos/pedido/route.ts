@@ -13,6 +13,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { cpfDaSessao } from '@/lib/sessaoServidor'
 import { AVULSO_MAXIMO, AVULSO_MULTIPLO, PLANO_CR, ehGestor, precoCentavos, podeComprarAvulso } from '@/lib/creditos'
+import { guardarAtribuicao } from '@/lib/atribuicaoServidor'
 import { contaBloqueada } from '@/lib/bloqueio'
 import { acharOuCriarCliente, criarCobranca, consultarCobranca, buscarPixQrCode, type FormaPagamento, cancelarCobranca } from '@/lib/asaas'
 
@@ -74,7 +75,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const { tipo, qdeAvulso, forma } = await request.json()
+    const { tipo, qdeAvulso, forma, atribuicao } = await request.json()
 
     const formasValidas: FormaPagamento[] = ['PIX', 'CREDIT_CARD']
     if (!formasValidas.includes(forma)) {
@@ -186,6 +187,7 @@ export async function POST(request: NextRequest) {
       .select('id,tipo,qde_creditos,status,criado_em')
       .single()
     if (error) return NextResponse.json({ erro: error.message }, { status: 500 })
+    await guardarAtribuicao({ pedidoId: novo.id, plano: tipo, valor: valorCentavos / 100, atribuicaoBruta: atribuicao })   // origem da venda (GA4); nunca bloqueia a compra
 
     try {
       const cliente = await acharOuCriarCliente(cpf, nomeInspetor, { email: insp?.inspetor_email, telefone: insp?.inspetor_whatsapp })

@@ -11,6 +11,8 @@ import { createClient } from '@supabase/supabase-js'
 import { cpfDaSessao } from '@/lib/sessaoServidor'
 import { temAlgumContrato } from '@/lib/creditos'
 import { processarCobranca } from '@/lib/pagamentos'
+import { processarFilaGa4 } from '@/lib/ga4'
+import { depoisDaResposta } from '@/lib/depois'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -37,6 +39,7 @@ export async function POST(request: NextRequest) {
       } catch { falhas++ }
     }
 
+    if (concedidos > 0) depoisDaResposta(() => processarFilaGa4())   // compra liberada aqui: manda ao GA4 depois da resposta
     return NextResponse.json({ ok: true, concedidos, falhas, temContrato: await temAlgumContrato(cpf) })
   } catch (err) {
     return NextResponse.json({ erro: String(err) }, { status: 500 })

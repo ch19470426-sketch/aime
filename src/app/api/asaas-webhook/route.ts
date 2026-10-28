@@ -6,17 +6,34 @@
 //   1. Token: o Asaas manda o cabeçalho "asaas-access-token" com o token configurado no painel
 //      dele para este webhook. Comparado a ASAAS_WEBHOOK_TOKEN — sem bater, 401, sem olhar o corpo.
 //   2. Eventos da própria assinatura (cancelada/encerrada no painel do Asaas).
-//   3. Resposta: 200 quando o evento foi genuinamente processado (ou já tinha sido antes) — um 5xx
-//      faz o Asaas reentregar, o que só é certo para falha de infraestrutura, não para "decidi não
-//      conceder".
+//   3. Resposta: 200 quando o evento foi genuinamente processado (ou já tinha sido antes).
+//   4. (28/10/2026, marketing) O evento é GRAVADO antes de processar (tabela eventos_asaas, por id do evento): evento repetido
+//      já processado volta 200 na hora; se o processamento falhar (banco fora do ar, demora > 8 s), a linha fica 'erro', o
+//      Asaas recebe 200 (15 falhas seguidas pausam a fila dele) e o evento é reprocessado depois — no próximo webhook ou no
+//      cron diário /api/webhook-reprocessar. Sem a tabela (SQL ainda não aplicado), vale o comportamento antigo: 5xx para o
+//      Asaas reentregar. O envio ao GA4 e o reprocessamento rodam DEPOIS da resposta (depoisDaResposta).
+//   O Asaas só considera sucesso o HTTP 200, espera no máximo 10 s e NÃO segue redirecionamento: esta rota responde direto ao
+//   POST em /api/asaas-webhook (nenhum middleware de login a alcança: o proxy.ts só atua em /inspetor).
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { processarCobranca } from '@/lib/pagamentos'
 import { agoraBrasilia } from '@/lib/emailSuporte'
+import { registrarEvento, concluirEvento, reprocessarEventosComErro } from '@/lib/eventosAsaas'
+import { processarFilaGa4 } from '@/lib/ga4'
+import { depoisDaResposta } from '@/lib/depois'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
+export const maxDuration = 30
+
+const LIMITE_PROCESSAMENTO_MS = 8000   // abaixo dos 10 s que o Asaas espera
+
+function comLimite<T>(p: Promise<T>, ms: number): Promise<T> {
+  let timer: ReturnType<typeof setTimeout>
+  const limite = new Promise<never>((_, rej) => { timer = setTimeout(() => rej(new Error('tempo esgotado')), ms) })
+  return Promise.race([p, limite]).finally(() => clearTimeout(timer))
+}
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -55,8 +72,28 @@ export async function POST(request: NextRequest) {
     }
 
     const statusNoAviso: string = corpo?.payment?.status ?? ''
-    const r = await processarCobranca(paymentId, evento, statusNoAviso, corpo?.payment ?? null)
-    return NextResponse.json(r.corpo, { status: r.status })
+    const eventoId: string | undefined = typeof corpo?.id === 'string' ? corpo.id : undefined
+    const reg = await registrarEvento({ eventoId, evento, paymentId, statusNoAviso })
+    if (reg.jaProcessado) {
+      depoisDaResposta(async () => { await processarFilaGa4(); await reprocessarEventosComErro(3) })
+      return NextResponse.json({ ok: true, jaProcessado: true })
+    }
+
+    let resposta: NextResponse
+    try {
+      const r = await comLimite(processarCobranca(paymentId, evento, statusNoAviso, corpo?.payment ?? null), LIMITE_PROCESSAMENTO_MS)
+      if (r.status >= 500) throw new Error(String(r.corpo?.erro ?? `erro ${r.status}`))
+      await concluirEvento(eventoId, 'processado')
+      resposta = NextResponse.json(r.corpo, { status: r.status })
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e)
+      console.error('[asaas-webhook] falha ao processar evento=%s pagamento=%s: %s', evento || '-', paymentId, msg)
+      if (!reg.registrado) throw e   // sem registro do evento não há como reprocessar: 5xx para o Asaas reentregar
+      await concluirEvento(eventoId, 'erro', msg)
+      resposta = NextResponse.json({ ok: true, reprocessar: true })
+    }
+    depoisDaResposta(async () => { await processarFilaGa4(); await reprocessarEventosComErro(3) })
+    return resposta
   } catch (err) {
     return NextResponse.json({ erro: String(err) }, { status: 500 })
   }
