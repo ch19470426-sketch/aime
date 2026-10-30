@@ -329,6 +329,15 @@ export async function GET(request: NextRequest) {
       () => supabase.from('consumo_creditos').select('*', { count: 'exact', head: true }).lt('data_hora', corteTS).not('cnpjoucpf', 'is', null),
       () => supabase.from('consumo_creditos').update({ cnpjoucpf: null }).lt('data_hora', corteTS).not('cnpjoucpf', 'is', null))
 
+    // Marketing (GA4, 30/10/2026): origem da venda e fila de envios ao GA4 guardam identificador de navegador (ga_client_id) e dados da compra;
+    // saem no mesmo prazo do termo (185 dias). A renovação de uma assinatura antiga só perde a origem da venda (segue sem ela).
+    await tratar('atribuicao_compra',
+      () => supabase.from('atribuicao_compra').select('*', { count: 'exact', head: true }).lt('criado_em', corteTS),
+      () => supabase.from('atribuicao_compra').delete().lt('criado_em', corteTS))
+    await tratar('ga4_envios',
+      () => supabase.from('ga4_envios').select('*', { count: 'exact', head: true }).lt('criado_em', corteTS),
+      () => supabase.from('ga4_envios').delete().lt('criado_em', corteTS))
+
     if (formato === 'csv') {
       // Ponto-e-virgula (nao virgula) como separador — Excel em Portugues do
       // Brasil espera isso por padrao para abrir corretamente sem assistente

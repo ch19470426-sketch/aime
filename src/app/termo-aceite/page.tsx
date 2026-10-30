@@ -6,6 +6,13 @@ import Image from "next/image"
 import LinkSair from "@/components/LinkSair"
 import { TERMO_BLOCOS, partesComNegrito, dataDoAceite, type BlocoTermo } from "@/lib/termoAceite"
 
+/** Endereços https dentro do texto (a Política de privacidade) viram link; o resto segue como texto. */
+function comLinks(texto: string) {
+  return texto.split(/(https:\/\/[^\s)]+)/g).map((t, i) => (i % 2 === 1
+    ? <a key={i} href={t} target="_blank" rel="noopener noreferrer" style={{ color: "#1E3A8A", textDecoration: "underline" }}>{t}</a>
+    : t))
+}
+
 export default function TermoAceitePage() {
   return (
     <Suspense fallback={<div style={{ backgroundColor: "#E8EEF7", minHeight: "100vh" }} />}>
@@ -87,7 +94,7 @@ function TermoAceite() {
 
           {TERMO_BLOCOS.map((b, i) => (
             <p key={i} style={estiloDoBloco(b)}>
-              {partesComNegrito(b.texto).map((parte, j) => (parte.b ? <strong key={j}>{parte.t}</strong> : <span key={j}>{parte.t}</span>))}
+              {partesComNegrito(b.texto).map((parte, j) => (parte.b ? <strong key={j}>{parte.t}</strong> : <span key={j}>{comLinks(parte.t)}</span>))}
             </p>
           ))}
           <p style={{ ...S.texto, textAlign: "right", fontWeight: "bold", marginTop: "16pt", marginBottom: "2pt" }}>Data do aceite: {dataDoAceite()}.</p>

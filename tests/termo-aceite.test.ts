@@ -19,26 +19,33 @@ describe('data do aceite', () => {
 
 describe('o arquivo do aceite', () => {
   const html = termoEmHtml(dataDoAceite(new Date('2026-10-16T15:00:00Z')))
-  it('traz as 9 cláusulas do termo novo, em ordem, inclusive a de créditos e pagamento e a eliminação dos dados', () => {
+  it('traz as 10 cláusulas do termo V2.0, em ordem, inclusive créditos, arrependimento e eliminação dos dados', () => {
     const titulos = [...html.matchAll(/<h2>([^<]+)<\/h2>/g)].map(m => m[1])
-    expect(titulos).toEqual(['1. OBJETO.', '2. CONDIÇÕES DE USO E RESPONSABILIDADE PROFISSIONAL.', '3. CONTRATAÇÃO, CRÉDITOS E PAGAMENTO.', '4. ÉTICA E CONFORMIDADE.',
-      '5. PROPRIEDADE DOS DADOS.', '6. PROTEÇÃO DE DADOS PESSOAIS', '7. LIMITAÇÃO DE RESPONSABILIDADE.', '8. ACEITE.', '9. DISPOSIÇÕES GERAIS'])
-    expect(html).toContain('serão eliminados da base de dados após <strong>185 (cento e oitenta e cinco) dias</strong>')
-    expect(html).toContain('Vitória/ES, 26 de outubro de 2026.')
+    expect(titulos).toEqual(['1. Objeto.', '2. Condições de uso e responsabilidade profissional.', '3. Contratação, créditos e pagamento.', '4. Direito de arrependimento.',
+      '5. Ética e conformidade.', '6. Propriedade dos dados.', '7. Proteção de dados pessoais.', '8. Limitação de responsabilidade.', '9. Aceite.', '10. Disposições gerais.'])
+    expect(html).toContain('serão eliminados da base de dados <strong>185 (cento e oitenta e cinco) dias</strong>')
+    expect(html).toContain('Vitória/ES, 30 de outubro de 2026.')
+  })
+  it('traz os ajustes aprovados: cancelamento em Meu Plano e Créditos, e-mail suporte@, sem níveis de serviço, link da política de privacidade', () => {
+    expect(html).toContain('em "Meu Plano e Créditos" ou pelo e-mail suporte@aime.eng.br')
+    expect(html).not.toContain('gestor@')
+    expect(html).not.toContain('níveis de serviço')
+    expect(html).toContain('https://aime.eng.br/privacidade/')
+    expect(html).toContain('deixarão de estar disponíveis na plataforma após os 185 (cento e oitenta e cinco) dias')
   })
   it('termina com a data do aceite JÁ preenchida: nenhum marcador sobra', () => {
     expect(html).toContain('<p class="data">Data do aceite: 16/10/2026.</p>')
     for (const lixo of ['dd/mm/aaaa', '&lt;', 'undefined', '${', '**']) expect(html).not.toContain(lixo)
   })
   it('mantém o cabeçalho e o rodapé do documento, os negritos e a versão do termo', () => {
-    expect(html).toContain('SAAS – ENGENHARIA DIAGNÓSTICA INOVA SIMPLES (IS)')
+    expect(html).toContain('SAAS – ENGENHARIA DIAGNÓSTICA INOVA SIMPLES (I.S.)')
     expect(html).toContain('Rua Francisco Rubim, 188/102')
-    expect(html).toContain('<strong>Software as a Service (SaaS)</strong>')
+    expect(html).toContain('<strong>AIMÊ</strong>')
     expect(html).toContain(`<meta name="versao-termo" content="${VERSAO_TERMO}">`)
   })
   it('o negrito é lido da marcação do texto', () => {
     expect(partesComNegrito('a **b** c')).toEqual([{ t: 'a ', b: false }, { t: 'b', b: true }, { t: ' c', b: false }])
-    expect(TERMO_BLOCOS.filter(b => b.t === 'clausula')).toHaveLength(9)
+    expect(TERMO_BLOCOS.filter(b => b.t === 'clausula')).toHaveLength(10)
   })
 })
 
