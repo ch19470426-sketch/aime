@@ -165,6 +165,8 @@ function LaudoComplemento() {
 
   // ── Campos complementares ──
   const [croquiBase64, setCroquiBase64]     = useState('')
+  const [gerandoCroqui, setGerandoCroqui]   = useState(false)
+  const [msgCroqui, setMsgCroqui]           = useState('')
   const [fotoCapa, setFotoCapa]             = useState('')  // foto fachada
   const [artRrt, setArtRrt]                 = useState('')  // ART/RRT base64
   const [artEletrico, setArtEletrico]       = useState('')  // ART Eng. Elétrico (opcional, só laudo 42)
@@ -425,6 +427,25 @@ function LaudoComplemento() {
       if (data.rec55) setRec55(data.rec55)
     } catch { setErro('Erro ao gerar recomendações. Tente novamente.') }
     finally { setGerandoRec(false) }
+  }
+
+  // ── Croqui pelo endereço (CEP + número): o servidor localiza no Google e devolve a imagem; o inspetor confere e pode trocar ──
+  async function gerarCroquiPeloEndereco() {
+    setMsgCroqui(''); setGerandoCroqui(true)
+    try {
+      const res = await fetch('/api/croqui-localizacao', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          cep: estab.cep_estabelecimento || estab.cep || '', numero: estab.numero_imovel || '',
+          logradouro: estab.logradouro || '', bairro: estab.bairro || '', cidade: estab.cidade || '', uf: estab.uf || '',
+        }),
+      })
+      const d = await res.json().catch(() => ({}))
+      if (!res.ok || !d.imagem) { setMsgCroqui(d.erro ?? 'Não foi possível gerar o croqui agora. Envie a imagem manualmente.'); return }
+      setCroquiBase64(d.imagem)
+      setMsgCroqui(d.aproximado ? 'Localização aproximada: o mapa não achou o número exato. Confira o ponto marcado e, se preciso, remova e envie outra imagem.' : '')
+    } catch { setMsgCroqui('Erro de conexão. Tente de novo ou envie a imagem manualmente.') }
+    finally { setGerandoCroqui(false) }
   }
 
   // ── Ler arquivo como base64 ──
@@ -969,8 +990,8 @@ function LaudoComplemento() {
                   <label style={S.label}>Croqui de localização (mapa)</label>
                   {croquiBase64
                     ? <div style={{ position:'relative' }}>
-                        <img src={croquiBase64} style={{ width:'100%', height:'120px', objectFit:'cover', border:'1px solid #D1D5DB', borderRadius:'4px' }} alt="Croqui" />
-                        <button onClick={() => setCroquiBase64('')}
+                        <img src={croquiBase64} style={{ width:'100%', height:'120px', objectFit:'contain', backgroundColor:'#F3F4F6', border:'1px solid #D1D5DB', borderRadius:'4px' }} alt="Croqui" />
+                        <button onClick={() => { setCroquiBase64(''); setMsgCroqui('') }}
                           style={{ position:'absolute', top:4, right:4, background:'#DC2626', color:'white', border:'none', borderRadius:'4px', padding:'2px 8px', fontSize:'10px', cursor:'pointer' }}>✕</button>
                       </div>
                     : <label style={{ border:'1px dashed #D1D5DB', borderRadius:'6px', padding:'20px', textAlign:'center' as const, display:'block', cursor:'pointer', fontSize:'11px', color:'#6B7280' }}>
@@ -979,6 +1000,13 @@ function LaudoComplemento() {
                           onChange={async e => { const f = e.target.files?.[0]; if (f) setCroquiBase64(await lerArquivoBase64(f)) }} />
                       </label>
                   }
+                  {!croquiBase64 && (
+                    <button type="button" onClick={gerarCroquiPeloEndereco} disabled={gerandoCroqui}
+                      style={{ marginTop:'6px', width:'100%', backgroundColor:'#1E3A8A', color:'white', border:'none', borderRadius:'6px', padding:'8px', fontSize:'11px', fontWeight:700, cursor: gerandoCroqui ? 'not-allowed' : 'pointer', opacity: gerandoCroqui ? 0.7 : 1 }}>
+                      {gerandoCroqui ? 'Gerando croqui...' : 'Gerar croqui pelo endereço (CEP e número)'}
+                    </button>
+                  )}
+                  {msgCroqui && <p style={{ fontSize:'11px', color: croquiBase64 ? '#92400E' : '#DC2626', margin:'6px 0 0', lineHeight:1.4 }}>{msgCroqui}</p>}
                 </div>
                 <div>
                   <label style={S.label}>Foto da fachada principal</label>
