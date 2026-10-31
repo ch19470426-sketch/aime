@@ -27,7 +27,22 @@ export default function BlocoAssinatura({ assinatura, ocupado, onCancelar, onRet
   onCancelar: () => void
   onRetomar: () => void            // "Concluir pagamento" / "Assinar novamente"
 }) {
-  if (!assinatura) return null
+  if (assinatura === undefined) return null   // ainda carregando
+  if (assinatura === null) {
+    // Sem assinatura em andamento: não há o que cancelar, mas o bloco aparece para dizer onde ficará o botão (30/10/2026, Celso não o achava).
+    return (
+      <div style={{ marginTop: '12px' }} data-bloco="assinatura">
+        <div style={{ backgroundColor: '#1E3A8A', color: 'white', padding: '6px 12px', fontSize: '12px', fontWeight: 700, borderRadius: '6px 6px 0 0' }}>
+          Assinatura
+        </div>
+        <div style={{ border: '1px solid #E2E8F0', borderTop: 'none', borderRadius: '0 0 6px 6px', padding: '12px' }}>
+          <p style={{ fontSize: '12px', color: '#374151', margin: 0, lineHeight: 1.5 }}>
+            Você não tem assinatura ativa. Quem assina o Plano Mensal ou o Plano Escritório (em Contratar Créditos) vê aqui o botão <b>Cancelar assinatura</b>, sem multa.
+          </p>
+        </div>
+      </div>
+    )
+  }
   const nome = NOMES[assinatura.tipo] ?? assinatura.tipo
   const ativa = assinatura.status === 'ativa'
   const pendente = assinatura.status === 'inadimplente'

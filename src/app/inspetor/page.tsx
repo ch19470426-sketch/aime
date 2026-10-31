@@ -793,7 +793,7 @@ function CadastroInspetor() {
                     <div style={{marginTop:'12px'}}>
                       <div style={{...blocoHeaderStyle,borderRadius:'6px 6px 0 0'}}><span style={blocoTituloStyle}>Contratar Créditos</span></div>
                       <div style={{border:'1px solid #E2E8F0',borderTop:'none',borderRadius:'0 0 6px 6px',padding:'12px'}}>
-                        <p style={{fontSize:'11px',color:'#6B7280',marginBottom:'12px',lineHeight:1.5}}>Contrate um plano ou créditos avulsos a qualquer momento, inclusive quando seus créditos acabarem. O pedido fica registrado e é liberado após a confirmação do pagamento. O Plano Mensal e o Plano Escritório também podem ser <b>assinados</b>: a cobrança se renova sozinha todo mês no cartão, e você cancela quando quiser.</p>
+                        <p style={{fontSize:'11px',color:'#6B7280',marginBottom:'12px',lineHeight:1.5}}>Contrate um plano ou créditos avulsos a qualquer momento, inclusive quando seus créditos acabarem. O pedido fica registrado e é liberado após a confirmação do pagamento. O Plano Mensal e o Plano Escritório também podem ser <b>assinados</b>: a cobrança se renova sozinha todo mês no cartão, e você cancela quando quiser, no bloco <b>Assinatura</b> desta tela.</p>
                         <div style={{display:'flex',gap:'8px',alignItems:'flex-end',flexWrap:'wrap'}}>
                           <div style={{flex:1,minWidth:'180px'}}>
                             <label style={labelStyle}>O que deseja contratar</label>
