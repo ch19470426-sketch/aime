@@ -990,7 +990,7 @@ function LaudoComplemento() {
                   <label style={S.label}>Croqui de localização (mapa)</label>
                   {croquiBase64
                     ? <div style={{ position:'relative' }}>
-                        <img src={croquiBase64} style={{ width:'100%', height:'120px', objectFit:'contain', backgroundColor:'#F3F4F6', border:'1px solid #D1D5DB', borderRadius:'4px' }} alt="Croqui" />
+                        <img src={croquiBase64} style={{ width:'100%', height:'200px', objectFit:'contain', backgroundColor:'#F3F4F6', border:'1px solid #D1D5DB', borderRadius:'4px' }} alt="Croqui" />
                         <button onClick={() => { setCroquiBase64(''); setMsgCroqui('') }}
                           style={{ position:'absolute', top:4, right:4, background:'#DC2626', color:'white', border:'none', borderRadius:'4px', padding:'2px 8px', fontSize:'10px', cursor:'pointer' }}>✕</button>
                       </div>

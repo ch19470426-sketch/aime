@@ -4,7 +4,8 @@
 //
 // Dois serviços do Google, os dois com a MESMA chave (GOOGLE_MAPS_API_KEY, só no servidor, nunca no navegador nem em log):
 //   1. Geocoding API: endereço -> latitude e longitude.
-//   2. Maps Static API: latitude e longitude -> imagem do mapa com um marcador. A imagem já traz o logotipo e o texto de direitos do Google:
+//   2. Maps Static API: latitude e longitude -> imagem do mapa com um marcador. Tamanho 450x350 (x2 = 900x700 px), quase a proporção do quadro do laudo
+//      (cerca de 90x70 mm): a imagem enche o quadro e os nomes das ruas saem maiores do que no formato largo 640x400 (02/11/2026, pouca visibilidade). A imagem já traz o logotipo e o texto de direitos do Google:
 //      não pode ser cortada nem receber nada por cima.
 // Cada croqui = 1 chamada de cada (10.000 de cada por mês sem custo, conferido em 31/10/2026 na página de preços do Google).
 // As coordenadas NÃO são guardadas: só servem para pedir a imagem na hora (os termos do Google limitam a guarda delas).
@@ -41,7 +42,7 @@ export function urlGeocode(endereco: string, chave: string): string {
 
 export function urlMapa(lat: number, lng: number, chave: string): string {
   const centro = `${lat.toFixed(6)},${lng.toFixed(6)}`
-  const q = new URLSearchParams({ center: centro, zoom: '17', size: '640x400', scale: '2', maptype: 'roadmap', language: 'pt-BR', markers: `color:red|${centro}`, key: chave })
+  const q = new URLSearchParams({ center: centro, zoom: '17', size: '450x350', scale: '2', maptype: 'roadmap', language: 'pt-BR', markers: `color:red|${centro}`, key: chave })
   return `https://maps.googleapis.com/maps/api/staticmap?${q.toString()}`
 }
 

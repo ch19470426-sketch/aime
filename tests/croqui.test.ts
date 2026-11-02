@@ -45,6 +45,7 @@ describe('gerarCroqui', () => {
   })
   it('a URL do mapa leva o marcador e a chave só na consulta ao Google', () => {
     expect(urlMapa(-20.3, -40.3, 'K')).toContain('markers=color%3Ared%7C-20.300000%2C-40.300000')
+    expect(urlMapa(-20.3, -40.3, 'K')).toContain('size=450x350')
   })
 })
 
