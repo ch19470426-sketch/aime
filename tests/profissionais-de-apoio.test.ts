@@ -162,6 +162,21 @@ describe('listar-vistorias: cada item é buscado com a chave do profissional da 
     estado.titulos[E] = null; estado.vinculos = [[E, A]]; estado.dadosVistoria = itens
     expect((await listarComo())['07-Instalações elétricas']).toBe(`INS-777_${CNPJ}_32_001.html`)
   })
+  it('quem hoje é civil NÃO recebe itens de outro civil só porque tem um vínculo de apoio antigo', async () => {
+    estado.vinculos = [[A, B]]
+    estado.dadosVistoria = [{ cpf_inspetor: B, sistema_vistoria: '03-Vedações', numero_foto: '1', tipo_servico: '32', cnpjoucpf: CNPJ }]
+    expect(await listarComo()).toEqual({})
+  })
+  it('chave que é o próprio CPF (cadastro antigo): só as vistorias dele entram, não as de outro inspetor do mesmo serviço', async () => {
+    estado.chaves[A] = null; estado.vinculos = []
+    estado.dadosVistoria = [
+      { cpf_inspetor: A, sistema_vistoria: '03-Vedações', numero_foto: '1', tipo_servico: '32', cnpjoucpf: CNPJ },
+      { cpf_inspetor: B, sistema_vistoria: '04-Coberturas', numero_foto: '1', tipo_servico: '32', cnpjoucpf: CNPJ },
+    ]
+    sessao(A)
+    const r = await listar.GET(req(`/api/listar-vistorias?chave_inspetor=${A}&cnpjoucpf=${CNPJ}&tipo_servico=42`))
+    expect(((await r.json()).ncs as any[]).map(n => n.sistema)).toEqual(['03-Vedações'])
+  })
   it('vistorias de NR têm outra numeração de sistemas: um sistema 09 de NR-12 NÃO vai para o mecânico de apoio', async () => {
     estado.vinculos = [[M, A]]
     estado.dadosVistoria = [{ cpf_inspetor: A, sistema_vistoria: '09_Proteções Fixas e Móveis', numero_foto: '7', tipo_servico: '37', cnpjoucpf: CNPJ }]

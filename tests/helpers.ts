@@ -67,12 +67,12 @@ export function mundo(u: URL, m: string, init: any): Response {
     if (filtroChave.startsWith('eq.')) {   // .eq('chave_inspetor', X).maybeSingle(): devolve o CPF dono da chave (lista vazia se não houver)
       const ch = filtroChave.slice(3)
       const cpfDono = Object.keys(estado.chaves).find(c => estado.chaves[c] === ch)
-      return jr(cpfDono ? [{ cpf_inspetor: cpfDono, chave_inspetor: ch }] : [])
+      return jr(cpfDono ? [{ cpf_inspetor: cpfDono, chave_inspetor: ch, titulo_profissional: estado.titulos[cpfDono] ?? null }] : [])
     }
     if (!u.searchParams.has('cpf_inspetor')) return jr(estado.chavesExistentes.map(c => ({ chave_inspetor: c })))   // lista de chaves
     if (!estado.cadastroExiste) return jr({ code: 'PGRST116', message: 'JSON object requested, multiple (or no) rows returned', details: 'The result contains 0 rows' }, 406)
     const cpf = (u.searchParams.get('cpf_inspetor') || '').replace('eq.', '')
-    return jr({ chave_inspetor: estado.chaves[cpf] ?? null, titulo_profissional: estado.titulos[cpf] ?? null, is_gestor: estado.gestor, email_inspetor: 'g@x.com', nome_inspetor: 'G', conta_bloqueada: false })
+    return jr({ cpf_inspetor: cpf, chave_inspetor: estado.chaves[cpf] ?? null, titulo_profissional: estado.titulos[cpf] ?? null, is_gestor: estado.gestor, email_inspetor: 'g@x.com', nome_inspetor: 'G', conta_bloqueada: false })
   }
   if (p.includes('/rest/v1/ativos_a_vistoriar') && m === 'POST') { estado.gravacoesAtivos.push(JSON.parse(String(init?.body ?? '{}'))); return jr([], 201) }
   if (p.includes('/rest/v1/dados_vistoria')) {
