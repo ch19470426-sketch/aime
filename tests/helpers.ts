@@ -63,6 +63,12 @@ export function mundo(u: URL, m: string, init: any): Response {
       const cpfs = filtroCpf.slice(4, -1).split(',').map(s => s.replace(/"/g, ''))
       return jr(cpfs.map(cpf => ({ cpf_inspetor: cpf, chave_inspetor: estado.chaves[cpf] ?? null, titulo_profissional: estado.titulos[cpf] ?? null })))
     }
+    const filtroChave = u.searchParams.get('chave_inspetor') || ''
+    if (filtroChave.startsWith('eq.')) {   // .eq('chave_inspetor', X).maybeSingle(): devolve o CPF dono da chave (lista vazia se não houver)
+      const ch = filtroChave.slice(3)
+      const cpfDono = Object.keys(estado.chaves).find(c => estado.chaves[c] === ch)
+      return jr(cpfDono ? [{ cpf_inspetor: cpfDono, chave_inspetor: ch }] : [])
+    }
     if (!u.searchParams.has('cpf_inspetor')) return jr(estado.chavesExistentes.map(c => ({ chave_inspetor: c })))   // lista de chaves
     if (!estado.cadastroExiste) return jr({ code: 'PGRST116', message: 'JSON object requested, multiple (or no) rows returned', details: 'The result contains 0 rows' }, 406)
     const cpf = (u.searchParams.get('cpf_inspetor') || '').replace('eq.', '')

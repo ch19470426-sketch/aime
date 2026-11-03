@@ -10,6 +10,7 @@ import { createClient } from '@supabase/supabase-js'
 import { exigirSessao, exigirChaveDoProprio } from '@/lib/autorizacao'
 import { listarArquivosComPrefixo } from '@/lib/armazenamento'
 import { perfilDoSistema } from '@/lib/profissionaisDeApoio'
+import { apenasDosCpfs } from '@/lib/pendentes'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -103,11 +104,26 @@ export async function GET(request: NextRequest) {
   // ── 0. dados_vistoria — fonte preferencial (mais robusta) ──────────────
   const porFoto = new Map<string, any>()
   try {
-    const { data: linhas } = await supabase
+    const { data: linhasDoServico } = await supabase
       .from('dados_vistoria')
       .select('*')
       .eq('cnpjoucpf', cnpjoucpf)
       .eq('tipo_servico', tipoVistoria)
+
+    // Só entram as vistorias de QUEM PEDE o laudo (antes, qualquer inspetor que tivesse feito o mesmo serviço no mesmo CNPJ/CPF aparecia no
+    // laudo dos outros). Os itens do profissional de apoio já ficam gravados com o CPF do civil; se quem pede é o apoio, vale também o CPF
+    // do civil vinculado a ele em art_profissional. Se não achar quem pede, não traz nada de terceiros.
+    const { data: quemPede } = await supabase
+      .from('inspetor').select('cpf_inspetor').eq('chave_inspetor', chaveInspetor).maybeSingle()
+    const cpfsPermitidos = new Set<string>()
+    if (quemPede?.cpf_inspetor) {
+      cpfsPermitidos.add(String(quemPede.cpf_inspetor))
+      const { data: vinculosDoApoio } = await supabase
+        .from('art_profissional').select('cpf_inspetor')
+        .eq('cnpjoucpf', cnpjoucpf).eq('cpf_eletrico', quemPede.cpf_inspetor)
+      for (const v of (vinculosDoApoio ?? [])) if (v.cpf_inspetor) cpfsPermitidos.add(String(v.cpf_inspetor))
+    }
+    const linhas = apenasDosCpfs(linhasDoServico, cpfsPermitidos)
 
     // A chave usada para montar o nome do arquivo salvo precisa ser a de QUEM
     // REALMENTE fez aquele item específico — não a de quem está pedindo a

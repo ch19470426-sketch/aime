@@ -13,6 +13,8 @@ export const runtime = 'nodejs'
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { exigirSessao, exigirProprioOuVinculado } from '@/lib/autorizacao'
+import { listarArquivosComPrefixo } from '@/lib/armazenamento'
+import { pendentesDaCombinacao } from '@/lib/pendentes'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -28,6 +30,24 @@ function deveReiniciar(updatedAt: string | null | undefined): boolean {
   const diffMs = Date.now() - new Date(updatedAt).getTime()
   const diffDias = diffMs / (1000 * 60 * 60 * 24)
   return diffDias > LIMITE_DIAS_REINICIO
+}
+
+// Remove de "vistorias/" as pendentes da combinação (chave do inspetor + CNPJ/CPF + serviço). Melhor esforço: se falhar, a higienização
+// semanal (185 dias) é a segunda rede, e a numeração segue normalmente.
+async function limparPendentesAntigas(cpfInspetor: string, cnpjoucpf: string, tipoServico: string) {
+  try {
+    const { data: insp } = await supabase.from('inspetor').select('chave_inspetor').eq('cpf_inspetor', cpfInspetor).maybeSingle()
+    const chave = insp?.chave_inspetor
+    if (!chave) return
+    const arquivos = await listarArquivosComPrefixo(supabase, 'vistorias', chave)
+    const alvo = pendentesDaCombinacao(arquivos.map(a => a.name), chave, cnpjoucpf, tipoServico)
+    if (alvo.length === 0) return
+    const { error } = await supabase.storage.from('aime').remove(alvo.map(n => `vistorias/${n}`))
+    if (error) console.error('[foto-nr] limpeza de pendentes falhou:', error.message)
+    else console.log(`[foto-nr] reinício da numeração: ${alvo.length} pendente(s) antiga(s) removida(s)`)
+  } catch (e) {
+    console.error('[foto-nr] limpeza de pendentes falhou:', e instanceof Error ? e.message : e)
+  }
 }
 
 // ─── GET — consulta o próximo número sem incrementar ─────────────────────────
@@ -99,6 +119,14 @@ export async function POST(request: NextRequest) {
     )
   }
 
+  // A numeração vai reiniciar? (já existe contador e passou o limite). Se sim, as vistorias PENDENTES (não homologadas) desta combinação
+  // têm mais de 60 dias sem uso e, com a numeração recomeçando em 1, poderiam colidir com as novas. Saem junto com o reinício.
+  const { data: contador } = await supabase
+    .from('foto_contador').select('updated_at')
+    .eq('cpf_inspetor', cpf_inspetor).eq('cnpjoucpf', cnpjoucpf).eq('tipo_servico', tipo_servico)
+    .maybeSingle()
+  const vaiReiniciar = !!contador?.updated_at && deveReiniciar(contador.updated_at)
+
   const { data: novoNr, error } = await supabase.rpc('proximo_numero_foto', {
     p_cpf_inspetor: cpf_inspetor,
     p_cnpjoucpf: cnpjoucpf,
@@ -109,6 +137,8 @@ export async function POST(request: NextRequest) {
   if (error) {
     return NextResponse.json({ erro: error.message }, { status: 500 })
   }
+
+  if (vaiReiniciar) await limparPendentesAntigas(String(cpf_inspetor), String(cnpjoucpf), String(tipo_servico))
 
   return NextResponse.json({
     nr:        novoNr,
