@@ -13,6 +13,7 @@ import { verificarDisponibilidade, consumirCreditos, referenciaDaGeracao } from 
 import { exigirSessao, exigirDonoDaGeracao, exigirCaminhosDoProprio, exigirArquivoDoProprio } from '@/lib/autorizacao'
 import { mapaDeDescricoes, descricaoDoSistema } from '@/lib/descSistemas'
 import { normalizarPrioridades, ehFamiliaNR, prioridadeDoGrau } from '@/lib/prioridade'
+import { tipoDeVistoriaDoLaudo } from '@/lib/tipoVistoria'
 import { normalizarDatas } from '@/lib/dataBR'
 
 const supabase = createClient(
@@ -1244,6 +1245,7 @@ export async function POST(request: NextRequest) {
         const { data: dvRows } = await supabase
           .from('dados_vistoria').select('numero_foto,tipo_ativo,tag_ativo_nr_serie,finalidade_vistoria')
           .eq('cpf_inspetor', cpfInspetor).eq('cnpjoucpf', cnpjoucpf)
+          .eq('tipo_servico', tipoDeVistoriaDoLaudo(tipoServico))   // só as vistorias DESTE serviço (a foto 1 do serviço 36 não pode herdar tag/tipo de ativo da foto 1 do 31)
         if (dvRows) dvRows.forEach((r:any) => {
           const k = String(r.numero_foto ?? '').replace(/^0+/,'') || '0'
           dvA2[k] = r
