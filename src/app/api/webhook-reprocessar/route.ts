@@ -1,7 +1,8 @@
 // src/app/api/webhook-reprocessar/route.ts
 // AIMÊ — Reprocessa o que ficou pendente do webhook do Asaas (marketing, 28/10/2026):
 //   1. eventos do Asaas que falharam (eventos_asaas.situacao = 'erro') — a liberação de créditos é idempotente;
-//   2. envios ao Google Analytics 4 pendentes (ga4_envios.status = 'pendente').
+//   2. envios ao Google Analytics 4 pendentes (ga4_envios.status = 'pendente');
+//   3. conferência de estornos no Asaas (13/11/2026): trata os estornos concluídos que o aviso não trouxe.
 // Roda 1x por dia pelo cron da Vercel (vercel.json) e também depois de cada aviso do Asaas. Também pode ser chamada por um
 // gestor logado (para conferir). SEGURANÇA: mesma regra da higienização — Bearer CRON_SECRET (cron) ou gestor logado.
 import { NextRequest, NextResponse } from 'next/server'
@@ -9,6 +10,7 @@ import { sessaoDaRequisicao } from '@/lib/sessaoServidor'
 import { ehGestor } from '@/lib/creditos'
 import { reprocessarEventosComErro } from '@/lib/eventosAsaas'
 import { processarFilaGa4 } from '@/lib/ga4'
+import { conferirEstornos } from '@/lib/pagamentos'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -29,7 +31,16 @@ export async function GET(request: NextRequest) {
     }
     const eventos = await reprocessarEventosComErro(20)
     const ga4 = await processarFilaGa4(50)
-    return NextResponse.json({ eventos, ga4 })
+    // Conferência DIÁRIA de estornos (13/11/2026): estorno parcial/de cartão não gera o aviso PAYMENT_REFUNDED, então o AIMÊ pergunta ao
+    // Asaas e trata os concluídos (mesma regra do botão do gestor). Uma falha aqui não derruba o resto.
+    let estornos: unknown = null
+    try {
+      const c = await conferirEstornos({})
+      const resumo = { conferidos: c.conferidos, tratados: c.tratados, emAndamento: c.itens.filter(i => i.acao === 'em_andamento').length, parciais: c.itens.filter(i => i.acao === 'parcial').length, erros: c.itens.filter(i => i.acao === 'erro').length }
+      for (const i of c.itens) if (i.acao === 'estornado' || i.acao === 'erro') console.log(`[conferencia-estornos] pedido ${i.pedidoId}: ${i.acao}`)
+      estornos = resumo
+    } catch (e) { console.error('[conferencia-estornos] falhou:', e instanceof Error ? e.message : e); estornos = { erro: true } }
+    return NextResponse.json({ eventos, ga4, estornos })
   } catch (err) {
     return NextResponse.json({ erro: String(err) }, { status: 500 })
   }

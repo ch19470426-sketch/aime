@@ -164,10 +164,10 @@ async function enfileirarEventoGa4(pedido: any, paymentId: string, evento: Event
   }
 }
 
-async function tratarEstorno(pedido: any, evento: string): Promise<ResultadoCobranca> {
+async function tratarEstorno(pedido: any, evento: string, origem = ''): Promise<ResultadoCobranca> {
   if (pedido.status !== 'pago') return ok({ ignorado: true, motivo: 'pedido_nao_pago' })   // nada foi concedido
   const { data: reservado, error: erroReserva } = await supabase.from('pedidos_credito')
-    .update({ estornado_em: new Date().toISOString(), motivo_estorno: evento })
+    .update({ estornado_em: new Date().toISOString(), motivo_estorno: origem ? `${evento}|${origem}` : evento })
     .eq('id', pedido.id).is('estornado_em', null).select('id')
   if (erroReserva) {
     // Um ERRO de banco (ex.: coluna ainda não criada) NUNCA pode virar "já processado": o Asaas daria o
@@ -183,7 +183,7 @@ async function tratarEstorno(pedido: any, evento: string): Promise<ResultadoCobr
     const rev = await revogarCreditos(pedido.cpf_inspetor, qde, pedido.tipo === 'AVULSO' ? 'avulso' : 'plano')
     if (pedido.assinatura_id) await encerrarAssinaturaPorBloqueio(pedido.assinatura_id)
     await bloquearConta(pedido.cpf_inspetor, motivo,
-      `Pedido #${pedido.id} (${pedido.tipo}). Créditos revogados: ${rev.revogados}; já usados e não recuperados: ${rev.naoRecuperados}.`)
+      `Pedido #${pedido.id} (${pedido.tipo}). Créditos revogados: ${rev.revogados}; já usados e não recuperados: ${rev.naoRecuperados}.${origem ? ' Estorno confirmado pelo gestor.' : ''}`)
     if (pedido.asaas_payment_id) await enfileirarEventoGa4(pedido, pedido.asaas_payment_id, 'refund', pedido.valor)
     return ok({ estornado: true, revogados: rev.revogados, naoRecuperados: rev.naoRecuperados })
   } catch (e) {
@@ -407,6 +407,27 @@ export async function processarCobranca(paymentId: string, evento = '', statusNo
 // cada compra paga recente e trata as que estão estornadas ou em chargeback (mesma regra do aviso:
 // revoga o saldo restante dessa compra, esquece o usado, bloqueia a conta). Botão no Painel do Gestor.
 // ─────────────────────────────────────────────────────────────────────────────────────────────
+/**
+ * Confirmação MANUAL do estorno pelo gestor (13/11/2026). O estorno de cartão pode ficar PENDING no Asaas por semanas (até a
+ * compensação com a adquirente), embora o dinheiro já tenha voltado ao cliente. O gestor confere o extrato e confirma: roda o MESMO
+ * fluxo do estorno concluído (revoga o saldo restante da compra, esquece o usado, encerra a assinatura, bloqueia a conta). Não ajusta
+ * saldo à mão. Salvaguardas: o pedido precisa estar pago e ainda não estornado, e o Asaas precisa ter um estorno solicitado nessa cobrança
+ * (um clique errado numa compra normal não faz nada). Fica gravado quem confirmou (motivo_estorno).
+ */
+export async function confirmarEstornoManual(pedidoId: number, cpfGestor: string): Promise<ResultadoCobranca> {
+  const { data: pedido, error } = await supabase.from('pedidos_credito').select('*').eq('id', pedidoId).maybeSingle()
+  if (error) return { status: 500, corpo: { erro: `não consegui ler o pedido: ${error.message}` } }
+  if (!pedido) return { status: 404, corpo: { erro: 'Pedido não encontrado.' } }
+  if (pedido.status !== 'pago') return { status: 409, corpo: { erro: 'Só compra paga pode ter o estorno confirmado.' } }
+  if (pedido.estornado_em) return { status: 409, corpo: { erro: 'Este estorno já foi tratado.' } }
+  if (!pedido.asaas_payment_id) return { status: 409, corpo: { erro: 'Pedido sem cobrança no Asaas.' } }
+  let situacao: ReturnType<typeof situacaoDeEstorno>
+  try { situacao = situacaoDeEstorno(await consultarCobranca(pedido.asaas_payment_id)) }
+  catch (e) { return { status: 502, corpo: { erro: `não consegui consultar o Asaas: ${e instanceof Error ? e.message : String(e)}` } } }
+  if (situacao.tipo === 'nenhum') return { status: 409, corpo: { erro: 'O Asaas não tem estorno solicitado nesta cobrança.' } }
+  return tratarEstorno(pedido, 'PAYMENT_REFUNDED', `confirmado_gestor:${cpfGestor}`)
+}
+
 export type ItemConferencia = {
   pedidoId: number; cpf: string; tipo: string; qde: number; paymentId: string
   statusAsaas: string

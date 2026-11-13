@@ -341,6 +341,33 @@ export default function GestorPage() {
     finally { setConferindo(false) }
   }
 
+  // Confirma o estorno de uma compra cujo estorno está pendente no Asaas (dinheiro já devolvido, conferido no extrato).
+  function confirmarEstornoPendente(it: any) {
+    solicita('Confirmar o estorno?',
+      `Compra #${it.pedidoId} (${it.tipo}), CPF ${it.cpf}. Confirme que você conferiu no extrato do banco que o valor foi devolvido ao cliente. Os créditos restantes dessa compra serão revogados, a assinatura encerrada e a conta bloqueada.`,
+      [
+        { label: 'Confirmar estorno', acao: () => { fechar(); void enviarConfirmacaoDeEstorno(it) }, estilo: 'primario' },
+        { label: 'Voltar', acao: fechar, estilo: 'secundario' },
+      ])
+  }
+  async function enviarConfirmacaoDeEstorno(it: any) {
+    setConferindo(true)
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      const res = await fetch('/api/gestor/confirmar-estorno', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session?.access_token ?? ''}` },
+        body: JSON.stringify({ pedidoId: it.pedidoId }),
+      })
+      const d = await res.json().catch(() => ({}))
+      if (!res.ok) { informa('Não foi possível confirmar', d.erro ?? 'Tente novamente em instantes.'); return }
+      informa('Estorno confirmado', `${d.revogados ?? 0} CR revogados; ${d.naoRecuperados ?? 0} já usados (esquecidos). Conta bloqueada.`)
+      await carregarContasBloqueadas()
+    } catch { informa('Não foi possível confirmar', 'Erro de conexão. Tente novamente.') }
+    finally { setConferindo(false) }
+    await conferirEstornosAsaas()
+  }
+
   function confirmarDesbloqueio(conta: any) {
     solicita('Desbloquear a conta?',
       `${conta.nome_inspetor ?? ''} (CPF ${conta.cpf_inspetor}) poderá voltar a usar o aplicativo e a contratar créditos. Confirme que a pendência foi regularizada.`,
@@ -989,6 +1016,14 @@ export default function GestorPage() {
                       <b>#{it.pedidoId}</b> · {it.tipo}{it.tipo === 'AVULSO' ? ` ${it.qde} CR` : ''} · CPF {it.cpf} · Asaas: <b>{it.statusAsaas}</b>
                       {' → '}{it.acao === 'estornado' ? 'ESTORNO TRATADO' : it.acao === 'ja_estornado' ? 'já tratado' : it.acao === 'em_andamento' ? 'estorno em andamento' : it.acao === 'parcial' ? 'estorno PARCIAL (não tratado)' : it.acao === 'erro' ? 'erro' : 'sem estorno'}
                       {it.detalhe ? ` (${it.detalhe})` : ''}
+                      {(it.acao === 'em_andamento' || it.acao === 'parcial') && (
+                        <div style={{ marginTop: '4px' }}>
+                          <button data-confirmar-estorno onClick={() => confirmarEstornoPendente(it)} disabled={conferindo}
+                            style={{ backgroundColor: '#92400E', color: 'white', border: 'none', borderRadius: '9999px', padding: '5px 14px', fontSize: '11px', fontWeight: 700, cursor: conferindo ? 'not-allowed' : 'pointer' }}>
+                            Confirmar estorno
+                          </button>
+                        </div>
+                      )}
                       {it.dadosAsaas && <div data-dados-asaas style={{ fontSize: '10px', color: '#6B7280', marginTop: '2px', wordBreak: 'break-word' as const }}>Dados do Asaas: {it.dadosAsaas}</div>}
                     </div>
                   ))}

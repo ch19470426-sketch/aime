@@ -9,6 +9,7 @@ import VersaoBuild from "@/components/VersaoBuild"
 import { useBanner } from "@/hooks/useBanner"
 import { createClient } from "@/utils/supabase/client"
 import { precoPlanoCentavos, formatarReais } from "@/lib/precos"
+import { PAGAR_SO_ESTE_MES_ATIVO } from '@/lib/regrasPlano'
 import { atribuicaoAtual } from '@/lib/origemVisita'
 
 export default function EscolherPlanoPage() {
@@ -275,10 +276,12 @@ function EscolherPlano() {
                   <option value="CREDIT_CARD">Cartão de crédito</option>
                 </select>
               </div>
+              {(PAGAR_SO_ESTE_MES_ATIVO || !assinavel) && (
               <button onClick={() => contratarPago(selecionado)} disabled={enviando}
                 style={{ backgroundColor: "#1E3A8A", color: "white", fontWeight: 600, padding: "9px 24px", borderRadius: "50px", border: "none", cursor: enviando ? "not-allowed" : "pointer", fontSize: "12px", opacity: enviando ? 0.6 : 1 }}>
                 {enviando ? "Aguarde..." : (assinavel ? "Pagar só este mês" : "Contratar")}
               </button>
+              )}
               {assinavel && (
                 <button onClick={() => assinar(selecionado!)} disabled={enviando}
                   style={{ backgroundColor: "#059669", color: "white", fontWeight: 600, padding: "9px 24px", borderRadius: "50px", border: "none", cursor: enviando ? "not-allowed" : "pointer", fontSize: "12px", opacity: enviando ? 0.6 : 1 }}>
@@ -290,7 +293,7 @@ function EscolherPlano() {
           {assinavel && !pagamento && (
             <p style={{ fontSize: "11px", color: "#6B7280", textAlign: "center", margin: "10px auto 0", maxWidth: "520px", lineHeight: 1.5 }}>
               <b>Assinar</b>: cobrança automática todo mês no cartão de crédito; você cancela quando quiser, e os créditos do período pago continuam valendo.{" "}
-              <b>Pagar só este mês</b>: PIX ou cartão, sem renovação automática.
+              {PAGAR_SO_ESTE_MES_ATIVO && <><b>Pagar só este mês</b>: PIX ou cartão, sem renovação automática.</>}
             </p>
           )}
 

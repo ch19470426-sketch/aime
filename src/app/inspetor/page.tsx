@@ -8,6 +8,7 @@ import { createClient } from "@/utils/supabase/client"
 import BlocoAssinatura, { type AssinaturaStatus } from '@/components/BlocoAssinatura'
 import { rodadaDeEspera } from '@/lib/esperaPagamento'
 import { contratoCorrente } from '@/lib/contratos'
+import { PAGAR_SO_ESTE_MES_ATIVO } from '@/lib/regrasPlano'
 import Banner from '@/components/Banner'
 import VersaoBuild from '@/components/VersaoBuild'
 import { useBanner } from '@/hooks/useBanner'
@@ -823,10 +824,12 @@ function CadastroInspetor() {
                             style={{padding:"8px 20px",borderRadius:"50px",border:"1px solid #1E3A8A",backgroundColor:"white",color:"#1E3A8A",fontWeight:"600",fontSize:"12px",cursor:"pointer"}}>
                             Voltar
                           </button>
+                          {(PAGAR_SO_ESTE_MES_ATIVO || !(tipoPedido==='PLANO MENSAL'||tipoPedido==='PLANO ESCRITÓRIO')) && (
                           <button onClick={criarPedido} disabled={enviandoPedido}
                             style={{backgroundColor:'#1E3A8A',color:'white',border:'none',borderRadius:'9999px',padding:'8px 20px',fontSize:'12px',fontWeight:700,cursor:enviandoPedido?'not-allowed':'pointer',opacity:enviandoPedido?0.6:1}}>
                             {enviandoPedido?'Aguarde...':((tipoPedido==='PLANO MENSAL'||tipoPedido==='PLANO ESCRITÓRIO')?'Pagar só este mês':'Contratar')}
                           </button>
+                          )}
                           {(tipoPedido==='PLANO MENSAL'||tipoPedido==='PLANO ESCRITÓRIO') && !(statusCred?.assinatura?.tipo===tipoPedido && statusCred.assinatura.status==='ativa') && (
                             <button onClick={() => assinarPlano(tipoPedido)} disabled={enviandoPedido}
                               style={{backgroundColor:'#059669',color:'white',border:'none',borderRadius:'9999px',padding:'8px 20px',fontSize:'12px',fontWeight:700,cursor:enviandoPedido?'not-allowed':'pointer',opacity:enviandoPedido?0.6:1}}>

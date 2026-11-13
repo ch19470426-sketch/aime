@@ -40,3 +40,9 @@ export async function bloqueioMigracaoParaCortesia(
   }
   return null
 }
+
+/**
+ * Botão "Pagar só este mês" (pagamento avulso do mês, sem renovação) dos planos MENSAL e ESCRITÓRIO. DECISÃO de Celso (13/11/2026): ocultar o
+ * botão, mantendo tudo implementado. Para voltar a mostrar, troque para true — nenhuma outra mudança é necessária.
+ */
+export const PAGAR_SO_ESTE_MES_ATIVO = false
