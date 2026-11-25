@@ -9,6 +9,7 @@ import { camposFaltantes } from '@/lib/coletaLaudo'
 import { ehPrioridadeAltaOuMedia } from '@/lib/prioridade'
 import { credencialDoBanco } from '@/lib/bancoNavegador'
 import { nomeSemChave } from '@/lib/nomeArquivo'
+import { nomeDoPlanoDoLaudo, mensagemSemPlano } from '@/lib/planoDoLaudo'
 
 // ─── Tipos ───────────────────────────────────────────────────────────────────
 interface NC {
@@ -488,6 +489,14 @@ function LaudoComplemento() {
         '45':'35','46':'36','47':'37','48':'38',
       }
       const tipoVistoriaFiltro = LAUDO_PARA_VISTORIA[tipoServico] ?? tipoServico
+      // O laudo exige o Plano de Trabalho do mesmo tipo (o servidor também confere). Falha de rede aqui não bloqueia.
+      const nomePlanoExigido = nomeDoPlanoDoLaudo(chaveInspetor, cnpjoucpf, tipoServico)
+      if (nomePlanoExigido) {
+        try {
+          const resPl = await fetch(`/api/ler-documento?nome=${encodeURIComponent(nomePlanoExigido)}&pasta=documentos_inspetor`)
+          if (resPl.status === 404) { setErro(mensagemSemPlano(tipoServico)); return }   // 404 = plano não existe
+        } catch { /* o servidor confere de novo */ }
+      }
       const resPend = await fetch(`/api/vistorias?chave_inspetor=${chaveInspetor}&cnpjoucpf=${cnpjoucpf}&tipo_servico=${tipoVistoriaFiltro}`)
       const dataPend = await resPend.json()
       const pendentes = Array.isArray(dataPend?.formularios) ? dataPend.formularios : []

@@ -14,6 +14,7 @@ import { exigirSessao, exigirDonoDaGeracao, exigirCaminhosDoProprio, exigirArqui
 import { mapaDeDescricoes, descricaoDoSistema } from '@/lib/descSistemas'
 import { normalizarPrioridades, ehFamiliaNR, prioridadeDoGrau } from '@/lib/prioridade'
 import { tipoDeVistoriaDoLaudo } from '@/lib/tipoVistoria'
+import { nomeDoPlanoDoLaudo, mensagemSemPlano } from '@/lib/planoDoLaudo'
 import { normalizarDatas } from '@/lib/dataBR'
 
 const supabase = createClient(
@@ -399,6 +400,15 @@ export async function POST(request: NextRequest) {
     // embutido no laudo, e o da ART ganhava um link assinado de 30 dias. Agora só aceita laudos_imagens/<arquivo do próprio usuário>.
     const donoImagens = await exigirCaminhosDoProprio(request, [complemento?.pathCroqui, complemento?.pathFoto, complemento?.pathArt, complemento?.pathArtEletrico, complemento?.pathArtMecanico], ['laudos_imagens'])
     if (donoImagens.ok === false) return donoImagens.resposta
+
+    // O laudo exige o Plano de Trabalho do mesmo tipo (decisão de Celso, 25/11/2026). Falha na consulta ao armazenamento NÃO bloqueia (só a
+    // ausência confirmada do arquivo): o erro fica no log.
+    const nomePlanoExigido = nomeDoPlanoDoLaudo(chaveInspetor, cnpjoucpf, tipoServico)
+    if (nomePlanoExigido) {
+      const { data: achados, error: erroPlano } = await supabase.storage.from('aime').list('documentos_inspetor', { search: nomePlanoExigido, limit: 10 })
+      if (erroPlano) console.error('[gerar-laudo] não consegui conferir o plano de trabalho:', erroPlano.message)
+      else if (!(achados ?? []).some(f => f.name === nomePlanoExigido)) return NextResponse.json({ erro: mensagemSemPlano(tipoServico), semPlano: true }, { status: 409 })
+    }
 
     // Imagens/documentos do storage — usado por 41-44 e 45-48
     async function imgSrc(path: string): Promise<string> {
